@@ -283,7 +283,7 @@ class centralWindow(object):
 			if 'delta' in zones[zoneName].keys():
 				for ppmSize in zones[zoneName]['delta'].keys():
 					print 'DELTAC'
-					print 'CVT number:', self.zone_to_cvt[zoneName], 'firstFourBytes:', int(ppmSize) - 9, 'nextFourBytes:', zones[zoneName]['delta'][ppmSize]
+					print 'CVT number:', self.zone_to_cvt[zoneName], 'firstFourBits:', int(ppmSize) - 9, 'nextFourBits:', zones[zoneName]['delta'][ppmSize]
 
 
 		installControl = [
