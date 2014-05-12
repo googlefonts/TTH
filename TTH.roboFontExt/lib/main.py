@@ -279,11 +279,27 @@ class centralWindow(object):
 						]
 
 		#Add support for zones deltas
+		deltaZones = []
 		for zoneName in zones.keys():
 			if 'delta' in zones[zoneName].keys():
+				stepToSelector = {'-8': 0, '-7': 1, '-6': 2, '-5': 3, '-4': 4, '-3': 5, '-2': 6, '-1': 7, '1': 8, '2': 9, '3': 10, '4': 11, '5': 12, '6': 13, '7': 14, '8': 15}
 				for ppmSize in zones[zoneName]['delta'].keys():
-					print 'DELTAC'
-					print 'CVT number:', self.zone_to_cvt[zoneName], 'firstFourBits:', int(ppmSize) - 9, 'nextFourBits:', zones[zoneName]['delta'][ppmSize]
+					CVT_number = self.zone_to_cvt[zoneName]
+					if 0 <= (int(ppmSize) - 9) <= 15 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
+						arg = ((int(ppmSize) - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC1[ ]']
+
+					elif 16 <= (int(ppmSize) - 9) <= 31 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
+						arg = ((int(ppmSize) -16 - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC2[ ]']
+
+					elif 32 <= (int(ppmSize) - 9) <= 47 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
+						arg = ((int(ppmSize) -32 - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC3[ ]']
+
+					else:
+						deltaC = []
+					deltaZones.extend(deltaC)
 
 
 		installControl = [
@@ -308,7 +324,7 @@ class centralWindow(object):
 		table_PREP.extend(pixelsStemHorizontal)
 		table_PREP.extend(pixelsStemVertical)
 		table_PREP.extend(roundZones)
-		# ADD DELTAS
+		table_PREP.extend(deltaZones)
 		table_PREP.extend(installControl)
 		print table_PREP
 
