@@ -151,6 +151,430 @@ class centralWindow(object):
 	def closeCentral(self):
 		self.wCentral.close()
 
+	def PPEMSizeEditTextCallback(self, sender):
+		try:
+			newValue = int(sender.get())
+		except ValueError:
+			newValue = 9
+			sender.set(9)
+		self.TTHToolInstance.PPM_Size = newValue
+		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		UpdateCurrentGlyphView()
+		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+
+	def PPEMSizePopUpButtonCallback(self, sender):
+		self.TTHToolInstance.PPM_Size = self.PPMSizesList[sender.get()]
+		self.wCentral.PPEMSizeEditText.set(self.TTHToolInstance.PPM_Size)
+		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		UpdateCurrentGlyphView()
+		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+
+	def BitmapPreviewPopUpButtonCallback(self, sender):
+		self.TTHToolInstance.bitmapPreviewSelection = self.BitmapPreviewList[sender.get()]
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		UpdateCurrentGlyphView()
+		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+
+	def GeneralShowButtonCallback(self, sender):
+		self.wCentral.GeneralHideButton.show(True)
+		self.wCentral.GeneralShowButton.show(False)
+		self.TTHToolInstance.FL_Windows.showGeneral()
+
+	def GeneralHideButtonCallback(self, sender):
+		self.wCentral.GeneralHideButton.show(False)
+		self.wCentral.GeneralShowButton.show(True)
+		self.TTHToolInstance.FL_Windows.hideGeneral()
+
+	def StemsShowButtonCallback(self, sender):
+		self.wCentral.StemsHideButton.show(True)
+		self.wCentral.StemsShowButton.show(False)
+		self.TTHToolInstance.FL_Windows.showStems()
+
+	def StemsHideButtonCallback(self, sender):
+		self.wCentral.StemsHideButton.show(False)
+		self.wCentral.StemsShowButton.show(True)
+		self.TTHToolInstance.FL_Windows.hideStems()
+
+	def ZonesShowButtonCallback(self, sender):
+		self.wCentral.ZonesHideButton.show(True)
+		self.wCentral.ZonesShowButton.show(False)
+		self.TTHToolInstance.FL_Windows.showZones()
+
+	def ZonesHideButtonCallback(self, sender):
+		self.wCentral.ZonesHideButton.show(False)
+		self.wCentral.ZonesShowButton.show(True)
+		self.TTHToolInstance.FL_Windows.hideZones()
+
+	def ReadTTProgramButtonCallback(self, sender):
+		self.TTHToolInstance.readGlyphTTProgram(CurrentGlyph())
+		self.TTHToolInstance.writeAssembly(self.TTHToolInstance.g, self.TTHToolInstance.glyphTTHCommands)
+		self.TTHToolInstance.generateFullTempFont()
+		self.TTHToolInstance.resetglyph()
+		UpdateCurrentGlyphView()
+
+	def BuildCVTButtonCallback(self, sender):
+		self.TTHToolInstance.writeCVT(self.f, self.f.info.unitsPerEm, self.TTHToolInstance.FL_Windows.alignppm, self.TTHToolInstance.FL_Windows.stems, self.TTHToolInstance.FL_Windows.zones)
+
+	def BuildPREPButtonCallback(self, sender):
+		self.TTHToolInstance.writePREP(self.f, self.TTHToolInstance.FL_Windows.stems, self.TTHToolInstance.FL_Windows.zones, self.TTHToolInstance.FL_Windows.codeppm)
+
+	def BuildFPGMButtonCallback(self, sender):
+		self.TTHToolInstance.writeFPGM(self.f)
+
+
+class TTHCommand(object):
+	def __init__(self, g, command, TTHToolInstance):
+
+		self.TTHToolInstance = TTHToolInstance
+
+		self.code = command['code']
+		#print '---> code:', self.code
+
+		if self.code == 'alignv' or self.code == 'alignh':
+			self.point = command['point']
+			# if self.point == 'rsb' or self.point == 'lsb':
+			# 	print 'point:', self.point
+			# else:
+			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
+
+			self.align = command['align']
+			# print 'align:', self.align
+
+		if self.code == 'alignt' or self.code == 'alignb':
+			self.point = command['point']
+			if self.point == 'rsb' or self.point == 'lsb':
+				print 'point:', self.point
+			else:
+				pointUniqueID = self.TTHToolInstance.pointNameToUniqueID[self.point]
+				print 'point:', pointUniqueID, self.TTHToolInstance.pointIndexFromUniqueID(g, pointUniqueID)
+
+			self.zone = command['zone']
+			print 'zone:', self.zone, self.TTHToolInstance.zone_to_cvt[self.zone]
+			
+
+		if self.code == 'singleh' or self.code == 'singlev':
+			self.point1 = command['point1']
+			# if self.point1 == 'rsb' or self.point1 == 'lsb':
+			# 	print 'point1:', self.point1
+			# else:
+			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
+
+			self.point2 = command['point2']
+			# if self.point2 == 'rsb' or self.point2 == 'lsb':
+			# 	print 'point2:', self.point2
+			# else:
+			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
+
+			if 'stem' in command.keys():
+				self.stem = command['stem']
+				# print 'stem:', self.stem
+			if 'round' in command.keys():
+				self.round = command['round']
+				# print 'round:', self.round
+
+		if self.code == 'doubleh' or self.code == 'doublev':
+			self.point1 = command['point1']
+			# if self.point1 == 'rsb' or self.point1 == 'lsb':
+			# 	print 'point1:', self.point1
+			# else:
+			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
+
+			self.point2 = command['point2']
+			# if self.point2 == 'rsb' or self.point2 == 'lsb':
+			# 	print 'point2:', self.point2
+			# else:
+			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
+
+			if 'stem' in command.keys():
+				self.stem = command['stem']
+				# print 'stem:', stem
+			if 'round' in command.keys():
+				self.round = command['round']
+				# print 'round:', self.round
+
+		if self.code == 'mdeltav' or self.code == 'mdeltah':
+			self.point = command['point']
+			# if self.point == 'rsb' or self.point == 'lsb':
+			# 	print 'point:', self.point
+			# else:
+			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
+
+			self.delta = command['delta']
+			# print 'delta:', self.delta
+			self.ppm1 = command['ppm1']
+			# print 'ppm1:', self.ppm1
+			self.ppm2 = command['ppm2']
+			# print 'ppm2', self.ppm2
+
+		if self.code == 'fdeltav' or self.code == 'fdeltah':
+			self.point = command['point']
+			# if self.point == 'rsb' or self.point == 'lsb':
+			# 	print 'point:', self.point
+			# else:
+			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
+
+			self.delta = command['delta']
+			# print 'delta:', self.delta
+			self.ppm1 = command['ppm1']
+			# print 'ppm1:', self.ppm1
+			self.ppm2 = command['ppm2']
+			# print 'ppm2', self.ppm2
+
+		if self.code == 'interpolatev' or self.code == 'interpolateh':
+			self.point = command['point']
+			# if self.point == 'rsb' or self.point == 'lsb':
+			# 	print 'point:', self.point
+			# else:
+			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
+
+			self.point1 = command['point1']
+			# if self.point1 == 'rsb' or self.point1 == 'lsb':
+			# 	print 'point1:', self.point1
+			# else:
+			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
+
+			self.point2 = command['point2']
+			# if self.point2 == 'rsb' or self.point2 == 'lsb':
+			# 	print 'point2:', self.point2
+			# else:
+			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
+			if 'align' in command.keys():
+				self.align = command['align']
+				# print 'align:', self.align
+
+
+class TTHTool(BaseEventTool):
+
+	def __init__(self):
+		BaseEventTool.__init__(self)
+		self.PPM_Size = 9
+		self.ready = False
+		self.key = False
+		self.unicodeToNameDict = createUnicodeToNameDict()
+
+	def getGlyphIndexByName(self, glyphName):
+		try:
+			return self.indexOfGlyphNames[glyphName]
+		except:
+			return None
+
+	def getGlyphNameByIndex(self, glyphIndex, font):
+		try:
+			return font.lib['public.glyphOrder'][glyphIndex]
+		except:
+			return None
+
+	### TTH freetype ###
+	def generateTempFont(self):
+		tempFont = RFont(showUI=False)
+		tempGlyph = self.g.copy()
+
+		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
+		tempFont.info.ascender = CurrentFont().info.ascender
+		tempFont.info.descender = CurrentFont().info.descender
+		tempFont.info.xHeight = CurrentFont().info.xHeight
+		tempFont.info.capHeight = CurrentFont().info.capHeight
+
+		tempFont.info.familyName = CurrentFont().info.familyName
+		tempFont.info.styleName = CurrentFont().info.styleName
+		try:
+			tempFont.lib['com.robofont.robohint.cvt '] = CurrentFont().lib['com.robofont.robohint.cvt ']
+			tempFont.lib['com.robofont.robohint.prep'] = CurrentFont().lib['com.robofont.robohint.prep']
+			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
+		except:
+			pass
+
+		tempFont.newGlyph(self.g.name)
+		tempFont[self.g.name] = tempGlyph
+
+		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
+
+	def deleteTempFont(self):
+		os.remove(self.tempfontpath)
+
+	def generateFullTempFont(self):
+		root =  os.path.split(self.f.path)[0]
+		tail = 'Fulltemp.ttf'
+		self.fulltempfontpath = os.path.join(root, tail)
+
+		self.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		self.tempFullUFO = OpenFont(self.fulltempfontpath, showUI=False)
+
+
+
+	def mergeSingleGlyphTempFontInFullTempFont(self):
+		
+		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
+
+		glyphToCopy = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
+		self.tempFullUFO[glyphNameToCopy] = glyphToCopy
+
+
+	def loadGeneratedGlyphIntoLayer(self):
+		tempUFO = OpenFont(self.tempfontpath, showUI=False)
+		for temp_g in tempUFO:
+			if temp_g.name == self.g.name:
+				sourceLayer = temp_g.getLayer("foreground")
+				targetLayer = self.g.getLayer("TTH_workingSpace")
+				targetLayer.clear()
+		 		targetWidth = self.g.width
+		 		self.g.flipLayers("foreground", "TTH_workingSpace")
+		 		self.f[self.g.name] = temp_g.copy()
+		 		self.f[self.g.name].width = targetWidth
+		 		self.g.update()
+
+
+	def loadFaceGlyph(self, glyphName):
+		
+		self.face.set_pixel_sizes(int(self.PPM_Size), int(self.PPM_Size))
+		g_index = self.getGlyphIndexByName(glyphName)
+		if self.bitmapPreviewSelection == 'Monochrome':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+    	                    freetype.FT_LOAD_TARGET_MONO )
+		elif self.bitmapPreviewSelection == 'Grayscale':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+							freetype.FT_LOAD_TARGET_NORMAL)
+		elif self.bitmapPreviewSelection == 'Subpixel':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+                       freetype.FT_LOAD_TARGET_LCD )
+		else:
+			self.face.load_glyph(g_index)
+
+
+		self.adaptedOutline_points = []
+		for i in range(len(self.face.glyph.outline.points)):
+			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
+
+	def resetfonts(self):
+
+		self.allFonts = loadFonts()
+		if not self.allFonts:
+			return
+		self.f = loadCurrentFont(self.allFonts)
+		
+		self.g = CurrentGlyph()
+
+		self.generateFullTempFont()
+		self.indexOfGlyphNames = dict([(self.tempFullUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.tempFullUFO.lib['public.glyphOrder']))])
+
+		self.UPM = self.f.info.unitsPerEm
+		self.pitch = int(self.UPM) / int(self.PPM_Size)
+
+		self.FL_Windows = FL_TTH_Windows(self.f)
+		self.centralWindow = centralWindow(self.f, self)
+		self.previewWindow = previewWindow(self.f, self)
+
+		self.writeCVT(self.f, self.f.info.unitsPerEm, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones)
+		self.writePREP(self.f, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
+		self.writeFPGM(self.f)
+
+
+	def resetglyph(self):
+		
+		root =  os.path.split(self.f.path)[0]
+		tail = 'temp.ttf'
+		self.tempfontpath = os.path.join(root, tail)
+
+		self.g = CurrentGlyph()
+		if self.g != None:
+			self.generateTempFont()
+			self.face = freetype.Face(self.fulltempfontpath)
+			self.loadFaceGlyph(self.g.name)
+			self.mergeSingleGlyphTempFontInFullTempFont()
+			self.face = freetype.Face(self.fulltempfontpath)
+			self.ready = True
+		
+	def becomeActive(self):
+		self.resetfonts()
+		self.bitmapPreviewSelection = 'Monochrome'
+
+	def becomeInactive(self):
+		try:
+			self.FL_Windows.closeAll()
+			self.centralWindow.closeCentral()
+			self.previewWindow.closePreview()
+		except:
+			pass
+
+	def fontResignCurrent(self, font):
+		try:
+			self.FL_Windows.closeAll()
+			self.centralWindow.closeCentral()
+			self.previewWindow.closePreview()
+			self.resetfonts()
+			self.resetglyph()
+		except:
+			pass
+
+	def fontBecameCurrent(self, font):
+		try:
+			self.FL_Windows.closeAll()
+			self.centralWindow.closeCentral()
+			self.previewWindow.closePreview()
+			self.resetfonts()
+			self.resetglyph()
+		except:
+			pass
+
+	def viewDidChangeGlyph(self):
+		self.resetglyph()
+		self.previewWindow.view.setNeedsDisplay_(True)
+		self.readGlyphTTProgram(self.g)
+
+
+	#########################
+	def makePointNameToUniqueIDDict(self, g):
+		pointNameToUniqueID = {}
+		for contour in g:
+			for point in contour.points:
+				if point.name:
+					name =  point.name.split(',')[0]
+					uniqueID = point.naked().uniqueID
+					pointNameToUniqueID[name] = uniqueID
+		return pointNameToUniqueID
+
+	def pointIndexFromUniqueID(self, g, pointUniqueID):
+		pointIndex = 0
+		for contour in g:
+			for point in contour.points:
+				if pointUniqueID == point.naked().uniqueID:
+					return pointIndex
+				pointIndex += 1
+		return None
+
+
+	def readGlyphTTProgram(self, g):
+		if g == None:
+			return
+		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
+		if 'com.fontlab.ttprogram' in g.lib.keys():
+			ttprogram = g.lib['com.fontlab.ttprogram']
+			ttprogram = str(ttprogram).split('\\n')
+			#print 'TT Program for glyph', g.name
+			self.glyphTTHCommands = []
+			#print ttprogram
+			for line in ttprogram[1:-2]:
+				TTHCommandList = []
+				TTHCommandDict = {}
+				for settings in line[9:-2].split('='):
+					setting = settings.split ('"')
+					for command in setting:
+						if command != '':
+							if command[0] == ' ':
+								command = command[1:]
+							TTHCommandList.append(command)
+				for i in range(0, len(TTHCommandList), 2):
+					TTHCommandDict[TTHCommandList[i]] = TTHCommandList[i+1]
+
+				self.glyphTTHCommands.append(TTHCommand(g, TTHCommandDict, self))
+
+			
+
+	#def writeGlyphTTProgram(self, g, glyphTTHCommands):
+
 	def writeCVT(self, f, UPM, alignppm, stems, zones):
 		table_CVT = []
 		self.stem_to_cvt = {}
@@ -190,7 +614,7 @@ class centralWindow(object):
 			cvt = zones[name]['width']
 			table_CVT.append(cvt)
 
-		print table_CVT
+		#print table_CVT
 		f.lib['com.robofont.robohint.cvt '] = table_CVT
 	
 	def writePREP(self, f, stems, zones, codePPM):
@@ -646,410 +1070,41 @@ class centralWindow(object):
 		]
 		table_FPGM.extend(FPGM_8)
 
-		print table_FPGM
+		# print table_FPGM
 		f.lib['com.robofont.robohint.fpgm'] = table_FPGM
 
-	def PPEMSizeEditTextCallback(self, sender):
-		try:
-			newValue = int(sender.get())
-		except ValueError:
-			newValue = 9
-			sender.set(9)
-		self.TTHToolInstance.PPM_Size = newValue
-		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
-		UpdateCurrentGlyphView()
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
-
-	def PPEMSizePopUpButtonCallback(self, sender):
-		self.TTHToolInstance.PPM_Size = self.PPMSizesList[sender.get()]
-		self.wCentral.PPEMSizeEditText.set(self.TTHToolInstance.PPM_Size)
-		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
-		UpdateCurrentGlyphView()
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
-
-	def BitmapPreviewPopUpButtonCallback(self, sender):
-		self.TTHToolInstance.bitmapPreviewSelection = self.BitmapPreviewList[sender.get()]
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
-		UpdateCurrentGlyphView()
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
-
-	def GeneralShowButtonCallback(self, sender):
-		self.wCentral.GeneralHideButton.show(True)
-		self.wCentral.GeneralShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showGeneral()
-
-	def GeneralHideButtonCallback(self, sender):
-		self.wCentral.GeneralHideButton.show(False)
-		self.wCentral.GeneralShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideGeneral()
-
-	def StemsShowButtonCallback(self, sender):
-		self.wCentral.StemsHideButton.show(True)
-		self.wCentral.StemsShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showStems()
-
-	def StemsHideButtonCallback(self, sender):
-		self.wCentral.StemsHideButton.show(False)
-		self.wCentral.StemsShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideStems()
-
-	def ZonesShowButtonCallback(self, sender):
-		self.wCentral.ZonesHideButton.show(True)
-		self.wCentral.ZonesShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showZones()
-
-	def ZonesHideButtonCallback(self, sender):
-		self.wCentral.ZonesHideButton.show(False)
-		self.wCentral.ZonesShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideZones()
-
-	def ReadTTProgramButtonCallback(self, sender):
-		self.TTHToolInstance.readGlyphTTProgram(CurrentGlyph())
-
-	def BuildCVTButtonCallback(self, sender):
-		self.writeCVT(self.f, self.f.info.unitsPerEm, self.TTHToolInstance.FL_Windows.alignppm, self.TTHToolInstance.FL_Windows.stems, self.TTHToolInstance.FL_Windows.zones)
-
-	def BuildPREPButtonCallback(self, sender):
-		self.writePREP(self.f, self.TTHToolInstance.FL_Windows.stems, self.TTHToolInstance.FL_Windows.zones, self.TTHToolInstance.FL_Windows.codeppm)
-
-	def BuildFPGMButtonCallback(self, sender):
-		self.writeFPGM(self.f)
-
-
-class TTHCommand(object):
-	def __init__(self, command, TTHToolInstance):
-		self.code = command['code']
-		#print '---> code:', self.code
-
-		if self.code == 'alignv' or self.code == 'alignh':
-			self.point = command['point']
-			# if self.point == 'rsb' or self.point == 'lsb':
-			# 	print 'point:', self.point
-			# else:
-			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
-
-			self.align = command['align']
-			# print 'align:', self.align
-
-		if self.code == 'alignt' or self.code == 'alignb':
-			self.point = command['point']
-			# if self.point == 'rsb' or self.point == 'lsb':
-			# 	print 'point:', self.point
-			# else:
-			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
-
-			self.zone = command['zone']
-			# print 'zone:', self.zone
-			
-
-		if self.code == 'singleh' or self.code == 'singlev':
-			self.point1 = command['point1']
-			# if self.point1 == 'rsb' or self.point1 == 'lsb':
-			# 	print 'point1:', self.point1
-			# else:
-			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
-
-			self.point2 = command['point2']
-			# if self.point2 == 'rsb' or self.point2 == 'lsb':
-			# 	print 'point2:', self.point2
-			# else:
-			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
-
-			if 'stem' in command.keys():
-				self.stem = command['stem']
-				# print 'stem:', self.stem
-			if 'round' in command.keys():
-				self.round = command['round']
-				# print 'round:', self.round
-
-		if self.code == 'doubleh' or self.code == 'doublev':
-			self.point1 = command['point1']
-			# if self.point1 == 'rsb' or self.point1 == 'lsb':
-			# 	print 'point1:', self.point1
-			# else:
-			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
-
-			self.point2 = command['point2']
-			# if self.point2 == 'rsb' or self.point2 == 'lsb':
-			# 	print 'point2:', self.point2
-			# else:
-			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
-
-			if 'stem' in command.keys():
-				self.stem = command['stem']
-				# print 'stem:', stem
-			if 'round' in command.keys():
-				self.round = command['round']
-				# print 'round:', self.round
-
-		if self.code == 'mdeltav' or self.code == 'mdeltah':
-			self.point = command['point']
-			# if self.point == 'rsb' or self.point == 'lsb':
-			# 	print 'point:', self.point
-			# else:
-			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
-
-			self.delta = command['delta']
-			# print 'delta:', self.delta
-			self.ppm1 = command['ppm1']
-			# print 'ppm1:', self.ppm1
-			self.ppm2 = command['ppm2']
-			# print 'ppm2', self.ppm2
-
-		if self.code == 'fdeltav' or self.code == 'fdeltah':
-			self.point = command['point']
-			# if self.point == 'rsb' or self.point == 'lsb':
-			# 	print 'point:', self.point
-			# else:
-			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
-
-			self.delta = command['delta']
-			# print 'delta:', self.delta
-			self.ppm1 = command['ppm1']
-			# print 'ppm1:', self.ppm1
-			self.ppm2 = command['ppm2']
-			# print 'ppm2', self.ppm2
-
-		if self.code == 'interpolatev' or self.code == 'interpolateh':
-			self.point = command['point']
-			# if self.point == 'rsb' or self.point == 'lsb':
-			# 	print 'point:', self.point
-			# else:
-			# 	print 'point:', TTHToolInstance.pointNameToUniqueID[self.point]
-
-			self.point1 = command['point1']
-			# if self.point1 == 'rsb' or self.point1 == 'lsb':
-			# 	print 'point1:', self.point1
-			# else:
-			# 	print 'point1:', TTHToolInstance.pointNameToUniqueID[self.point1]
-
-			self.point2 = command['point2']
-			# if self.point2 == 'rsb' or self.point2 == 'lsb':
-			# 	print 'point2:', self.point2
-			# else:
-			# 	print 'point2:', TTHToolInstance.pointNameToUniqueID[self.point2]
-			if 'align' in command.keys():
-				self.align = command['align']
-				# print 'align:', self.align
-
-
-class TTHTool(BaseEventTool):
-
-	def __init__(self):
-		BaseEventTool.__init__(self)
-		self.PPM_Size = 9
-		self.ready = False
-		self.key = False
-		self.unicodeToNameDict = createUnicodeToNameDict()
-
-	def getGlyphIndexByName(self, glyphName):
-		try:
-			return self.indexOfGlyphNames[glyphName]
-		except:
-			return None
-
-	def getGlyphNameByIndex(self, glyphIndex, font):
-		try:
-			return font.lib['public.glyphOrder'][glyphIndex]
-		except:
-			return None
-
-	### TTH freetype ###
-	def generateTempFont(self):
-		tempFont = RFont(showUI=False)
-		tempGlyph = self.g.copy()
-
-		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
-		tempFont.info.ascender = CurrentFont().info.ascender
-		tempFont.info.descender = CurrentFont().info.descender
-		tempFont.info.xHeight = CurrentFont().info.xHeight
-		tempFont.info.capHeight = CurrentFont().info.capHeight
-
-		tempFont.info.familyName = CurrentFont().info.familyName
-		tempFont.info.styleName = CurrentFont().info.styleName
-		try:
-			tempFont.lib['com.robofont.robohint.cvt '] = CurrentFont().lib['com.robofont.robohint.cvt ']
-			tempFont.lib['com.robofont.robohint.prep'] = CurrentFont().lib['com.robofont.robohint.prep']
-			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
-		except:
-			pass
-
-		tempFont.newGlyph(self.g.name)
-		tempFont[self.g.name] = tempGlyph
-
-		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
-
-	def deleteTempFont(self):
-		os.remove(self.tempfontpath)
-
-	def generateFullTempFont(self):
-		root =  os.path.split(self.f.path)[0]
-		tail = 'Fulltemp.ttf'
-		self.fulltempfontpath = os.path.join(root, tail)
-
-		self.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		self.tempFullUFO = OpenFont(self.fulltempfontpath, showUI=False)
-
-
-
-	def mergeSingleGlyphTempFontInFullTempFont(self):
-		
-		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
-
-		glyphToCopy = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
-		self.tempFullUFO[glyphNameToCopy] = glyphToCopy
-
-
-	def loadGeneratedGlyphIntoLayer(self):
-		tempUFO = OpenFont(self.tempfontpath, showUI=False)
-		for temp_g in tempUFO:
-			if temp_g.name == self.g.name:
-				sourceLayer = temp_g.getLayer("foreground")
-				targetLayer = self.g.getLayer("TTH_workingSpace")
-				targetLayer.clear()
-		 		targetWidth = self.g.width
-		 		self.g.flipLayers("foreground", "TTH_workingSpace")
-		 		self.f[self.g.name] = temp_g.copy()
-		 		self.f[self.g.name].width = targetWidth
-		 		self.g.update()
-
-
-	def loadFaceGlyph(self, glyphName):
-		
-		self.face.set_pixel_sizes(int(self.PPM_Size), int(self.PPM_Size))
-		g_index = self.getGlyphIndexByName(glyphName)
-		if self.bitmapPreviewSelection == 'Monochrome':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-    	                    freetype.FT_LOAD_TARGET_MONO )
-		elif self.bitmapPreviewSelection == 'Grayscale':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-							freetype.FT_LOAD_TARGET_NORMAL)
-		elif self.bitmapPreviewSelection == 'Subpixel':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-                       freetype.FT_LOAD_TARGET_LCD )
-		else:
-			self.face.load_glyph(g_index)
-
-
-		self.adaptedOutline_points = []
-		for i in range(len(self.face.glyph.outline.points)):
-			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
-
-	def resetfonts(self):
-
-		self.allFonts = loadFonts()
-		if not self.allFonts:
-			return
-		self.f = loadCurrentFont(self.allFonts)
-		
-		self.g = CurrentGlyph()
-
-		self.generateFullTempFont()
-		self.indexOfGlyphNames = dict([(self.tempFullUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.tempFullUFO.lib['public.glyphOrder']))])
-
-		self.UPM = self.f.info.unitsPerEm
-		self.pitch = int(self.UPM) / int(self.PPM_Size)
-
-		self.FL_Windows = FL_TTH_Windows(self.f)
-		self.centralWindow = centralWindow(self.f, self)
-		self.previewWindow = previewWindow(self.f, self)
-
-
-	def resetglyph(self):
-		
-		root =  os.path.split(self.f.path)[0]
-		tail = 'temp.ttf'
-		self.tempfontpath = os.path.join(root, tail)
-
-		self.g = CurrentGlyph()
-		if self.g != None:
-			self.generateTempFont()
-			self.face = freetype.Face(self.fulltempfontpath)
-			self.loadFaceGlyph(self.g.name)
-			self.mergeSingleGlyphTempFontInFullTempFont()
-			self.face = freetype.Face(self.fulltempfontpath)
-			self.ready = True
-		
-	def becomeActive(self):
-		self.resetfonts()
-		self.bitmapPreviewSelection = 'Monochrome'
-
-	def becomeInactive(self):
-		try:
-			self.FL_Windows.closeAll()
-			self.centralWindow.closeCentral()
-			self.previewWindow.closePreview()
-		except:
-			pass
-
-	def fontResignCurrent(self, font):
-		try:
-			self.FL_Windows.closeAll()
-			self.centralWindow.closeCentral()
-			self.previewWindow.closePreview()
-			self.resetfonts()
-			self.resetglyph()
-		except:
-			pass
-
-	def fontBecameCurrent(self, font):
-		try:
-			self.FL_Windows.closeAll()
-			self.centralWindow.closeCentral()
-			self.previewWindow.closePreview()
-			self.resetfonts()
-			self.resetglyph()
-		except:
-			pass
-
-	def viewDidChangeGlyph(self):
-		self.resetglyph()
-		self.previewWindow.view.setNeedsDisplay_(True)
-		self.readGlyphTTProgram(self.g)
-
-
-	#########################
-	def makePointNameToUniqueIDDict(self, g):
-		pointNameToUniqueID = {}
-		for contour in g:
-			for point in contour.points:
-				if point.name:
-					name =  point.name.split(',')[0]
-					uniqueID = point.naked().uniqueID
-					pointNameToUniqueID[name] = uniqueID
-		return pointNameToUniqueID
-
-
-	def readGlyphTTProgram(self, g):
+	def writeAssembly(self, g, glyphTTHCommands):
 		if g == None:
 			return
-		if 'com.fontlab.ttprogram' in g.lib.keys():
-			ttprogram = g.lib['com.fontlab.ttprogram']
-			ttprogram = str(ttprogram).split('\\n')
-			#print 'TT Program for glyph', g.name
-			self.glyphTTHCommands = []
-			#print ttprogram
-			for line in ttprogram[1:-2]:
-				TTHCommandList = []
-				TTHCommandDict = {}
-				for settings in line[9:-2].split('='):
-					setting = settings.split ('"')
-					for command in setting:
-						if command != '':
-							if command[0] == ' ':
-								command = command[1:]
-							TTHCommandList.append(command)
-				for i in range(0, len(TTHCommandList), 2):
-					TTHCommandDict[TTHCommandList[i]] = TTHCommandList[i+1]
+		print "write assembly"
+		assembly = []
+		x_instructions = ['SVTCA[1]']
+		y_instructions = ['SVTCA[0]']
+		
+		
+		for TTHCommand in glyphTTHCommands:
+			if TTHCommand.code == 'alignt' or TTHCommand.code == 'alignb':
+				pointUniqueID = self.pointNameToUniqueID[TTHCommand.point]
+				pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
+				zoneCV = self.zone_to_cvt[TTHCommand.zone]
+				align = [
+						'PUSHW[ ] 0',
+						'RCVT[ ]',
+						'IF[ ]',
+						'PUSHW[ ] ' + str(pointIndex),
+						'MDAP[1]',
+						'ELSE[ ]',
+						'PUSHW[ ] ' + str(pointIndex) + ' ' + str(zoneCV),
+						'MIAP[0]',
+						'EIF[ ]'
+						]
+				y_instructions.extend(align)
+				assembly.extend(y_instructions)
 
-				self.glyphTTHCommands.append(TTHCommand(TTHCommandDict, self))
+		assembly.extend(['IUP[0]', 'IUP[1]'])
+		self.g.lib['com.robofont.robohint.assembly'] = assembly
+		print self.g.lib['com.robofont.robohint.assembly']
 
-			self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
-
-	#def writeGlyphTTProgram(self, g, glyphTTHCommands):
 
 	#########################
 
