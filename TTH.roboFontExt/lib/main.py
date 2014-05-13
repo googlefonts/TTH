@@ -43,11 +43,7 @@ def createUnicodeToNameDict():
 def getGlyphNameByUnicode(unicodeToNameDict, unicodeChar):
 	return unicodeToNameDict[unicodeChar]
 
-def fourLowerBits(x): 
-	return x & 0xf
-
-def nextFourBits(x) : 
-	return (x >> 4) & 0xf
+stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
 
 class previewWindow(object):
@@ -282,7 +278,7 @@ class centralWindow(object):
 		deltaZones = []
 		for zoneName in zones.keys():
 			if 'delta' in zones[zoneName].keys():
-				stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
+				
 				for ppmSize, step in zones[zoneName]['delta'].iteritems():
 					if step not in stepToSelector:
 						continue
