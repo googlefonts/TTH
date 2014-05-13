@@ -282,19 +282,19 @@ class centralWindow(object):
 		deltaZones = []
 		for zoneName in zones.keys():
 			if 'delta' in zones[zoneName].keys():
-				stepToSelector = {'-8': 0, '-7': 1, '-6': 2, '-5': 3, '-4': 4, '-3': 5, '-2': 6, '-1': 7, '1': 8, '2': 9, '3': 10, '4': 11, '5': 12, '6': 13, '7': 14, '8': 15}
-				for ppmSize in zones[zoneName]['delta'].keys():
+				stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
+				for ppmSize, deltaAtPpm in zones[zoneName]['delta'].iteritems():
 					CVT_number = self.zone_to_cvt[zoneName]
-					if 0 <= (int(ppmSize) - 9) <= 15 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
-						arg = ((int(ppmSize) - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+					if 0 <= (int(ppmSize) - 9) <= 15 and 0 <= stepToSelector[deltaAtPpm] <= 15 :
+						arg = ((int(ppmSize) - 9) << 4 ) + stepToSelector[deltaAtPpm]
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC1[ ]']
 
-					elif 16 <= (int(ppmSize) - 9) <= 31 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
-						arg = ((int(ppmSize) -16 - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+					elif 16 <= (int(ppmSize) - 9) <= 31 and 0 <= stepToSelector[deltaAtPpm] <= 15 :
+						arg = ((int(ppmSize) -16 - 9) << 4 ) + stepToSelector[deltaAtPpm]
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC2[ ]']
 
-					elif 32 <= (int(ppmSize) - 9) <= 47 and 0 <= stepToSelector[str(zones[zoneName]['delta'][ppmSize])] <= 15 :
-						arg = ((int(ppmSize) -32 - 9) << 4 ) + stepToSelector[str(zones[zoneName]['delta'][ppmSize])]
+					elif 32 <= (int(ppmSize) - 9) <= 47 and 0 <= stepToSelector[deltaAtPpm] <= 15 :
+						arg = ((int(ppmSize) -32 - 9) << 4 ) + stepToSelector[deltaAtPpm]
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC3[ ]']
 
 					else:
