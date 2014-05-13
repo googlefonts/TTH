@@ -291,11 +291,11 @@ class centralWindow(object):
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC1[ ]']
 
 					elif 16 <= relativeSize <= 31 and 0 <= stepToSelector[deltaAtPpm] <= 15 :
-						arg = (relativeSize -16) << 4 ) + stepToSelector[deltaAtPpm]
+						arg = ((relativeSize -16) << 4 ) + stepToSelector[deltaAtPpm]
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC2[ ]']
 
 					elif 32 <= relativeSize <= 47 and 0 <= stepToSelector[deltaAtPpm] <= 15 :
-						arg = (relativeSize -32) << 4 ) + stepToSelector[deltaAtPpm]
+						arg = ((relativeSize -32) << 4 ) + stepToSelector[deltaAtPpm]
 						deltaC = ['PUSHW[ ] ' + str(arg) + ' ' + str(CVT_number) + ' 1', 'DELTAC3[ ]']
 
 					else:
