@@ -244,14 +244,14 @@ class TTHCommand(object):
 
 		if self.code == 'alignt' or self.code == 'alignb':
 			self.point = command['point']
-			if self.point == 'rsb' or self.point == 'lsb':
-				print 'point:', self.point
-			else:
-				pointUniqueID = self.TTHToolInstance.pointNameToUniqueID[self.point]
-				print 'point:', pointUniqueID, self.TTHToolInstance.pointIndexFromUniqueID(g, pointUniqueID)
+			# if self.point == 'rsb' or self.point == 'lsb':
+			# 	print 'point:', self.point
+			# else:
+			# 	pointUniqueID = self.TTHToolInstance.pointNameToUniqueID[self.point]
+			# 	print 'point:', pointUniqueID, self.TTHToolInstance.pointIndexFromUniqueID(g, pointUniqueID)
 
 			self.zone = command['zone']
-			print 'zone:', self.zone, self.TTHToolInstance.zone_to_cvt[self.zone]
+			# print 'zone:', self.zone, self.TTHToolInstance.zone_to_cvt[self.zone]
 			
 
 		if self.code == 'singleh' or self.code == 'singlev':
@@ -270,6 +270,8 @@ class TTHCommand(object):
 			if 'stem' in command.keys():
 				self.stem = command['stem']
 				# print 'stem:', self.stem
+			else:
+				self.stem = None
 			if 'round' in command.keys():
 				self.round = command['round']
 				# print 'round:', self.round
@@ -614,7 +616,7 @@ class TTHTool(BaseEventTool):
 			cvt = zones[name]['width']
 			table_CVT.append(cvt)
 
-		#print table_CVT
+		print table_CVT
 		f.lib['com.robofont.robohint.cvt '] = table_CVT
 	
 	def writePREP(self, f, stems, zones, codePPM):
@@ -1076,18 +1078,29 @@ class TTHTool(BaseEventTool):
 	def writeAssembly(self, g, glyphTTHCommands):
 		if g == None:
 			return
+
+		nbPointsContour = 0
+		for contour in g:
+			nbPointsContour += len(contour.points)
+
+		lsbIndex = nbPointsContour
+		rsbIndex = nbPointsContour+1
+
 		print "write assembly"
 		assembly = []
+		self.g.lib['com.robofont.robohint.assembly'] = []
 		x_instructions = ['SVTCA[1]']
 		y_instructions = ['SVTCA[0]']
+		RP0 = RP1 = RP2 = None
 		
 		
 		for TTHCommand in glyphTTHCommands:
+
 			if TTHCommand.code == 'alignt' or TTHCommand.code == 'alignb':
 				pointUniqueID = self.pointNameToUniqueID[TTHCommand.point]
 				pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
 				zoneCV = self.zone_to_cvt[TTHCommand.zone]
-				align = [
+				alignToZone = [
 						'PUSHW[ ] 0',
 						'RCVT[ ]',
 						'IF[ ]',
@@ -1098,8 +1111,96 @@ class TTHTool(BaseEventTool):
 						'MIAP[0]',
 						'EIF[ ]'
 						]
-				y_instructions.extend(align)
-				assembly.extend(y_instructions)
+				y_instructions.extend(alignToZone)
+
+
+				
+			if TTHCommand.code == 'singleh' or TTHCommand.code == 'singlev':
+
+				if TTHCommand.point1 == 'lsb':
+					point1Index = lsbIndex
+				elif TTHCommand.point1 == 'rsb':
+					point1Index = rsbIndex
+				else:
+					point1UniqueID = self.pointNameToUniqueID[TTHCommand.point1]
+					point1Index = self.pointIndexFromUniqueID(g, point1UniqueID)
+				print 'point1', point1Index
+
+				if TTHCommand.point2 == 'lsb':
+					point2Index = lsbIndex
+				elif TTHCommand.point2 == 'rsb':
+					point2Index = rsbIndex
+				else:
+					point2UniqueID = self.pointNameToUniqueID[TTHCommand.point2]
+					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
+				print 'point2', point2Index
+
+				try:
+					stemCV = self.stem_to_cvt[TTHCommand.stem]
+					print 'CV', stemCV
+				except:
+					stemCV = None
+				try:
+					roundbool = TTHCommand.round
+					print 'roundbool', roundbool
+					if roundbool != 'true':
+						roundbool = 'false'
+				except:
+					roundbool == 'false'
+
+				if RP0 == None:
+					singleLink = [
+											'PUSHW[ ] ' + str(point1Index),
+											'MDAP[1]'
+											]
+					RP0 = point1Index
+					RP1 = point1Index
+
+				else:
+					singleLink = [
+											'PUSHW[ ] ' + str(point1Index),
+											'SRP0[ ] ',
+											]
+					RP0 = point1Index
+				
+
+				if stemCV == None:
+					if roundbool == 'true':
+						singleLink2 = [
+												'PUSHW[ ] ' + str(point2Index),
+												'MDRP[11100]'
+												]
+						roundbool = 'false'
+					else:
+						singleLink2 = [
+												'PUSHW[ ] ' + str(point2Index),
+												'MDRP[10000]'
+												]
+					RP1 = RP0 = RP2 = point2Index
+
+				else:
+					if roundbool == 'true':
+						singleLink2 = [
+												'PUSHW[ ] ' + str(point2Index) + ' ' + str(stemCV),
+												'MIRP[10100]'
+												]
+					else:
+						singleLink2 = [
+												'PUSHW[ ] ' + str(point2Index) + ' ' + str(stemCV),
+												'MIRP[10000]'
+												]
+					RP1 = RP0 = RP2 = point2Index
+
+				if TTHCommand.code == 'singleh':
+					x_instructions.extend(singleLink)
+					x_instructions.extend(singleLink2)
+				if TTHCommand.code == 'singlev':
+					y_instructions.extend(singleLink)
+					y_instructions.extend(singleLink2)
+
+
+		assembly.extend(x_instructions)
+		assembly.extend(y_instructions)
 
 		assembly.extend(['IUP[0]', 'IUP[1]'])
 		self.g.lib['com.robofont.robohint.assembly'] = assembly
