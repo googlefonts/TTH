@@ -707,7 +707,6 @@ class TTHTool(BaseEventTool):
 						'WCVTP[ ]'
 						]
 
-		#Add support for zones deltas
 		deltaZones = []
 		for zoneName in zones.keys():
 			if 'delta' in zones[zoneName].keys():
@@ -756,6 +755,7 @@ class TTHTool(BaseEventTool):
 		table_PREP.extend(pixelsStemHorizontal)
 		table_PREP.extend(pixelsStemVertical)
 		table_PREP.extend(roundZones)
+		table_PREP.extend(alignmentZones)
 		table_PREP.extend(deltaZones)
 		table_PREP.extend(installControl)
 		print table_PREP
@@ -1201,7 +1201,7 @@ class TTHTool(BaseEventTool):
 												'MIRP[10000]'
 												]
 					RP1 = RP0 = RP2 = point2Index
-					
+
 				if align == 'round':
 					singleLink3 = [
 									'PUSHW[ ] ' + str(point2Index),
