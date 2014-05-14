@@ -76,22 +76,7 @@ class previewWindow(object):
 
 	def previewEditTextCallback(self, sender):
 		self.previewString = sender.get()
-		#self.makeActualSizePreviewImage(sender.get())
 		self.view.setNeedsDisplay_(True)
-
-	def makeActualSizePreviewImage(self, stringToDisplay):
-
-		print stringToDisplay
-		image = NSImage.alloc().initWithSize_(NSMakeSize(100, 100))
-		print image
-	#	image.lockFocus()
-		pixelColor = NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 255/255, 1)
-		image_rep = NSBitmapImageRep.alloc().initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel_(None, 100, 100, 1, 1, True, False, NSCalibratedRGBColorSpace, 100, 0)
-		#image.drawRepresentation_inRect_(image_rep, NSRect(0, 100, 100))
-		print image_rep
-		#image_rep.setColor_atX_y_(pixelColor, 50, 50)
-		#image.addRepresentation_(image_rep)
-	#	image.unlockFocus()
 
 class centralWindow(object):
 	def __init__(self, f, TTHToolInstance):
@@ -409,7 +394,7 @@ class TTHTool(BaseEventTool):
 			tempFont[self.g.name].lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
+		#self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
 
 	def deleteTempFont(self):
 		os.remove(self.tempfontpath)
@@ -422,11 +407,10 @@ class TTHTool(BaseEventTool):
 		self.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		self.tempFullUFO = OpenFont(self.fulltempfontpath, showUI=False)
 
-	def mergeSingleGlyphTempFontInFullTempFont(self):
-		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
-		self.tempFullUFO[glyphNameToCopy] = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
-		self.tempFullUFO.lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
-
+	# def mergeSingleGlyphTempFontInFullTempFont(self):
+	# 	glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
+	# 	self.tempFullUFO[glyphNameToCopy] = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
+	# 	self.tempFullUFO.lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
 	def loadGeneratedGlyphIntoLayer(self):
 		tempUFO = OpenFont(self.tempfontpath, showUI=False)
@@ -501,7 +485,8 @@ class TTHTool(BaseEventTool):
 		self.writeAssembly(self.g, self.glyphTTHCommands)
 
 		self.generateTempFont()
-		self.mergeSingleGlyphTempFontInFullTempFont()
+		#self.mergeSingleGlyphTempFontInFullTempFont()
+		self.tempFullUFO[self.g.name] = self.f[self.g.name].copy()
 		self.face = freetype.Face(self.fulltempfontpath)
 		
 		self.loadFaceGlyph(self.g.name)
@@ -1577,8 +1562,8 @@ class TTHTool(BaseEventTool):
 		elif pointID == 'rsb':
 			x, y = self.g.width, 0
 
-		self.drawArrowAtPoint(scale, 12, angle, x, y)
-		self.drawArrowAtPoint(scale, 12, angle+180, x, y)
+		self.drawArrowAtPoint(scale, 10, angle, x, y)
+		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
 
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 	 	arrowAngle = math.radians(20)
