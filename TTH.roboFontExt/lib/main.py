@@ -43,6 +43,14 @@ def createUnicodeToNameDict():
 def getGlyphNameByUnicode(unicodeToNameDict, unicodeChar):
 	return unicodeToNameDict[unicodeChar]
 
+def difference(point1, point2):
+	return ((point1[0] - point2[0]), (point1[1] - point2[1]))
+
+def getAngle((x1, y1), (x2, y2)):
+	xDiff = x2-x1
+	yDiff= y2-y1 
+	return math.atan2(yDiff, xDiff)
+
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
 
@@ -495,6 +503,8 @@ class TTHTool(BaseEventTool):
 			self.mergeSingleGlyphTempFontInFullTempFont()
 			self.face = freetype.Face(self.fulltempfontpath)
 			self.ready = True
+			self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
+			self.readGlyphTTProgram(self.g)
 		
 	def becomeActive(self):
 		self.resetfonts()
@@ -553,6 +563,13 @@ class TTHTool(BaseEventTool):
 					return pointIndex
 				pointIndex += 1
 		return None
+
+	def makePointUniqueIDToCoordinatesDict(self, g):
+		pointUniqueIDToCoordinates = {}
+		for contour in g:
+			for point in contour.points:
+				pointUniqueIDToCoordinates[point.naked().uniqueID] = ((point.x, point.y))
+		return pointUniqueIDToCoordinates
 
 
 	def readGlyphTTProgram(self, g):
@@ -1496,8 +1513,8 @@ class TTHTool(BaseEventTool):
 
 			start = end+1
 
-			NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 255/255, .5).set()
-			pathContour.setLineWidth_(scale)
+			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, .5).set()
+			pathContour.setLineWidth_(scale*1.5)
 			pathContour.stroke()
 		
 	
@@ -1575,7 +1592,7 @@ class TTHTool(BaseEventTool):
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 		pathArrow.lineToPoint_((x, y))
 
-		NSColor.colorWithRed_green_blue_alpha_(0, 0, 1, 1).set()
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1).set()
 		pathArrow.setLineWidth_(scale)
 		pathArrow.fill()
 		NSColor.colorWithRed_green_blue_alpha_(1, 1, 1, .5).set()
@@ -1584,6 +1601,41 @@ class TTHTool(BaseEventTool):
 	def drawDiscAtPoint(self, r, x, y):
 		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
+
+
+	def drawLink(self, scale, startPoint, endPoint):
+	 	
+	 	start_end_diff = difference(endPoint, startPoint)
+	 	dx, dy = -start_end_diff[1]/2, start_end_diff[0]/2
+	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
+		offcurve2 = (endPoint[0] - dx, endPoint[1] - dy)
+		r = 10
+	 	arrowAngle = math.radians(20)
+	 	initAngle = getAngle((endPoint[0], endPoint[1]), (offcurve2[0], offcurve2[1]))
+	 	arrowPoint1_x = endPoint[0] + math.cos(initAngle+arrowAngle)*r*scale
+		arrowPoint1_y = endPoint[1] + math.sin(initAngle+arrowAngle)*r*scale
+		arrowPoint2_x = endPoint[0] + math.cos(initAngle-arrowAngle)*r*scale
+		arrowPoint2_y = endPoint[1] + math.sin(initAngle-arrowAngle)*r*scale
+		endPoint_x = (arrowPoint1_x + arrowPoint2_x) / 2
+		endPoint_y = (arrowPoint1_y + arrowPoint2_y) / 2
+
+		pathArrow = NSBezierPath.bezierPath()
+	 	pathArrow.moveToPoint_((endPoint[0], endPoint[1]))
+		pathArrow.lineToPoint_((arrowPoint1_x, arrowPoint1_y))
+		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
+
+
+		path = NSBezierPath.bezierPath()
+	 	path.moveToPoint_((startPoint[0], startPoint[1]))
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve2) )
+
+		#pathArrow.lineToPoint_((currentPoint.x, currentPoint.y))
+
+	 
+		NSColor.colorWithRed_green_blue_alpha_(102/255, 102/255, 255/255, 1).set()
+		path.setLineWidth_(scale*1.5)
+		pathArrow.fill()
+		path.stroke()
 
 
 	def drawBackground(self, scale):
@@ -1617,6 +1669,22 @@ class TTHTool(BaseEventTool):
 					self.drawAlign(scale, c.point, 90)
 				else:
 					self.drawAlign(scale, self.pointNameToUniqueID[c.point], 90)
+			if c.code == 'singleh' or c.code == 'singlev':
+				if c.point1 == 'lsb':
+					startPoint = (0, 0)
+				elif c.point1 == 'rsb':
+					startPoint = (0, self.g.width)
+				else:
+					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c.point1]]
+
+				if c.point2 == 'lsb':
+					endPoint = (0, 0)
+				elif c.point2 == 'rsb':
+					endPoint = (self.g.width, 0)
+				else:
+					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c.point2]]
+	
+				self.drawLink(scale, startPoint, endPoint)
 
 
 
