@@ -216,9 +216,7 @@ class centralWindow(object):
 		self.TTHToolInstance.FL_Windows.hideZones()
 
 	def ReadTTProgramButtonCallback(self, sender):
-		self.TTHToolInstance.readGlyphTTProgram(CurrentGlyph())
-		self.TTHToolInstance.writeAssembly(self.TTHToolInstance.g, self.TTHToolInstance.glyphTTHCommands)
-		self.TTHToolInstance.generateFullTempFont()
+		#self.TTHToolInstance.generateFullTempFont()
 		self.TTHToolInstance.resetglyph()
 		UpdateCurrentGlyphView()
 
@@ -396,18 +394,22 @@ class TTHTool(BaseEventTool):
 
 		tempFont.info.familyName = CurrentFont().info.familyName
 		tempFont.info.styleName = CurrentFont().info.styleName
-		try:
+
+		if 'com.robofont.robohint.cvt ' in CurrentFont().lib.keys():
 			tempFont.lib['com.robofont.robohint.cvt '] = CurrentFont().lib['com.robofont.robohint.cvt ']
+		if 'com.robofont.robohint.prep' in CurrentFont().lib.keys():
 			tempFont.lib['com.robofont.robohint.prep'] = CurrentFont().lib['com.robofont.robohint.prep']
+		if 'com.robofont.robohint.fpgm' in CurrentFont().lib.keys():
 			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
-		except:
-			pass
+		
 
 		tempFont.newGlyph(self.g.name)
 		tempFont[self.g.name] = tempGlyph
+		if 'com.robofont.robohint.assembly' in CurrentGlyph().lib.keys():
+			tempFont[self.g.name].lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		#self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
+		self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
 
 	def deleteTempFont(self):
 		os.remove(self.tempfontpath)
@@ -420,14 +422,10 @@ class TTHTool(BaseEventTool):
 		self.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		self.tempFullUFO = OpenFont(self.fulltempfontpath, showUI=False)
 
-
-
-#	def mergeSingleGlyphTempFontInFullTempFont(self):
-#		
-#		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
-#
-#		glyphToCopy = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
-#		self.tempFullUFO[glyphNameToCopy] = glyphToCopy
+	def mergeSingleGlyphTempFontInFullTempFont(self):
+		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
+		self.tempFullUFO[glyphNameToCopy] = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
+		self.tempFullUFO.lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
 
 	def loadGeneratedGlyphIntoLayer(self):
@@ -471,7 +469,6 @@ class TTHTool(BaseEventTool):
 		if not self.allFonts:
 			return
 		self.f = loadCurrentFont(self.allFonts)
-		
 		self.g = CurrentGlyph()
 
 		self.generateFullTempFont()
@@ -496,17 +493,21 @@ class TTHTool(BaseEventTool):
 		self.tempfontpath = os.path.join(root, tail)
 
 		self.g = CurrentGlyph()
-		if self.g != None:
-			self.generateTempFont()
-			self.face = freetype.Face(self.fulltempfontpath)
-			self.loadFaceGlyph(self.g.name)
-			#self.mergeSingleGlyphTempFontInFullTempFont()
-			self.tempFullUFO[self.g.name] = CurrentFont()[self.g.name].copy()
-			# --
-			self.face = freetype.Face(self.fulltempfontpath)
-			self.ready = True
-			self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
-			self.readGlyphTTProgram(self.g)
+		if self.g == None:
+			return
+
+		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
+		self.readGlyphTTProgram(self.g)
+		self.writeAssembly(self.g, self.glyphTTHCommands)
+
+		self.generateTempFont()
+		self.mergeSingleGlyphTempFontInFullTempFont()
+		self.face = freetype.Face(self.fulltempfontpath)
+		
+		self.loadFaceGlyph(self.g.name)
+		self.face = freetype.Face(self.fulltempfontpath)
+		self.ready = True
+			
 		
 	def becomeActive(self):
 		self.resetfonts()
@@ -596,7 +597,7 @@ class TTHTool(BaseEventTool):
 							TTHCommandList.append(command)
 				for i in range(0, len(TTHCommandList), 2):
 					TTHCommandDict[TTHCommandList[i]] = TTHCommandList[i+1]
-				print TTHCommandDict
+				#print TTHCommandDict
 				self.glyphTTHCommands.append(TTHCommand(g, TTHCommandDict, self))
 
 			
@@ -1112,7 +1113,7 @@ class TTHTool(BaseEventTool):
 		lsbIndex = nbPointsContour
 		rsbIndex = nbPointsContour+1
 
-		print "write assembly"
+		#print "write assembly"
 		assembly = []
 		self.g.lib['com.robofont.robohint.assembly'] = []
 		x_instructions = ['SVTCA[1]']
@@ -1150,7 +1151,7 @@ class TTHTool(BaseEventTool):
 				else:
 					point1UniqueID = self.pointNameToUniqueID[TTHCommand.point1]
 					point1Index = self.pointIndexFromUniqueID(g, point1UniqueID)
-				print 'point1', point1Index
+				#print 'point1', point1Index
 
 				if TTHCommand.point2 == 'lsb':
 					point2Index = lsbIndex
@@ -1159,16 +1160,16 @@ class TTHTool(BaseEventTool):
 				else:
 					point2UniqueID = self.pointNameToUniqueID[TTHCommand.point2]
 					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
-				print 'point2', point2Index
+				#print 'point2', point2Index
 
 				try:
 					stemCV = self.stem_to_cvt[TTHCommand.stem]
-					print 'CV', stemCV
+					#print 'CV', stemCV
 				except:
 					stemCV = None
 				try:
 					roundbool = TTHCommand.round
-					print 'roundbool', roundbool
+					#print 'roundbool', roundbool
 					if roundbool != 'true':
 						roundbool = 'false'
 				except:
@@ -1244,7 +1245,7 @@ class TTHTool(BaseEventTool):
 
 		assembly.extend(['IUP[0]', 'IUP[1]'])
 		self.g.lib['com.robofont.robohint.assembly'] = assembly
-		print self.g.lib['com.robofont.robohint.assembly']
+		#print self.g.lib['com.robofont.robohint.assembly']
 
 
 	#########################
