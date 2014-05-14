@@ -407,7 +407,7 @@ class TTHTool(BaseEventTool):
 		tempFont[self.g.name] = tempGlyph
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
+		#self.tempSingleGlyphUFO = OpenFont(self.tempfontpath, showUI=False)
 
 	def deleteTempFont(self):
 		os.remove(self.tempfontpath)
@@ -422,12 +422,12 @@ class TTHTool(BaseEventTool):
 
 
 
-	def mergeSingleGlyphTempFontInFullTempFont(self):
-		
-		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
-
-		glyphToCopy = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
-		self.tempFullUFO[glyphNameToCopy] = glyphToCopy
+#	def mergeSingleGlyphTempFontInFullTempFont(self):
+#		
+#		glyphNameToCopy = self.getGlyphNameByIndex(2, self.tempSingleGlyphUFO)
+#
+#		glyphToCopy = self.tempSingleGlyphUFO[glyphNameToCopy].copy()
+#		self.tempFullUFO[glyphNameToCopy] = glyphToCopy
 
 
 	def loadGeneratedGlyphIntoLayer(self):
@@ -500,7 +500,9 @@ class TTHTool(BaseEventTool):
 			self.generateTempFont()
 			self.face = freetype.Face(self.fulltempfontpath)
 			self.loadFaceGlyph(self.g.name)
-			self.mergeSingleGlyphTempFontInFullTempFont()
+			#self.mergeSingleGlyphTempFontInFullTempFont()
+			self.tempFullUFO[self.g.name] = CurrentFont()[self.g.name].copy()
+			# --
 			self.face = freetype.Face(self.fulltempfontpath)
 			self.ready = True
 			self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
