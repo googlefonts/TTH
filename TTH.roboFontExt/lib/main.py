@@ -275,6 +275,13 @@ class TTHCommand(object):
 			if 'round' in command.keys():
 				self.round = command['round']
 				# print 'round:', self.round
+			else:
+				self.round = 'false'
+			if 'align' in command.keys():
+				self.align = command['align']
+			else:
+				self.align = None
+
 
 		if self.code == 'doubleh' or self.code == 'doublev':
 			self.point1 = command['point1']
@@ -570,7 +577,7 @@ class TTHTool(BaseEventTool):
 							TTHCommandList.append(command)
 				for i in range(0, len(TTHCommandList), 2):
 					TTHCommandDict[TTHCommandList[i]] = TTHCommandList[i+1]
-
+				print TTHCommandDict
 				self.glyphTTHCommands.append(TTHCommand(g, TTHCommandDict, self))
 
 			
@@ -1114,7 +1121,7 @@ class TTHTool(BaseEventTool):
 				y_instructions.extend(alignToZone)
 
 
-				
+
 			if TTHCommand.code == 'singleh' or TTHCommand.code == 'singlev':
 
 				if TTHCommand.point1 == 'lsb':
@@ -1147,6 +1154,10 @@ class TTHTool(BaseEventTool):
 						roundbool = 'false'
 				except:
 					roundbool == 'false'
+				try:
+					align = TTHCommand.align
+				except:
+					align == None
 
 				if RP0 == None:
 					singleLink = [
@@ -1190,13 +1201,23 @@ class TTHTool(BaseEventTool):
 												'MIRP[10000]'
 												]
 					RP1 = RP0 = RP2 = point2Index
+					
+				if align == 'round':
+					singleLink3 = [
+									'PUSHW[ ] ' + str(point2Index),
+									'MDAP[1]'
+									]
+				else:
+					singleLink3 = []
 
 				if TTHCommand.code == 'singleh':
 					x_instructions.extend(singleLink)
 					x_instructions.extend(singleLink2)
+					x_instructions.extend(singleLink3)
 				if TTHCommand.code == 'singlev':
 					y_instructions.extend(singleLink)
 					y_instructions.extend(singleLink2)
+					x_instructions.extend(singleLink3)
 
 
 		assembly.extend(x_instructions)
