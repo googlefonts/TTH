@@ -1148,7 +1148,7 @@ class TTHTool(BaseEventTool):
 					RP0 = point1Index
 					RP1 = point1Index
 
-				elif RP0 != point1Index:
+				else:
 					singleLink = [
 									'PUSHW[ ] ' + str(point1Index),
 									'SRP0[ ]',
@@ -1184,10 +1184,14 @@ class TTHTool(BaseEventTool):
 					RP1 = RP0 = RP2 = point2Index
 
 				singleLink.extend(singleLink2)
+
 				if TTHCommand['code'] == 'singleh':
 					x_instructions.extend(singleLink)
 				elif TTHCommand['code'] == 'singlev':
 					y_instructions.extend(singleLink)
+			else:
+				print 'unsupported command'
+
 
 		##############################	
 		assembly.extend(x_instructions)
