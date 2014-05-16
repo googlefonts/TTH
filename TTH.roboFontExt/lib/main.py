@@ -352,6 +352,9 @@ class TTHTool(BaseEventTool):
 		self.PPM_Size = 9
 		self.ready = False
 		self.key = False
+		self.face = None
+		self.glyphTTHCommands = []
+		self.bitmapPreviewSelection = 'Monochrome'
 		self.unicodeToNameDict = createUnicodeToNameDict()
 
 	def getGlyphIndexByName(self, glyphName):
@@ -427,7 +430,8 @@ class TTHTool(BaseEventTool):
 
 
 	def loadFaceGlyph(self, glyphName):
-		
+		if self.face == None:
+			return
 		self.face.set_pixel_sizes(int(self.PPM_Size), int(self.PPM_Size))
 		g_index = self.getGlyphIndexByName(glyphName)
 		if self.bitmapPreviewSelection == 'Monochrome':
@@ -465,10 +469,13 @@ class TTHTool(BaseEventTool):
 		self.centralWindow = centralWindow(self.f, self)
 		self.previewWindow = previewWindow(self.f, self)
 
-		self.writeCVT(self.f, self.f.info.unitsPerEm, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones)
-		self.writePREP(self.f, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
-		self.writeFPGM(self.f)
-
+		try: # Sam added this try block because of the functions below may be throwing an exception...
+			# This is an ugly temporary fix. A better fix would be to ensure that the variables are given reasonable initial values.
+			self.writeCVT(self.f, self.f.info.unitsPerEm, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones)
+			self.writePREP(self.f, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
+			self.writeFPGM(self.f)
+		except:
+			pass
 
 	def resetglyph(self):
 		
@@ -496,7 +503,6 @@ class TTHTool(BaseEventTool):
 		
 	def becomeActive(self):
 		self.resetfonts()
-		self.bitmapPreviewSelection = 'Monochrome'
 
 	def becomeInactive(self):
 		try:
@@ -639,18 +645,18 @@ class TTHTool(BaseEventTool):
 		roundStemHorizontal = [
 							'SVTCA[0]'
 							]
-		callFunction2 = ['PUSHW[ ] ' + str(self.stem_to_cvt[self.stemsHorizontal[0][0]]) + ' ' + str(len(self.stemsHorizontal)) + ' 2']
-		call = ['CALL[ ]']
-		roundStemHorizontal.extend(callFunction2)
-		roundStemHorizontal.extend(call)
+		if self.stemsHorizontal != []:
+			callFunction2 = ['PUSHW[ ] ' + str(self.stem_to_cvt[self.stemsHorizontal[0][0]]) + ' ' + str(len(self.stemsHorizontal)) + ' 2']
+			roundStemHorizontal.extend(callFunction2)
+		roundStemHorizontal.append('CALL[ ]')
 
 		roundStemVertical = [
 							'SVTCA[1]'
 							]
-		callFunction2 = ['PUSHW[ ] ' + str(self.stem_to_cvt[self.stemsVertical[0][0]]) + ' ' + str(len(self.stemsVertical)) + ' 2']
-		call = ['CALL[ ]']
-		roundStemVertical.extend(callFunction2)
-		roundStemVertical.extend(call)
+		if self.stemsVertical != []:
+			callFunction2 = ['PUSHW[ ] ' + str(self.stem_to_cvt[self.stemsVertical[0][0]]) + ' ' + str(len(self.stemsVertical)) + ' 2']
+			roundStemVertical.extend(callFunction2)
+		roundStemVertical.append('CALL[ ]')
 
 
 		pixelsStemHorizontal = [
@@ -688,10 +694,8 @@ class TTHTool(BaseEventTool):
 			ppm1 = str(int(ppm_roundsList[5][0]))
 
 			callFunction8 = ['PUSHW[ ] ' +  str(self.stem_to_cvt[stem[0]]) + ' ' + ppm6 + ' ' + ppm5 + ' ' + ppm4 + ' ' + ppm3 + ' ' + ppm2 + ' ' + ppm1 + ' 8']
-			call = ['CALL[ ]']
-
 			pixelsStemVertical.extend(callFunction8)
-			pixelsStemVertical.extend(call)
+			pixelsStemVertical.append('CALL[ ]')
 
 		roundZones = [
 					'SVTCA[0]'
