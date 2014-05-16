@@ -763,7 +763,7 @@ class TTHTool(BaseEventTool):
 		table_PREP.extend(alignmentZones)
 		table_PREP.extend(deltaZones)
 		table_PREP.extend(installControl)
-		print table_PREP
+		#print table_PREP
 
 		f.lib['com.robofont.robohint.prep'] = table_PREP
 
@@ -1103,6 +1103,7 @@ class TTHTool(BaseEventTool):
 		x_instructions = ['SVTCA[1]']
 		y_instructions = ['SVTCA[0]']
 		RP0 = RP1 = RP2 = None
+		touchedPoints = []
 
 		for TTHCommand in glyphTTHCommands:
 			if TTHCommand['code'] == 'alignt' or TTHCommand['code'] == 'alignb':
@@ -1122,6 +1123,96 @@ class TTHTool(BaseEventTool):
 						]
 				y_instructions.extend(alignToZone)
 
+			if TTHCommand['code'] == 'alignh' or TTHCommand['code'] == 'alignv':
+				if TTHCommand['point'] == 'lsb':
+					pointIndex = lsbIndex
+				elif TTHCommand['point'] == 'rsb':
+					pointIndex = rsbIndex
+				else:
+					pointUniqueID = self.pointNameToUniqueID[TTHCommand['point']]
+					pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
+
+				if pointUniqueID not in touchedPoints:
+						touchedPoints.append(pointUniqueID)
+
+				RP0 = pointIndex
+				RP1 = pointIndex
+				touchedPoints.append(pointUniqueID)
+
+				if TTHCommand['align'] == 'round':
+					align = [
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							]
+				elif TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
+					align = [
+							'RDTG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
+					align = [
+							'RUTG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'double':
+					align = [
+							'RTDG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'center':
+					align = [
+							'RTHG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				if TTHCommand['code'] == 'alignh':
+					x_instructions.extend(align)
+				elif TTHCommand['code'] == 'alignv':
+					y_instructions.extend(align)
+
+
+			if TTHCommand['code'] == 'doubleh' or TTHCommand['code'] == 'doublev':
+				if TTHCommand['point1'] == 'lsb':
+					point1Index = lsbIndex
+				elif TTHCommand['point1'] == 'rsb':
+					point1Index = rsbIndex
+				else:
+					point1UniqueID = self.pointNameToUniqueID[TTHCommand['point1']]
+					point1Index = self.pointIndexFromUniqueID(g, point1UniqueID)
+
+				if TTHCommand['point2'] == 'lsb':
+					point2Index = lsbIndex
+				elif TTHCommand['point2'] == 'rsb':
+					point2Index = rsbIndex
+				else:
+					point2UniqueID = self.pointNameToUniqueID[TTHCommand['point2']]
+					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
+
+				if 'stem' in TTHCommand.keys():
+					stemCV = self.stem_to_cvt[TTHCommand['stem']]
+					double = [
+							'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
+          					'CALL[ ]'
+							]
+				elif 'round' in TTHCommand.keys():
+					double = [
+							'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
+          					'CALL[ ]'
+							]
+				if TTHCommand['code'] == 'doubleh':
+					x_instructions.extend(double)
+				elif TTHCommand['code'] == 'doublev':
+					y_instructions.extend(double)
+
+
+
 			if TTHCommand['code'] == 'singleh' or TTHCommand['code'] == 'singlev':
 
 				if TTHCommand['point1'] == 'lsb':
@@ -1140,13 +1231,14 @@ class TTHTool(BaseEventTool):
 					point2UniqueID = self.pointNameToUniqueID[TTHCommand['point2']]
 					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
 
-				if RP0 == None:
+				if RP0 == None or point1UniqueID not in touchedPoints:
 					singleLink = [
 									'PUSHW[ ] ' + str(point1Index),
 									'MDAP[1]'
 									]
 					RP0 = point1Index
 					RP1 = point1Index
+					touchedPoints.append(point1UniqueID)
 
 				else:
 					singleLink = [
@@ -1154,6 +1246,8 @@ class TTHTool(BaseEventTool):
 									'SRP0[ ]',
 									]
 					RP0 = point1Index
+					if point1UniqueID not in touchedPoints:
+						touchedPoints.append(point1UniqueID)
 
 				if 'stem' in TTHCommand.keys():
 					stemCV = self.stem_to_cvt[TTHCommand['stem']]
@@ -1162,12 +1256,17 @@ class TTHTool(BaseEventTool):
 									'MIRP[10100]'
 									]
 					RP1 = RP0 = RP2 = point2Index
+					if point2UniqueID not in touchedPoints:
+						touchedPoints.append(point2UniqueID)
+
 				elif 'round' in TTHCommand.keys():
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[11100]'
 									]
 					RP1 = RP0 = RP2 = point2Index
+					if point2UniqueID not in touchedPoints:
+						touchedPoints.append(point2UniqueID)
 
 				elif 'align' in TTHCommand.keys():
 					if TTHCommand['align'] == 'round':
@@ -1176,12 +1275,16 @@ class TTHTool(BaseEventTool):
 										'MDRP[10100]'
 										]
 						RP1 = RP0 = RP2 = point2Index
+						if point2UniqueID not in touchedPoints:
+							touchedPoints.append(point2UniqueID)
 				else:
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[10000]'
 									]
 					RP1 = RP0 = RP2 = point2Index
+					if point2UniqueID not in touchedPoints:
+						touchedPoints.append(point2UniqueID)
 
 				singleLink.extend(singleLink2)
 
@@ -1189,8 +1292,6 @@ class TTHTool(BaseEventTool):
 					x_instructions.extend(singleLink)
 				elif TTHCommand['code'] == 'singlev':
 					y_instructions.extend(singleLink)
-			else:
-				print 'unsupported command'
 
 
 		##############################	
@@ -1471,7 +1572,7 @@ class TTHTool(BaseEventTool):
 			start = end+1
 
 			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, .5).set()
-			pathContour.setLineWidth_(scale*1.5)
+			pathContour.setLineWidth_(scale*2)
 			pathContour.stroke()
 		
 	
@@ -1581,17 +1682,29 @@ class TTHTool(BaseEventTool):
 		pathArrow.lineToPoint_((arrowPoint1_x, arrowPoint1_y))
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 
-
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve2) )
-
-		#pathArrow.lineToPoint_((currentPoint.x, currentPoint.y))
-
 	 
 		NSColor.colorWithRed_green_blue_alpha_(102/255, 102/255, 255/255, 1).set()
 		path.setLineWidth_(scale*1.5)
 		pathArrow.fill()
+		path.stroke()
+
+	def drawDoubleLink(self, scale, startPoint, endPoint):
+	 	
+	 	start_end_diff = difference(endPoint, startPoint)
+	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
+	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
+		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
+
+		path = NSBezierPath.bezierPath()
+	 	path.moveToPoint_((startPoint[0], startPoint[1]))
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (offcurve1), (offcurve2) )
+
+	 
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 0/255, 1).set()
+		path.setLineWidth_(scale*1.5)
 		path.stroke()
 
 
@@ -1620,7 +1733,7 @@ class TTHTool(BaseEventTool):
 				if c['point'] == 'lsb' or c['point'] == 'rsb':
 					self.drawAlign(scale, c['point'], 180)
 				else:
-					self.drawAlign(scale, self.pointNameToUniqueID[c.point], 180)
+					self.drawAlign(scale, self.pointNameToUniqueID[c['point']], 180)
 			if c['code'] == 'alignv' or c['code'] == 'alignt' or c['code'] == 'alignb' :
 				if c['point'] == 'lsb' or c['point'] == 'rsb':
 					self.drawAlign(scale, c['point'], 90)
@@ -1642,6 +1755,23 @@ class TTHTool(BaseEventTool):
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
 	
 				self.drawLink(scale, startPoint, endPoint)
+
+			if c['code'] == 'doubleh' or c['code'] == 'doublev':
+				if c['point1'] == 'lsb':
+					startPoint = (0, 0)
+				elif c['point1']== 'rsb':
+					startPoint = (0, self.g.width)
+				else:
+					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point1']]]
+
+				if c['point2'] == 'lsb':
+					endPoint = (0, 0)
+				elif c['point2'] == 'rsb':
+					endPoint = (self.g.width, 0)
+				else:
+					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
+
+				self.drawDoubleLink(scale, startPoint, endPoint)
 
 
 
