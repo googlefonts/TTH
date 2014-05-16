@@ -352,7 +352,6 @@ class TTHTool(BaseEventTool):
 		self.PPM_Size = 9
 		self.ready = False
 		self.key = False
-		self.face = None
 		self.glyphTTHCommands = []
 		self.bitmapPreviewSelection = 'Monochrome'
 		self.unicodeToNameDict = createUnicodeToNameDict()
