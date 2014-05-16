@@ -353,6 +353,7 @@ class TTHTool(BaseEventTool):
 		self.ready = False
 		self.key = False
 		self.unicodeToNameDict = createUnicodeToNameDict()
+		self.face = None
 
 	def getGlyphIndexByName(self, glyphName):
 		try:
@@ -1695,8 +1696,8 @@ class TTHTool(BaseEventTool):
 	 	
 	 	start_end_diff = difference(endPoint, startPoint)
 	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
-	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
-		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
+	 	offcurve1 = (startPoint[0] + 15*scale, startPoint[1] + 15*scale)
+		offcurve2 = (endPoint[0] + 15*scale, endPoint[1] + 15*scale)
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
