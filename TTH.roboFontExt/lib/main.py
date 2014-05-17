@@ -1107,6 +1107,9 @@ class TTHTool(BaseEventTool):
 		x_instructions = ['SVTCA[1]']
 		y_instructions = ['SVTCA[0]']
 		RP0 = RP1 = RP2 = None
+		pointUniqueID = None
+		point1UniqueID = None
+		point2UniqueID = None
 		touchedPoints = []
 
 		for TTHCommand in glyphTTHCommands:
@@ -1136,12 +1139,11 @@ class TTHTool(BaseEventTool):
 					pointUniqueID = self.pointNameToUniqueID[TTHCommand['point']]
 					pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
 
-				if pointUniqueID not in touchedPoints:
-						touchedPoints.append(pointUniqueID)
+					if pointUniqueID not in touchedPoints:
+							touchedPoints.append(pointUniqueID)
 
 				RP0 = pointIndex
 				RP1 = pointIndex
-				touchedPoints.append(pointUniqueID)
 
 				if TTHCommand['align'] == 'round':
 					align = [
@@ -1215,6 +1217,81 @@ class TTHTool(BaseEventTool):
 				elif TTHCommand['code'] == 'doublev':
 					y_instructions.extend(double)
 
+
+			if TTHCommand['code'] == 'interpolateh' or TTHCommand['code'] == 'interpolatev':
+
+				if TTHCommand['point1'] == 'lsb':
+					point1Index = lsbIndex
+				elif TTHCommand['point1'] == 'rsb':
+					point1Index = rsbIndex
+				else:
+					point1UniqueID = self.pointNameToUniqueID[TTHCommand['point1']]
+					point1Index = self.pointIndexFromUniqueID(g, point1UniqueID)
+
+				if TTHCommand['point2'] == 'lsb':
+					point2Index = lsbIndex
+				elif TTHCommand['point2'] == 'rsb':
+					point2Index = rsbIndex
+				else:
+					point2UniqueID = self.pointNameToUniqueID[TTHCommand['point2']]
+					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
+
+				if TTHCommand['point'] == 'lsb':
+					pointIndex = lsbIndex
+				elif TTHCommand['point'] == 'rsb':
+					pointIndex = rsbIndex
+				else:
+					pointUniqueID = self.pointNameToUniqueID[TTHCommand['point']]
+					pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
+
+				interpolate = [
+								'PUSHW[ ] ' + str(pointIndex) + ' ' + str(point1Index) + ' ' + str(point2Index),
+								'SRP1[ ]',
+								'SRP2[ ]',
+								'IP[ ]'
+								]
+				if 'align' in TTHCommand.keys():
+					if TTHCommand['align'] == 'round':
+						align = [
+								'PUSHW[ ] ' + str(pointIndex),
+								'MDAP[1]'
+								]
+					elif TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
+						align = [
+								'RDTG[ ]',
+								'PUSHW[ ] ' + str(pointIndex),
+								'MDAP[1]'
+								'RTG[ ]'
+								]
+					elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
+						align = [
+								'RUTG[ ]',
+								'PUSHW[ ] ' + str(pointIndex),
+								'MDAP[1]'
+								'RTG[ ]'
+								]
+					elif TTHCommand['align'] == 'double':
+						align = [
+								'RTDG[ ]',
+								'PUSHW[ ] ' + str(pointIndex),
+								'MDAP[1]'
+								'RTG[ ]'
+								]
+					elif TTHCommand['align'] == 'center':
+						align = [
+								'RTHG[ ]',
+								'PUSHW[ ] ' + str(pointIndex),
+								'MDAP[1]'
+								'RTG[ ]'
+								]
+				else:
+					align = []
+				interpolate.extend(align)
+
+				if TTHCommand['code'] == 'interpolateh':
+					x_instructions.extend(interpolate)
+				elif TTHCommand['code'] == 'interpolatev':
+					y_instructions.extend(interpolate)
 
 
 			if TTHCommand['code'] == 'singleh' or TTHCommand['code'] == 'singlev':
@@ -1691,7 +1768,7 @@ class TTHTool(BaseEventTool):
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve2) )
 	 
 		NSColor.colorWithRed_green_blue_alpha_(102/255, 102/255, 255/255, 1).set()
-		path.setLineWidth_(scale*1.5)
+		path.setLineWidth_(scale)
 		pathArrow.fill()
 		path.stroke()
 
@@ -1699,8 +1776,8 @@ class TTHTool(BaseEventTool):
 	 	
 	 	start_end_diff = difference(endPoint, startPoint)
 	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
-	 	offcurve1 = (startPoint[0] + 15*scale, startPoint[1] + 15*scale)
-		offcurve2 = (endPoint[0] + 15*scale, endPoint[1] + 15*scale)
+	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
+		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
@@ -1708,8 +1785,38 @@ class TTHTool(BaseEventTool):
 
 	 
 		NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 0/255, 1).set()
-		path.setLineWidth_(scale*1.5)
+		path.setLineWidth_(scale)
 		path.stroke()
+
+	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint):
+	 	
+
+	 	start_middle_diff = difference(startPoint, middlePoint)
+	 	dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
+	 	center1 = (startPoint[0] - dx, startPoint[1] - dy)
+	 	start_center1_diff = difference(startPoint, center1)
+	 	dx1, dy1 = -start_center1_diff[1]/3, start_center1_diff[0]/3
+	 	offcurve1 = (startPoint[0] + dx1, startPoint[1] + dy1)
+		offcurve2 = (middlePoint[0] + dx1, middlePoint[1] + dy1)
+
+		middle_end_diff = difference(middlePoint, endPoint)
+	 	dx, dy = middle_end_diff[0]/2, middle_end_diff[1]/2
+	 	center2 = (middlePoint[0] - dx, middlePoint[1] - dy)
+	 	center1_end_diff = difference(center2, endPoint)
+	 	dx2, dy2 = -center1_end_diff[1]/3, center1_end_diff[0]/3
+	 	offcurve3 = (middlePoint[0] - dx2, middlePoint[1] - dy2)
+		offcurve4 = (endPoint[0] - dx2, endPoint[1] - dy2)
+
+		path = NSBezierPath.bezierPath()
+	 	path.moveToPoint_((startPoint[0], startPoint[1]))
+	 	path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (offcurve1), (offcurve2) )
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (offcurve3), (offcurve4) )
+	 
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 128/255, 0/255, 1).set()
+		path.setLineWidth_(scale)
+		path.stroke()
+
+		#self.drawDiscAtPoint(5, middlePoint[0], middlePoint[1])
 
 
 	def drawBackground(self, scale):
@@ -1743,6 +1850,7 @@ class TTHTool(BaseEventTool):
 					self.drawAlign(scale, c['point'], 90)
 				else:
 					self.drawAlign(scale, self.pointNameToUniqueID[c['point']], 90)
+
 			if c['code'] == 'singleh' or c['code'] == 'singlev':
 				if c['point1'] == 'lsb':
 					startPoint = (0, 0)
@@ -1757,7 +1865,7 @@ class TTHTool(BaseEventTool):
 					endPoint = (self.g.width, 0)
 				else:
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
-	
+
 				self.drawLink(scale, startPoint, endPoint)
 
 			if c['code'] == 'doubleh' or c['code'] == 'doublev':
@@ -1774,8 +1882,32 @@ class TTHTool(BaseEventTool):
 					endPoint = (self.g.width, 0)
 				else:
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
-
 				self.drawDoubleLink(scale, startPoint, endPoint)
+
+			if c['code'] == 'interpolateh' or c['code'] == 'interpolatev':
+
+				if c['point'] == 'lsb':
+					middlePoint = (0, 0)
+				elif c['point']== 'rsb':
+					middlePoint = (0, self.g.width)
+				else:
+					middlePoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point']]]
+
+				if c['point1'] == 'lsb':
+					startPoint = (0, 0)
+				elif c['point1']== 'rsb':
+					startPoint = (0, self.g.width)
+				else:
+					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point1']]]
+
+				if c['point2'] == 'lsb':
+					endPoint = (0, 0)
+				elif c['point2'] == 'rsb':
+					endPoint = (self.g.width, 0)
+				else:
+					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
+
+				self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
 
 
 
