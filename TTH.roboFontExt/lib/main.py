@@ -449,6 +449,7 @@ class TTHTool(BaseEventTool):
 					point2UniqueID = self.pointNameToUniqueID[TTHCommand['point2']]
 					point2Index = self.pointIndexFromUniqueID(g, point2UniqueID)
 
+				singleLink = []
 				if RP0 == None or point1UniqueID not in touchedPoints:
 					singleLink = [
 									'PUSHW[ ] ' + str(point1Index),
@@ -467,6 +468,8 @@ class TTHTool(BaseEventTool):
 					if point1UniqueID not in touchedPoints:
 						touchedPoints.append(point1UniqueID)
 
+				singleLink2 = []
+				align2 = []
 				if 'stem' in TTHCommand.keys():
 					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 					singleLink2 = [
@@ -487,14 +490,67 @@ class TTHTool(BaseEventTool):
 						touchedPoints.append(point2UniqueID)
 
 				elif 'align' in TTHCommand.keys():
+					singleLink2 = [
+									'PUSHW[ ] ' + str(point2Index),
+									'MDRP[10000]'
+									]
 					if TTHCommand['align'] == 'round':
-						singleLink2 = [
+						align2 = [
 										'PUSHW[ ] ' + str(point2Index),
-										'MDRP[10100]'
+										'MDAP[1]'
 										]
 						RP1 = RP0 = RP2 = point2Index
 						if point2UniqueID not in touchedPoints:
 							touchedPoints.append(point2UniqueID)
+
+					if TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
+						align2 = [		
+										'RDTG[ ]',
+										'PUSHW[ ] ' + str(point2Index),
+										'MDAP[1]',
+										'RTG[]'
+										]
+						RP1 = RP0 = RP2 = point2Index
+						if point2UniqueID not in touchedPoints:
+							touchedPoints.append(point2UniqueID)
+
+					if TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
+						align2 = [		
+										'RUTG[ ]',
+										'PUSHW[ ] ' + str(point2Index),
+										'MDAP[1]',
+										'RTG[]'
+										]
+						RP1 = RP0 = RP2 = point2Index
+						if point2UniqueID not in touchedPoints:
+							touchedPoints.append(point2UniqueID)
+
+					elif TTHCommand['align'] == 'double':
+						align2 = [		
+										'RTDG[ ]',
+										'PUSHW[ ] ' + str(point2Index),
+										'MDAP[1]',
+										'RTG[]'
+										]
+						RP1 = RP0 = RP2 = point2Index
+						if point2UniqueID not in touchedPoints:
+							touchedPoints.append(point2UniqueID)
+
+					elif TTHCommand['align'] == 'center':
+						align2 = [		
+										'RTHG[ ]',
+										'PUSHW[ ] ' + str(point2Index),
+										'MDAP[1]',
+										'RTG[]'
+										]
+						RP1 = RP0 = RP2 = point2Index
+						if point2UniqueID not in touchedPoints:
+							touchedPoints.append(point2UniqueID)
+
+					else:
+						align2 = []
+
+						
 				else:
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index),
@@ -505,6 +561,8 @@ class TTHTool(BaseEventTool):
 						touchedPoints.append(point2UniqueID)
 
 				singleLink.extend(singleLink2)
+				singleLink.extend(align2)
+
 
 				if TTHCommand['code'] == 'singleh':
 					x_instructions.extend(singleLink)
@@ -1028,6 +1086,9 @@ class centralWindow(object):
 		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((90, 30, 100, 14),
                               self.BitmapPreviewList, sizeStyle = "small",
                               callback=self.BitmapPreviewPopUpButtonCallback)
+
+		self.wCentral.ReadTTProgramButton = SquareButton((10, 60, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
+                           					callback=self.ReadTTProgramButtonCallback)
 	
 
 		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
@@ -1090,13 +1151,21 @@ class centralWindow(object):
 		UpdateCurrentGlyphView()
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
+
+	def ReadTTProgramButtonCallback(self, sender):
+		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.TTHToolInstance.g)
+		for i in FLTTProgram:
+			print i
+
 	def PreviewShowButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(True)
 		self.wCentral.PreviewShowButton.show(False)
+		self.TTHToolInstance.previewWindow.showPreview()
 
 	def PreviewHideButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(False)
 		self.wCentral.PreviewShowButton.show(True)
+		self.TTHToolInstance.previewWindow.hidePreview()
 
 	def GeneralShowButtonCallback(self, sender):
 		self.wCentral.GeneralHideButton.show(True)
@@ -1135,7 +1204,7 @@ class previewWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.previewString = ''
 
-		self.wPreview = FloatingWindow((210, 600, 600, 200), "Preview", closable = False)
+		self.wPreview = FloatingWindow((210, 600, 600, 200), "Preview", closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (560, 160)))
@@ -1148,6 +1217,12 @@ class previewWindow(object):
 
 	def closePreview(self):
 		self.wPreview.close()
+
+	def showPreview(self):
+		self.wPreview.show()
+
+	def hidePreview(self):
+		self.wPreview.hide()
 
 	def previewEditTextCallback(self, sender):
 		self.previewString = sender.get()
