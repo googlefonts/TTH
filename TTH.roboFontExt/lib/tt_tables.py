@@ -1,5 +1,7 @@
 import math
 
+# variables globales qui n'existent qu'en un seul exemplaire.
+# peut poser probleme s'il y a plusieurs fontes ouvertes en meme temps
 stem_to_cvt = {}
 zone_to_cvt = {}
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}

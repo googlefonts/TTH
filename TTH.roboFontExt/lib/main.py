@@ -62,6 +62,7 @@ class TTHTool(BaseEventTool):
 		self.ready = False
 
 	def becomeActive(self):
+		self.bitmapPreviewSelection = 'Monochrome'
 		self.resetfonts()
 
 	def becomeInactive(self):
@@ -755,7 +756,7 @@ class TTHTool(BaseEventTool):
 	 	path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (center1), (center1) )
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (center2), (center2) )
 	 
-		NSColor.colorWithRed_green_blue_alpha_(255/255, 0/255, 0/255, 1).set()
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 0/255, 1).set()
 		path.setLineWidth_(scale)
 		path.stroke()
 
