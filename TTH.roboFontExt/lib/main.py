@@ -120,6 +120,7 @@ class TTHTool(BaseEventTool):
 		self.generateMiniTempFont()
 		self.face = freetype.Face(self.fulltempfontpath)
 		self.ready = True
+		self.previewWindow.view.setNeedsDisplay_(True)
 
 	def generateFullTempFont(self):
 		root =  os.path.split(self.f.path)[0]
@@ -495,6 +496,10 @@ class TTHTool(BaseEventTool):
 									'MDRP[10000]'
 									]
 					if TTHCommand['align'] == 'round':
+						singleLink2 = [
+									'PUSHW[ ] ' + str(point2Index),
+									'MDRP[10100]'
+									]
 						align2 = [
 										'PUSHW[ ] ' + str(point2Index),
 										'MDAP[1]'
