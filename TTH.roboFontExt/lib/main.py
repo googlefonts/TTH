@@ -587,10 +587,10 @@ class TTHTool(BaseEventTool):
 		except:
 			return None
 
-	def loadFaceGlyph(self, glyphName):
+	def loadFaceGlyph(self, glyphName, size):
 		if self.face == None:
 			return
-		self.face.set_pixel_sizes(int(self.PPM_Size), int(self.PPM_Size))
+		self.face.set_pixel_sizes(int(size), int(size))
 		g_index = self.getGlyphIndexByName(glyphName)
 		if self.bitmapPreviewSelection == 'Monochrome':
 			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
@@ -957,7 +957,7 @@ class TTHTool(BaseEventTool):
 
 			if gname not in self.fullTempUFO.keys():
 				continue
-			self.loadFaceGlyph(gname)
+			self.loadFaceGlyph(gname, self.PPM_Size)
 			if self.bitmapPreviewSelection == 'Monochrome':
 				self.drawBitmapMono(1, self.advance, 50, 1, self.face)
 			elif self.bitmapPreviewSelection == 'Grayscale':
@@ -967,12 +967,27 @@ class TTHTool(BaseEventTool):
 			
 			self.advance += self.f[gname].width/self.pitch
 
+		self.advance = 10
+
+		for size in range(9, 48, 1):
+			gname = CurrentGlyph().name
+			sizedpitch = self.UPM/size
+			self.loadFaceGlyph(gname, size)
+			if self.bitmapPreviewSelection == 'Monochrome':
+				self.drawBitmapMono(1, self.advance, 100, 1, self.face)
+			elif self.bitmapPreviewSelection == 'Grayscale':
+				self.drawBitmapGray(1, self.advance, 100, 1, self.face)
+			elif self.bitmapPreviewSelection == 'Subpixel':
+				self.drawBitmapSubPixelColor(1, self.advance, 100, 1, self.face)
+			
+			self.advance += self.f[gname].width/sizedpitch + 5
+
 
 	def drawBackground(self, scale):
 		if self.g == None:
 			return
 		
-		self.loadFaceGlyph(CurrentGlyph().name)
+		self.loadFaceGlyph(CurrentGlyph().name, self.PPM_Size)
 		if self.bitmapPreviewSelection == 'Monochrome':
 			self.drawBitmapMono(self.pitch, 0, 0, .4, self.face)
 		elif self.bitmapPreviewSelection == 'Grayscale':
@@ -1134,7 +1149,7 @@ class centralWindow(object):
 			sender.set(9)
 		self.TTHToolInstance.PPM_Size = newValue
 		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
 		UpdateCurrentGlyphView()
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
@@ -1144,7 +1159,7 @@ class centralWindow(object):
 		self.TTHToolInstance.PPM_Size = self.PPMSizesList[sender.get()]
 		self.wCentral.PPEMSizeEditText.set(self.TTHToolInstance.PPM_Size)
 		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name, self.TTHToolInstance.PPM_Size)
 		UpdateCurrentGlyphView()
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
@@ -1152,7 +1167,7 @@ class centralWindow(object):
 		if self.TTHToolInstance.g == None:
 			return
 		self.TTHToolInstance.bitmapPreviewSelection = self.BitmapPreviewList[sender.get()]
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name)
+		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
 		UpdateCurrentGlyphView()
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
