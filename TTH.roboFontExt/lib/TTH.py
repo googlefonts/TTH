@@ -130,7 +130,7 @@ class TTHTool(BaseEventTool):
 		#face.load_char(self.g.name)
 		if self.wTools.boxView.monoCheckBox.get() == True:
 			face.load_glyph(2, freetype.FT_LOAD_RENDER |
-    	                    freetype.FT_LOAD_TARGET_MONO )
+				freetype.FT_LOAD_TARGET_MONO )
 		elif self.wTools.boxView.grayCheckBox.get() == True:
 			face.load_glyph(2, freetype.FT_LOAD_RENDER |
 							freetype.FT_LOAD_TARGET_NORMAL)
@@ -205,7 +205,7 @@ class TTHTool(BaseEventTool):
 		libName = "com.sansplomb.TTH_Sets"
 		if libName in self.f.lib:
 			if self.g.name in self.f.lib[libName]:
-                                temp = str(len(self.f.lib[libName][self.g.name].keys()))
+				temp = str(len(self.f.lib[libName][self.g.name].keys()))
 				#store undo
 				if self.g.name in self.undoStorage:
 					storeundo_glyphList = self.undoStorage[self.g.name]
@@ -241,8 +241,8 @@ class TTHTool(BaseEventTool):
 	def read_TTH_Sets(self):
 		libName = "com.sansplomb.TTH_Sets"
 		if libName in self.f.lib:
-                        SPLib = self.f.lib[libName]
-                        if self.g.name in SPLib:
+			SPLib = self.f.lib[libName]
+			if self.g.name in SPLib:
 				#Set the axis of freedom and projection vectors
 				Y_instructions = ['SVTCA[0]']
 				X_instructions = ['SVTCA[1]']
@@ -274,15 +274,15 @@ class TTHTool(BaseEventTool):
 
 
 	def drawLink(self, scale, axis, startPoint, currentPoint):
-	 	
-	 	start_current_diff = difference(currentPoint, startPoint)
-	 	dx, dy = -start_current_diff[1]/2, start_current_diff[0]/2
-	 	offcurve1 = (startPoint.x + dx, startPoint.y + dy)
+
+		start_current_diff = difference(currentPoint, startPoint)
+		dx, dy = -start_current_diff[1]/2, start_current_diff[0]/2
+		offcurve1 = (startPoint.x + dx, startPoint.y + dy)
 		offcurve2 = (currentPoint.x - dx, currentPoint.y - dy)
 		r = 10
-	 	arrowAngle = math.radians(20)
-	 	initAngle = getAngle((currentPoint.x, currentPoint.y), (offcurve2[0], offcurve2[1]))
-	 	arrowPoint1_x = currentPoint.x + math.cos(initAngle+arrowAngle)*r*scale
+		arrowAngle = math.radians(20)
+		initAngle = getAngle((currentPoint.x, currentPoint.y), (offcurve2[0], offcurve2[1]))
+		arrowPoint1_x = currentPoint.x + math.cos(initAngle+arrowAngle)*r*scale
 		arrowPoint1_y = currentPoint.y + math.sin(initAngle+arrowAngle)*r*scale
 		arrowPoint2_x = currentPoint.x + math.cos(initAngle-arrowAngle)*r*scale
 		arrowPoint2_y = currentPoint.y + math.sin(initAngle-arrowAngle)*r*scale
@@ -290,18 +290,18 @@ class TTHTool(BaseEventTool):
 		endPoint_y = (arrowPoint1_y + arrowPoint2_y) / 2
 
 		pathArrow = NSBezierPath.bezierPath()
-	 	pathArrow.moveToPoint_((currentPoint.x, currentPoint.y))
+		pathArrow.moveToPoint_((currentPoint.x, currentPoint.y))
 		pathArrow.lineToPoint_((arrowPoint1_x, arrowPoint1_y))
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 
 
 		path = NSBezierPath.bezierPath()
-	 	path.moveToPoint_((startPoint.x, startPoint.y))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve2) )
+		path.moveToPoint_((startPoint.x, startPoint.y))
+		path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve2) )
 
 		#pathArrow.lineToPoint_((currentPoint.x, currentPoint.y))
 
-	 	if axis == "X":
+		if axis == "X":
 			NSColor.redColor().set()
 		elif axis == "Y":
 			NSColor.blueColor().set()
@@ -546,14 +546,14 @@ class TTHTool(BaseEventTool):
 
 		self.f = CurrentFont()
 		self.g = CurrentGlyph()
-		root =  os.path.split(self.f.path)[0]
+		root = os.path.split(self.f.path)[0]
 		tail = 'temp.ttf'
 		self.tempfontpath = os.path.join(root, tail)
 		self.UPM = CurrentFont().info.unitsPerEm
 		self.PPM_Size = 9
 		self.pitch = self.UPM / self.PPM_Size
 
-		self.previousGlyph  = None
+		self.previousGlyph = None
 
 		#### Initializing CVT ####
 		self.CVT_Index = []
