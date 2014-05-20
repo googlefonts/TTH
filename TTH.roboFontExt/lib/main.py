@@ -47,6 +47,8 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
+stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
+
 class TTHTool(BaseEventTool):
 
 	def __init__(self):
@@ -234,6 +236,8 @@ class TTHTool(BaseEventTool):
 		point1UniqueID = None
 		point2UniqueID = None
 		touchedPoints = []
+		finalDeltasH = []
+		finalDeltasV = []
 
 		for TTHCommand in glyphTTHCommands:
 			if TTHCommand['code'] == 'alignt' or TTHCommand['code'] == 'alignb':
@@ -568,17 +572,92 @@ class TTHTool(BaseEventTool):
 				singleLink.extend(singleLink2)
 				singleLink.extend(align2)
 
-
 				if TTHCommand['code'] == 'singleh':
 					x_instructions.extend(singleLink)
 				elif TTHCommand['code'] == 'singlev':
 					y_instructions.extend(singleLink)
+
+
+
+			if TTHCommand['code'] == 'mdeltah' or TTHCommand['code'] == 'mdeltav' or TTHCommand['code'] == 'fdeltah' or TTHCommand['code'] == 'fdeltav':
+				middleDeltas = []
+				if TTHCommand['point'] == 'lsb':
+					pointIndex = lsbIndex
+				elif TTHCommand['point'] == 'rsb':
+					pointIndex = rsbIndex
+				else:
+					pointUniqueID = self.pointNameToUniqueID[TTHCommand['point']]
+					pointIndex = self.pointIndexFromUniqueID(g, pointUniqueID)
+					if pointUniqueID not in touchedPoints:
+							touchedPoints.append(pointUniqueID)
+
+				ppm1 = TTHCommand['ppm1']
+				ppm2 = TTHCommand['ppm2']
+				step = int(TTHCommand['delta'])
+				nbDelta = 1 + int(ppm2) - int(ppm1)
+				deltasP1 = []
+				deltasP2 = []
+				deltasP3 = []
+				for i in range(nbDelta):
+					ppm = int(ppm1) + i
+					relativeSize = int(ppm) - 9
+					if 0 <= relativeSize <= 15:
+						deltasP1.append(relativeSize)
+					elif 16 <= relativeSize <= 31:
+						deltasP2.append(relativeSize)
+					elif 32 <= relativeSize <= 47:
+						deltasP3.append(relativeSize)
+					else:
+						print 'delta out of range'
+				deltaPString = 'PUSHW[ ]'
+				if deltasP1:
+					for i in range(len(deltasP1)):
+						relativeSize = deltasP1[i]
+						arg = (relativeSize << 4 ) + stepToSelector[step]
+						deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
+					
+					deltaPString += ' ' + str(len(deltasP1))
+					middleDeltas.append(deltaPString)
+					middleDeltas.append('DELTAP1[ ]')
+
+				if deltasP2:
+					for i in range(len(deltasP2)):
+						relativeSize = deltasP2[i]
+						arg = ((relativeSize -16) << 4 ) + stepToSelector[step]
+						deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
+					
+					deltaPString += ' ' + str(len(deltasP1))
+					middleDeltas.append(deltaPString)
+					middleDeltas.append('DELTAP2[ ]')
+
+				if deltasP3:
+					for i in range(len(deltasP3)):
+						relativeSize = deltasP3[i]
+						arg = ((relativeSize -32) << 4 ) + stepToSelector[step]
+						deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
+					
+					deltaPString += ' ' + str(len(deltasP1))
+					middleDeltas.append(deltaPString)
+					middleDeltas.append('DELTAP3[ ]')
+
+				if TTHCommand['code'] == 'mdeltah':
+					x_instructions.extend(middleDeltas)
+				elif TTHCommand['code'] == 'mdeltav':
+					y_instructions.extend(middleDeltas)
+				elif TTHCommand['code'] == 'fdeltah':
+					finalDeltasH.extend(middleDeltas)
+				elif TTHCommand['code'] == 'fdeltav':
+					finalDeltasV.extend(middleDeltas)
 
 		##############################	
 		assembly.extend(x_instructions)
 		assembly.extend(y_instructions)
 
 		assembly.extend(['IUP[0]', 'IUP[1]'])
+		assembly.append('SVTCA[0]')
+		assembly.extend(finalDeltasH)
+		assembly.append('SVTCA[1]')
+		assembly.extend(finalDeltasV)
 		g.lib['com.robofont.robohint.assembly'] = assembly
 
 	def getGlyphIndexByName(self, glyphName):
@@ -965,7 +1044,7 @@ class TTHTool(BaseEventTool):
 			elif self.bitmapPreviewSelection == 'Subpixel':
 				self.drawBitmapSubPixelColor(1, self.advance, 50, 1, self.face)
 			
-			self.advance += self.f[gname].width/self.pitch
+			self.advance += int(self.f[gname].width/self.pitch)
 
 		self.advance = 10
 
@@ -980,7 +1059,7 @@ class TTHTool(BaseEventTool):
 			elif self.bitmapPreviewSelection == 'Subpixel':
 				self.drawBitmapSubPixelColor(1, self.advance, 100, 1, self.face)
 			
-			self.advance += self.f[gname].width/sizedpitch + 5
+			self.advance += int(self.f[gname].width/sizedpitch) + 5
 
 
 	def drawBackground(self, scale):
@@ -1227,7 +1306,7 @@ class previewWindow(object):
 		self.wPreview = FloatingWindow((210, 600, 600, 200), "Preview", closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
-		self.view.setFrame_(((0, 0), (560, 160)))
+		self.view.setFrame_(((0, 0), (1500, 160)))
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 										callback=self.previewEditTextCallback)
 		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -10),
