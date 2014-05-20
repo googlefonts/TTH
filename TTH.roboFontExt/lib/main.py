@@ -650,6 +650,7 @@ class TTHTool(BaseEventTool):
 					x_instructions.extend(middleDeltas)
 				elif TTHCommand['code'] == 'mdeltav':
 					y_instructions.extend(middleDeltas)
+
 				elif TTHCommand['code'] == 'fdeltah':
 					finalDeltasH.extend(middleDeltas)
 				elif TTHCommand['code'] == 'fdeltav':
@@ -660,9 +661,9 @@ class TTHTool(BaseEventTool):
 		assembly.extend(y_instructions)
 
 		assembly.extend(['IUP[0]', 'IUP[1]'])
-		assembly.append('SVTCA[0]')
-		assembly.extend(finalDeltasH)
 		assembly.append('SVTCA[1]')
+		assembly.extend(finalDeltasH)
+		assembly.append('SVTCA[0]')
 		assembly.extend(finalDeltasV)
 		g.lib['com.robofont.robohint.assembly'] = assembly
 
@@ -908,6 +909,16 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
+	def drawDelta(self, scale, point, value):
+
+		path = NSBezierPath.bezierPath()
+	 	path.moveToPoint_((point[0], point[1]))
+	 	path.lineToPoint_((point[0]+ (value[0]/8)*self.pitch, point[1] + (value[1]/8)*self.pitch))
+
+	 	NSColor.colorWithRed_green_blue_alpha_(255/255, 128/255, 0/255, 1).set()
+		path.setLineWidth_(scale)
+		path.stroke()
+
 	def drawBitmapMono(self, pitch, advance, height, alpha, face):
 		if face == None:
 			return
@@ -1149,6 +1160,26 @@ class TTHTool(BaseEventTool):
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
 				self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
+
+			if cmd_code in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
+
+				if cmd_pt == 'lsb':
+					point = (0, 0)
+				elif cmd_pt== 'rsb':
+					point = (0, self.g.width)
+				else:
+					point = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
+
+				if cmd_code[-1:] == 'h':
+					value = (int(c['delta']), 0)
+				elif cmd_code[-1:] == 'v':
+					value = (0, int(c['delta']))
+				else:
+					value = 0
+
+				if int(self.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
+					self.drawDelta(scale, point, value)
+
 
 
 
