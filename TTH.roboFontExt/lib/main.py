@@ -31,7 +31,7 @@ def createUnicodeToNameDict():
 			name = i.split(';')[0]
 			unicodeGlyph = '0x' + i.split(';')[1][:-1]
 			unicodeGlyph = unicodeGlyph.split(' ')[0]
-			if int(unicodeGlyph, 16) not in unicodeToNameDict.keys():
+			if int(unicodeGlyph, 16) not in unicodeToNameDict:
 				unicodeToNameDict[int(unicodeGlyph, 16)] = name
 	return unicodeToNameDict
 
@@ -150,17 +150,17 @@ class TTHTool(BaseEventTool):
 		tempFont.info.familyName = CurrentFont().info.familyName
 		tempFont.info.styleName = CurrentFont().info.styleName
 
-		if 'com.robofont.robohint.cvt ' in CurrentFont().lib.keys():
+		if 'com.robofont.robohint.cvt ' in CurrentFont().lib:
 			tempFont.lib['com.robofont.robohint.cvt '] = CurrentFont().lib['com.robofont.robohint.cvt ']
-		if 'com.robofont.robohint.prep' in CurrentFont().lib.keys():
+		if 'com.robofont.robohint.prep' in CurrentFont().lib:
 			tempFont.lib['com.robofont.robohint.prep'] = CurrentFont().lib['com.robofont.robohint.prep']
-		if 'com.robofont.robohint.fpgm' in CurrentFont().lib.keys():
+		if 'com.robofont.robohint.fpgm' in CurrentFont().lib:
 			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
 		
 
 		tempFont.newGlyph(self.g.name)
 		tempFont[self.g.name] = tempGlyph
-		if 'com.robofont.robohint.assembly' in self.g.lib.keys():
+		if 'com.robofont.robohint.assembly' in self.g.lib:
 			tempFont[self.g.name].lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
@@ -197,7 +197,7 @@ class TTHTool(BaseEventTool):
 			return
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
 		self.glyphTTHCommands = []
-		if 'com.fontlab.ttprogram' not in g.lib.keys():
+		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
 		ttprogram = g.lib['com.fontlab.ttprogram']
 		ttprogram = str(ttprogram).split('\\n')
@@ -337,13 +337,13 @@ class TTHTool(BaseEventTool):
 					if point2UniqueID not in touchedPoints:
 							touchedPoints.append(point2UniqueID)
 
-				if 'stem' in TTHCommand.keys():
+				if 'stem' in TTHCommand:
 					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 					double = [
 							'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
           					'CALL[ ]'
 							]
-				elif 'round' in TTHCommand.keys():
+				elif 'round' in TTHCommand:
 					double = [
 							'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
           					'CALL[ ]'
@@ -392,7 +392,7 @@ class TTHTool(BaseEventTool):
 								'SRP2[ ]',
 								'IP[ ]'
 								]
-				if 'align' in TTHCommand.keys():
+				if 'align' in TTHCommand:
 					if TTHCommand['align'] == 'round':
 						align = [
 								'PUSHW[ ] ' + str(pointIndex),
@@ -475,7 +475,7 @@ class TTHTool(BaseEventTool):
 
 				singleLink2 = []
 				align2 = []
-				if 'stem' in TTHCommand.keys():
+				if 'stem' in TTHCommand:
 					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index) + ' ' + str(stemCV),
@@ -485,7 +485,7 @@ class TTHTool(BaseEventTool):
 					if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
-				elif 'round' in TTHCommand.keys():
+				elif 'round' in TTHCommand:
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[11100]'
@@ -494,7 +494,7 @@ class TTHTool(BaseEventTool):
 					if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
-				elif 'align' in TTHCommand.keys():
+				elif 'align' in TTHCommand:
 					singleLink2 = [
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[10000]'
@@ -512,7 +512,7 @@ class TTHTool(BaseEventTool):
 						if point2UniqueID not in touchedPoints:
 							touchedPoints.append(point2UniqueID)
 
-					if TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
+					if TTHCommand['align'] in ['left', 'bottom']:
 						align2 = [		
 										'RDTG[ ]',
 										'PUSHW[ ] ' + str(point2Index),
@@ -523,7 +523,7 @@ class TTHTool(BaseEventTool):
 						if point2UniqueID not in touchedPoints:
 							touchedPoints.append(point2UniqueID)
 
-					if TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
+					if TTHCommand['align'] in ['right', 'top']:
 						align2 = [		
 										'RUTG[ ]',
 										'PUSHW[ ] ' + str(point2Index),
@@ -579,7 +579,7 @@ class TTHTool(BaseEventTool):
 
 
 
-			if TTHCommand['code'] == 'mdeltah' or TTHCommand['code'] == 'mdeltav' or TTHCommand['code'] == 'fdeltah' or TTHCommand['code'] == 'fdeltav':
+			if TTHCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
 				middleDeltas = []
 				if TTHCommand['point'] == 'lsb':
 					pointIndex = lsbIndex
@@ -1024,7 +1024,7 @@ class TTHTool(BaseEventTool):
 			elif c == '@':
 				gname = CurrentGlyph().name
 			elif c =='/' or c == ' ' :
-				if gnametemp in self.fullTempUFO.keys():
+				if gnametemp in self.fullTempUFO:
 					gname = gnametemp
 					gnametemp = ''
 				if startgname != True:
@@ -1034,7 +1034,7 @@ class TTHTool(BaseEventTool):
 			elif startgname == True:
 				gnametemp += c
 
-			if gname not in self.fullTempUFO.keys():
+			if gname not in self.fullTempUFO:
 				continue
 			self.loadFaceGlyph(gname, self.PPM_Size)
 			if self.bitmapPreviewSelection == 'Monochrome':
@@ -1085,72 +1085,62 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		for c in self.glyphTTHCommands:
-			if c['code'] == 'alignh':
-				if c['point'] == 'lsb' or c['point'] == 'rsb':
-					self.drawAlign(scale, c['point'], 180)
+			# search elements only once
+			cmd_code = c['code']
+			cmd_pt   = c['point']
+			cmd_pt1  = c['point1']
+			cmd_pt2  = c['point2']
+			if cmd_code in ['alignh', 'alignv', 'alignt', 'alignb'] :
+				angle = 90
+				if cmd_code = 'alignh':
+					angle = 180
+				if cmd_pt in ['lsb', 'rsb']:
+					self.drawAlign(scale, cmd_pt, angle)
 				else:
-					self.drawAlign(scale, self.pointNameToUniqueID[c['point']], 180)
-			if c['code'] == 'alignv' or c['code'] == 'alignt' or c['code'] == 'alignb' :
-				if c['point'] == 'lsb' or c['point'] == 'rsb':
-					self.drawAlign(scale, c['point'], 90)
-				else:
-					self.drawAlign(scale, self.pointNameToUniqueID[c['point']], 90)
+					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle)
 
-			if c['code'] == 'singleh' or c['code'] == 'singlev':
-				if c['point1'] == 'lsb':
+			if cmd_code in ['singleh', 'singlev', 'doubleh', 'doublev']:
+				if cmd_pt1 == 'lsb':
 					startPoint = (0, 0)
-				elif c['point1']== 'rsb':
+				elif cmd_pt1== 'rsb':
 					startPoint = (0, self.g.width)
 				else:
-					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point1']]]
+					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
 
-				if c['point2'] == 'lsb':
+				if cmd_pt2 == 'lsb':
 					endPoint = (0, 0)
-				elif c['point2'] == 'rsb':
+				elif cmd_pt2 == 'rsb':
 					endPoint = (self.g.width, 0)
 				else:
-					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
+					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
-				self.drawLink(scale, startPoint, endPoint)
-
-			if c['code'] == 'doubleh' or c['code'] == 'doublev':
-				if c['point1'] == 'lsb':
-					startPoint = (0, 0)
-				elif c['point1']== 'rsb':
-					startPoint = (0, self.g.width)
+				if cmd_code in ['doubleh', 'doublev']:
+					self.drawDoubleLink(scale, startPoint, endPoint)
 				else:
-					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point1']]]
+					self.drawLink(scale, startPoint, endPoint)
 
-				if c['point2'] == 'lsb':
-					endPoint = (0, 0)
-				elif c['point2'] == 'rsb':
-					endPoint = (self.g.width, 0)
-				else:
-					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
-				self.drawDoubleLink(scale, startPoint, endPoint)
+			if cmd_code in ['interpolateh', 'interpolatev']:
 
-			if c['code'] == 'interpolateh' or c['code'] == 'interpolatev':
-
-				if c['point'] == 'lsb':
+				if cmd_pt == 'lsb':
 					middlePoint = (0, 0)
-				elif c['point']== 'rsb':
+				elif cmd_pt== 'rsb':
 					middlePoint = (0, self.g.width)
 				else:
-					middlePoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point']]]
+					middlePoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
 
-				if c['point1'] == 'lsb':
+				if cmd_pt1 == 'lsb':
 					startPoint = (0, 0)
-				elif c['point1']== 'rsb':
+				elif cmd_pt1== 'rsb':
 					startPoint = (0, self.g.width)
 				else:
-					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point1']]]
+					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
 
-				if c['point2'] == 'lsb':
+				if cmd_pt2 == 'lsb':
 					endPoint = (0, 0)
-				elif c['point2'] == 'rsb':
+				elif cmd_pt2 == 'rsb':
 					endPoint = (self.g.width, 0)
 				else:
-					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[c['point2']]]
+					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
 				self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
 
