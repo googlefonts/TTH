@@ -203,19 +203,20 @@ class TTHTool(BaseEventTool):
 
 	def store_TTH_Set(self, TTH_Set):
 		libName = "com.sansplomb.TTH_Sets"
-		if libName in self.f.lib.keys():
-			if self.g.name in self.f.lib[libName].keys():
+		if libName in self.f.lib:
+			if self.g.name in self.f.lib[libName]:
+                                temp = str(len(self.f.lib[libName][self.g.name].keys()))
 				#store undo
-				if self.g.name in self.undoStorage.keys():
+				if self.g.name in self.undoStorage:
 					storeundo_glyphList = self.undoStorage[self.g.name]
-					storeundo_glyphList.append(str(len(self.f.lib[libName][self.g.name].keys())))
+					storeundo_glyphList.append(temp)
 					self.undoStorage[self.g.name] = storeundo_glyphList
 				else:
-					self.undoStorage[self.g.name] = [str(len(self.f.lib[libName][self.g.name].keys()))]
+					self.undoStorage[self.g.name] = [temp]
 				#clear redostorage
 				self.redoStorage[self.g.name] = []
 				#store instruction
-				self.f.lib[libName][self.g.name][str(len(self.f.lib[libName][self.g.name].keys()))] = (TTH_Set.axis, TTH_Set.set_type, TTH_Set.instructions)
+				self.f.lib[libName][self.g.name][temp] = (TTH_Set.axis, TTH_Set.set_type, TTH_Set.instructions)
 			else:
 				#store undo
 				self.undoStorage[self.g.name] = [0]
@@ -239,16 +240,17 @@ class TTHTool(BaseEventTool):
 
 	def read_TTH_Sets(self):
 		libName = "com.sansplomb.TTH_Sets"
-		if libName in self.f.lib.keys():
-			if self.g.name in self.f.lib[libName].keys():
+		if libName in self.f.lib:
+                        SPLib = self.f.lib[libName]
+                        if self.g.name in SPLib:
 				#Set the axis of freedom and projection vectors
 				Y_instructions = ['SVTCA[0]']
 				X_instructions = ['SVTCA[1]']
 				TTH_instructions = []
-				for TTH_Set_index in self.f.lib[libName][self.g.name]:
-					axis = self.f.lib[libName][self.g.name][TTH_Set_index][0]
-					set_type = self.f.lib[libName][self.g.name][TTH_Set_index][1]
-					set_instructions = self.f.lib[libName][self.g.name][TTH_Set_index][2]
+				for idx, tth_set in SPLib[self.g.name].iteritems():
+					axis = tth_set[0]
+					set_type = tth_set[1]
+					set_instructions = tth_set[2]
 					if axis == 'X':
 						X_instructions.extend(set_instructions)
 					elif axis == 'Y':
@@ -265,7 +267,7 @@ class TTHTool(BaseEventTool):
 
 
 	def write_TTH_Sets_ToGlyph(self, TTH_instructions):
-		if 'com.robofont.robohint.assembly' in self.g.lib.keys():
+		if 'com.robofont.robohint.assembly' in self.g.lib:
 			self.g.lib['com.robofont.robohint.assembly'].extend(TTH_instructions)
 		else:
 			self.g.lib['com.robofont.robohint.assembly'] = TTH_instructions
@@ -470,7 +472,7 @@ class TTHTool(BaseEventTool):
 		libName = "com.sansplomb.TTH_Sets"
 		if self.modifiersChanged() and event.characters() == 'z':
 			#UNDO action
-			if len(self.undoStorage) != 0 and self.g.name in self.undoStorage.keys() and len(self.undoStorage[self.g.name]) != 0:
+			if len(self.undoStorage) != 0 and self.g.name in self.undoStorage and len(self.undoStorage[self.g.name]) != 0:
 				#print 'undo glyph:', self.g.name
 				#print 'undo instruction index:', self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1]
 				
@@ -558,11 +560,11 @@ class TTHTool(BaseEventTool):
 		self.CVT_Names = []
 		self.CVT_Values = []
 
-		if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+		if 'com.robofont.robohint.cvt ' in self.f.lib:
 			self.CVT_Values = self.f.lib['com.robofont.robohint.cvt ']
 			for i in range(len(self.f.lib['com.robofont.robohint.cvt '])):
 				self.CVT_Index.append(i)
-		if 'com.sansplomb.CVT_Names' in self.f.lib.keys():
+		if 'com.sansplomb.CVT_Names' in self.f.lib:
 			self.CVT_Names = self.f.lib['com.sansplomb.CVT_Names']
 
 
@@ -583,7 +585,7 @@ class TTHTool(BaseEventTool):
 						'WCVTP[ ]',
 						'ENDF[ ]'
 					]
-		if 'com.robofont.robohint.fpgm' in self.f.lib.keys():
+		if 'com.robofont.robohint.fpgm' in self.f.lib:
 			self.FPGM = self.f.lib['com.robofont.robohint.fpgm']
 		else:
 			 self.f.lib['com.robofont.robohint.fpgm'] = self.FPGM
@@ -614,7 +616,7 @@ class TTHTool(BaseEventTool):
 					]
 
 
-		if 'com.robofont.robohint.prep' in self.f.lib.keys():
+		if 'com.robofont.robohint.prep' in self.f.lib:
 			self.PREP = self.f.lib['com.robofont.robohint.prep']
 		else:
 			 self.f.lib['com.robofont.robohint.prep'] = self.PREP
@@ -841,9 +843,9 @@ class TTHTool(BaseEventTool):
 				NSColor.colorWithRed_green_blue_alpha_(0, 1, 1, .5).set()
 				NSBezierPath.bezierPathWithOvalInRect_(((x_end-r, y_end-r), (r*2, r*2))).fill()
 
-		if self.f.lib and "com.sansplomb.TTH_Sets" in self.f.lib.keys() and self.g.name in self.f.lib["com.sansplomb.TTH_Sets"].keys():
-			for key in self.f.lib["com.sansplomb.TTH_Sets"][self.g.name].keys():
-				(axis, set_type, instructions)= self.f.lib["com.sansplomb.TTH_Sets"][self.g.name][key]
+		if self.f.lib and "com.sansplomb.TTH_Sets" in self.f.lib and self.g.name in self.f.lib["com.sansplomb.TTH_Sets"]:
+			for key, tth_set in self.f.lib["com.sansplomb.TTH_Sets"][self.g.name].iteritems():
+				(axis, set_type, instructions) = tth_set
 				if set_type == 'Link_RoundToGrid':
 					inPointIndex = int(instructions[0].split(' ')[-1:][0])
 					outPointIndex = int(instructions[2].split(' ')[-1:][0])
@@ -1082,18 +1084,18 @@ class TTHTool(BaseEventTool):
 
 	def buttonAddCVCallback(self, sender):
 		index = 0
-		if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+		if 'com.robofont.robohint.cvt ' in self.f.lib:
 			index = len( self.f.lib['com.robofont.robohint.cvt '] )
 
 		name = self.wTables.boxCVT.editTextCV_Name.get()
 		value = int(self.wTables.boxCVT.editTextCV_Value.get())
 		if name != '' and value != '':
 			self.CVT_Index.append(index)
-			if 'com.sansplomb.CVT_Names' in self.f.lib.keys():
+			if 'com.sansplomb.CVT_Names' in self.f.lib:
 				self.f.lib['com.sansplomb.CVT_Names'].append(name)
 			else:
 				self.f.lib['com.sansplomb.CVT_Names'] = [name]
-			if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+			if 'com.robofont.robohint.cvt ' in self.f.lib:
 				self.f.lib['com.robofont.robohint.cvt '].append(value)
 			else:
 				self.f.lib['com.robofont.robohint.cvt '] = [value]

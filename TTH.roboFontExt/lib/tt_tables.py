@@ -15,11 +15,11 @@ def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 
 	stemsHorizontal = []
 	stemsVertical = []
-	for name in stems.keys():
-		if stems[name]['horizontal'] == True:
-			stemsHorizontal.append((name, stems[name]))
+	for name, stem in stems.iteritems():
+		if stem['horizontal'] == True:
+			stemsHorizontal.append((name, stem))
 		else:
-			stemsVertical.append((name, stems[name]))
+			stemsVertical.append((name, stem))
 
 	for stem in stemsHorizontal:
 		cvt_index += 1
@@ -33,14 +33,14 @@ def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 		table_CVT.append(cvt)
 		stem_to_cvt[stem[0]] = cvt_index
 
-	for name in zones.keys():
+	for name, zone in zones.iteritems():
 		cvt_index += 1
-		cvt = zones[name]['position']
+		cvt = zone['position']
 		table_CVT.append(cvt)
 		zone_to_cvt[name] = cvt_index
 
 		cvt_index += 1
-		cvt = zones[name]['width']
+		cvt = zone['width']
 		table_CVT.append(cvt)
 
 	f.lib['com.robofont.robohint.cvt '] = table_CVT
@@ -134,10 +134,10 @@ def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 					]
 
 	deltaZones = []
-	for zoneName in zones.keys():
-		if 'delta' in zones[zoneName].keys():
+	for zoneName, zone in zones.iteritems():
+		if 'delta' in zone:
 			
-			for ppmSize, step in zones[zoneName]['delta'].iteritems():
+			for ppmSize, step in zone['delta'].iteritems():
 				if step not in stepToSelector:
 					continue
 				CVT_number = zone_to_cvt[zoneName]
