@@ -11,6 +11,12 @@ import freetype
 import Quartz
 from objc import allocateBuffer
 
+def getOrNone(dico, key):
+	try:
+		return dico[key]
+	except:
+		return None
+
 def loadFonts():
 	af = AllFonts()
 	if not af:
@@ -1086,13 +1092,13 @@ class TTHTool(BaseEventTool):
 	def draw(self, scale):
 		for c in self.glyphTTHCommands:
 			# search elements only once
-			cmd_code = c['code']
-			cmd_pt   = c['point']
-			cmd_pt1  = c['point1']
-			cmd_pt2  = c['point2']
+			cmd_code = getOrNone(c, 'code')
+			cmd_pt   = getOrNone(c, 'point')
+			cmd_pt1  = getOrNone(c, 'point1')
+			cmd_pt2  = getOrNone(c, 'point2')
 			if cmd_code in ['alignh', 'alignv', 'alignt', 'alignb'] :
 				angle = 90
-				if cmd_code = 'alignh':
+				if cmd_code == 'alignh':
 					angle = 180
 				if cmd_pt in ['lsb', 'rsb']:
 					self.drawAlign(scale, cmd_pt, angle)
