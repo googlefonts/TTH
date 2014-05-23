@@ -34,9 +34,8 @@ class FL_TTH():
 			print 'position:', flzone['position']
 			print 'width:', flzone['width']
 			if 'delta' in flzone:
-				# FIXME: should there be parentheses after 'keys' below?
-				for ppEmSize in flzone['delta'].keys:
-					print 'delta:', flzone['delta'][ppEmSize], 'at size',  ppEmSize, 'ppEm'
+				for ppEmSize, d in flzone['delta'].iteritems():
+					print 'delta:', d, 'at size',  ppEmSize, 'ppEm'
 			print '--------------'
 
 		print '--------------'
