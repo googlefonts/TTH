@@ -34,6 +34,7 @@ class FL_TTH():
 			print 'position:', flzone['position']
 			print 'width:', flzone['width']
 			if 'delta' in flzone:
+				# FIXME: should there be parentheses after 'keys' below?
 				for ppEmSize in flzone['delta'].keys:
 					print 'delta:', flzone['delta'][ppEmSize], 'at size',  ppEmSize, 'ppEm'
 			print '--------------'
@@ -68,7 +69,7 @@ class FL_TTH_Windows(object):
 				tth_lib["zones"] = {}
 				self.zones = {}
 
-			if "stems" in tth_lib: 
+			if "stems" in tth_lib:
 				self.stems = tth_lib["stems"]
 			else:
 				tth_lib["stems"] = {}

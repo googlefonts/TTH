@@ -472,24 +472,25 @@ class TTHTool(BaseEventTool):
 		libName = "com.sansplomb.TTH_Sets"
 		if self.modifiersChanged() and event.characters() == 'z':
 			#UNDO action
-			if len(self.undoStorage) != 0 and self.g.name in self.undoStorage and len(self.undoStorage[self.g.name]) != 0:
+			if self.undoStorage != {} and self.g.name in self.undoStorage and self.undoStorage[self.g.name] != []:
 				#print 'undo glyph:', self.g.name
 				#print 'undo instruction index:', self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1]
 				
 				#prepare REDO
-				deletedInstruction = f.lib[libName][self.g.name][str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])]
-				deletedInstructionIndex = str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])
+				undoList = self.undoStorage[self.g.name]
+				glyphLibData = f.lib[libName][self.g.name]
+
+				deletedInstructionIndex = str(undoList[-1])
+				deletedInstruction = glyphLibData[deletedInstructionIndex]
 
 				self.redoStorage[self.g.name].append((deletedInstructionIndex, deletedInstruction))
 				#print 'redo storage', self.redoStorage[self.g.name]
 				#####
 
-				del f.lib[libName][self.g.name][str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])]
+				del glyphLibData[deletedInstructionIndex]
 				#print 'delete instruction index', str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])
 
-				storeundo_glyphList = self.undoStorage[self.g.name]
-				storeundo_glyphList.pop(len(self.undoStorage[self.g.name])-1)
-				self.undoStorage[self.g.name] = storeundo_glyphList
+				undoList.pop(-1)
 			else:
 				return
 
@@ -504,9 +505,11 @@ class TTHTool(BaseEventTool):
 
 
 		if self.modifiersChanged() and event.characters() == 'y':
-			if len(self.redoStorage[self.g.name]) != 0:
-				f.lib[libName][self.g.name][str(len(f.lib[libName][self.g.name]))] = self.redoStorage[self.g.name][len(self.redoStorage[self.g.name])-1][1]
-				self.redoStorage[self.g.name].pop(len(self.redoStorage[self.g.name])-1)
+			redoList = self.redoStorage[self.g.name]
+			if redoList != []:
+				lib = f.lib[libName][self.g.name]
+				lib[str(len(lib))] = redoList[-1][1]
+				redoList.pop(-1)
 
 				storeundo_glyphList = self.undoStorage[self.g.name]
 				storeundo_glyphList.append(str(len(self.undoStorage[self.g.name])))
