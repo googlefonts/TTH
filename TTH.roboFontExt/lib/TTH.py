@@ -130,7 +130,7 @@ class TTHTool(BaseEventTool):
 		#face.load_char(self.g.name)
 		if self.wTools.boxView.monoCheckBox.get() == True:
 			face.load_glyph(2, freetype.FT_LOAD_RENDER |
-    	                    freetype.FT_LOAD_TARGET_MONO )
+				freetype.FT_LOAD_TARGET_MONO )
 		elif self.wTools.boxView.grayCheckBox.get() == True:
 			face.load_glyph(2, freetype.FT_LOAD_RENDER |
 							freetype.FT_LOAD_TARGET_NORMAL)
@@ -203,19 +203,20 @@ class TTHTool(BaseEventTool):
 
 	def store_TTH_Set(self, TTH_Set):
 		libName = "com.sansplomb.TTH_Sets"
-		if libName in self.f.lib.keys():
-			if self.g.name in self.f.lib[libName].keys():
+		if libName in self.f.lib:
+			if self.g.name in self.f.lib[libName]:
+				temp = str(len(self.f.lib[libName][self.g.name].keys()))
 				#store undo
-				if self.g.name in self.undoStorage.keys():
+				if self.g.name in self.undoStorage:
 					storeundo_glyphList = self.undoStorage[self.g.name]
-					storeundo_glyphList.append(str(len(self.f.lib[libName][self.g.name].keys())))
+					storeundo_glyphList.append(temp)
 					self.undoStorage[self.g.name] = storeundo_glyphList
 				else:
-					self.undoStorage[self.g.name] = [str(len(self.f.lib[libName][self.g.name].keys()))]
+					self.undoStorage[self.g.name] = [temp]
 				#clear redostorage
 				self.redoStorage[self.g.name] = []
 				#store instruction
-				self.f.lib[libName][self.g.name][str(len(self.f.lib[libName][self.g.name].keys()))] = (TTH_Set.axis, TTH_Set.set_type, TTH_Set.instructions)
+				self.f.lib[libName][self.g.name][temp] = (TTH_Set.axis, TTH_Set.set_type, TTH_Set.instructions)
 			else:
 				#store undo
 				self.undoStorage[self.g.name] = [0]
@@ -239,16 +240,17 @@ class TTHTool(BaseEventTool):
 
 	def read_TTH_Sets(self):
 		libName = "com.sansplomb.TTH_Sets"
-		if libName in self.f.lib.keys():
-			if self.g.name in self.f.lib[libName].keys():
+		if libName in self.f.lib:
+			SPLib = self.f.lib[libName]
+			if self.g.name in SPLib:
 				#Set the axis of freedom and projection vectors
 				Y_instructions = ['SVTCA[0]']
 				X_instructions = ['SVTCA[1]']
 				TTH_instructions = []
-				for TTH_Set_index in self.f.lib[libName][self.g.name]:
-					axis = self.f.lib[libName][self.g.name][TTH_Set_index][0]
-					set_type = self.f.lib[libName][self.g.name][TTH_Set_index][1]
-					set_instructions = self.f.lib[libName][self.g.name][TTH_Set_index][2]
+				for idx, tth_set in SPLib[self.g.name].iteritems():
+					axis = tth_set[0]
+					set_type = tth_set[1]
+					set_instructions = tth_set[2]
 					if axis == 'X':
 						X_instructions.extend(set_instructions)
 					elif axis == 'Y':
@@ -265,22 +267,22 @@ class TTHTool(BaseEventTool):
 
 
 	def write_TTH_Sets_ToGlyph(self, TTH_instructions):
-		if 'com.robofont.robohint.assembly' in self.g.lib.keys():
+		if 'com.robofont.robohint.assembly' in self.g.lib:
 			self.g.lib['com.robofont.robohint.assembly'].extend(TTH_instructions)
 		else:
 			self.g.lib['com.robofont.robohint.assembly'] = TTH_instructions
 
 
 	def drawLink(self, scale, axis, startPoint, currentPoint):
-	 	
-	 	start_current_diff = difference(currentPoint, startPoint)
-	 	dx, dy = -start_current_diff[1]/2, start_current_diff[0]/2
-	 	offcurve1 = (startPoint.x + dx, startPoint.y + dy)
+
+		start_current_diff = difference(currentPoint, startPoint)
+		dx, dy = -start_current_diff[1]/2, start_current_diff[0]/2
+		offcurve1 = (startPoint.x + dx, startPoint.y + dy)
 		offcurve2 = (currentPoint.x - dx, currentPoint.y - dy)
 		r = 10
-	 	arrowAngle = math.radians(20)
-	 	initAngle = getAngle((currentPoint.x, currentPoint.y), (offcurve2[0], offcurve2[1]))
-	 	arrowPoint1_x = currentPoint.x + math.cos(initAngle+arrowAngle)*r*scale
+		arrowAngle = math.radians(20)
+		initAngle = getAngle((currentPoint.x, currentPoint.y), (offcurve2[0], offcurve2[1]))
+		arrowPoint1_x = currentPoint.x + math.cos(initAngle+arrowAngle)*r*scale
 		arrowPoint1_y = currentPoint.y + math.sin(initAngle+arrowAngle)*r*scale
 		arrowPoint2_x = currentPoint.x + math.cos(initAngle-arrowAngle)*r*scale
 		arrowPoint2_y = currentPoint.y + math.sin(initAngle-arrowAngle)*r*scale
@@ -288,18 +290,18 @@ class TTHTool(BaseEventTool):
 		endPoint_y = (arrowPoint1_y + arrowPoint2_y) / 2
 
 		pathArrow = NSBezierPath.bezierPath()
-	 	pathArrow.moveToPoint_((currentPoint.x, currentPoint.y))
+		pathArrow.moveToPoint_((currentPoint.x, currentPoint.y))
 		pathArrow.lineToPoint_((arrowPoint1_x, arrowPoint1_y))
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 
 
 		path = NSBezierPath.bezierPath()
-	 	path.moveToPoint_((startPoint.x, startPoint.y))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve2) )
+		path.moveToPoint_((startPoint.x, startPoint.y))
+		path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve2) )
 
 		#pathArrow.lineToPoint_((currentPoint.x, currentPoint.y))
 
-	 	if axis == "X":
+		if axis == "X":
 			NSColor.redColor().set()
 		elif axis == "Y":
 			NSColor.blueColor().set()
@@ -470,24 +472,25 @@ class TTHTool(BaseEventTool):
 		libName = "com.sansplomb.TTH_Sets"
 		if self.modifiersChanged() and event.characters() == 'z':
 			#UNDO action
-			if len(self.undoStorage) != 0 and self.g.name in self.undoStorage.keys() and len(self.undoStorage[self.g.name]) != 0:
+			if self.undoStorage != {} and self.g.name in self.undoStorage and self.undoStorage[self.g.name] != []:
 				#print 'undo glyph:', self.g.name
 				#print 'undo instruction index:', self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1]
 				
 				#prepare REDO
-				deletedInstruction = f.lib[libName][self.g.name][str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])]
-				deletedInstructionIndex = str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])
+				undoList = self.undoStorage[self.g.name]
+				glyphLibData = f.lib[libName][self.g.name]
+
+				deletedInstructionIndex = str(undoList[-1])
+				deletedInstruction = glyphLibData[deletedInstructionIndex]
 
 				self.redoStorage[self.g.name].append((deletedInstructionIndex, deletedInstruction))
 				#print 'redo storage', self.redoStorage[self.g.name]
 				#####
 
-				del f.lib[libName][self.g.name][str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])]
+				del glyphLibData[deletedInstructionIndex]
 				#print 'delete instruction index', str(self.undoStorage[self.g.name][len(self.undoStorage[self.g.name])-1])
 
-				storeundo_glyphList = self.undoStorage[self.g.name]
-				storeundo_glyphList.pop(len(self.undoStorage[self.g.name])-1)
-				self.undoStorage[self.g.name] = storeundo_glyphList
+				undoList.pop(-1)
 			else:
 				return
 
@@ -502,9 +505,11 @@ class TTHTool(BaseEventTool):
 
 
 		if self.modifiersChanged() and event.characters() == 'y':
-			if len(self.redoStorage[self.g.name]) != 0:
-				f.lib[libName][self.g.name][str(len(f.lib[libName][self.g.name]))] = self.redoStorage[self.g.name][len(self.redoStorage[self.g.name])-1][1]
-				self.redoStorage[self.g.name].pop(len(self.redoStorage[self.g.name])-1)
+			redoList = self.redoStorage[self.g.name]
+			if redoList != []:
+				lib = f.lib[libName][self.g.name]
+				lib[str(len(lib))] = redoList[-1][1]
+				redoList.pop(-1)
 
 				storeundo_glyphList = self.undoStorage[self.g.name]
 				storeundo_glyphList.append(str(len(self.undoStorage[self.g.name])))
@@ -544,25 +549,25 @@ class TTHTool(BaseEventTool):
 
 		self.f = CurrentFont()
 		self.g = CurrentGlyph()
-		root =  os.path.split(self.f.path)[0]
+		root = os.path.split(self.f.path)[0]
 		tail = 'temp.ttf'
 		self.tempfontpath = os.path.join(root, tail)
 		self.UPM = CurrentFont().info.unitsPerEm
 		self.PPM_Size = 9
 		self.pitch = self.UPM / self.PPM_Size
 
-		self.previousGlyph  = None
+		self.previousGlyph = None
 
 		#### Initializing CVT ####
 		self.CVT_Index = []
 		self.CVT_Names = []
 		self.CVT_Values = []
 
-		if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+		if 'com.robofont.robohint.cvt ' in self.f.lib:
 			self.CVT_Values = self.f.lib['com.robofont.robohint.cvt ']
 			for i in range(len(self.f.lib['com.robofont.robohint.cvt '])):
 				self.CVT_Index.append(i)
-		if 'com.sansplomb.CVT_Names' in self.f.lib.keys():
+		if 'com.sansplomb.CVT_Names' in self.f.lib:
 			self.CVT_Names = self.f.lib['com.sansplomb.CVT_Names']
 
 
@@ -583,7 +588,7 @@ class TTHTool(BaseEventTool):
 						'WCVTP[ ]',
 						'ENDF[ ]'
 					]
-		if 'com.robofont.robohint.fpgm' in self.f.lib.keys():
+		if 'com.robofont.robohint.fpgm' in self.f.lib:
 			self.FPGM = self.f.lib['com.robofont.robohint.fpgm']
 		else:
 			 self.f.lib['com.robofont.robohint.fpgm'] = self.FPGM
@@ -614,7 +619,7 @@ class TTHTool(BaseEventTool):
 					]
 
 
-		if 'com.robofont.robohint.prep' in self.f.lib.keys():
+		if 'com.robofont.robohint.prep' in self.f.lib:
 			self.PREP = self.f.lib['com.robofont.robohint.prep']
 		else:
 			 self.f.lib['com.robofont.robohint.prep'] = self.PREP
@@ -841,9 +846,9 @@ class TTHTool(BaseEventTool):
 				NSColor.colorWithRed_green_blue_alpha_(0, 1, 1, .5).set()
 				NSBezierPath.bezierPathWithOvalInRect_(((x_end-r, y_end-r), (r*2, r*2))).fill()
 
-		if self.f.lib and "com.sansplomb.TTH_Sets" in self.f.lib.keys() and self.g.name in self.f.lib["com.sansplomb.TTH_Sets"].keys():
-			for key in self.f.lib["com.sansplomb.TTH_Sets"][self.g.name].keys():
-				(axis, set_type, instructions)= self.f.lib["com.sansplomb.TTH_Sets"][self.g.name][key]
+		if self.f.lib and "com.sansplomb.TTH_Sets" in self.f.lib and self.g.name in self.f.lib["com.sansplomb.TTH_Sets"]:
+			for key, tth_set in self.f.lib["com.sansplomb.TTH_Sets"][self.g.name].iteritems():
+				(axis, set_type, instructions) = tth_set
 				if set_type == 'Link_RoundToGrid':
 					inPointIndex = int(instructions[0].split(' ')[-1:][0])
 					outPointIndex = int(instructions[2].split(' ')[-1:][0])
@@ -1082,18 +1087,18 @@ class TTHTool(BaseEventTool):
 
 	def buttonAddCVCallback(self, sender):
 		index = 0
-		if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+		if 'com.robofont.robohint.cvt ' in self.f.lib:
 			index = len( self.f.lib['com.robofont.robohint.cvt '] )
 
 		name = self.wTables.boxCVT.editTextCV_Name.get()
 		value = int(self.wTables.boxCVT.editTextCV_Value.get())
 		if name != '' and value != '':
 			self.CVT_Index.append(index)
-			if 'com.sansplomb.CVT_Names' in self.f.lib.keys():
+			if 'com.sansplomb.CVT_Names' in self.f.lib:
 				self.f.lib['com.sansplomb.CVT_Names'].append(name)
 			else:
 				self.f.lib['com.sansplomb.CVT_Names'] = [name]
-			if 'com.robofont.robohint.cvt ' in self.f.lib.keys():
+			if 'com.robofont.robohint.cvt ' in self.f.lib:
 				self.f.lib['com.robofont.robohint.cvt '].append(value)
 			else:
 				self.f.lib['com.robofont.robohint.cvt '] = [value]

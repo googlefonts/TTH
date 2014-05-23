@@ -4,12 +4,18 @@ from mojo.events import *
 from vanilla import *
 from AppKit import *
 
+FL_tth_key = "com.fontlab.v2.tth"
+
+def invertedDictionary( dico ):
+	return dict([(v,k) for (k,v) in dico.iteritems()])
+
 class FL_TTH():
 	def __init__(self, font):
-		if "com.fontlab.v2.tth" in font.lib.keys():
-			self.FL_zones = font.lib["com.fontlab.v2.tth"]["zones"]
-			self.FL_stems = font.lib["com.fontlab.v2.tth"]["stems"]
-			self.FL_codeppm = font.lib["com.fontlab.v2.tth"]["codeppm"]
+		if FL_tth_key in font.lib:
+			tth = font.lib[FL_tth_key]
+			self.FL_zones = tth["zones"]
+			self.FL_stems = tth["stems"]
+			self.FL_codeppm = tth["codeppm"]
 		else:
 			self.FL_zones = {}
 			self.FL_stems = {}
@@ -19,31 +25,32 @@ class FL_TTH():
 		print '--------------'
 		print "FL_TTH zones:"
 		print '--------------'
-		for name in self.FL_zones.keys():
+		for name, flzone in self.FL_zones.iteritems():
 			print name
-			if self.FL_zones[name]['top']:
+			if flzone['top']:
 				print 'top zone'
 			else:
 				print 'bottom zone'
-			print 'position:', self.FL_zones[name]['position']
-			print 'width:', self.FL_zones[name]['width']
-			if 'delta' in self.FL_zones[name].keys():
-				for ppEmSize in self.FL_zones[name]['delta'].keys:
-					print 'delta:', self.FL_zones[name]['delta'][ppEmSize], 'at size',  ppEmSize, 'ppEm'
+			print 'position:', flzone['position']
+			print 'width:', flzone['width']
+			if 'delta' in flzone:
+				# FIXME: should there be parentheses after 'keys' below?
+				for ppEmSize in flzone['delta'].keys:
+					print 'delta:', flzone['delta'][ppEmSize], 'at size',  ppEmSize, 'ppEm'
 			print '--------------'
 
 		print '--------------'
 		print "FL_TTH stems:"
 		print '--------------'
-		for name in self.FL_stems.keys():
+		for name, flstem in self.FL_stems.iteritems():
 			print name
-			if self.FL_stems[name]['horizontal']:
+			if flstem['horizontal']:
 				print 'horizontal stem'
 			else:
 				print 'vertical stem'
-			print 'width', self.FL_stems[name]['width']
+			print 'width', flstem['width']
 			print 'round', 
-			ppm_roundsList = self.FL_stems[name]['round'].items()
+			ppm_roundsList = flstem['round'].items()
 			ppm_roundsList.sort(cmp=lambda (k1,v1), (k2,v2): v1-v2)
 			print int(ppm_roundsList[0][0]), int(ppm_roundsList[1][0]), int(ppm_roundsList[2][0]), int(ppm_roundsList[3][0]), int(ppm_roundsList[4][0]), int(ppm_roundsList[5][0])
 			print '--------------'
@@ -54,42 +61,44 @@ class FL_TTH_Windows(object):
 	def __init__(self, f):
 		self.f = f
 
-		if "com.fontlab.v2.tth" in self.f.lib.keys():
-			if "zones" in self.f.lib["com.fontlab.v2.tth"].keys():
-				self.zones = self.f.lib["com.fontlab.v2.tth"]["zones"]
+		if FL_tth_key in self.f.lib:
+			tth_lib = self.f.lib[FL_tth_key]
+			if "zones" in tth_lib:
+				self.zones = tth_lib["zones"]
 			else: 
-				self.f.lib["com.fontlab.v2.tth"]["zones"] = {}
+				tth_lib["zones"] = {}
 				self.zones = {}
 
-			if "stems" in self.f.lib["com.fontlab.v2.tth"].keys(): 
-				self.stems = self.f.lib["com.fontlab.v2.tth"]["stems"]
+			if "stems" in tth_lib:
+				self.stems = tth_lib["stems"]
 			else:
-				self.f.lib["com.fontlab.v2.tth"]["stems"] = {}
+				tth_lib["stems"] = {}
 				self.stems = {}
 
-			if "codeppm" in self.f.lib["com.fontlab.v2.tth"].keys():
-				self.codeppm = self.f.lib["com.fontlab.v2.tth"]["codeppm"]
+			if "codeppm" in tth_lib:
+				self.codeppm = tth_lib["codeppm"]
 			else:
-				self.f.lib["com.fontlab.v2.tth"]["codeppm"] = 48
+				tth_lib["codeppm"] = 48
 				self.codeppm = 48
-			if "alignppm" in self.f.lib["com.fontlab.v2.tth"].keys():
-				self.alignppm = self.f.lib["com.fontlab.v2.tth"]["alignppm"]
+			if "alignppm" in tth_lib:
+				self.alignppm = tth_lib["alignppm"]
 			else:
-				self.f.lib["com.fontlab.v2.tth"]["alignppm"] = 48
+				tth_lib["alignppm"] = 48
 				self.alignppm = 48
-			if "stemsnap" in self.f.lib["com.fontlab.v2.tth"].keys():
-				self.stemsnap = self.f.lib["com.fontlab.v2.tth"]["stemsnap"]
+			if "stemsnap" in tth_lib:
+				self.stemsnap = tth_lib["stemsnap"]
 			else:
-				self.f.lib["com.fontlab.v2.tth"]["stemsnap"] = 17
+				tth_lib["stemsnap"] = 17
 				self.stemsnap = 17
 
 		else:
-			self.f.lib["com.fontlab.v2.tth"] = {}
-			self.f.lib["com.fontlab.v2.tth"]["zones"] = {}
-			self.f.lib["com.fontlab.v2.tth"]["stems"] = {}
-			self.f.lib["com.fontlab.v2.tth"]["codeppm"] = 48
-			self.f.lib["com.fontlab.v2.tth"]["alignppm"] = 48
-			self.f.lib["com.fontlab.v2.tth"]["stemsnap"] = 17
+			self.f.lib[FL_tth_key] = {}
+			tth_lib = self.f.lib[FL_tth_key]
+			tth_lib["zones"] = {}
+			tth_lib["stems"] = {}
+			tth_lib["codeppm"] = 48
+			tth_lib["alignppm"] = 48
+			tth_lib["stemsnap"] = 17
 			self.zones = {}
 			self.stems = {}
 			self.codeppm = 48
@@ -293,7 +302,7 @@ class FL_TTH_Windows(object):
 			value = 0
 			sender.set(0)
 
-		self.f.lib["com.fontlab.v2.tth"]["stemsnap"] = value
+		self.f.lib[FL_tth_key]["stemsnap"] = value
 		self.stemsnap = value
 
 	def editTextAlignmentCallback(self, sender):
@@ -303,7 +312,7 @@ class FL_TTH_Windows(object):
 			value = 0
 			sender.set(0)
 
-		self.f.lib["com.fontlab.v2.tth"]["alignppm"] = value
+		self.f.lib[FL_tth_key]["alignppm"] = value
 		self.alignppm = value
 
 	def editTextInstructionsCallback(self, sender):
@@ -313,7 +322,7 @@ class FL_TTH_Windows(object):
 			value = 0
 			sender.set(0)
 
-		self.f.lib["com.fontlab.v2.tth"]["codeppm"] = value
+		self.f.lib[FL_tth_key]["codeppm"] = value
 		self.codeppm = value
 	###########################
 
@@ -328,11 +337,11 @@ class FL_TTH_Windows(object):
 		return stemRoundList
 
 
-	def buildStemsDict(self, stemsDict, name):
+	def buildStemsDict(self, stem, name):
 		c_stemDict = {}
 		c_stemDict["Name"] = name
-		c_stemDict["Width"] = stemsDict[name]["width"]
-		c_roundList = self.stemRoundListFromDict(stemsDict[name]["round"])
+		c_stemDict["Width"] = stem["width"]
+		c_roundList = self.stemRoundListFromDict(stem["round"])
 		c_stemDict["1 px"] = c_roundList[0]
 		c_stemDict["2 px"] = c_roundList[1]
 		c_stemDict["3 px"] = c_roundList[2]
@@ -344,120 +353,117 @@ class FL_TTH_Windows(object):
 
 	def buildHorizontalStemsList(self, stemsDict):
 		stems_List = []
-		for name in stemsDict.keys():
-			if stemsDict[name]['horizontal'] == True:
-				c_stemDict = self.buildStemsDict(stemsDict, name)
+		for name, stem in stemsDict.iteritems():
+			if stem['horizontal'] == True:
+				c_stemDict = self.buildStemsDict(stem, name)
 				stems_List.append(c_stemDict)
 		return stems_List
 
 	def buildVerticalStemsList(self, stemsDict):
 		stems_List = []
-		for name in stemsDict.keys():
-			if stemsDict[name]['horizontal'] == False:
-				c_stemDict = self.buildStemsDict(stemsDict, name)
+		for name, stem in stemsDict.iteritems():
+			if stem['horizontal'] == False:
+				c_stemDict = self.buildStemsDict(stem, name)
 				stems_List.append(c_stemDict)
 		return stems_List
 
 	def readHorizontalStems(self):
 		horizontalStems = {}
-		for stemName in self.stems.keys():
-			if self.stems[stemName]['horizontal'] == True:
-				horizontalStems[stemName] = self.stems[stemName]
+		for name, stem in self.stems.iteritems():
+			if stem['horizontal'] == True:
+				horizontalStems[name] = stem
 
 		return horizontalStems
 
 	def readVerticalStems(self):
 		verticalStems = {}
-		for stemName in self.stems.keys():
-			if self.stems[stemName]['horizontal'] == False:
-				verticalStems[stemName] = self.stems[stemName]
+		for name, stem in self.stems.iteritems():
+			if stem['horizontal'] == False:
+				verticalStems[name] = stem
 
 		return verticalStems
 
 	def storeStem(self, stemName, entry):
-		if 'Width' in entry.keys():
-			self.stems[stemName]['width'] = int(entry['Width'])
+		stem = self.stems[stemName]
+		if 'Width' in entry:
+			stem['width'] = int(entry['Width'])
 		else:
-			self.stems[stemName]['width'] = 0
+			stem['width'] = 0
 			entry['Width'] = 0
 		#clear stems round dict
-		self.stems[stemName]['round'] = {}
-		if '1 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['1 px'])] = 1
+		stem['round'] = {}
+		if '1 px' in entry:
+			stem['round'][str(entry['1 px'])] = 1
 		else:
-			self.stems[stemName]['round']['0'] = 1
+			stem['round']['0'] = 1
 			entry['1 px'] = 0
-		if '2 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['2 px'])] = 2
+		if '2 px' in entry:
+			stem['round'][str(entry['2 px'])] = 2
 		else:
-			self.stems[stemName]['round']['12'] = 2
+			stem['round']['12'] = 2
 			entry['2 px'] = 12
-		if '3 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['3 px'])] = 3
+		if '3 px' in entry:
+			stem['round'][str(entry['3 px'])] = 3
 		else:
-			self.stems[stemName]['round']['16'] = 3
+			stem['round']['16'] = 3
 			entry['3 px'] = 16
-		if '4 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['4 px'])] = 4
+		if '4 px' in entry:
+			stem['round'][str(entry['4 px'])] = 4
 		else:
-			self.stems[stemName]['round']['24'] = 4
+			stem['round']['24'] = 4
 			entry['4 px'] = 24
-		if '5 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['5 px'])] = 5
+		if '5 px' in entry:
+			stem['round'][str(entry['5 px'])] = 5
 		else:
-			self.stems[stemName]['round']['32'] = 5
+			stem['round']['32'] = 5
 			entry['5 px'] = 32
-		if '6 px' in entry.keys():
-			self.stems[stemName]['round'][str(entry['6 px'])] = 6
+		if '6 px' in entry:
+			stem['round'][str(entry['6 px'])] = 6
 		else:
-			self.stems[stemName]['round']['64'] = 6
+			stem['round']['64'] = 6
 			entry['6 px'] = 64
 
 	def storeHorizontalStem(self, stemName, entry):
-		if stemName not in self.stems.keys():
+		if stemName not in self.stems:
 			self.stems[stemName] = {}
 		self.stems[stemName]['horizontal'] = True
 		self.storeStem(stemName, entry)
 
 	def storeVerticalStem(self, stemName, entry):
-		if stemName not in self.stems.keys():
+		if stemName not in self.stems:
 			self.stems[stemName] = {}
 		self.stems[stemName]['horizontal'] = False
 		self.storeStem(stemName, entry)
 
-	def getKeyFomValue(self, stemDict, v):
-		for key, value in stemDict.items():
-			if value == v:
-				return key
-		return '0'
-
-	def buildStemDict(self, stemsDict, name):
+	def buildStemDict(self, stem, name):
 		c_stemDict = {}
 		c_stemDict['Name'] = name
-		c_stemDict['Width'] = stemsDict[name]['width']
-		c_stemDict['1 px'] = self.getKeyFomValue(stemsDict[name]['round'], 1)
-		c_stemDict['2 px'] = self.getKeyFomValue(stemsDict[name]['round'], 2)
-		c_stemDict['3 px'] = self.getKeyFomValue(stemsDict[name]['round'], 3)
-		c_stemDict['4 px'] = self.getKeyFomValue(stemsDict[name]['round'], 4)
-		c_stemDict['5 px'] = self.getKeyFomValue(stemsDict[name]['round'], 5)
-		c_stemDict['6 px'] = self.getKeyFomValue(stemsDict[name]['round'], 6)
+		c_stemDict['Width'] = stem['width']
+		invDico = invertedDictionary(stem['round'])
+		def getKeyForVal(v):
+			try:
+				return invDico[v]
+			except:
+				return '0'
+		for i in range(1,7):
+			c_stemDict[str(i)+' px'] = getKeyForVal(i)
 		
 		return c_stemDict
 
 
 	def buildHorizontalStemsList(self, stemsDict):
 		stems_List = []
-		for name in stemsDict.keys():
-			if stemsDict[name]['horizontal'] == True:
-				c_stemDict = self.buildStemDict(stemsDict, name)
+		for name, stem in stemsDict.iteritems():
+			if stem['horizontal'] == True:
+				c_stemDict = self.buildStemDict(stem, name)
 				stems_List.append(c_stemDict)
 		return stems_List
 
 	def buildVerticalStemsList(self, stemsDict):
 		stems_List = []
-		for name in stemsDict.keys():
-			if stemsDict[name]['horizontal'] == False:
-				c_stemDict = self.buildStemDict(stemsDict, name)
+		for name, stem in stemsDict.iteritems():
+			if stem['horizontal'] == False:
+				c_stemDict = self.buildStemDict(stem, name)
 				stems_List.append(c_stemDict)
 		return stems_List
 			
@@ -478,22 +484,22 @@ class FL_TTH_Windows(object):
 		self.stems = self.readVerticalStems()
 
 		for entry in stemsList:
-			if 'Name' in entry.keys():
+			if 'Name' in entry:
 				stemName = entry['Name']
 			else:
-				entry['Name'] = 'Y' + '_' + str(len(stemsList))
 				stemName = 'Y' + '_' + str(len(stemsList))
+				entry['Name'] = stemName
 
 			self.storeHorizontalStem(stemName, entry)
 
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.readHorizontalStems())
 
-		self.f.lib["com.fontlab.v2.tth"]["stems"] = self.stems
+		self.f.lib[FL_tth_key]["stems"] = self.stems
 
 	def buttonRemoveHorizontalStemCallback(self, sender):
 		try:
 			for stem in self.selectedHorizontalStems:
-				del self.f.lib["com.fontlab.v2.tth"]["stems"][stem['Name']]
+				del self.f.lib[FL_tth_key]["stems"][stem['Name']]
 				del self.stems[stem['Name']]
 		except:
 			pass
@@ -564,7 +570,7 @@ class FL_TTH_Windows(object):
 		px6 = str(self.wStems.horizontalbox.editTextHorizontalStem6px.get())
 		
 		self.stems[name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
-		self.f.lib["com.fontlab.v2.tth"]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		self.f.lib[FL_tth_key]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.readHorizontalStems())
 		self.wStems.horizontalbox.horizontalStems_List.set(self.horizontalStemsList)
@@ -586,22 +592,22 @@ class FL_TTH_Windows(object):
 		self.stems = self.readHorizontalStems()
 
 		for entry in stemsList:
-			if 'Name' in entry.keys():
+			if 'Name' in entry:
 				stemName = entry['Name']
 			else:
-				entry['Name'] = 'X' + '_' + str(len(stemsList))
 				stemName = 'X' + '_' + str(len(stemsList))
+				entry['Name'] = stemName
 
 			self.storeVerticalStem(stemName, entry)
 
 		self.verticalStemsList = self.buildVerticalStemsList(self.readVerticalStems())
 
-		self.f.lib["com.fontlab.v2.tth"]["stems"] = self.stems
+		self.f.lib[FL_tth_key]["stems"] = self.stems
 
 	def buttonRemoveVerticalStemCallback(self, sender):
 		try:
 			for stem in self.selectedVerticalStems:
-				del self.f.lib["com.fontlab.v2.tth"]["stems"][stem['Name']]
+				del self.f.lib[FL_tth_key]["stems"][stem['Name']]
 				del self.stems[stem['Name']]
 		except:
 			pass
@@ -672,7 +678,7 @@ class FL_TTH_Windows(object):
 		px6 = str(self.wStems.verticalbox.editTextVerticalStem6px.get())
 		
 		self.stems[name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
-		self.f.lib["com.fontlab.v2.tth"]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		self.f.lib[FL_tth_key]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		
 		self.verticalStemsList = self.buildVerticalStemsList(self.readVerticalStems())
 		self.wStems.verticalbox.verticalStems_List.set(self.verticalStemsList)
@@ -693,68 +699,69 @@ class FL_TTH_Windows(object):
 		except:
 			return {}
 
-	def storeZone(self, zoneName, entry):
-		if 'Position' in entry.keys():
-			self.zones[zoneName]['position'] = int(entry['Position'])
+	def storeZone(self, zone, entry):
+		zone = self.zones[zoneName]
+		if 'Position' in entry:
+			zone['position'] = int(entry['Position'])
 		else:
-			self.zones[zoneName]['position'] = 0
+			zone['position'] = 0
 			entry['Position'] = 0
-		if 'Width' in entry.keys():
-			self.zones[zoneName]['width'] = int(entry['Width'])
+		if 'Width' in entry:
+			zone['width'] = int(entry['Width'])
 		else:
-			self.zones[zoneName]['width'] = 0
+			zone['width'] = 0
 			entry['Width'] = 0
-		if 'Delta' in entry.keys():
+		if 'Delta' in entry:
 			deltaDict = self.deltaDictFromString(entry['Delta'])
 			if deltaDict != {}:
-				self.zones[zoneName]['delta'] = deltaDict
+				zone['delta'] = deltaDict
 			else:
 				try:
-					del self.zones[zoneName]['delta']
+					del zone['delta']
 				except:
 					pass
 		else:
-			self.zones[zoneName]['delta'] = {'0': 0}
+			zone['delta'] = {'0': 0}
 			entry['Delta'] = '0@0'
 
 	def storeTopZone(self, zoneName, entry):
-		if zoneName not in self.zones.keys():
+		if zoneName not in self.zones:
 			self.zones[zoneName] = {}
 		self.zones[zoneName]['top'] = True
 		self.storeZone(zoneName, entry)
 
 	def storeBottomZone(self, zoneName, entry):
-		if zoneName not in self.zones.keys():
+		if zoneName not in self.zones:
 			self.zones[zoneName] = {}
 		self.zones[zoneName]['top'] = False
 		self.storeZone(zoneName, entry)
 
 	def readBottomZones(self):
 		bottomZones = {}
-		for zoneName in self.zones.keys():
-			if self.zones[zoneName]['top'] == False:
-				bottomZones[zoneName] = self.zones[zoneName]
+		for zoneName, zone in self.zones.iteritems()():
+			if zone['top'] == False:
+				bottomZones[zoneName] = zone
 
 		return bottomZones
 
 	def readTopZones(self):
 		topZones = {}
-		for zoneName in self.zones.keys():
-			if self.zones[zoneName]['top'] == True:
-				topZones[zoneName] = self.zones[zoneName]
+		for zoneName, zone in self.zones.iteritems():
+			if zone['top'] == True:
+				topZones[zoneName] = zone
 
 		return topZones
 
-	def buildZoneDict(self, zonesDict, name):
+	def buildZoneDict(self, zone, name):
 		c_zoneDict = {}
 		c_zoneDict['Name'] = name
-		c_zoneDict['Position'] = zonesDict[name]['position']
-		c_zoneDict['Width'] = zonesDict[name]['width']
+		c_zoneDict['Position'] = zone['position']
+		c_zoneDict['Width'] = zone['width']
 		deltaString = ''
-		if 'delta' in zonesDict[name].keys():
+		if 'delta' in zone:
 			count = 0
-			for ppEmSize in zonesDict[name]['delta']:
-				delta= str(zonesDict[name]['delta'][str(ppEmSize)]) + '@' + str(ppEmSize)
+			for ppEmSize in zone['delta']:
+				delta= str(zone['delta'][str(ppEmSize)]) + '@' + str(ppEmSize)
 				deltaString += delta
 				if count > 0:
 					deltaString += ','
@@ -767,17 +774,17 @@ class FL_TTH_Windows(object):
 
 	def buildTopZonesList(self, zonesDict):
 		zones_List = []
-		for name in zonesDict.keys():
-			if zonesDict[name]['top'] == True:
-				c_zoneDict = self.buildZoneDict(zonesDict, name)
+		for name, zone in zonesDict.iteritems():
+			if zone['top'] == True:
+				c_zoneDict = self.buildZoneDict(zone, name)
 				zones_List.append(c_zoneDict)
 		return zones_List
 
 	def buildBottomZonesList(self, zonesDict):
 		zones_List = []
-		for name in zonesDict.keys():
-			if zonesDict[name]['top'] == False:
-				c_zoneDict = self.buildZoneDict(zonesDict, name)
+		for name, zone in zonesDict.iteritems():
+			if zone['top'] == False:
+				c_zoneDict = self.buildZoneDict(zone, name)
 				zones_List.append(c_zoneDict)
 		return zones_List
 
@@ -797,23 +804,23 @@ class FL_TTH_Windows(object):
 		self.zones = self.readBottomZones()
 
 		for entry in zonesList:
-			if 'Name' in entry.keys():
+			if 'Name' in entry:
 				zoneName = entry['Name']
 			else:
-				entry['Name'] = 'Top' + '_' + str(len(zonesList))
 				zoneName = 'Top' + '_' + str(len(zonesList))
+				entry['Name'] = zoneName
 			self.storeTopZone(zoneName, entry)
 
 		self.topZonesList = self.buildTopZonesList(self.readTopZones())
 
-		self.f.lib["com.fontlab.v2.tth"]["zones"] = self.zones
+		self.f.lib[FL_tth_key]["zones"] = self.zones
 		UpdateCurrentGlyphView()
 
 
 	def buttonRemoveTopZoneCallback(self, sender):
 		try:
 			for zone in self.selectedTopZones:
-				del self.f.lib["com.fontlab.v2.tth"]["zones"][zone['Name']]
+				del self.f.lib[FL_tth_key]["zones"][zone['Name']]
 				del self.zones[zone['Name']]
 		except:
 			pass
@@ -850,10 +857,10 @@ class FL_TTH_Windows(object):
 			deltaDict = self.deltaDictFromString(delta)
 			if deltaDict == {}:
 				self.zones[name] = {'top': top, 'position': position, 'width': width }
-				self.f.lib["com.fontlab.v2.tth"]["zones"][name] = {'top': top, 'position': position, 'width': width }
+				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
 			else:
 				self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-				self.f.lib["com.fontlab.v2.tth"]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
+				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
 
 			self.topZonesList = self.buildTopZonesList(self.zones)
 			self.wZones.topbox.topzones_List.set(self.topZonesList)
@@ -876,22 +883,22 @@ class FL_TTH_Windows(object):
 		self.zones = self.readTopZones()
 
 		for entry in zonesList:
-			if 'Name' in entry.keys():
+			if 'Name' in entry:
 				zoneName = entry['Name']
 			else:
-				entry['Name'] = 'Top' + '_' + str(len(zonesList))
 				zoneName = 'Top' + '_' + str(len(zonesList))
+				entry['Name'] = zoneName
 			self.storeBottomZone(zoneName, entry)
 
 		self.bottomZonesList = self.buildBottomZonesList(self.readBottomZones())
 
-		self.f.lib["com.fontlab.v2.tth"]["zones"] = self.zones
+		self.f.lib[FL_tth_key]["zones"] = self.zones
 		UpdateCurrentGlyphView()
 
 	def buttonRemoveBottomZoneCallback(self, sender):
 		try:
 			for zone in self.selectedBottomZones:
-				del self.f.lib["com.fontlab.v2.tth"]["zones"][zone['Name']]
+				del self.f.lib[FL_tth_key]["zones"][zone['Name']]
 				del self.zones[zone['Name']]
 		except:
 			pass
@@ -928,10 +935,10 @@ class FL_TTH_Windows(object):
 			deltaDict = self.deltaDictFromString(delta)
 			if deltaDict == {}:
 				self.zones[name] = {'top': top, 'position': position, 'width': width }
-				self.f.lib["com.fontlab.v2.tth"]["zones"][name] = {'top': top, 'position': position, 'width': width }
+				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
 			else:
 				self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-				self.f.lib["com.fontlab.v2.tth"]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
+				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
 
 			self.bottomZonesList = self.buildBottomZonesList(self.zones)
 			self.wZones.bottombox.bottomzones_List.set(self.bottomZonesList)
