@@ -925,20 +925,22 @@ class TTHTool(BaseEventTool):
 		pyBuffer = face.glyph.bitmap.buffer
 		if len(pyBuffer) == 0:
 			return
-
+		glyph = face.glyph
+		bm = glyph.bitmap
 		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
 		buf = allocateBuffer(len(pyBuffer))
 		for i in range(len(pyBuffer)):
-			buf[i] = pyBuffer[i]^255
+			buf[i] = pyBuffer[i]
 
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, face.glyph.bitmap.rows*face.glyph.bitmap.pitch, None)
+		#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, bm.rows * bm.pitch, None)
+		provider = Quartz.CGDataProviderCreateWithData(None, buf, bm.rows * bm.pitch, None)
 
 		cgimg = Quartz.CGImageCreate(
-                         face.glyph.bitmap.width,
-                         face.glyph.bitmap.rows,
+                         bm.width,
+                         bm.rows,
                          1, # bit per component
                          1, # size_t bitsPerPixel,
-                         face.glyph.bitmap.pitch, # size_t bytesPerRow,
+                         bm.pitch, # size_t bytesPerRow,
                          colorspace, # CGColorSpaceRef colorspace,
                          Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
                          provider, # CGDataProviderRef provider,
@@ -946,12 +948,12 @@ class TTHTool(BaseEventTool):
                          False, # bool shouldInterpolate,
                          Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
                          )
-		destRect = Quartz.CGRectMake(face.glyph.bitmap_left*pitch + advance, (face.glyph.bitmap_top-face.glyph.bitmap.rows)*pitch + height, face.glyph.bitmap.width*pitch, face.glyph.bitmap.rows*pitch)
+		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, bm.width*pitch, bm.rows*pitch)
 		
 		context = NSGraphicsContext.currentContext()
 		if alpha < 1:
 			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeMultiply)
+		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
 		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
 		Quartz.CGContextDrawImage(context.graphicsPort(),
                                destRect, cgimg )
@@ -959,23 +961,24 @@ class TTHTool(BaseEventTool):
 		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
 
 	def drawBitmapGray(self, pitch, advance, height, alpha, face):
-		pyBuffer = face.glyph.bitmap.buffer
+		glyph = face.glyph
+		bm = glyph.bitmap
+		pyBuffer = bm.buffer
 		if len(pyBuffer) == 0:
 			return
-
 		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
 		buf = allocateBuffer(len(pyBuffer))
 		for i in range(len(pyBuffer)):
-			buf[i] = 255 - pyBuffer[i]
+			buf[i] = pyBuffer[i]
 
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, face.glyph.bitmap.rows*face.glyph.bitmap.pitch, None)
+		provider = Quartz.CGDataProviderCreateWithData(None, buf, bm.rows*bm.pitch, None)
 
 		cgimg = Quartz.CGImageCreate(
-                         face.glyph.bitmap.width,
-                         face.glyph.bitmap.rows,
+                         bm.width,
+                         bm.rows,
                          8, # bit per component
                          8, # size_t bitsPerPixel,
-                         face.glyph.bitmap.pitch, # size_t bytesPerRow,
+                         bm.pitch, # size_t bytesPerRow,
                          colorspace, # CGColorSpaceRef colorspace,
                          Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
                          provider, # CGDataProviderRef provider,
@@ -983,12 +986,12 @@ class TTHTool(BaseEventTool):
                          False, # bool shouldInterpolate,
                          Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
                          )
-		destRect = Quartz.CGRectMake(face.glyph.bitmap_left*pitch + advance, (face.glyph.bitmap_top-face.glyph.bitmap.rows)*pitch + height, face.glyph.bitmap.width*pitch, face.glyph.bitmap.rows*pitch)
+		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, bm.width*pitch, bm.rows*pitch)
 		
 		context = NSGraphicsContext.currentContext()
 		if alpha < 1:
 			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeMultiply)
+		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
 		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
 		Quartz.CGContextDrawImage(context.graphicsPort(),
                                destRect, cgimg )
@@ -999,29 +1002,49 @@ class TTHTool(BaseEventTool):
 		pyBuffer = face.glyph.bitmap.buffer
 		if len(pyBuffer) == 0:
 			return
-		data = []
-		for i in range(face.glyph.bitmap.rows):
-			data.append(pyBuffer[i*face.glyph.bitmap.pitch:i*face.glyph.bitmap.pitch+face.glyph.bitmap.width])
+		colorspace = Quartz.CGColorSpaceCreateDeviceRGB()
+		glyph = face.glyph
+		bm = glyph.bitmap
+		pixelWidth = int(bm.width/3)
+		numBytes = 4 * bm.rows * pixelWidth
+		buf = allocateBuffer(numBytes)
+		pos = 0
+		for i in range(bm.rows):
+			source = bm.pitch * i
+			for j in range(pixelWidth):
+				buf[pos+0] = pyBuffer[source+0]
+				buf[pos+1] = pyBuffer[source+1]
+				buf[pos+2] = pyBuffer[source+2]
+				buf[pos+3] = 0
+				pos += 4
+				source += 3
+
+		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
+
+		cgimg = Quartz.CGImageCreate(
+			 pixelWidth,
+                         bm.rows,
+                         8, # bit per component
+                         32, # size_t bitsPerPixel,
+                         4 * pixelWidth, # size_t bytesPerRow,
+                         colorspace, # CGColorSpaceRef colorspace,
+                         Quartz.kCGImageAlphaNone, # CGBitmapInfo bitmapInfo,
+                         #Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
+                         provider, # CGDataProviderRef provider,
+                         None, # const CGFloat decode[],
+                         False, # bool shouldInterpolate,
+                         Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
+                         )
+		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, pixelWidth*pitch, bm.rows*pitch)
 		
-		row_len = len(data[0])
-		rect = NSMakeRect(face.glyph.bitmap_left * pitch + advance,
-			face.glyph.bitmap_top * pitch - pitch + height,
-			pitch, pitch)
-		for row_index in range(len(data)):
-			for pix_index in range(0, row_len, 3):
-				red = 255 - data[row_index][pix_index]
-				green = 255 - data[row_index][pix_index+1]
-				blue = 255 - data[row_index][pix_index+2]
-				gray = red * 0.3086 + green * 0.6094 + blue * 0.0820
-				s = 0.4
-				red = (red * s + gray * (1-s)) / 255
-				green = (green * s + gray * (1-s)) / 255
-				blue = (blue * s + gray * (1-s)) / 255
-				NSColor.colorWithRed_green_blue_alpha_(red, green, blue, alpha).set()
-				NSBezierPath.fillRect_(rect)
-				rect.origin.x += pitch
-			rect.origin.x -= int(row_len / 3) * pitch # on rembobine
-			rect.origin.y -= pitch
+		context = NSGraphicsContext.currentContext()
+		if alpha < 1:
+			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
+		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
+		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
+		Quartz.CGContextDrawImage(context.graphicsPort(), destRect, cgimg )
+		Quartz.CGContextSetAlpha(context.graphicsPort(), 1)
+		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
 
 	def drawPreview(self):
 		if self.ready == False:
