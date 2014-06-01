@@ -1013,7 +1013,9 @@ class TTHTool(BaseEventTool):
 		for i in range(bm.rows):
 			source = bm.pitch * i
 			for j in range(pixelWidth):
-				buf[pos:pos+3] = ftBuffer[source:source+3]
+				ftSub = ftBuffer[source:source+3];
+				gray = (1.0 - 0.4) * sum([x*y for x,y in zip([0.3086, 0.6094, 0.0820], ftSub)])
+				buf[pos:pos+3] = [int(0.4 * x + gray) for x in ftSub]
 				buf[pos+3] = 0
 				pos += 4
 				source += 3
