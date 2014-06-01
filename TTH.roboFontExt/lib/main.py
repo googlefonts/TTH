@@ -1051,6 +1051,8 @@ class TTHTool(BaseEventTool):
 	def drawPreview(self):
 		if self.ready == False:
 			return
+		if CurrentGlyph() == None:
+			return
 
 		self.advance = 10
 		startgname = False
