@@ -922,19 +922,20 @@ class TTHTool(BaseEventTool):
 	def drawBitmapMono(self, pitch, advance, height, alpha, face):
 		if face == None:
 			return
-		pyBuffer = face.glyph.bitmap.buffer
-		if len(pyBuffer) == 0:
-			return
 		glyph = face.glyph
 		bm = glyph.bitmap
+		numBytes = bm.rows * bm.pitch
+		if numBytes == 0:
+			return
+		buf = allocateBuffer(numBytes)
+		ftBuffer = bm._FT_Bitmap.buffer
+		for i in range(numBytes):
+			buf[i] = ftBuffer[i]
+
+		#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
+		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
+
 		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
-		buf = allocateBuffer(len(pyBuffer))
-		for i in range(len(pyBuffer)):
-			buf[i] = pyBuffer[i]
-
-		#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, bm.rows * bm.pitch, None)
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, bm.rows * bm.pitch, None)
-
 		cgimg = Quartz.CGImageCreate(
                          bm.width,
                          bm.rows,
@@ -963,16 +964,17 @@ class TTHTool(BaseEventTool):
 	def drawBitmapGray(self, pitch, advance, height, alpha, face):
 		glyph = face.glyph
 		bm = glyph.bitmap
-		pyBuffer = bm.buffer
-		if len(pyBuffer) == 0:
+		numBytes = bm.rows * bm.pitch
+		if numBytes == 0:
 			return
+		buf = allocateBuffer(numBytes)
+		ftBuffer = bm._FT_Bitmap.buffer
+		for i in range(numBytes):
+			buf[i] = ftBuffer[i]
+
+		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
+
 		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
-		buf = allocateBuffer(len(pyBuffer))
-		for i in range(len(pyBuffer)):
-			buf[i] = pyBuffer[i]
-
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, bm.rows*bm.pitch, None)
-
 		cgimg = Quartz.CGImageCreate(
                          bm.width,
                          bm.rows,
@@ -999,28 +1001,26 @@ class TTHTool(BaseEventTool):
 		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
 
 	def drawBitmapSubPixelColor(self, pitch, advance, height, alpha, face):
-		pyBuffer = face.glyph.bitmap.buffer
-		if len(pyBuffer) == 0:
-			return
-		colorspace = Quartz.CGColorSpaceCreateDeviceRGB()
 		glyph = face.glyph
 		bm = glyph.bitmap
 		pixelWidth = int(bm.width/3)
 		numBytes = 4 * bm.rows * pixelWidth
+		if numBytes == 0:
+			return
 		buf = allocateBuffer(numBytes)
+		ftBuffer = bm._FT_Bitmap.buffer
 		pos = 0
 		for i in range(bm.rows):
 			source = bm.pitch * i
 			for j in range(pixelWidth):
-				buf[pos+0] = pyBuffer[source+0]
-				buf[pos+1] = pyBuffer[source+1]
-				buf[pos+2] = pyBuffer[source+2]
+				buf[pos:pos+3] = ftBuffer[source:source+3]
 				buf[pos+3] = 0
 				pos += 4
 				source += 3
 
 		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
+		colorspace = Quartz.CGColorSpaceCreateDeviceRGB()
 		cgimg = Quartz.CGImageCreate(
 			 pixelWidth,
                          bm.rows,
