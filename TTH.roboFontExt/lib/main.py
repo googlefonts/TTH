@@ -1107,7 +1107,7 @@ class TTHTool(BaseEventTool):
 			elif self.bitmapPreviewSelection == 'Subpixel':
 				self.drawBitmapSubPixelColor(1, self.advance, 50, 1, self.face)
 			
-			self.advance += int(self.f[gname].width/self.pitch)
+			self.advance += int(self.face.glyph.advance.x/64)
 
 		self.advance = 10
 
@@ -1122,8 +1122,7 @@ class TTHTool(BaseEventTool):
 			elif self.bitmapPreviewSelection == 'Subpixel':
 				self.drawBitmapSubPixelColor(1, self.advance, 100, 1, self.face)
 			
-			#self.pitch*face.glyph.advance.x/64
-			self.advance += int(self.f[gname].width/sizedpitch) + 5
+			self.advance += int(self.face.glyph.advance.x/64) + 5
 
 
 	def drawBackground(self, scale):
@@ -1214,7 +1213,7 @@ class TTHTool(BaseEventTool):
 				if cmd_pt == 'lsb':
 					point = (0, 0)
 				elif cmd_pt== 'rsb':
-					point = (0, self.g.width)
+					point = (self.g.width, 0)
 				else:
 					point = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
 
