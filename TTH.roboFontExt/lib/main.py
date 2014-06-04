@@ -690,7 +690,6 @@ class TTHTool(BaseEventTool):
 		else:
 			self.face.load_glyph(g_index)
 
-
 		self.adaptedOutline_points = []
 		for i in range(len(self.face.glyph.outline.points)):
 			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
@@ -711,19 +710,19 @@ class TTHTool(BaseEventTool):
 			pathX.setLineWidth_(scale)
 			pathX.stroke()
 		for yPos in range(0, 5000, int(pitch)):
-			pathX = NSBezierPath.bezierPath()
-			pathX.moveToPoint_((-5000, yPos))
-			pathX.lineToPoint_((5000, yPos))
+			pathY = NSBezierPath.bezierPath()
+			pathY.moveToPoint_((-5000, yPos))
+			pathY.lineToPoint_((5000, yPos))
 			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
-			pathX.setLineWidth_(scale)
-			pathX.stroke()
+			pathY.setLineWidth_(scale)
+			pathY.stroke()
 		for yPos in range(0, -5000, -int(pitch)):
-			pathX = NSBezierPath.bezierPath()
-			pathX.moveToPoint_((-5000, yPos))
-			pathX.lineToPoint_((5000, yPos))
+			pathY = NSBezierPath.bezierPath()
+			pathY.moveToPoint_((-5000, yPos))
+			pathY.lineToPoint_((5000, yPos))
 			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
-			pathX.setLineWidth_(scale)
-			pathX.stroke()
+			pathY.setLineWidth_(scale)
+			pathY.stroke()
 
 	def drawZones(self, scale):
 
@@ -919,6 +918,26 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
+	def drawSideBearings(self, scale, face):
+		if len(face.glyph.outline.contours) == 0:
+			return
+
+		xPos = self.pitch*face.glyph.advance.x/64
+		pathX = NSBezierPath.bezierPath()
+		pathX.moveToPoint_((xPos, -5000))
+		pathX.lineToPoint_((xPos, 5000))
+		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
+		pathX.setLineWidth_(scale)
+		pathX.stroke()
+
+		pathX = NSBezierPath.bezierPath()
+		pathX.moveToPoint_((0, -5000))
+		pathX.lineToPoint_((0, 5000))
+		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
+		pathX.setLineWidth_(scale)
+		pathX.stroke()
+
+
 	def drawBitmapMono(self, pitch, advance, height, alpha, face):
 		if face == None:
 			return
@@ -1103,6 +1122,7 @@ class TTHTool(BaseEventTool):
 			elif self.bitmapPreviewSelection == 'Subpixel':
 				self.drawBitmapSubPixelColor(1, self.advance, 100, 1, self.face)
 			
+			#self.pitch*face.glyph.advance.x/64
 			self.advance += int(self.f[gname].width/sizedpitch) + 5
 
 
@@ -1126,6 +1146,7 @@ class TTHTool(BaseEventTool):
 		self.drawZones(scale)
 
 		self.drawOutline(scale, self.face)
+		self.drawSideBearings(scale, self.face)
 
 	def draw(self, scale):
 		for c in self.glyphTTHCommands:
