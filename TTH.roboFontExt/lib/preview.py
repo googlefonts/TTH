@@ -8,4 +8,4 @@ class PreviewArea(NSView):
 		return self
 
 	def drawRect_(self, rect):
-		self.TTHToolInstance.drawPreview()
+		self.TTHToolInstance.drawPreviewWindow()

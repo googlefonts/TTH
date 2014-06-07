@@ -791,7 +791,7 @@ class TTHTool(BaseEventTool):
 
 			start = end+1
 
-			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, .5).set()
+			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, 1).set()
 			pathContour.setLineWidth_(scale*2)
 			pathContour.stroke()
 
@@ -840,7 +840,7 @@ class TTHTool(BaseEventTool):
 		self.drawArrowAtPoint(scale, 10, angle, x, y)
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
 
-	def drawLink(self, scale, startPoint, endPoint):
+	def drawLink(self, scale, startPoint, endPoint, stemName):
 	 	
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
@@ -870,8 +870,24 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		pathArrow.fill()
 		path.stroke()
+		if stemName == None:
+			self.drawTextAtPoint('S', offcurve1[0], offcurve1[1], NSColor.blackColor())
+		else:
+			self.drawTextAtPoint(stemName, offcurve1[0], offcurve1[1], NSColor.blackColor())
 
-	def drawDoubleLink(self, scale, startPoint, endPoint):
+	def drawTextAtPoint(self, title, x, y, backgroundColor):
+		currentTool = getActiveEventTool()
+		view = currentTool.getNSView()
+
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
+			NSForegroundColorAttributeName : NSColor.whiteColor(),
+			}
+		backgroundStrokeColor = NSColor.whiteColor()
+
+		view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
+
+	def drawDoubleLink(self, scale, startPoint, endPoint, stemName):
 	 	
 	 	start_end_diff = difference(endPoint, startPoint)
 	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
@@ -882,10 +898,14 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (offcurve1), (offcurve2) )
 
-	 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 0/255, 1).set()
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 215/255, 1).set()
 		path.setLineWidth_(scale)
 		path.stroke()
+
+		if stemName == None:
+			self.drawTextAtPoint('D', (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, NSColor.blueColor())
+		else:
+			self.drawTextAtPoint(stemName, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, NSColor.blueColor())
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint):
 
@@ -907,6 +927,8 @@ class TTHTool(BaseEventTool):
 		NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 0/255, 1).set()
 		path.setLineWidth_(scale)
 		path.stroke()
+
+		self.drawTextAtPoint('I', middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, NSColor.greenColor())
 
 	def drawDelta(self, scale, point, value):
 
@@ -1067,7 +1089,7 @@ class TTHTool(BaseEventTool):
 		Quartz.CGContextSetAlpha(context.graphicsPort(), 1)
 		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
 
-	def drawPreview(self):
+	def drawPreviewWindow(self):
 		if self.ready == False:
 			return
 		if CurrentGlyph() == None:
@@ -1154,13 +1176,19 @@ class TTHTool(BaseEventTool):
 			cmd_pt   = getOrNone(c, 'point')
 			cmd_pt1  = getOrNone(c, 'point1')
 			cmd_pt2  = getOrNone(c, 'point2')
-			if cmd_code in ['alignh', 'alignv', 'alignt', 'alignb'] :
+			cmd_stem = getOrNone(c, 'stem')
+			if cmd_code in ['alignh', 'alignv', 'alignt', 'alignb']:
 				angle = 90
 				if cmd_code == 'alignh':
 					angle = 180
 				if cmd_pt in ['lsb', 'rsb']:
-					self.drawAlign(scale, cmd_pt, angle)
-				else:
+					if cmd_code in ['alignv', 'alignt', 'alignb'] and self.centralWindow.selectedAxis == 'Y':
+						self.drawAlign(scale, cmd_pt, angle)
+					elif cmd_code == 'alignh' and self.centralWindow.selectedAxis == 'X':
+						self.drawAlign(scale, cmd_pt, angle)
+				elif cmd_code in ['alignv', 'alignt', 'alignb'] and self.centralWindow.selectedAxis == 'Y':
+					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle)
+				elif cmd_code == 'alignh' and self.centralWindow.selectedAxis == 'X':
 					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle)
 
 			if cmd_code in ['singleh', 'singlev', 'doubleh', 'doublev']:
@@ -1179,9 +1207,14 @@ class TTHTool(BaseEventTool):
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
 				if cmd_code in ['doubleh', 'doublev']:
-					self.drawDoubleLink(scale, startPoint, endPoint)
-				else:
-					self.drawLink(scale, startPoint, endPoint)
+					if self.centralWindow.selectedAxis == 'X' and cmd_code == 'doubleh':
+						self.drawDoubleLink(scale, startPoint, endPoint, cmd_stem)
+					elif self.centralWindow.selectedAxis == 'Y' and cmd_code == 'doublev':
+						self.drawDoubleLink(scale, startPoint, endPoint, cmd_stem)
+				elif self.centralWindow.selectedAxis == 'X' and cmd_code == 'singleh':
+					self.drawLink(scale, startPoint, endPoint, cmd_stem)
+				elif self.centralWindow.selectedAxis == 'Y' and cmd_code == 'singlev':
+					self.drawLink(scale, startPoint, endPoint, cmd_stem)
 
 			if cmd_code in ['interpolateh', 'interpolatev']:
 
@@ -1206,7 +1239,10 @@ class TTHTool(BaseEventTool):
 				else:
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
-				self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
+				if self.centralWindow.selectedAxis == 'X' and cmd_code == 'interpolateh':
+					self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
+				elif self.centralWindow.selectedAxis == 'Y' and cmd_code == 'interpolatev':
+					self.drawInterpolate(scale, startPoint, endPoint, middlePoint)
 
 			if cmd_code in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
 
@@ -1225,7 +1261,10 @@ class TTHTool(BaseEventTool):
 					value = 0
 
 				if int(self.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
-					self.drawDelta(scale, point, value)
+					if self.centralWindow.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
+						self.drawDelta(scale, point, value)
+					elif self.centralWindow.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
+						self.drawDelta(scale, point, value)
 
 
 
@@ -1240,6 +1279,8 @@ class centralWindow(object):
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
 							'31', '32', '33', '34', '35', '36', '37', '38', '39', '40',
 							'41', '42', '43', '44', '45', '46', '47', '48', '60', '72' ]
+		self.axisList = ['X', 'Y']
+		self.selectedAxis = 'X'
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
@@ -1260,7 +1301,12 @@ class centralWindow(object):
                               self.BitmapPreviewList, sizeStyle = "small",
                               callback=self.BitmapPreviewPopUpButtonCallback)
 
-		self.wCentral.ReadTTProgramButton = SquareButton((10, 60, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
+		self.wCentral.AxisText= TextBox((10, 50, 70, 14), "Axis:", sizeStyle = "small")
+		self.wCentral.AxisPopUpButton = PopUpButton((150, 50, 40, 14),
+                              self.axisList, sizeStyle = "small",
+                              callback=self.AxisPopUpButtonCallback)
+
+		self.wCentral.ReadTTProgramButton = SquareButton((10, 80, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
                            					callback=self.ReadTTProgramButtonCallback)
 	
 
@@ -1324,6 +1370,9 @@ class centralWindow(object):
 		UpdateCurrentGlyphView()
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
+	def AxisPopUpButtonCallback(self, sender):
+		self.selectedAxis = self.axisList[sender.get()]
+		UpdateCurrentGlyphView()
 
 	def ReadTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.TTHToolInstance.g)
