@@ -11,6 +11,15 @@ import freetype
 import Quartz
 from objc import allocateBuffer
 
+def pointsApproxEqual(p_glyph, p_cursor):
+	return (abs(p_glyph[0] - p_cursor[0]) < 5) and (abs(p_glyph[1] - p_cursor[1]) < 5)
+
+def find_in_list(l, p):
+	for e in l:
+		if p(e):
+			return e
+	return None
+
 def getOrNone(dico, key):
 	try:
 		return dico[key]
@@ -68,6 +77,8 @@ class TTHTool(BaseEventTool):
 		self.bitmapPreviewSelection = 'Monochrome'
 		self.unicodeToNameDict = createUnicodeToNameDict()
 		self.ready = False
+		self.p_glyphList = []
+		self.p_commandsList = []
 
 	def becomeActive(self):
 		self.bitmapPreviewSelection = 'Monochrome'
@@ -93,6 +104,27 @@ class TTHTool(BaseEventTool):
 
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
+
+	def isOnPoint(self, p_cursor):
+		def pred0(p_glyph):
+			return pointsApproxEqual(p_glyph, p_cursor)
+		touched_p_glyph = find_in_list(self.p_glyphList, pred0)
+
+		return touched_p_glyph
+
+	def isOnCommand(self, p_cursor):
+		def pred0(p_command):
+			return pointsApproxEqual(p_command, p_cursor)
+		touched_p_command = find_in_list(self.p_commandsList, pred0)
+
+		return touched_p_command
+
+	def mouseDown(self, point, clickCount):
+		self.p_cursor = (int(point.x), int(point.y))
+		self.startPoint = self.isOnPoint(self.p_cursor)
+		self.commandPoint = self.isOnCommand(self.p_cursor)
+		print 'glyph point:', self.startPoint
+		print 'command point:', self.commandPoint
 
 	def resetfonts(self):
 		self.allFonts = loadFonts()
@@ -129,6 +161,13 @@ class TTHTool(BaseEventTool):
 		self.face = freetype.Face(self.fulltempfontpath)
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
+
+		self.p_glyphList.extend([(0, 0), (self.g.width, 0)])
+
+		for c in self.g:
+			for p in c.points:
+				if p.type != 'offCurve':
+					self.p_glyphList.append((p.x, p.y))
 
 	def generateFullTempFont(self):
 		root =  os.path.split(self.f.path)[0]
@@ -887,6 +926,9 @@ class TTHTool(BaseEventTool):
 
 		view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
 
+		if (x, y) not in self.p_glyphList:
+			self.p_commandsList.append((x, y))
+
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName):
 	 	
 	 	start_end_diff = difference(endPoint, startPoint)
@@ -1372,6 +1414,7 @@ class centralWindow(object):
 
 	def AxisPopUpButtonCallback(self, sender):
 		self.selectedAxis = self.axisList[sender.get()]
+		self.TTHToolInstance.p_commandsList = []
 		UpdateCurrentGlyphView()
 
 	def ReadTTProgramButtonCallback(self, sender):
