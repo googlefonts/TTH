@@ -169,6 +169,7 @@ class TTHTool(BaseEventTool):
 		if self.g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.g)
+		self.commandLabelPos = {}
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
 		self.generateMiniTempFont()
@@ -182,6 +183,7 @@ class TTHTool(BaseEventTool):
 			for p in c.points:
 				if p.type != 'offCurve':
 					self.p_glyphList.append((p.x, p.y))
+
 
 	def generateFullTempFont(self):
 		root =  os.path.split(self.f.path)[0]
@@ -848,6 +850,19 @@ class TTHTool(BaseEventTool):
 			pathContour.setLineWidth_(scale*2)
 			pathContour.stroke()
 
+	def drawTextAtPoint(self, title, x, y, backgroundColor):
+		currentTool = getActiveEventTool()
+		view = currentTool.getNSView()
+
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
+			NSForegroundColorAttributeName : NSColor.whiteColor(),
+			}
+		backgroundStrokeColor = NSColor.whiteColor()
+
+		view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
+			
+
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 		if x == None or y == None:
 			return
@@ -865,7 +880,7 @@ class TTHTool(BaseEventTool):
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 		pathArrow.lineToPoint_((x, y))
 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1).set()
+		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 255/255, 1).set()
 		pathArrow.setLineWidth_(scale)
 		pathArrow.fill()
 		NSColor.colorWithRed_green_blue_alpha_(1, 1, 1, .5).set()
@@ -875,7 +890,7 @@ class TTHTool(BaseEventTool):
 		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
-	def drawAlign(self, scale, pointID, angle):
+	def drawAlign(self, scale, pointID, angle, cmdIndex):
 
 		x = None
 		y = None
@@ -892,6 +907,12 @@ class TTHTool(BaseEventTool):
 
 		self.drawArrowAtPoint(scale, 10, angle, x, y)
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
+
+		# compute x, y
+		if cmdIndex not in self.commandLabelPos:
+		    self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
+
+		self.drawTextAtPoint('A', x + 10, y - 10, NSColor.blueColor())
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -933,18 +954,6 @@ class TTHTool(BaseEventTool):
 		else:
 			self.drawTextAtPoint(stemName, offcurve1[0], offcurve1[1], NSColor.blackColor())
 
-	def drawTextAtPoint(self, title, x, y, backgroundColor):
-		currentTool = getActiveEventTool()
-		view = currentTool.getNSView()
-
-		attributes = {
-			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
-			NSForegroundColorAttributeName : NSColor.whiteColor(),
-			}
-		backgroundStrokeColor = NSColor.whiteColor()
-
-		view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
-			
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -1250,13 +1259,13 @@ class TTHTool(BaseEventTool):
 					angle = 180
 				if cmd_pt in ['lsb', 'rsb']:
 					if cmd_code in ['alignv', 'alignt', 'alignb'] and self.centralWindow.selectedAxis == 'Y':
-						self.drawAlign(scale, cmd_pt, angle)
+						self.drawAlign(scale, cmd_pt, angle, cmdIndex)
 					elif cmd_code == 'alignh' and self.centralWindow.selectedAxis == 'X':
-						self.drawAlign(scale, cmd_pt, angle)
+						self.drawAlign(scale, cmd_pt, angle, cmdIndex)
 				elif cmd_code in ['alignv', 'alignt', 'alignb'] and self.centralWindow.selectedAxis == 'Y':
-					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle)
+					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle, cmdIndex)
 				elif cmd_code == 'alignh' and self.centralWindow.selectedAxis == 'X':
-					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle)
+					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle, cmdIndex)
 
 			if cmd_code in ['singleh', 'singlev', 'doubleh', 'doublev']:
 				if cmd_pt1 == 'lsb':
