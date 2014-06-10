@@ -143,8 +143,7 @@ class TTHTool(BaseEventTool):
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.g.lib['com.fontlab.ttprogram']
-		print ttprogram
-		print 'delete command:', self.commandRightClicked
+		#print 'delete command:', self.commandRightClicked
 		self.glyphTTHCommands.pop(self.commandRightClicked)
 		self.commandLabelPos = {}
 		UpdateCurrentGlyphView()
@@ -155,7 +154,7 @@ class TTHTool(BaseEventTool):
 				ttc.set(k, v)
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
-		print 'hello', self.g.lib['com.fontlab.ttprogram']
+		
 
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -293,7 +292,8 @@ class TTHTool(BaseEventTool):
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
 		ttprogram = g.lib['com.fontlab.ttprogram']
-		if str(ttprogram)[:4] == 'Data' and str(ttprogram)[-3:] == "n')":
+		strTTProgram = str(ttprogram)
+		if strTTProgram[:4] == 'Data' and strTTProgram[-3:] == "n')":
 			ttprogram = str(ttprogram)[6:-4]
 		else:
 			ttprogram = str(ttprogram)[6:-2]
