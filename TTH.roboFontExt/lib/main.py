@@ -1,11 +1,14 @@
 from mojo.events import *
 from mojo.UI import *
 from mojo.drawingTools import *
+from lib.doodleMenus import BaseMenu
+from robofab.plistlib import Data
 
 from fl_tth import *
 import tt_tables
 import preview
 
+import xml.etree.ElementTree as ET
 import math, os
 import freetype
 import Quartz
@@ -136,9 +139,38 @@ class TTHTool(BaseEventTool):
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
-		self.commandPoint = self.isOnCommand(self.p_cursor)
 		print 'glyph point:', self.startPoint
-		print 'command point:', self.commandPoint
+
+	def deleteCommandCallback(self, item):
+		ttprogram = self.g.lib['com.fontlab.ttprogram']
+		print ttprogram
+		print 'delete command:', self.commandRightClicked
+		self.glyphTTHCommands.pop(self.commandRightClicked)
+		self.commandLabelPos = {}
+		UpdateCurrentGlyphView()
+		XMLGlyphTTProgram = ET.Element('ttProgram')
+		for child in self.glyphTTHCommands:
+			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
+			for k, v in child.iteritems():
+				ttc.set(k, v)
+		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
+		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+		print 'hello', self.g.lib['com.fontlab.ttprogram']
+
+	def rightMouseDown(self, point, event):
+		self.p_cursor = (int(point.x), int(point.y))
+		self.commandRightClicked = self.isOnCommand(self.p_cursor)
+		#print 'command point:', self.commandRightClicked
+		if self.commandRightClicked != None:
+			self.menuAction = NSMenu.alloc().init()
+			separator = NSMenuItem.separatorItem()
+			items = []
+			items.append(('Delete Command', self.deleteCommandCallback))
+
+			menuController = BaseMenu()
+			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
+			self.menuAction.insertItem_atIndex_(separator, 1)
+			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
 
 	def resetfonts(self):
 		self.allFonts = loadFonts()
@@ -261,20 +293,13 @@ class TTHTool(BaseEventTool):
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
 		ttprogram = g.lib['com.fontlab.ttprogram']
-		ttprogram = str(ttprogram).split('\\n')
-		for line in ttprogram[1:-2]:
-			TTHCommandList = []
-			TTHCommandDict = {}
-			for settings in line[9:-2].split('='):
-				setting = settings.split ('"')
-				for command in setting:
-					if command != '':
-						if command[0] == ' ':
-							command = command[1:]
-						TTHCommandList.append(command)
-			for i in range(0, len(TTHCommandList), 2):
-				TTHCommandDict[TTHCommandList[i]] = TTHCommandList[i+1]
-			self.glyphTTHCommands.append(TTHCommandDict)
+		if str(ttprogram)[:4] == 'Data' and str(ttprogram)[-3:] == "n')":
+			ttprogram = str(ttprogram)[6:-4]
+		else:
+			ttprogram = str(ttprogram)[6:-2]
+		root = ET.fromstring(str(ttprogram))
+		for child in root:
+			self.glyphTTHCommands.append(child.attrib)
 		return self.glyphTTHCommands
 
 	def writeAssembly(self, g, glyphTTHCommands):
