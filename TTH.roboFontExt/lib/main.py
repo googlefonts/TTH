@@ -3,6 +3,7 @@ from mojo.UI import *
 from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
+from fontTools import *
 
 from fl_tth import *
 import tt_tables
@@ -154,6 +155,10 @@ class TTHTool(BaseEventTool):
 				ttc.set(k, v)
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+		self.mergeMiniAndFullTempFonts()
+		self.resetglyph()
+		UpdateCurrentGlyphView()
 		
 
 	def rightMouseDown(self, point, event):
@@ -205,6 +210,7 @@ class TTHTool(BaseEventTool):
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
 		self.generateMiniTempFont()
 		self.face = freetype.Face(self.fulltempfontpath)
+		print 'full temp font loaded'
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
 
@@ -257,6 +263,19 @@ class TTHTool(BaseEventTool):
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		print 'mini font generated'
+
+	def mergeMiniAndFullTempFonts(self):
+		root =  os.path.split(self.f.path)[0]
+		tail = 'tempTemp.ttf'
+		self.tempTempfontpath = os.path.join(root, tail)
+
+		ttFull = ttLib.TTFont(self.fulltempfontpath)
+		ttMini = ttLib.TTFont(self.tempfontpath)
+		ttFull['glyf'][CurrentGlyph().name] = ttMini['glyf'][CurrentGlyph().name]
+		ttFull.save(self.tempTempfontpath)
+		os.remove(self.fulltempfontpath)
+		os.rename(self.tempTempfontpath, self.fulltempfontpath)
+		print 'temp fonts merged'
 
 	def makePointNameToUniqueIDDict(self, g):
 		pointNameToUniqueID = {}
