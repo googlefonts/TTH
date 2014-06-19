@@ -3,7 +3,7 @@ from mojo.UI import *
 from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
-from fontTools import *
+import fontTools
 
 from fl_tth import *
 import tt_tables
@@ -147,7 +147,6 @@ class TTHTool(BaseEventTool):
 		#print 'delete command:', self.commandRightClicked
 		self.glyphTTHCommands.pop(self.commandRightClicked)
 		self.commandLabelPos = {}
-		UpdateCurrentGlyphView()
 		XMLGlyphTTProgram = ET.Element('ttProgram')
 		for child in self.glyphTTHCommands:
 			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
@@ -156,6 +155,9 @@ class TTHTool(BaseEventTool):
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
+		self.writeAssembly(self.g, self.glyphTTHCommands)
+
+		self.generateMiniTempFont()
 		self.mergeMiniAndFullTempFonts()
 		self.resetglyph()
 		UpdateCurrentGlyphView()
@@ -208,13 +210,12 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
-		self.generateMiniTempFont()
 		self.face = freetype.Face(self.fulltempfontpath)
 		print 'full temp font loaded'
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
 
-		self.p_glyphList.extend([(0, 0), (self.g.width, 0)])
+		self.p_glyphList = ([(0, 0), (self.g.width, 0)])
 
 		for c in self.g:
 			for p in c.points:
@@ -237,8 +238,7 @@ class TTHTool(BaseEventTool):
 		self.tempfontpath = os.path.join(root, tail)
 
 		tempFont = RFont(showUI=False)
-		tempGlyph = self.g.copy()
-
+		#tempGlyph = self.g.copy()
 		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
 		tempFont.info.ascender = CurrentFont().info.ascender
 		tempFont.info.descender = CurrentFont().info.descender
@@ -257,7 +257,7 @@ class TTHTool(BaseEventTool):
 		
 
 		tempFont.newGlyph(self.g.name)
-		tempFont[self.g.name] = tempGlyph
+		tempFont[self.g.name] = self.g
 		if 'com.robofont.robohint.assembly' in self.g.lib:
 			tempFont[self.g.name].lib['com.robofont.robohint.assembly'] = self.g.lib['com.robofont.robohint.assembly']
 
@@ -267,14 +267,15 @@ class TTHTool(BaseEventTool):
 	def mergeMiniAndFullTempFonts(self):
 		root =  os.path.split(self.f.path)[0]
 		tail = 'tempTemp.ttf'
-		self.tempTempfontpath = os.path.join(root, tail)
+		tempTempfontpath = os.path.join(root, tail)
 
-		ttFull = ttLib.TTFont(self.fulltempfontpath)
-		ttMini = ttLib.TTFont(self.tempfontpath)
-		ttFull['glyf'][CurrentGlyph().name] = ttMini['glyf'][CurrentGlyph().name]
-		ttFull.save(self.tempTempfontpath)
+		ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
+		ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
+		gName = self.g.name
+		ttFull['glyf'][gName] = ttMini['glyf'][gName]
+		ttFull.save(tempTempfontpath)
 		os.remove(self.fulltempfontpath)
-		os.rename(self.tempTempfontpath, self.fulltempfontpath)
+		os.rename(tempTempfontpath, self.fulltempfontpath)
 		print 'temp fonts merged'
 
 	def makePointNameToUniqueIDDict(self, g):
