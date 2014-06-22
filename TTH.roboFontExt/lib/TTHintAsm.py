@@ -397,7 +397,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointIndexFromUnique
 			if deltasP1:
 				for i in range(len(deltasP1)):
 					relativeSize = deltasP1[i]
-					arg = (relativeSize << 4 ) + stepToSelector[step]
+					arg = (relativeSize << 4 ) + tt_tables.stepToSelector[step]
 					deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
 				
 				deltaPString += ' ' + str(len(deltasP1))
@@ -407,7 +407,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointIndexFromUnique
 			if deltasP2:
 				for i in range(len(deltasP2)):
 					relativeSize = deltasP2[i]
-					arg = ((relativeSize -16) << 4 ) + stepToSelector[step]
+					arg = ((relativeSize -16) << 4 ) + tt_tables.stepToSelector[step]
 					deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
 				
 				deltaPString += ' ' + str(len(deltasP1))
@@ -417,7 +417,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointIndexFromUnique
 			if deltasP3:
 				for i in range(len(deltasP3)):
 					relativeSize = deltasP3[i]
-					arg = ((relativeSize -32) << 4 ) + stepToSelector[step]
+					arg = ((relativeSize -32) << 4 ) + tt_tables.stepToSelector[step]
 					deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
 				
 				deltaPString += ' ' + str(len(deltasP1))
