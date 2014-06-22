@@ -89,6 +89,7 @@ class TTHTool(BaseEventTool):
 		self.ready = False
 		self.p_glyphList = []
 		self.commandLabelPos = {}
+		self.selectedHintingTool = 'Align'
 
 	def becomeActive(self):
 		self.bitmapPreviewSelection = 'Monochrome'
@@ -141,6 +142,8 @@ class TTHTool(BaseEventTool):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
 		print 'glyph point:', self.startPoint
+		if self.startPoint in self.pointCoordinatesToUniqueID.keys():
+			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.g.lib['com.fontlab.ttprogram']
@@ -210,6 +213,7 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
+		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.g)
 		self.face = freetype.Face(self.fulltempfontpath)
 		print 'full temp font loaded'
 		self.ready = True
@@ -304,6 +308,15 @@ class TTHTool(BaseEventTool):
 				pointUniqueIDToCoordinates[point.naked().uniqueID] = ((point.x, point.y))
 		return pointUniqueIDToCoordinates
 
+	def makePointCoordinatesToUniqueIDDict(self, g):
+		pointCoordinatesToUniqueID = {}
+		pointCoordinatesToUniqueID[(0,0)] = 'lsb'
+		pointCoordinatesToUniqueID[(self.g.width,0)] = 'rsb'
+		for contour in g:
+			for point in contour.points:
+				pointCoordinatesToUniqueID[(point.x, point.y)] = (point.naked().uniqueID)
+		return pointCoordinatesToUniqueID
+
 	def readGlyphFLTTProgram(self, g):
 		if g == None:
 			return
@@ -321,6 +334,34 @@ class TTHTool(BaseEventTool):
 		for child in root:
 			self.glyphTTHCommands.append(child.attrib)
 		return self.glyphTTHCommands
+
+
+	def getGlyphIndexByName(self, glyphName):
+		try:
+			return self.indexOfGlyphNames[glyphName]
+		except:
+			return None
+
+	def loadFaceGlyph(self, glyphName, size):
+		if self.face == None:
+			return
+		self.face.set_pixel_sizes(int(size), int(size))
+		g_index = self.getGlyphIndexByName(glyphName)
+		if self.bitmapPreviewSelection == 'Monochrome':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+    	                    freetype.FT_LOAD_TARGET_MONO )
+		elif self.bitmapPreviewSelection == 'Grayscale':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+							freetype.FT_LOAD_TARGET_NORMAL)
+		elif self.bitmapPreviewSelection == 'Subpixel':
+			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
+                       freetype.FT_LOAD_TARGET_LCD )
+		else:
+			self.face.load_glyph(g_index)
+
+		self.adaptedOutline_points = []
+		for i in range(len(self.face.glyph.outline.points)):
+			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
 
 	def writeAssembly(self, g, glyphTTHCommands):
 		if g == None:
@@ -447,12 +488,12 @@ class TTHTool(BaseEventTool):
 					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 					double = [
 							'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
-          					'CALL[ ]'
+	      					'CALL[ ]'
 							]
 				elif 'round' in TTHCommand:
 					double = [
 							'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
-          					'CALL[ ]'
+	      					'CALL[ ]'
 							]
 				if TTHCommand['code'] == 'doubleh':
 					x_instructions.extend(double)
@@ -767,33 +808,6 @@ class TTHTool(BaseEventTool):
 		assembly.extend(finalDeltasV)
 		g.lib['com.robofont.robohint.assembly'] = assembly
 
-	def getGlyphIndexByName(self, glyphName):
-		try:
-			return self.indexOfGlyphNames[glyphName]
-		except:
-			return None
-
-	def loadFaceGlyph(self, glyphName, size):
-		if self.face == None:
-			return
-		self.face.set_pixel_sizes(int(size), int(size))
-		g_index = self.getGlyphIndexByName(glyphName)
-		if self.bitmapPreviewSelection == 'Monochrome':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-    	                    freetype.FT_LOAD_TARGET_MONO )
-		elif self.bitmapPreviewSelection == 'Grayscale':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-							freetype.FT_LOAD_TARGET_NORMAL)
-		elif self.bitmapPreviewSelection == 'Subpixel':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-                       freetype.FT_LOAD_TARGET_LCD )
-		else:
-			self.face.load_glyph(g_index)
-
-		self.adaptedOutline_points = []
-		for i in range(len(self.face.glyph.outline.points)):
-			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
-
 	def drawGrid(self, scale, pitch):
 		for xPos in range(0, 5000, int(pitch)):
 			pathX = NSBezierPath.bezierPath()
@@ -964,7 +978,7 @@ class TTHTool(BaseEventTool):
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10*scale, startPoint[1] - dy + math.sin(angle)*10*scale)
 
 		r = 10
 	 	arrowAngle = math.radians(20)
@@ -1291,6 +1305,32 @@ class TTHTool(BaseEventTool):
 		self.drawSideBearings(scale, self.face)
 
 	def draw(self, scale):
+		if self.isDragging() and self.startPoint != None:
+			#print 'is dragging'
+			#print 'current tool:', self.selectedHintingTool
+			x_start = self.startPoint[0]
+			y_start = self.startPoint[1]
+			self.drawDiscAtPoint(5*scale, x_start, y_start)
+			touchedEnd = self.isOnPoint(self.currentPoint)
+			if touchedEnd != None:
+				x_end = touchedEnd[0]
+				y_end = touchedEnd[1]
+				self.drawDiscAtPoint(5*scale, x_end, y_end)
+
+			if self.selectedHintingTool == 'Align':
+				if self.centralWindow.selectedAxis == 'X':
+					angle = 180
+				elif self.centralWindow.selectedAxis == 'Y':
+					angle = 90
+				self.drawAlign(scale, self.pointCoordinatesToUniqueID[self.startPoint], angle, None)
+			if self.selectedHintingTool == 'Single Link':
+				self.drawLink(scale, self.startPoint, self.currentPoint, '', None)
+			if self.selectedHintingTool == 'Double Link':
+				self.drawDoubleLink(scale, self.startPoint, self.currentPoint, '', None)
+			if self.selectedHintingTool == 'Interpolation':
+				self.drawInterpolate(scale, self.startPoint, self.currentPoint, self.currentPoint, None)
+
+
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
 			# search elements only once
 			cmd_code = getOrNone(c, 'code')
@@ -1402,6 +1442,8 @@ class centralWindow(object):
 							'41', '42', '43', '44', '45', '46', '47', '48', '60', '72' ]
 		self.axisList = ['X', 'Y']
 		self.selectedAxis = 'X'
+		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
+		self.selectedHintingTool = 'Align'
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
@@ -1427,7 +1469,12 @@ class centralWindow(object):
                               self.axisList, sizeStyle = "small",
                               callback=self.AxisPopUpButtonCallback)
 
-		self.wCentral.ReadTTProgramButton = SquareButton((10, 80, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
+		self.wCentral.HintingToolText= TextBox((10, 70, 70, 14), "Tool:", sizeStyle = "small")
+		self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
+                              self.hintingToolsList, sizeStyle = "small",
+                              callback=self.HintingToolPopUpButtonCallback)
+
+		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
                            					callback=self.ReadTTProgramButtonCallback)
 	
 
@@ -1494,6 +1541,10 @@ class centralWindow(object):
 	def AxisPopUpButtonCallback(self, sender):
 		self.selectedAxis = self.axisList[sender.get()]
 		UpdateCurrentGlyphView()
+
+	def HintingToolPopUpButtonCallback(self, sender):
+		self.TTHToolInstance.selectedHintingTool = self.hintingToolsList[sender.get()]
+		print self.TTHToolInstance.selectedHintingTool
 
 	def ReadTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.TTHToolInstance.g)
