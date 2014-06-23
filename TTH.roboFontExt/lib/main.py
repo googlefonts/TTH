@@ -129,6 +129,8 @@ class TTHTool(BaseEventTool):
 		    skipper = ['h']
 
 		def pred0(cmdIdx, commandPos):
+			if cmdIdx == None:
+				return False
 			if self.glyphTTHCommands[cmdIdx]['code'][-1] in skipper:
 				return False
 			return pointsApproxEqual(commandPos, p_cursor)
@@ -188,6 +190,7 @@ class TTHTool(BaseEventTool):
 		self.UPM = self.f.info.unitsPerEm
 		self.PPM_Size = 9
 		self.pitch = int(self.UPM) / int(self.PPM_Size)
+		self.selectedHintingTool = 'Align'
 
 		self.FL_Windows = FL_TTH_Windows(self.f)
 		self.centralWindow = centralWindow(self.f, self)
@@ -559,7 +562,7 @@ class TTHTool(BaseEventTool):
 		path.stroke()
 
 		# compute x, y
-		if cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 		    self.commandLabelPos[cmdIndex] = (offcurve1[0], offcurve1[1])
 
 		if stemName == None:
@@ -584,7 +587,7 @@ class TTHTool(BaseEventTool):
 		path.stroke()
 
 		# compute x, y
-		if cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 		    self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
 
 		if stemName == None:
@@ -614,7 +617,7 @@ class TTHTool(BaseEventTool):
 		path.stroke()
 
 		# compute x, y
-		if cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 		    self.commandLabelPos[cmdIndex] = (middlePoint[0] + 10*scale, middlePoint[1] - 10*scale)
 
 		self.drawTextAtPoint('I', middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, NSColor.greenColor())
