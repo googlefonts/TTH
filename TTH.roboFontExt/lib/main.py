@@ -9,6 +9,7 @@ from fl_tth import *
 import tt_tables
 import preview
 import TTHintAsm
+import TextRenderer as TR
 
 import xml.etree.ElementTree as ET
 import math, os
@@ -89,6 +90,7 @@ class TTHTool(BaseEventTool):
 		self.p_glyphList = []
 		self.commandLabelPos = {}
 		self.selectedHintingTool = 'Align'
+		self.textRenderer = None
 
 	def becomeActive(self):
 		self.bitmapPreviewSelection = 'Monochrome'
@@ -124,9 +126,9 @@ class TTHTool(BaseEventTool):
 
 	def isOnCommand(self, p_cursor):
 		if self.centralWindow.selectedAxis == 'X':
-			 skipper = ['v','t','b']
+			skipper = ['v','t','b']
 		else:
-		    skipper = ['h']
+			skipper = ['h']
 
 		def pred0(cmdIdx, commandPos):
 			if self.glyphTTHCommands[cmdIdx]['code'][-1] in skipper:
@@ -234,6 +236,7 @@ class TTHTool(BaseEventTool):
 		self.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		print 'full font generated'
 		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
+		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.bitmapPreviewSelection)
 
 	def generateMiniTempFont(self):
 		root =  os.path.split(self.f.path)[0]
@@ -348,13 +351,13 @@ class TTHTool(BaseEventTool):
 		g_index = self.getGlyphIndexByName(glyphName)
 		if self.bitmapPreviewSelection == 'Monochrome':
 			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-    	                    freetype.FT_LOAD_TARGET_MONO )
+					freetype.FT_LOAD_TARGET_MONO )
 		elif self.bitmapPreviewSelection == 'Grayscale':
 			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-							freetype.FT_LOAD_TARGET_NORMAL)
+					freetype.FT_LOAD_TARGET_NORMAL)
 		elif self.bitmapPreviewSelection == 'Subpixel':
 			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-                       freetype.FT_LOAD_TARGET_LCD )
+					freetype.FT_LOAD_TARGET_LCD )
 		else:
 			self.face.load_glyph(g_index)
 
@@ -425,10 +428,10 @@ class TTHTool(BaseEventTool):
 		pathContour = NSBezierPath.bezierPath()
 		start, end = 0, 0		
 		for c_index in range(len(face.glyph.outline.contours)):
-			end    = face.glyph.outline.contours[c_index]
-			points = self.adaptedOutline_points[start:end+1] 
+			end	= face.glyph.outline.contours[c_index]
+			points	= self.adaptedOutline_points[start:end+1] 
 			points.append(points[0])
-			tags   = face.glyph.outline.tags[start:end+1]
+			tags	= face.glyph.outline.tags[start:end+1]
 			tags.append(tags[0])
 
 			segments = [ [points[0],], ]
@@ -523,7 +526,7 @@ class TTHTool(BaseEventTool):
 
 		# compute x, y
 		if cmdIndex not in self.commandLabelPos:
-		    self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
+			self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
 
 		self.drawTextAtPoint('A', x + 10, y - 10, NSColor.blueColor())
 
@@ -560,7 +563,7 @@ class TTHTool(BaseEventTool):
 
 		# compute x, y
 		if cmdIndex not in self.commandLabelPos:
-		    self.commandLabelPos[cmdIndex] = (offcurve1[0], offcurve1[1])
+			self.commandLabelPos[cmdIndex] = (offcurve1[0], offcurve1[1])
 
 		if stemName == None:
 			self.drawTextAtPoint('S', offcurve1[0], offcurve1[1], NSColor.blackColor())
@@ -585,7 +588,7 @@ class TTHTool(BaseEventTool):
 
 		# compute x, y
 		if cmdIndex not in self.commandLabelPos:
-		    self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
+			self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
 
 		if stemName == None:
 			self.drawTextAtPoint('D', (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, NSColor.blueColor())
@@ -594,28 +597,28 @@ class TTHTool(BaseEventTool):
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
-	 	start_middle_diff = difference(startPoint, middlePoint)
-	 	dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
-	 	angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
-	 	center1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
-	 	
+		start_middle_diff = difference(startPoint, middlePoint)
+		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
+		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
+		center1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
+
 		middle_end_diff = difference(middlePoint, endPoint)
-	 	dx, dy = middle_end_diff[0]/2, middle_end_diff[1]/2
-	 	angle = getAngle((middlePoint[0], middlePoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	center2 = (middlePoint[0] - dx + math.cos(angle)*10, middlePoint[1] - dy + math.sin(angle)*10)
+		dx, dy = middle_end_diff[0]/2, middle_end_diff[1]/2
+		angle = getAngle((middlePoint[0], middlePoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
+		center2 = (middlePoint[0] - dx + math.cos(angle)*10, middlePoint[1] - dy + math.sin(angle)*10)
 
 		path = NSBezierPath.bezierPath()
-	 	path.moveToPoint_((startPoint[0], startPoint[1]))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (center1), (center1) )
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (center2), (center2) )
-	 
+		path.moveToPoint_((startPoint[0], startPoint[1]))
+		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (center1), (center1) )
+		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (center2), (center2) )
+
 		NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 0/255, 1).set()
 		path.setLineWidth_(scale)
 		path.stroke()
 
 		# compute x, y
 		if cmdIndex not in self.commandLabelPos:
-		    self.commandLabelPos[cmdIndex] = (middlePoint[0] + 10*scale, middlePoint[1] - 10*scale)
+			self.commandLabelPos[cmdIndex] = (middlePoint[0] + 10*scale, middlePoint[1] - 10*scale)
 
 		self.drawTextAtPoint('I', middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, NSColor.greenColor())
 
@@ -648,205 +651,46 @@ class TTHTool(BaseEventTool):
 		pathX.setLineWidth_(scale)
 		pathX.stroke()
 
-
-	def drawBitmapMono(self, pitch, advance, height, alpha, face):
-		if face == None:
-			return
-		glyph = face.glyph
-		bm = glyph.bitmap
-		numBytes = bm.rows * bm.pitch
-		if numBytes == 0:
-			return
-		buf = allocateBuffer(numBytes)
-		ftBuffer = bm._FT_Bitmap.buffer
-		for i in range(numBytes):
-			buf[i] = ftBuffer[i]
-
-		#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-
-		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
-		cgimg = Quartz.CGImageCreate(
-                         bm.width,
-                         bm.rows,
-                         1, # bit per component
-                         1, # size_t bitsPerPixel,
-                         bm.pitch, # size_t bytesPerRow,
-                         colorspace, # CGColorSpaceRef colorspace,
-                         Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
-                         provider, # CGDataProviderRef provider,
-                         None, # const CGFloat decode[],
-                         False, # bool shouldInterpolate,
-                         Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
-                         )
-		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, bm.width*pitch, bm.rows*pitch)
-		
-		context = NSGraphicsContext.currentContext()
-		if alpha < 1:
-			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
-		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
-		Quartz.CGContextDrawImage(context.graphicsPort(),
-                               destRect, cgimg )
-		Quartz.CGContextSetAlpha(context.graphicsPort(), 1)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
-
-	def drawBitmapGray(self, pitch, advance, height, alpha, face):
-		glyph = face.glyph
-		bm = glyph.bitmap
-		numBytes = bm.rows * bm.pitch
-		if numBytes == 0:
-			return
-		buf = allocateBuffer(numBytes)
-		ftBuffer = bm._FT_Bitmap.buffer
-		for i in range(numBytes):
-			buf[i] = ftBuffer[i]
-
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-
-		colorspace = Quartz.CGColorSpaceCreateDeviceGray()
-		cgimg = Quartz.CGImageCreate(
-                         bm.width,
-                         bm.rows,
-                         8, # bit per component
-                         8, # size_t bitsPerPixel,
-                         bm.pitch, # size_t bytesPerRow,
-                         colorspace, # CGColorSpaceRef colorspace,
-                         Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
-                         provider, # CGDataProviderRef provider,
-                         None, # const CGFloat decode[],
-                         False, # bool shouldInterpolate,
-                         Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
-                         )
-		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, bm.width*pitch, bm.rows*pitch)
-		
-		context = NSGraphicsContext.currentContext()
-		if alpha < 1:
-			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
-		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
-		Quartz.CGContextDrawImage(context.graphicsPort(),
-                               destRect, cgimg )
-		Quartz.CGContextSetAlpha(context.graphicsPort(), 1)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
-
-	def drawBitmapSubPixelColor(self, pitch, advance, height, alpha, face):
-		glyph = face.glyph
-		bm = glyph.bitmap
-		pixelWidth = int(bm.width/3)
-		numBytes = 4 * bm.rows * pixelWidth
-		if numBytes == 0:
-			return
-		buf = allocateBuffer(numBytes)
-		ftBuffer = bm._FT_Bitmap.buffer
-		pos = 0
-		for i in range(bm.rows):
-			source = bm.pitch * i
-			for j in range(pixelWidth):
-				ftSub = ftBuffer[source:source+3];
-				gray = (1.0 - 0.4) * sum([x*y for x,y in zip([0.3086, 0.6094, 0.0820], ftSub)])
-				buf[pos:pos+3] = [int(0.4 * x + gray) for x in ftSub]
-				buf[pos+3] = 0
-				pos += 4
-				source += 3
-
-		provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-
-		colorspace = Quartz.CGColorSpaceCreateDeviceRGB()
-		cgimg = Quartz.CGImageCreate(
-			 pixelWidth,
-                         bm.rows,
-                         8, # bit per component
-                         32, # size_t bitsPerPixel,
-                         4 * pixelWidth, # size_t bytesPerRow,
-                         colorspace, # CGColorSpaceRef colorspace,
-                         Quartz.kCGImageAlphaNone, # CGBitmapInfo bitmapInfo,
-                         #Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
-                         provider, # CGDataProviderRef provider,
-                         None, # const CGFloat decode[],
-                         False, # bool shouldInterpolate,
-                         Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
-                         )
-		destRect = Quartz.CGRectMake(glyph.bitmap_left*pitch + advance, (glyph.bitmap_top-bm.rows)*pitch + height, pixelWidth*pitch, bm.rows*pitch)
-		
-		context = NSGraphicsContext.currentContext()
-		if alpha < 1:
-			Quartz.CGContextSetAlpha(context.graphicsPort(), alpha)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeDifference)
-		Quartz.CGContextSetInterpolationQuality(context.graphicsPort(), Quartz.kCGInterpolationNone)
-		Quartz.CGContextDrawImage(context.graphicsPort(), destRect, cgimg )
-		Quartz.CGContextSetAlpha(context.graphicsPort(), 1)
-		Quartz.CGContextSetBlendMode(context.graphicsPort(), Quartz.kCGBlendModeNormal)
-
 	def drawPreviewWindow(self):
 		if self.ready == False:
 			return
 		if CurrentGlyph() == None:
 			return
+		# replace @
+		text = self.previewWindow.previewString.replace('@', unichr(CurrentGlyph().unicode))
 
-		self.advance = 10
-		startgname = False
-		gname = ''
-		gnametemp = ''
-		count = 0
-		for c in self.previewWindow.previewString:
-			gname = ''
-			count += 1
-			if c != '@' and c != '/' and startgname != True:
-				unicodeGlyph = ord(c)
-				gname = getGlyphNameByUnicode(self.unicodeToNameDict, unicodeGlyph)
-			elif c == '@':
-				gname = CurrentGlyph().name
-			elif c =='/' or c == ' ' :
-				if gnametemp in self.fullTempUFO:
-					gname = gnametemp
-					gnametemp = ''
-				if startgname != True:
-					startgname = True
-				else:
-					startgname = False
-			elif startgname == True:
-				gnametemp += c
+		# replace /name pattern
+		sp = text.split('/')
+		nbsp = len(sp)
+		for i in range(1,nbsp):
+			sub = sp[i].split(' ', 1)
+			if sub[0] in self.fullTempUFO:
+				sub[0] = unichr(self.fullTempUFO[sub[0]].unicode)
+				sp[i] = ' '.join(sub)
+		text = ''.join(sp)
 
-			if gname not in self.fullTempUFO:
-				continue
-			self.loadFaceGlyph(gname, self.PPM_Size)
-			if self.bitmapPreviewSelection == 'Monochrome':
-				self.drawBitmapMono(1, self.advance, 50, 1, self.face)
-			elif self.bitmapPreviewSelection == 'Grayscale':
-				self.drawBitmapGray(1, self.advance, 50, 1, self.face)
-			elif self.bitmapPreviewSelection == 'Subpixel':
-				self.drawBitmapSubPixelColor(1, self.advance, 50, 1, self.face)
-			
-			self.advance += int(self.face.glyph.advance.x/64)
+		# render user string
+		if self.textRenderer:
+			self.textRenderer.set_cur_size(self.PPM_Size)
+			self.textRenderer.set_pen((10, 50))
+			self.textRenderer.render_text(text)
 
-		self.advance = 10
-
+		# render current glyph at various sizes
+		advance = 10
+		text = unichr(CurrentGlyph().unicode)
 		for size in range(9, 48, 1):
-			gname = CurrentGlyph().name
-			sizedpitch = self.UPM/size
-			self.loadFaceGlyph(gname, size)
-			if self.bitmapPreviewSelection == 'Monochrome':
-				self.drawBitmapMono(1, self.advance, 100, 1, self.face)
-			elif self.bitmapPreviewSelection == 'Grayscale':
-				self.drawBitmapGray(1, self.advance, 100, 1, self.face)
-			elif self.bitmapPreviewSelection == 'Subpixel':
-				self.drawBitmapSubPixelColor(1, self.advance, 100, 1, self.face)
-			
-			self.advance += int(self.face.glyph.advance.x/64) + 5
-
+			self.textRenderer.set_cur_size(size)
+			self.textRenderer.set_pen((advance, 100))
+			delta_pos = self.textRenderer.render_text(text)
+			advance += delta_pos[0] + 5
 
 	def drawBackground(self, scale):
 		if self.g == None:
 			return
 		
-		self.loadFaceGlyph(CurrentGlyph().name, self.PPM_Size)
-		if self.bitmapPreviewSelection == 'Monochrome':
-			self.drawBitmapMono(self.pitch, 0, 0, .4, self.face)
-		elif self.bitmapPreviewSelection == 'Grayscale':
-			self.drawBitmapGray(self.pitch, 0, 0, .4, self.face)
-		elif self.bitmapPreviewSelection == 'Subpixel':
-			self.drawBitmapSubPixelColor(self.pitch, 0, 0, .4, self.face)
+		self.textRenderer.set_cur_size(self.PPM_Size)
+		self.textRenderer.set_pen((0, 0))
+		self.textRenderer.render_text_with_scale_and_alpha(unichr(CurrentGlyph().unicode), self.pitch, 0.4)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0)
@@ -1004,56 +848,56 @@ class centralWindow(object):
 		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
 		
 		self.wCentral.PPEMSizeEditText = EditText((110, 8, 30, 19), sizeStyle = "small", 
-                            callback=self.PPEMSizeEditTextCallback)
+				callback=self.PPEMSizeEditTextCallback)
 
 		self.wCentral.PPEMSizeEditText.set(self.TTHToolInstance.PPM_Size)
 		
 		self.wCentral.PPEMSizePopUpButton = PopUpButton((150, 10, 40, 14),
-                              self.PPMSizesList, sizeStyle = "small",
-                              callback=self.PPEMSizePopUpButtonCallback)
+				self.PPMSizesList, sizeStyle = "small",
+				callback=self.PPEMSizePopUpButtonCallback)
 		self.wCentral.PPEMSizePopUpButton.set(0)
 
 		self.wCentral.BitmapPreviewText= TextBox((10, 30, 70, 14), "Preview:", sizeStyle = "small")
 		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((90, 30, 100, 14),
-                              self.BitmapPreviewList, sizeStyle = "small",
-                              callback=self.BitmapPreviewPopUpButtonCallback)
+				self.BitmapPreviewList, sizeStyle = "small",
+				callback=self.BitmapPreviewPopUpButtonCallback)
 
 		self.wCentral.AxisText= TextBox((10, 50, 70, 14), "Axis:", sizeStyle = "small")
 		self.wCentral.AxisPopUpButton = PopUpButton((150, 50, 40, 14),
-                              self.axisList, sizeStyle = "small",
-                              callback=self.AxisPopUpButtonCallback)
+				self.axisList, sizeStyle = "small",
+				callback=self.AxisPopUpButtonCallback)
 
 		self.wCentral.HintingToolText= TextBox((10, 70, 70, 14), "Tool:", sizeStyle = "small")
 		self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
-                              self.hintingToolsList, sizeStyle = "small",
-                              callback=self.HintingToolPopUpButtonCallback)
+				self.hintingToolsList, sizeStyle = "small",
+				callback=self.HintingToolPopUpButtonCallback)
 
 		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
-                           					callback=self.ReadTTProgramButtonCallback)
+				callback=self.ReadTTProgramButtonCallback)
 	
 
 		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
-                           					callback=self.PreviewShowButtonCallback)
+				callback=self.PreviewShowButtonCallback)
 		self.wCentral.PreviewHideButton = SquareButton((10, -98, -10, 22), "Hide Preview", sizeStyle = 'small', 
-                           					callback=self.PreviewHideButtonCallback)
+				callback=self.PreviewHideButtonCallback)
 		self.wCentral.PreviewHideButton.show(False)
 
 		self.wCentral.GeneralShowButton = SquareButton((10, -76, -10, 22), "Show General Options", sizeStyle = 'small', 
-                           					callback=self.GeneralShowButtonCallback)
+				callback=self.GeneralShowButtonCallback)
 		self.wCentral.GeneralHideButton = SquareButton((10, -76, -10, 22), "Hide General Options", sizeStyle = 'small', 
-                           					callback=self.GeneralHideButtonCallback)
+				callback=self.GeneralHideButtonCallback)
 		self.wCentral.GeneralHideButton.show(False)
 
 		self.wCentral.StemsShowButton = SquareButton((10, -54, -10, 22), "Show Stems Settings", sizeStyle = 'small', 
-                           					callback=self.StemsShowButtonCallback)
+				callback=self.StemsShowButtonCallback)
 		self.wCentral.StemsHideButton = SquareButton((10, -54, -10, 22), "Hide Stems Settings", sizeStyle = 'small', 
-                           					callback=self.StemsHideButtonCallback)
+				callback=self.StemsHideButtonCallback)
 		self.wCentral.StemsHideButton.show(False)
 
 		self.wCentral.ZonesShowButton = SquareButton((10, -32, -10, 22), "Show Zones Settings", sizeStyle = 'small', 
-                           					callback=self.ZonesShowButtonCallback)
+				callback=self.ZonesShowButtonCallback)
 		self.wCentral.ZonesHideButton = SquareButton((10, -32, -10, 22), "Hide Zones Settings", sizeStyle = 'small', 
-                           					callback=self.ZonesHideButtonCallback)
+				callback=self.ZonesHideButtonCallback)
 		self.wCentral.ZonesHideButton.show(False)
 
 
@@ -1085,12 +929,18 @@ class centralWindow(object):
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 
 	def BitmapPreviewPopUpButtonCallback(self, sender):
-		if self.TTHToolInstance.g == None:
+		tool = self.TTHToolInstance
+		old = tool.bitmapPreviewSelection
+		new = self.BitmapPreviewList[sender.get()]
+		if new == old:
 			return
-		self.TTHToolInstance.bitmapPreviewSelection = self.BitmapPreviewList[sender.get()]
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
+		tool.bitmapPreviewSelection = new
+		tool.textRenderer = TR.TextRenderer(tool.fulltempfontpath, new)
+		if tool.g == None:
+			return
+		tool.loadFaceGlyph(tool.g.name,  tool.PPM_Size)
 		UpdateCurrentGlyphView()
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+		tool.previewWindow.view.setNeedsDisplay_(True)
 
 	def AxisPopUpButtonCallback(self, sender):
 		self.selectedAxis = self.axisList[sender.get()]
@@ -1157,9 +1007,9 @@ class previewWindow(object):
 
 		self.view.setFrame_(((0, 0), (1500, 160)))
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
-										callback=self.previewEditTextCallback)
+				callback=self.previewEditTextCallback)
 		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -10),
-                                self.view)
+				self.view)
 
 		self.wPreview.open()
 
@@ -1177,4 +1027,5 @@ class previewWindow(object):
 		self.view.setNeedsDisplay_(True)
 
 
+reload(TR)
 installTool(TTHTool())
