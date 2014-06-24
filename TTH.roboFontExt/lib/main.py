@@ -659,8 +659,11 @@ class TTHTool(BaseEventTool):
 			return
 		if CurrentGlyph() == None:
 			return
-		# replace @
-		text = self.previewWindow.previewString.replace('@', unichr(CurrentGlyph().unicode))
+
+		curGlyphString = unichr(CurrentGlyph().unicode)
+
+		# replace @ by current glyph
+		text = self.previewWindow.previewString.replace('@', curGlyphString)
 
 		# replace /name pattern
 		sp = text.split('/')
@@ -668,8 +671,7 @@ class TTHTool(BaseEventTool):
 		for i in range(1,nbsp):
 			sub = sp[i].split(' ', 1)
 			if sub[0] in self.fullTempUFO:
-				sub[0] = unichr(self.fullTempUFO[sub[0]].unicode)
-				sp[i] = ' '.join(sub)
+				sp[i] = unichr(self.fullTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
 		text = ''.join(sp)
 
 		# render user string
@@ -680,11 +682,10 @@ class TTHTool(BaseEventTool):
 
 		# render current glyph at various sizes
 		advance = 10
-		text = unichr(CurrentGlyph().unicode)
 		for size in range(9, 48, 1):
 			self.textRenderer.set_cur_size(size)
 			self.textRenderer.set_pen((advance, 100))
-			delta_pos = self.textRenderer.render_text(text)
+			delta_pos = self.textRenderer.render_text(curGlyphString)
 			advance += delta_pos[0] + 5
 
 	def drawBackground(self, scale):

@@ -4,6 +4,8 @@ import Quartz
 from mojo.UI import *
 import freetype as FT
 
+grayCS = Quartz.CGColorSpaceCreateDeviceGray()
+rgbCS = Quartz.CGColorSpaceCreateDeviceRGB()
 
 class TRCache (object):
 	def __init__(self):
@@ -15,10 +17,18 @@ class TextRenderer (object):
 
 	def __init__(self, face_path, renderMode):
 		self.face = FT.Face(face_path)
-		self.glyph = self.face.glyph
-		self.caches = {}
+		# the glyph slot in the face, from which we extract the images
+		# (contour) of requested glyphs, before storing them in the
+		# cache
+		self.slot = self.face.glyph
+		# a dictionary mapping text size in pixel to the TRCache
+		# storing the glyphs images/bitmaps/advances already loaded.
+		self.caches = {} 
+		# The TRCache for the current text pixel-size
 		self.cache = None
+		# current text pixel-size
 		self.curSize = 0
+		# drawing position
 		self.pen = (0,0)
 		self.set_cur_size(9)
 
@@ -39,6 +49,7 @@ class TextRenderer (object):
 			self.curSize = 4
 		else:
 			self.curSize = int(size)
+		# select the TRCache of proper size
 		if self.curSize not in self.caches:
 			self.caches[self.curSize] = TRCache()
 		self.cache = self.caches[self.curSize]
@@ -58,31 +69,44 @@ class TextRenderer (object):
 		return self.cache.advances[index]
 
 	def get_glyph_image(self, index):
+		# a glyph image (contours) is requested. If not in the cache,
+		# we load it with freetype and save it in the cache and return
+		# it
 		if index not in self.cache.images:
 			self.face.set_pixel_sizes(0, int(self.curSize))
 			self.face.load_glyph(index, FT.FT_LOAD_DEFAULT)
-			temp = self.glyph.get_glyph()
-			self.cache.images[index] = temp
-			self.cache.advances[index] = (self.glyph.advance.x, self.glyph.advance.y)
-			return temp
+			result = self.slot.get_glyph()
+			self.cache.images[index] = result
+			self.cache.advances[index] = (self.slot.advance.x, self.slot.advance.y)
+			return result
 		else:
 			return self.cache.images[index]
 
 	def get_char_image(self, char):
+		# convert unicode-char to glyph-index and then call get_glyph_image
 		return self.get_glyph_image(self.face.get_char_index(char))
 
 	def get_glyph_bitmap(self, index):
+		# a glyph bitmap (pixel buffer) is requested. If not in the cache,
+		# we render it with freetype and save it in the cache and return
+		# it
 		if index not in self.cache.bitmaps:
-			temp = self.get_glyph_image(index).to_bitmap(self.render_mode, 0)
-			self.cache.bitmaps[index] = temp
-			return temp
+			result = self.get_glyph_image(index).to_bitmap(self.render_mode, 0)
+			self.cache.bitmaps[index] = result
+			return result
 		else:
 			return self.cache.bitmaps[index]
 
 	def get_char_bitmap(self, char):
+		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
 
+
+# DRAWING FUNCTIONS
+
+
 def drawBitmapMono(bmg, scale, advance, height, alpha):
+	# 'bmg' stands for BitMapGlyph, a data structure from freetype.
 	bm = bmg.bitmap
 	numBytes = bm.rows * bm.pitch
 	if numBytes == 0:
@@ -95,14 +119,13 @@ def drawBitmapMono(bmg, scale, advance, height, alpha):
 	#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
 	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
-	colorspace = Quartz.CGColorSpaceCreateDeviceGray()
 	cgimg = Quartz.CGImageCreate(
 			bm.width,
 			bm.rows,
 			1, # bit per component
 			1, # size_t bitsPerPixel,
 			bm.pitch, # size_t bytesPerRow,
-			colorspace, # CGColorSpaceRef colorspace,
+			grayCS, # CGColorSpaceRef colorspace,
 			Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
 			None, # const CGFloat decode[],
@@ -133,14 +156,13 @@ def drawBitmapGray(bmg, scale, advance, height, alpha):
 
 	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
-	colorspace = Quartz.CGColorSpaceCreateDeviceGray()
 	cgimg = Quartz.CGImageCreate(
 			bm.width,
 			bm.rows,
 			8, # bit per component
 			8, # size_t bitsPerPixel,
 			bm.pitch, # size_t bytesPerRow,
-			colorspace, # CGColorSpaceRef colorspace,
+			grayCS, # CGColorSpaceRef colorspace,
 			Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
 			None, # const CGFloat decode[],
@@ -180,14 +202,13 @@ def drawBitmapSubPixelColor(bmg, scale, advance, height, alpha):
 
 	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
-	colorspace = Quartz.CGColorSpaceCreateDeviceRGB()
 	cgimg = Quartz.CGImageCreate(
 			pixelWidth,
 			bm.rows,
 			8, # bit per component
 			32, # size_t bitsPerPixel,
 			4 * pixelWidth, # size_t bytesPerRow,
-			colorspace, # CGColorSpaceRef colorspace,
+			rgbCS, # CGColorSpaceRef colorspace,
 			Quartz.kCGImageAlphaNone, # CGBitmapInfo bitmapInfo,
 			#Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
