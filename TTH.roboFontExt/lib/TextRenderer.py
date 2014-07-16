@@ -11,6 +11,7 @@ class TRCache (object):
 	def __init__(self):
 		self.images = {}
 		self.contours_points_and_tags = {}
+		self.bezier_paths = {}
 		self.bitmaps = {}
 		self.advances = {}
 
@@ -32,6 +33,7 @@ class TextRenderer (object):
 		# drawing position
 		self.pen = (0,0)
 		self.set_cur_size(9)
+		self.outline_color = NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, 1)
 
 		self.render_func = drawBitmapGray
 		self.render_mode = FT.FT_RENDER_MODE_NORMAL
@@ -120,15 +122,30 @@ class TextRenderer (object):
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
 
 	def drawOutline(self, scale, pitch, char):
+		paths = self.getBezierPath(scale, pitch, char)
+		if paths is None:
+			return
+		self.outline_color.set()
+		for p  in paths:
+			p.setLineWidth_(scale*2)
+			p.stroke()
+
+	def getBezierPath(self, scale, pitch, char):
+		index = self.face.get_char_index(char)
+		try:
+			return self.cache.bezier_paths[index]
+		except:
+			pass
 		#print outline.contours
 		(contours, points, itags) = self.get_char_contours_points_and_tags(char)
 		if len(contours) == 0:
-			return
+			return None
 		adaptedOutline_points = [(int(pitch*p[0]/64), int(pitch*p[1]/64)) for p in points]
+		paths = []
 		pathContour = NSBezierPath.bezierPath()
 		start = 0
 		for end in contours:
-			points	= adaptedOutline_points[start:end+1] 
+			points	= adaptedOutline_points[start:end+1]
 			points.append(points[0])
 			tags	= itags[start:end+1]
 			tags.append(tags[0])
@@ -157,12 +174,10 @@ class TextRenderer (object):
 					antenne1 = ((onCurve[0] + 2 * A[0]) / 3.0 , (onCurve[1] + 2 * A[1]) / 3.0)
 					antenne2 = ((nextOn[0] + 2 * A[0]) / 3.0 , (nextOn[1] + 2 * A[1]) / 3.0)
 					pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
-
-
 			start = end+1
-			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, 1).set()
-			pathContour.setLineWidth_(scale*2)
-			pathContour.stroke()
+			paths.append(pathContour)
+		self.cache.bezier_paths[index] = paths
+		return paths
 
 
 # DRAWING FUNCTIONS
