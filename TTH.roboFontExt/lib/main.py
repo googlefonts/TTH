@@ -13,9 +13,6 @@ import TextRenderer as TR
 
 import xml.etree.ElementTree as ET
 import math, os
-import freetype
-import Quartz
-from objc import allocateBuffer
 
 def pointsApproxEqual(p_glyph, p_cursor):
 	return (abs(p_glyph[0] - p_cursor[0]) < 5) and (abs(p_glyph[1] - p_cursor[1]) < 5)
@@ -83,7 +80,6 @@ class TTHTool(BaseEventTool):
 		self.UPM = 1000
 		self.PPM_Size = 9
 		self.pitch = self.UPM/self.PPM_Size
-		self.face = None
 		self.bitmapPreviewSelection = 'Monochrome'
 		self.unicodeToNameDict = createUnicodeToNameDict()
 		self.ready = False
@@ -218,7 +214,6 @@ class TTHTool(BaseEventTool):
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.g)
-		self.face = freetype.Face(self.fulltempfontpath)
 		print 'full temp font loaded'
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
@@ -347,27 +342,6 @@ class TTHTool(BaseEventTool):
 		except:
 			return None
 
-	def loadFaceGlyph(self, glyphName, size):
-		if self.face == None:
-			return
-		self.face.set_pixel_sizes(int(size), int(size))
-		g_index = self.getGlyphIndexByName(glyphName)
-		if self.bitmapPreviewSelection == 'Monochrome':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-					freetype.FT_LOAD_TARGET_MONO )
-		elif self.bitmapPreviewSelection == 'Grayscale':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-					freetype.FT_LOAD_TARGET_NORMAL)
-		elif self.bitmapPreviewSelection == 'Subpixel':
-			self.face.load_glyph(g_index, freetype.FT_LOAD_RENDER |
-					freetype.FT_LOAD_TARGET_LCD )
-		else:
-			self.face.load_glyph(g_index)
-
-		self.adaptedOutline_points = []
-		for i in range(len(self.face.glyph.outline.points)):
-			self.adaptedOutline_points.append( (int( self.pitch*self.face.glyph.outline.points[i][0]/64), int( self.pitch*self.face.glyph.outline.points[i][1]/64  )) )
-
 	def drawGrid(self, scale, pitch):
 		for xPos in range(0, 5000, int(pitch)):
 			pathX = NSBezierPath.bezierPath()
@@ -423,51 +397,6 @@ class TTHTool(BaseEventTool):
 			NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2).set()
 			pathZone.fill()	
 
-	def drawOutline(self, scale, face):
-		#print outline.contours
-		if len(face.glyph.outline.contours) == 0:
-			return
-
-		pathContour = NSBezierPath.bezierPath()
-		start, end = 0, 0		
-		for c_index in range(len(face.glyph.outline.contours)):
-			end	= face.glyph.outline.contours[c_index]
-			points	= self.adaptedOutline_points[start:end+1] 
-			points.append(points[0])
-			tags	= face.glyph.outline.tags[start:end+1]
-			tags.append(tags[0])
-
-			segments = [ [points[0],], ]
-
-			for j in range(1, len(points) ):
-				segments[-1].append(points[j])
-				if tags[j] & (1 << 0) and j < (len(points)-1):
-					segments.append( [points[j],] )
-			pathContour.moveToPoint_((points[0][0], points[0][1]))
-			for segment in segments:
-				if len(segment) == 2:
-					pathContour.lineToPoint_(segment[1])
-				else:
-					onCurve = segment[0]
-					for i in range(1,len(segment)-2):
-						A,B = segment[i], segment[i+1]
-						nextOn = ((A[0]+B[0])/2.0, (A[1]+B[1])/2.0)
-						antenne1 = ((onCurve[0] + 2 * A[0]) / 3.0 , (onCurve[1] + 2 * A[1]) / 3.0)
-						antenne2 = ((nextOn[0] + 2 * A[0]) / 3.0 , (nextOn[1] + 2 * A[1]) / 3.0)
-						pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
-						onCurve = nextOn
-					nextOn = segment[-1]
-					A = segment[-2]
-					antenne1 = ((onCurve[0] + 2 * A[0]) / 3.0 , (onCurve[1] + 2 * A[1]) / 3.0)
-					antenne2 = ((nextOn[0] + 2 * A[0]) / 3.0 , (nextOn[1] + 2 * A[1]) / 3.0)
-					pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
-
-
-			start = end+1
-
-			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, 1).set()
-			pathContour.setLineWidth_(scale*2)
-			pathContour.stroke()
 
 	def drawTextAtPoint(self, title, x, y, backgroundColor):
 		currentTool = getActiveEventTool()
@@ -635,11 +564,11 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
-	def drawSideBearings(self, scale, face):
-		if len(face.glyph.outline.contours) == 0:
+	def drawSideBearings(self, scale, char):
+		try:
+			xPos = self.pitch * self.textRenderer.get_char_advance(char)[0] / 64
+		except:
 			return
-
-		xPos = self.pitch*face.glyph.advance.x/64
 		pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((xPos, -5000))
 		pathX.lineToPoint_((xPos, 5000))
@@ -691,10 +620,12 @@ class TTHTool(BaseEventTool):
 	def drawBackground(self, scale):
 		if self.g == None:
 			return
+
+		curChar = unichr(CurrentGlyph().unicode)
 		
 		self.textRenderer.set_cur_size(self.PPM_Size)
 		self.textRenderer.set_pen((0, 0))
-		self.textRenderer.render_text_with_scale_and_alpha(unichr(CurrentGlyph().unicode), self.pitch, 0.4)
+		self.textRenderer.render_text_with_scale_and_alpha(curChar, self.pitch, 0.4)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0)
@@ -703,8 +634,8 @@ class TTHTool(BaseEventTool):
 		self.drawGrid(scale, self.pitch)
 		self.drawZones(scale)
 
-		self.drawOutline(scale, self.face)
-		self.drawSideBearings(scale, self.face)
+		self.textRenderer.drawOutline(scale, self.pitch, curChar)
+		self.drawSideBearings(scale, curChar)
 
 	def draw(self, scale):
 		if self.isDragging() and self.startPoint != None:
@@ -918,19 +849,20 @@ class centralWindow(object):
 			sender.set(9)
 		self.TTHToolInstance.PPM_Size = newValue
 		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
-		UpdateCurrentGlyphView()
+		# REMOVE ME WHEN THAT WORKS self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+		UpdateCurrentGlyphView()
 
 	def PPEMSizePopUpButtonCallback(self, sender):
 		if self.TTHToolInstance.g == None:
 			return
-		self.TTHToolInstance.PPM_Size = self.PPMSizesList[sender.get()]
-		self.wCentral.PPEMSizeEditText.set(self.TTHToolInstance.PPM_Size)
-		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name, self.TTHToolInstance.PPM_Size)
-		UpdateCurrentGlyphView()
+		size = self.PPMSizesList[sender.get()]
+		self.TTHToolInstance.PPM_Size = size
+		self.wCentral.PPEMSizeEditText.set(size)
+		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(size))
+		# REMOVE ME WHEN THAT WORKS self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name, size)
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
+		UpdateCurrentGlyphView()
 
 	def BitmapPreviewPopUpButtonCallback(self, sender):
 		tool = self.TTHToolInstance
@@ -942,9 +874,9 @@ class centralWindow(object):
 		tool.textRenderer = TR.TextRenderer(tool.fulltempfontpath, new)
 		if tool.g == None:
 			return
-		tool.loadFaceGlyph(tool.g.name,  tool.PPM_Size)
-		UpdateCurrentGlyphView()
+		# REMOVE ME WHEN THAT WORKS tool.loadFaceGlyph(tool.g.name,  tool.PPM_Size)
 		tool.previewWindow.view.setNeedsDisplay_(True)
+		UpdateCurrentGlyphView()
 
 	def AxisPopUpButtonCallback(self, sender):
 		self.selectedAxis = self.axisList[sender.get()]

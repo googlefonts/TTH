@@ -10,6 +10,7 @@ rgbCS = Quartz.CGColorSpaceCreateDeviceRGB()
 class TRCache (object):
 	def __init__(self):
 		self.images = {}
+		self.contours_points_and_tags = {}
 		self.bitmaps = {}
 		self.advances = {}
 
@@ -68,6 +69,17 @@ class TextRenderer (object):
 	def get_advance(self, index):
 		return self.cache.advances[index]
 
+	def get_char_advance(self, char):
+		return self.get_advance(self.face.get_char_index(char))
+
+	def get_glyph_contours_points_and_tags(self, index):
+		if index not in self.cache.contours_points_and_tags:
+			self.get_glyph_image(index)
+		return self.cache.contours_points_and_tags[index]
+
+	def get_char_contours_points_and_tags(self, char):
+		return self.get_glyph_contours_points_and_tags(self.face.get_char_index(char))
+
 	def get_glyph_image(self, index):
 		# a glyph image (contours) is requested. If not in the cache,
 		# we load it with freetype and save it in the cache and return
@@ -78,6 +90,10 @@ class TextRenderer (object):
 			result = self.slot.get_glyph()
 			self.cache.images[index] = result
 			self.cache.advances[index] = (self.slot.advance.x, self.slot.advance.y)
+			pts = list(self.face.glyph.outline.points)
+			cts = list(self.face.glyph.outline.contours)
+			tgs = list(self.face.glyph.outline.tags)
+			self.cache.contours_points_and_tags[index] = (cts, pts, tgs)
 			return result
 		else:
 			return self.cache.images[index]
@@ -91,7 +107,9 @@ class TextRenderer (object):
 		# we render it with freetype and save it in the cache and return
 		# it
 		if index not in self.cache.bitmaps:
+			#print "!! ", self.get_glyph_image(index).format,
 			result = self.get_glyph_image(index).to_bitmap(self.render_mode, 0)
+			#print self.get_glyph_image(index).format
 			self.cache.bitmaps[index] = result
 			return result
 		else:
@@ -100,6 +118,51 @@ class TextRenderer (object):
 	def get_char_bitmap(self, char):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
+
+	def drawOutline(self, scale, pitch, char):
+		#print outline.contours
+		(contours, points, itags) = self.get_char_contours_points_and_tags(char)
+		if len(contours) == 0:
+			return
+		adaptedOutline_points = [(int(pitch*p[0]/64), int(pitch*p[1]/64)) for p in points]
+		pathContour = NSBezierPath.bezierPath()
+		start = 0
+		for end in contours:
+			points	= adaptedOutline_points[start:end+1] 
+			points.append(points[0])
+			tags	= itags[start:end+1]
+			tags.append(tags[0])
+
+			segments = [ [points[0],], ]
+
+			for j in range(1, len(points) ):
+				segments[-1].append(points[j])
+				if tags[j] & (1 << 0) and j < (len(points)-1):
+					segments.append( [points[j],] )
+			pathContour.moveToPoint_((points[0][0], points[0][1]))
+			for segment in segments:
+				if len(segment) == 2:
+					pathContour.lineToPoint_(segment[1])
+				else:
+					onCurve = segment[0]
+					for i in range(1,len(segment)-2):
+						A,B = segment[i], segment[i+1]
+						nextOn = ((A[0]+B[0])/2.0, (A[1]+B[1])/2.0)
+						antenne1 = ((onCurve[0] + 2 * A[0]) / 3.0 , (onCurve[1] + 2 * A[1]) / 3.0)
+						antenne2 = ((nextOn[0] + 2 * A[0]) / 3.0 , (nextOn[1] + 2 * A[1]) / 3.0)
+						pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
+						onCurve = nextOn
+					nextOn = segment[-1]
+					A = segment[-2]
+					antenne1 = ((onCurve[0] + 2 * A[0]) / 3.0 , (onCurve[1] + 2 * A[1]) / 3.0)
+					antenne2 = ((nextOn[0] + 2 * A[0]) / 3.0 , (nextOn[1] + 2 * A[1]) / 3.0)
+					pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
+
+
+			start = end+1
+			NSColor.colorWithRed_green_blue_alpha_(255/255, 75/255, 240/255, 1).set()
+			pathContour.setLineWidth_(scale*2)
+			pathContour.stroke()
 
 
 # DRAWING FUNCTIONS
