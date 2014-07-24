@@ -137,12 +137,56 @@ class TTHTool(BaseEventTool):
 
 		return touched_p_command
 
+	def keyDown(self, event):
+		if event.characters() == 'a':
+			self.centralWindow.selectedHintingTool = 'Anchor'
+			self.selectedHintingTool = 'Anchor'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(0)
+
+		if event.characters() == 's':
+			self.centralWindow.selectedHintingTool = 'Single Link'
+			self.selectedHintingTool = 'Single Link'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(1)
+
+		if event.characters() == 'd':
+			self.centralWindow.selectedHintingTool = 'Double Link'
+			self.selectedHintingTool = 'Double Link'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(2)
+
+		if event.characters() == 'i':
+			self.centralWindow.selectedHintingTool = 'Interpolation'
+			self.selectedHintingTool = 'Interpolation'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(3)
+
+		if event.characters() == 'm':
+			self.centralWindow.selectedHintingTool = 'Middle Delta'
+			self.selectedHintingTool = 'Middle Delta'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(4)
+
+		if event.characters() == 'f':
+			self.centralWindow.selectedHintingTool = 'Final Delta'
+			self.selectedHintingTool = 'Final Delta'
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(5)
+
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
-		print 'glyph point:', self.startPoint
+		print 'glyph start point:', self.startPoint
 		if self.startPoint in self.pointCoordinatesToUniqueID.keys():
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
+
+	def mouseUp(self, point):
+		self.p_cursor = (int(point.x), int(point.y))
+		self.endPoint = self.isOnPoint(self.p_cursor)
+		print 'glyph end point:', self.endPoint
+		if self.endPoint in self.pointCoordinatesToUniqueID.keys():
+			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
+
+		if self.selectedHintingTool == 'Align':
+			print 'align'
+			FLTTProgram = self.readGlyphFLTTProgram(self.g)
+			for i in FLTTProgram:
+				print i
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.g.lib['com.fontlab.ttprogram']
