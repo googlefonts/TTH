@@ -138,35 +138,11 @@ class TTHTool(BaseEventTool):
 		return touched_p_command
 
 	def keyDown(self, event):
-		if event.characters() == 'a':
-			self.centralWindow.selectedHintingTool = 'Anchor'
-			self.selectedHintingTool = 'Anchor'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(0)
-
-		if event.characters() == 's':
-			self.centralWindow.selectedHintingTool = 'Single Link'
-			self.selectedHintingTool = 'Single Link'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(1)
-
-		if event.characters() == 'd':
-			self.centralWindow.selectedHintingTool = 'Double Link'
-			self.selectedHintingTool = 'Double Link'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(2)
-
-		if event.characters() == 'i':
-			self.centralWindow.selectedHintingTool = 'Interpolation'
-			self.selectedHintingTool = 'Interpolation'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(3)
-
-		if event.characters() == 'm':
-			self.centralWindow.selectedHintingTool = 'Middle Delta'
-			self.selectedHintingTool = 'Middle Delta'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(4)
-
-		if event.characters() == 'f':
-			self.centralWindow.selectedHintingTool = 'Final Delta'
-			self.selectedHintingTool = 'Final Delta'
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(5)
+		keyDict = {'a':('Anchor', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
+		if event.characters() in keyDict:
+			val = keyDict[event.characters()]
+			self.selectedHintingTool = val[0]
+			self.centralWindow.wCentral.HintingToolPopUpButton.set(val[1])
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -838,7 +814,6 @@ class centralWindow(object):
 		self.axisList = ['X', 'Y']
 		self.selectedAxis = 'X'
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
-		self.selectedHintingTool = 'Align'
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
