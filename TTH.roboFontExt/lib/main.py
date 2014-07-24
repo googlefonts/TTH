@@ -209,6 +209,9 @@ class TTHTool(BaseEventTool):
 		self.g = CurrentGlyph()
 		if self.g == None:
 			return
+
+		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.bitmapPreviewSelection)
+
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.g)
 		self.commandLabelPos = {}
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
@@ -242,6 +245,7 @@ class TTHTool(BaseEventTool):
 		self.tempfontpath = os.path.join(root, tail)
 
 		tempFont = RFont(showUI=False)
+		tempFont.preferredSegmentType = 'qCurve'
 		#tempGlyph = self.g.copy()
 		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
 		tempFont.info.ascender = CurrentFont().info.ascender
@@ -609,13 +613,13 @@ class TTHTool(BaseEventTool):
 			self.textRenderer.set_pen((10, 50))
 			self.textRenderer.render_text(text)
 
-		# render current glyph at various sizes
-		advance = 10
-		for size in range(9, 48, 1):
-			self.textRenderer.set_cur_size(size)
-			self.textRenderer.set_pen((advance, 100))
-			delta_pos = self.textRenderer.render_text(curGlyphString)
-			advance += delta_pos[0] + 5
+			# render current glyph at various sizes
+			advance = 10
+			for size in range(9, 48, 1):
+				self.textRenderer.set_cur_size(size)
+				self.textRenderer.set_pen((advance, 100))
+				delta_pos = self.textRenderer.render_text(curGlyphString)
+				advance += delta_pos[0] + 5
 
 	def drawBackground(self, scale):
 		if self.g == None:
