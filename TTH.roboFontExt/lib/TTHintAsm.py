@@ -1,15 +1,15 @@
 import tt_tables
 
-def pointIndexFromUniqueID(g, pointUniqueID):
-        pointIndex = 0
-        for contour in g:
-                for point in contour.points:
-                        if pointUniqueID == point.naked().uniqueID:
-                                return pointIndex
-                        pointIndex += 1
-        return None
+#def pointIndexFromUniqueID(g, pointUniqueID):
+#	pointIndex = 0
+#	for contour in g:
+#		for point in contour.points:
+#			if pointUniqueID == point.naked().uniqueID:
+#				return pointIndex
+#			pointIndex += 1
+#	return None
 
-def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
+def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	if g == None:
 		return
 
@@ -40,7 +40,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				pointIndex = rsbIndex
 			else:
 				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointIndexFromUniqueID(g, pointUniqueID)
+				pointIndex = pointNameToIndex[TTHCommand['point']]
 			zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
 			alignToZone = [
 					'PUSHW[ ] 0',
@@ -62,7 +62,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				pointIndex = rsbIndex
 			else:
 				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointIndexFromUniqueID(g, pointUniqueID)
+				pointIndex = pointNameToIndex[TTHCommand['point']]
 
 				if pointUniqueID not in touchedPoints:
 						touchedPoints.append(pointUniqueID)
@@ -116,7 +116,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point1Index = rsbIndex
 			else:
 				point1UniqueID = pointNameToUniqueID[TTHCommand['point1']]
-				point1Index = pointIndexFromUniqueID(g, point1UniqueID)
+				point1Index = pointNameToIndex[TTHCommand['point1']]
 				if point1UniqueID not in touchedPoints:
 						touchedPoints.append(point1UniqueID)
 
@@ -126,7 +126,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point2Index = rsbIndex
 			else:
 				point2UniqueID = pointNameToUniqueID[TTHCommand['point2']]
-				point2Index = pointIndexFromUniqueID(g, point2UniqueID)
+				point2Index = pointNameToIndex[TTHCommand['point2']]
 				if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
@@ -155,7 +155,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point1Index = rsbIndex
 			else:
 				point1UniqueID = pointNameToUniqueID[TTHCommand['point1']]
-				point1Index = pointIndexFromUniqueID(g, point1UniqueID)
+				point1Index = pointNameToIndex[TTHCommand['point1']]
 				if point1UniqueID not in touchedPoints:
 						touchedPoints.append(point1UniqueID)
 
@@ -165,7 +165,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point2Index = rsbIndex
 			else:
 				point2UniqueID = pointNameToUniqueID[TTHCommand['point2']]
-				point2Index = pointIndexFromUniqueID(g, point2UniqueID)
+				point2Index = pointNameToIndex[TTHCommand['point2']]
 				if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
@@ -175,7 +175,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				pointIndex = rsbIndex
 			else:
 				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointIndexFromUniqueID(g, pointUniqueID)
+				pointIndex = pointNameToIndex[TTHCommand['point']]
 				if pointUniqueID not in touchedPoints:
 						touchedPoints.append(pointUniqueID)
 
@@ -237,7 +237,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point1Index = rsbIndex
 			else:
 				point1UniqueID = pointNameToUniqueID[TTHCommand['point1']]
-				point1Index = pointIndexFromUniqueID(g, point1UniqueID)
+				point1Index = pointNameToIndex[TTHCommand['point1']]
 
 			if TTHCommand['point2'] == 'lsb':
 				point2Index = lsbIndex
@@ -245,7 +245,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				point2Index = rsbIndex
 			else:
 				point2UniqueID = pointNameToUniqueID[TTHCommand['point2']]
-				point2Index = pointIndexFromUniqueID(g, point2UniqueID)
+				point2Index = pointNameToIndex[TTHCommand['point2']]
 
 			singleLink = []
 			if RP0 == None or point1UniqueID not in touchedPoints:
@@ -380,7 +380,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 				pointIndex = rsbIndex
 			else:
 				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointIndexFromUniqueID(g, pointUniqueID)
+				pointIndex = pointNameToIndex[TTHCommand['point']]
 				if pointUniqueID not in touchedPoints:
 						touchedPoints.append(pointUniqueID)
 

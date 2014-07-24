@@ -203,7 +203,7 @@ class TTHTool(BaseEventTool):
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
-		TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID)
+		TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateMiniTempFont()
 		self.mergeMiniAndFullTempFonts()
@@ -246,7 +246,7 @@ class TTHTool(BaseEventTool):
 		for g in self.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if glyphTTHCommands != None:
-				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID)
+				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateFullTempFont()
 		self.indexOfGlyphNames = dict([(self.fullTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.fullTempUFO.lib['public.glyphOrder']))])
@@ -260,7 +260,6 @@ class TTHTool(BaseEventTool):
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.g)
 		self.commandLabelPos = {}
-		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(self.g)
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.g)
 		print 'full temp font loaded'
@@ -332,6 +331,17 @@ class TTHTool(BaseEventTool):
 		os.rename(tempTempfontpath, self.fulltempfontpath)
 		print 'temp fonts merged'
 
+	def makePointNameToIndexDict(self, g):
+		result = {}
+		index = 0
+		for contour in g:
+			for point in contour.points:
+				if point.name:
+					name =  point.name.split(',')[0]
+					result[name] = index
+				index += 1
+		return result
+
 	def makePointNameToUniqueIDDict(self, g):
 		pointNameToUniqueID = {}
 		for contour in g:
@@ -362,6 +372,7 @@ class TTHTool(BaseEventTool):
 		if g == None:
 			return
 		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
+		self.pointNameToIndex = self.makePointNameToIndexDict(g)
 		self.glyphTTHCommands = []
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
