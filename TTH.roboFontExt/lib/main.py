@@ -182,11 +182,13 @@ class TTHTool(BaseEventTool):
 		if self.endPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
 
-		if self.selectedHintingTool == 'Align':
-			print 'align'
-			FLTTProgram = self.readGlyphFLTTProgram(self.g)
-			for i in FLTTProgram:
-				print i
+		self.writeGlyphFLTTProgram()
+
+		#if self.selectedHintingTool == 'Align':
+		#	print 'align'
+		#	FLTTProgram = self.readGlyphFLTTProgram(self.g)
+		#	for i in FLTTProgram:
+		#		print i
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.g.lib['com.fontlab.ttprogram']
@@ -373,7 +375,6 @@ class TTHTool(BaseEventTool):
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
 		ttprogram = g.lib['com.fontlab.ttprogram']
-		print ttprogram
 		strTTProgram = str(ttprogram)
 		if strTTProgram[:4] == 'Data' and strTTProgram[-3:] == "n')":
 			ttprogram = strTTProgram[6:-4]
@@ -384,15 +385,15 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands.append(child.attrib)
 		return self.glyphTTHCommands
 
-	def writeGlyphFLTTProgram(self, g):
-		if g == None:
+	def writeGlyphFLTTProgram(self):
+		if self.g == None:
 			return
 		root = ET.Element('ttProgram')
 		for command in self.glyphTTHCommands:
-			com = ET.SubElement(a, 'ttc')
+			com = ET.SubElement(root, 'ttc')
 			com.attrib = command
 		text = ET.tostring(root)
-		g.lib['com.fontlab.ttprogram'] = Data(text)
+		self.g.lib['com.fontlab.ttprogram'] = Data(text)
 
 
 	def getGlyphIndexByName(self, glyphName):
