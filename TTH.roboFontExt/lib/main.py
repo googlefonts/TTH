@@ -246,7 +246,7 @@ class TTHTool(BaseEventTool):
 		for g in self.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if glyphTTHCommands != None:
-				TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointIndexFromUniqueID)
+				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointIndexFromUniqueID)
 
 		self.generateFullTempFont()
 		self.indexOfGlyphNames = dict([(self.fullTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.fullTempUFO.lib['public.glyphOrder']))])
@@ -517,7 +517,7 @@ class TTHTool(BaseEventTool):
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
 
 		# compute x, y
-		if cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
 
 		self.drawTextAtPoint('A', x + 10, y - 10, NSColor.blueColor())
