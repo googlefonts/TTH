@@ -203,7 +203,7 @@ class TTHTool(BaseEventTool):
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
-		TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointIndexFromUniqueID)
+		TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID)
 
 		self.generateMiniTempFont()
 		self.mergeMiniAndFullTempFonts()
@@ -246,7 +246,7 @@ class TTHTool(BaseEventTool):
 		for g in self.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if glyphTTHCommands != None:
-				TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointIndexFromUniqueID)
+				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID)
 
 		self.generateFullTempFont()
 		self.indexOfGlyphNames = dict([(self.fullTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.fullTempUFO.lib['public.glyphOrder']))])
@@ -341,15 +341,6 @@ class TTHTool(BaseEventTool):
 					uniqueID = point.naked().uniqueID
 					pointNameToUniqueID[name] = uniqueID
 		return pointNameToUniqueID
-
-	def pointIndexFromUniqueID(self, g, pointUniqueID):
-		pointIndex = 0
-		for contour in g:
-			for point in contour.points:
-				if pointUniqueID == point.naked().uniqueID:
-					return pointIndex
-				pointIndex += 1
-		return None
 
 	def makePointUniqueIDToCoordinatesDict(self, g):
 		pointUniqueIDToCoordinates = {}
@@ -1024,4 +1015,5 @@ class previewWindow(object):
 
 
 reload(TR)
+reload(TTHintAsm)
 installTool(TTHTool())

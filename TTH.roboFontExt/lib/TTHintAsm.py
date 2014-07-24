@@ -1,6 +1,15 @@
 import tt_tables
 
-def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointIndexFromUniqueID):
+def pointIndexFromUniqueID(g, pointUniqueID):
+        pointIndex = 0
+        for contour in g:
+                for point in contour.points:
+                        if pointUniqueID == point.naked().uniqueID:
+                                return pointIndex
+                        pointIndex += 1
+        return None
+
+def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID):
 	if g == None:
 		return
 
