@@ -508,7 +508,7 @@ class TTHTool(BaseEventTool):
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
 
 		# compute x, y
-		if cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
 
 		self.drawTextAtPoint('A', x + 10, y - 10, NSColor.blueColor())
