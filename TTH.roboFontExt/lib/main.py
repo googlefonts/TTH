@@ -172,14 +172,14 @@ class TTHTool(BaseEventTool):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
 		print 'glyph start point:', self.startPoint
-		if self.startPoint in self.pointCoordinatesToUniqueID.keys():
+		if self.startPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
 
 	def mouseUp(self, point):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		print 'glyph end point:', self.endPoint
-		if self.endPoint in self.pointCoordinatesToUniqueID.keys():
+		if self.endPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
 
 		if self.selectedHintingTool == 'Align':
@@ -373,15 +373,26 @@ class TTHTool(BaseEventTool):
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
 		ttprogram = g.lib['com.fontlab.ttprogram']
+		print ttprogram
 		strTTProgram = str(ttprogram)
 		if strTTProgram[:4] == 'Data' and strTTProgram[-3:] == "n')":
-			ttprogram = str(ttprogram)[6:-4]
+			ttprogram = strTTProgram[6:-4]
 		else:
-			ttprogram = str(ttprogram)[6:-2]
-		root = ET.fromstring(str(ttprogram))
+			ttprogram = strTTProgram[6:-2]
+		root = ET.fromstring(ttprogram)
 		for child in root:
 			self.glyphTTHCommands.append(child.attrib)
 		return self.glyphTTHCommands
+
+	def writeGlyphFLTTProgram(self, g):
+		if g == None:
+			return
+		root = ET.Element('ttProgram')
+		for command in self.glyphTTHCommands:
+			com = ET.SubElement(a, 'ttc')
+			com.attrib = command
+		text = ET.tostring(root)
+		g.lib['com.fontlab.ttprogram'] = Data(text)
 
 
 	def getGlyphIndexByName(self, glyphName):
