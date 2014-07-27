@@ -826,7 +826,6 @@ class FL_TTH_Windows(object):
 		self.f.lib[FL_tth_key]["zones"] = self.zones
 
 		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
 		if oldZoneName != zoneName:
 			for g in self.f:
 				commands = ttht.readGlyphFLTTProgram(g)
@@ -837,9 +836,10 @@ class FL_TTH_Windows(object):
 						if command['zone'] == oldZoneName:
 							command['zone'] = zoneName
 				ttht.writeGlyphFLTTProgram(g)
-				TTHintAsm.writeAssembly(ttht.g, ttht.glyphTTHCommands, ttht.pointNameToUniqueID, ttht.pointNameToIndex)
+				#TTHintAsm.writeAssembly(ttht.g, ttht.glyphTTHCommands, ttht.pointNameToUniqueID, ttht.pointNameToIndex)
 			dummy = ttht.readGlyphFLTTProgram(ttht.g) # recover the correct commands list
-
+			
+		ttht.resetFonts() # FIXME: c'est un peu bourin
 		ttht.resetglyph()
 		UpdateCurrentGlyphView()
 		self.lock = False
