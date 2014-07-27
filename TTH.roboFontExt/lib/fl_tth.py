@@ -5,6 +5,7 @@ from vanilla import *
 from AppKit import *
 
 import tt_tables
+import TTHintAsm
 
 FL_tth_key = "com.fontlab.v2.tth"
 
@@ -834,8 +835,9 @@ class FL_TTH_Windows(object):
 				for command in commands:
 					if command['code'] in ['alignt', 'alignb']:
 						if command['zone'] == oldZoneName:
-							command['zone'] = zonesList[sel]['Name']
+							command['zone'] = zoneName
 				ttht.writeGlyphFLTTProgram(g)
+				TTHintAsm.writeAssembly(ttht.g, ttht.glyphTTHCommands, ttht.pointNameToUniqueID, ttht.pointNameToIndex)
 			dummy = ttht.readGlyphFLTTProgram(ttht.g) # recover the correct commands list
 
 		ttht.resetglyph()
