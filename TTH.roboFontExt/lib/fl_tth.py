@@ -4,6 +4,8 @@ from mojo.events import *
 from vanilla import *
 from AppKit import *
 
+import tt_tables
+
 FL_tth_key = "com.fontlab.v2.tth"
 
 def invertedDictionary( dico ):
@@ -57,8 +59,9 @@ class FL_TTH():
 
 
 class FL_TTH_Windows(object):
-	def __init__(self, f):
+	def __init__(self, f, TTHToolInstance):
 		self.f = f
+		self.TTHToolInstance = TTHToolInstance
 
 		if FL_tth_key in self.f.lib:
 			tth_lib = self.f.lib[FL_tth_key]
@@ -469,7 +472,7 @@ class FL_TTH_Windows(object):
 
 	########################
 
-	### Horizontal Zones Callback ###
+	### Horizontal Stems Callback ###
 
 	def horizontalStemsList_SelectionCallback(self, sender):
 		self.selectedHorizontalStems = []
@@ -577,7 +580,7 @@ class FL_TTH_Windows(object):
 
 	########################
 
-	### Vertical Zones Callback ###
+	### Vertical Stems Callback ###
 
 	def verticalStemsList_SelectionCallback(self, sender):
 		self.selectedVerticalStems = []
@@ -602,6 +605,7 @@ class FL_TTH_Windows(object):
 		self.verticalStemsList = self.buildVerticalStemsList(self.readVerticalStems())
 
 		self.f.lib[FL_tth_key]["stems"] = self.stems
+
 
 	def buttonRemoveVerticalStemCallback(self, sender):
 		try:
@@ -798,21 +802,31 @@ class FL_TTH_Windows(object):
 				selectedZone = self.topZonesList[sender.getSelection()[i]]
 				self.selectedTopZones.append(selectedZone)
 
+
 	def topZonesList_EditCallBack(self, sender):
+
 		zonesList = sender.get()
 		self.zones = self.readBottomZones()
 
-		for entry in zonesList:
-			if 'Name' in entry:
-				zoneName = entry['Name']
+		for entryIndex in range(len(zonesList)):
+			if 'Name' in zonesList[entryIndex]:
+				zoneName = zonesList[entryIndex]['Name']
 			else:
-				zoneName = 'Top' + '_' + str(len(zonesList))
+				zoneName = 'Top' + '_' + str(entryIndex)
 				entry['Name'] = zoneName
-			self.storeTopZone(zoneName, entry)
+			self.storeTopZone(zoneName, zonesList[entryIndex])
 
 		self.topZonesList = self.buildTopZonesList(self.readTopZones())
 
 		self.f.lib[FL_tth_key]["zones"] = self.zones
+
+		self.TTHToolInstance.resetfonts()
+		
+
+		#for g in self.f:
+		#	glyphTTHCommands = self.TTHToolInstance.readGlyphFLTTProgram(g)
+		#	if glyphTTHCommands['code'] in ['alignt', 'alignb']:
+
 		UpdateCurrentGlyphView()
 
 

@@ -1,11 +1,12 @@
 from mojo.events import *
 from mojo.UI import *
 from mojo.drawingTools import *
+from vanilla import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 import fontTools
 
-from fl_tth import *
+import fl_tth
 import tt_tables
 import preview
 import TTHintAsm
@@ -272,7 +273,7 @@ class TTHTool(BaseEventTool):
 		self.pitch = int(self.UPM) / int(self.PPM_Size)
 		self.selectedHintingTool = 'Align'
 
-		self.FL_Windows = FL_TTH_Windows(self.f)
+		self.FL_Windows = fl_tth.FL_TTH_Windows(self.f, self)
 		self.centralWindow = centralWindow(self.f, self)
 		self.previewWindow = previewWindow(self.f, self)
 
@@ -1125,4 +1126,5 @@ class previewWindow(object):
 
 reload(TR)
 reload(TTHintAsm)
+reload(fl_tth)
 installTool(TTHTool())
