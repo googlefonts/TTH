@@ -74,36 +74,36 @@ def getAngle((x1, y1), (x2, y2)):
 
 class callbackAnchorAlignment():
 	def __init__(self, TTHtoolInstance, alignmentType):
-		self.TTHtoolInstance = TTHtoolInstance
+		self.ttht = TTHtoolInstance
 		self.alignmentType = alignmentType
 
 	def __call__(self, alignmentType):
-		cmdIndex = self.TTHtoolInstance.commandRightClicked
-		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
-		self.TTHtoolInstance.writeGlyphFLTTProgram(self.g)
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
+		self.ttht.writeGlyphFLTTProgram(self.ttht.g)
 
-		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
+		TTHintAsm.writeAssembly(self.ttht.g, self.ttht.glyphTTHCommands, self.ttht.pointNameToUniqueID, self.ttht.pointNameToIndex)
 
-		self.TTHtoolInstance.generateMiniTempFont()
-		self.TTHtoolInstance.mergeMiniAndFullTempFonts()
-		self.TTHtoolInstance.resetglyph()
+		self.ttht.generateMiniTempFont()
+		self.ttht.mergeMiniAndFullTempFonts()
+		self.ttht.resetglyph()
 		UpdateCurrentGlyphView()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
-		self.TTHtoolInstance = TTHtoolInstance
+		self.ttht = TTHtoolInstance
 		self.alignmentZone = alignmentZone
 
 	def __call__(self, alignmentZone):
-		cmdIndex = self.TTHtoolInstance.commandRightClicked
-		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
-		self.TTHtoolInstance.writeGlyphFLTTProgram(self.g)
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
+		self.ttht.writeGlyphFLTTProgram(self.ttht.g)
 
-		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
+		TTHintAsm.writeAssembly(self.ttht.g, self.ttht.glyphTTHCommands, self.ttht.pointNameToUniqueID, self.ttht.pointNameToIndex)
 
-		self.TTHtoolInstance.generateMiniTempFont()
-		self.TTHtoolInstance.mergeMiniAndFullTempFonts()
-		self.TTHtoolInstance.resetglyph()
+		self.ttht.generateMiniTempFont()
+		self.ttht.mergeMiniAndFullTempFonts()
+		self.ttht.resetglyph()
 		UpdateCurrentGlyphView()
 
 
