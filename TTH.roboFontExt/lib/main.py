@@ -476,7 +476,7 @@ class TTHTool(BaseEventTool):
 		zonecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
 		zonecolorLabel = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
 
-		for zone in self.FL_Windows.topZonesList:
+		for zone in self.FL_Windows.topUIZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
@@ -490,7 +490,7 @@ class TTHTool(BaseEventTool):
 
 			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
 
-		for zone in self.FL_Windows.bottomZonesList:
+		for zone in self.FL_Windows.bottomUIZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
