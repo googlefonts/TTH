@@ -71,6 +71,42 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
+class callbackAnchorAlignment():
+	def __init__(self, TTHtoolInstance, alignmentType):
+		self.TTHtoolInstance = TTHtoolInstance
+		self.alignmentType = alignmentType
+
+	def __call__(self, alignmentType):
+		cmdIndex = self.TTHtoolInstance.commandRightClicked
+		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
+		self.TTHtoolInstance.writeGlyphFLTTProgram()
+
+		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
+
+		self.TTHtoolInstance.generateMiniTempFont()
+		self.TTHtoolInstance.mergeMiniAndFullTempFonts()
+		self.TTHtoolInstance.resetglyph()
+		UpdateCurrentGlyphView()
+
+class callbackZoneAlignment():
+	def __init__(self, TTHtoolInstance, alignmentZone):
+		self.TTHtoolInstance = TTHtoolInstance
+		self.alignmentZone = alignmentZone
+
+	def __call__(self, alignmentZone):
+		cmdIndex = self.TTHtoolInstance.commandRightClicked
+		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
+		self.TTHtoolInstance.writeGlyphFLTTProgram()
+
+		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
+
+		self.TTHtoolInstance.generateMiniTempFont()
+		self.TTHtoolInstance.mergeMiniAndFullTempFonts()
+		self.TTHtoolInstance.resetglyph()
+		UpdateCurrentGlyphView()
+
+
+
 class TTHTool(BaseEventTool):
 
 	def __init__(self):
@@ -185,7 +221,6 @@ class TTHTool(BaseEventTool):
 		self.mergeMiniAndFullTempFonts()
 		self.resetglyph()
 		UpdateCurrentGlyphView()
-		
 
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -196,6 +231,31 @@ class TTHTool(BaseEventTool):
 			separator = NSMenuItem.separatorItem()
 			items = []
 			items.append(('Delete Command', self.deleteCommandCallback))
+
+			if self.glyphTTHCommands[self.commandRightClicked]['code'] in ['alignh', 'alignv']:
+				self.anchorAlignmentCallBack_Closest = callbackAnchorAlignment(self, 'round')
+				self.anchorAlignmentCallBack_Left = callbackAnchorAlignment(self, 'left')
+				self.anchorAlignmentCallBack_Right = callbackAnchorAlignment(self, 'right')
+				self.anchorAlignmentCallBack_Center = callbackAnchorAlignment(self, 'center')
+				self.anchorAlignmentCallBack_Double = callbackAnchorAlignment(self, 'double')
+
+				anchorsAlignments = [
+							("Closest Pixel Edge", self.anchorAlignmentCallBack_Closest),
+							("Left/Bottom Edge", self.anchorAlignmentCallBack_Left),
+							("Right/Top Edge", self.anchorAlignmentCallBack_Right),
+							("Center of Pixel", self.anchorAlignmentCallBack_Center),
+							("Double Grid", self.anchorAlignmentCallBack_Double)
+									]
+
+				items.append(("Alignment Type", anchorsAlignments))
+
+			if self.glyphTTHCommands[self.commandRightClicked]['code'] in ['alignt', 'alignb']:
+				zonesListItems = []
+
+				for zone in self.FL_Windows.zones:
+					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
+					zonesListItems.append((zone, self.zoneAlignmentCallBack))
+				items.append(("Attach to Zone", zonesListItems))
 
 			menuController = BaseMenu()
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
@@ -412,6 +472,9 @@ class TTHTool(BaseEventTool):
 
 	def drawZones(self, scale):
 
+		zonecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
+		zonecolorLabel = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
+
 		for zone in self.FL_Windows.topZonesList:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
@@ -421,8 +484,11 @@ class TTHTool(BaseEventTool):
 			pathZone.lineToPoint_((5000, y_start+y_end))
 			pathZone.lineToPoint_((-5000, y_start+y_end))
 			pathZone.closePath
-			NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2).set()
+			zonecolor.set()
 			pathZone.fill()	
+
+			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
+
 		for zone in self.FL_Windows.bottomZonesList:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
@@ -432,8 +498,10 @@ class TTHTool(BaseEventTool):
 			pathZone.lineToPoint_((5000, y_start-y_end))
 			pathZone.lineToPoint_((-5000, y_start-y_end))
 			pathZone.closePath
-			NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2).set()
+			zonecolor.set()
 			pathZone.fill()	
+
+			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
 
 
 	def drawTextAtPoint(self, title, x, y, backgroundColor):
@@ -498,7 +566,22 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
 
-		self.drawTextAtPoint('A', x + 10, y - 10, NSColor.blueColor())
+		extension = ''
+		text = 'A'
+		if 'align' in self.glyphTTHCommands[cmdIndex]:
+			if self.centralWindow.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
+				extension = 'top'
+			elif self.centralWindow.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
+				extension = 'bottom'
+			else:
+				extension = self.glyphTTHCommands[cmdIndex]['align']
+
+
+			text += '_' + extension
+		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
+			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
+
+		self.drawTextAtPoint(text, x + 10, y - 10, NSColor.blueColor())
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -535,10 +618,26 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = (offcurve1[0], offcurve1[1])
 
-		if stemName == None:
-			self.drawTextAtPoint('S', offcurve1[0], offcurve1[1], NSColor.blackColor())
+		extension = ''
+		if 'align' in self.glyphTTHCommands[cmdIndex]:
+			extension = self.glyphTTHCommands[cmdIndex]['align']
+
+		if 'round' in self.glyphTTHCommands[cmdIndex]:
+			if self.glyphTTHCommands[cmdIndex]['round'] == 'true':
+				text = 'R'
+				if stemName == None and extension != '':
+					text += '_' + extension
+				elif stemName != None:
+					text += '_' + stemName
+				#self.drawTextAtPoint(text, offcurve1[0], offcurve1[1], NSColor.blackColor())
 		else:
-			self.drawTextAtPoint(stemName, offcurve1[0], offcurve1[1], NSColor.blackColor())
+			text = 'S'
+			if stemName == None and extension != '':
+				text += '_' + extension
+			elif stemName != None:
+				text += '_' + stemName
+
+		self.drawTextAtPoint(text, offcurve1[0], offcurve1[1], NSColor.blackColor())
 
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
@@ -552,7 +651,9 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (offcurve1), (offcurve2) )
 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 215/255, 1).set()
+	 	doublinkColor = NSColor.colorWithRed_green_blue_alpha_(215/255, 0/255, 215/255, 1)
+
+		doublinkColor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
 
@@ -560,10 +661,14 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
 
+		extension = ''
+		if 'align' in self.glyphTTHCommands[cmdIndex]:
+			extension = self.glyphTTHCommands[cmdIndex]['align']
+
 		if stemName == None:
-			self.drawTextAtPoint('D', (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, NSColor.blueColor())
+			self.drawTextAtPoint('D_' + extension, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
 		else:
-			self.drawTextAtPoint(stemName, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, NSColor.blueColor())
+			self.drawTextAtPoint('D_' + stemName, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
@@ -582,7 +687,8 @@ class TTHTool(BaseEventTool):
 		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (center1), (center1) )
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (center2), (center2) )
 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 255/255, 0/255, 1).set()
+		interpolatecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 100/255, 1)
+		interpolatecolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
 
@@ -590,17 +696,34 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
 			self.commandLabelPos[cmdIndex] = (middlePoint[0] + 10*scale, middlePoint[1] - 10*scale)
 
-		self.drawTextAtPoint('I', middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, NSColor.greenColor())
+		extension = ''
+		text = 'I'
+		if 'align' in self.glyphTTHCommands[cmdIndex]:
+			extension = self.glyphTTHCommands[cmdIndex]['align']
+			text += '_' + extension
 
-	def drawDelta(self, scale, point, value):
+		self.drawTextAtPoint(text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
+
+	def drawDelta(self, scale, point, value, cmdIndex):
+		deltacolor = NSColor.colorWithRed_green_blue_alpha_(255/255, 128/255, 0/255, 1)
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
 	 	path.lineToPoint_((point[0]+ (value[0]/8)*self.pitch, point[1] + (value[1]/8)*self.pitch))
 
-	 	NSColor.colorWithRed_green_blue_alpha_(255/255, 128/255, 0/255, 1).set()
+	 	deltacolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
+		
+		extension = ''
+		text = 'delta'
+		value = self.glyphTTHCommands[cmdIndex]['delta']
+		if self.glyphTTHCommands[cmdIndex]['code'][:1] == 'm':
+			extension = '_M'
+		elif self.glyphTTHCommands[cmdIndex]['code'][:1] == 'f':
+			extension = '_F'
+		text += extension + ':' + value
+		self.drawTextAtPoint(text, point[0]+10, point[1]-10, deltacolor)
 
 	def drawSideBearings(self, scale, char):
 		try:
@@ -794,9 +917,9 @@ class TTHTool(BaseEventTool):
 
 				if int(self.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
 					if self.centralWindow.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
-						self.drawDelta(scale, point, value)
+						self.drawDelta(scale, point, value, cmdIndex)
 					elif self.centralWindow.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
-						self.drawDelta(scale, point, value)
+						self.drawDelta(scale, point, value, cmdIndex)
 
 
 

@@ -70,43 +70,45 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			RP0 = pointIndex
 			RP1 = pointIndex
 
-			if TTHCommand['align'] == 'round':
-				align = [
-						'PUSHW[ ] ' + str(pointIndex),
-						'MDAP[1]'
-						]
-			elif TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
-				align = [
-						'RDTG[ ]',
-						'PUSHW[ ] ' + str(pointIndex),
-						'MDAP[1]'
-						'RTG[ ]'
-						]
-			elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
-				align = [
-						'RUTG[ ]',
-						'PUSHW[ ] ' + str(pointIndex),
-						'MDAP[1]'
-						'RTG[ ]'
-						]
-			elif TTHCommand['align'] == 'double':
-				align = [
-						'RTDG[ ]',
-						'PUSHW[ ] ' + str(pointIndex),
-						'MDAP[1]'
-						'RTG[ ]'
-						]
-			elif TTHCommand['align'] == 'center':
-				align = [
-						'RTHG[ ]',
-						'PUSHW[ ] ' + str(pointIndex),
-						'MDAP[1]'
-						'RTG[ ]'
-						]
-			if TTHCommand['code'] == 'alignh':
-				x_instructions.extend(align)
-			elif TTHCommand['code'] == 'alignv':
-				y_instructions.extend(align)
+			if 'align' in TTHCommand:
+
+				if TTHCommand['align'] == 'round':
+					align = [
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							]
+				elif TTHCommand['align'] == 'left' or TTHCommand['align'] == 'bottom':
+					align = [
+							'RDTG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
+					align = [
+							'RUTG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'double':
+					align = [
+							'RTDG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				elif TTHCommand['align'] == 'center':
+					align = [
+							'RTHG[ ]',
+							'PUSHW[ ] ' + str(pointIndex),
+							'MDAP[1]'
+							'RTG[ ]'
+							]
+				if TTHCommand['code'] == 'alignh':
+					x_instructions.extend(align)
+				elif TTHCommand['code'] == 'alignv':
+					y_instructions.extend(align)
 
 
 		if TTHCommand['code'] == 'doubleh' or TTHCommand['code'] == 'doublev':

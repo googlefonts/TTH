@@ -698,7 +698,7 @@ class FL_TTH_Windows(object):
 		except:
 			return {}
 
-	def storeZone(self, zone, entry):
+	def storeZone(self, zoneName, entry):
 		zone = self.zones[zoneName]
 		if 'Position' in entry:
 			zone['position'] = int(entry['Position'])
@@ -737,7 +737,7 @@ class FL_TTH_Windows(object):
 
 	def readBottomZones(self):
 		bottomZones = {}
-		for zoneName, zone in self.zones.iteritems()():
+		for zoneName, zone in self.zones.iteritems():
 			if zone['top'] == False:
 				bottomZones[zoneName] = zone
 
