@@ -62,6 +62,7 @@ class FL_TTH_Windows(object):
 	def __init__(self, f, TTHToolInstance):
 		self.f = f
 		self.TTHToolInstance = TTHToolInstance
+		self.lock = False
 
 		if FL_tth_key in self.f.lib:
 			tth_lib = self.f.lib[FL_tth_key]
@@ -124,22 +125,22 @@ class FL_TTH_Windows(object):
 											selectionCallback=self.topUIZones_SelectionCallback,
 											editCallback=self.topUIZones_EditCallBack )
 		self.wZones.topbox.buttonRemoveTopZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', 
-                            callback=self.buttonRemoveTopZoneCallback)
+			    callback=self.buttonRemoveTopZoneCallback)
 
 		self.wZones.topbox.editTextTopZoneName = EditText((22, 100, 100, 22),
-                            callback=self.editTextTopZoneNameCallback)
+			    callback=self.editTextTopZoneNameCallback)
 
 		self.wZones.topbox.editTextTopZonePosition = EditText((122, 100, 50, 22),
-                            callback=self.editTextTopZonePositionCallback)
+			    callback=self.editTextTopZonePositionCallback)
 
 		self.wZones.topbox.editTextTopZoneWidth = EditText((172, 100, 50, 22),
-                            callback=self.editTextTopZoneWidthCallback)
+			    callback=self.editTextTopZoneWidthCallback)
 
 		self.wZones.topbox.editTextTopZoneDelta = EditText((222, 100, 78, 22),
-                            callback=self.editTextTopZoneDeltaCallback)
+			    callback=self.editTextTopZoneDeltaCallback)
 
 		self.wZones.topbox.buttonAddTopZone = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', 
-                            callback=self.buttonAddTopZoneCallback)
+			    callback=self.buttonAddTopZoneCallback)
 		#########################
 
 		### BOTTOM Zones window elements###
@@ -150,22 +151,22 @@ class FL_TTH_Windows(object):
 											selectionCallback=self.bottomUIZones_SelectionCallback,
 											editCallback=self.bottomUIZones_EditCallBack)
 		self.wZones.bottombox.buttonRemoveBottomZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', 
-                            callback=self.buttonRemoveBottomZoneCallback)
+			    callback=self.buttonRemoveBottomZoneCallback)
 
 		self.wZones.bottombox.editTextBottomZoneName = EditText((22, 100, 100, 22),
-                            callback=self.editTextBottomZoneNameCallback)
+			    callback=self.editTextBottomZoneNameCallback)
 
 		self.wZones.bottombox.editTextBottomZonePosition = EditText((122, 100, 50, 22),
-                            callback=self.editTextBottomZonePositionCallback)
+			    callback=self.editTextBottomZonePositionCallback)
 
 		self.wZones.bottombox.editTextBottomZoneWidth = EditText((172, 100, 50, 22),
-                            callback=self.editTextBottomZoneWidthCallback)
+			    callback=self.editTextBottomZoneWidthCallback)
 
 		self.wZones.bottombox.editTextBottomZoneDelta = EditText((222, 100, 78, 22),
-                            callback=self.editTextBottomZoneDeltaCallback)
+			    callback=self.editTextBottomZoneDeltaCallback)
 
 		self.wZones.bottombox.buttonAddBottomZone = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', 
-                            callback=self.buttonAddBottomZoneCallback)
+			    callback=self.buttonAddBottomZoneCallback)
 
 		self.wZones.open()
 
@@ -181,27 +182,27 @@ class FL_TTH_Windows(object):
 											selectionCallback = self.horizontalStemsList_SelectionCallback,
 											editCallback = self.horizontalStemsList_EditCallback)
 		self.wStems.horizontalbox.buttonRemoveHorizontalStem = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', 
-                           					callback=self.buttonRemoveHorizontalStemCallback)
+								callback=self.buttonRemoveHorizontalStemCallback)
 		self.wStems.horizontalbox.editTextHorizontalStemName = EditText((22, 100, 118, 22),
-                            callback=self.editTextHorizontalStemNameCallback)
+			    callback=self.editTextHorizontalStemNameCallback)
 		self.wStems.horizontalbox.editTextHorizontalStemWidth = EditText((140, 100, 80, 22),
-                            callback=self.editTextHorizontalStemWidthCallback)
+			    callback=self.editTextHorizontalStemWidthCallback)
 
 		self.wStems.horizontalbox.editTextHorizontalStem1px = EditText((220, 100, 30, 22),
-                            callback=self.editTextHorizontalStem1pxCallback)
+			    callback=self.editTextHorizontalStem1pxCallback)
 		self.wStems.horizontalbox.editTextHorizontalStem2px = EditText((250, 100, 30, 22),
-                            callback=self.editTextHorizontalStem2pxCallback)
+			    callback=self.editTextHorizontalStem2pxCallback)
 		self.wStems.horizontalbox.editTextHorizontalStem3px = EditText((280, 100, 30, 22),
-                            callback=self.editTextHorizontalStem3pxCallback)
+			    callback=self.editTextHorizontalStem3pxCallback)
 		self.wStems.horizontalbox.editTextHorizontalStem4px = EditText((310, 100, 30, 22),
-                            callback=self.editTextHorizontalStem4pxCallback)
+			    callback=self.editTextHorizontalStem4pxCallback)
 		self.wStems.horizontalbox.editTextHorizontalStem5px = EditText((340, 100, 30, 22),
-                            callback=self.editTextHorizontalStem5pxCallback)
+			    callback=self.editTextHorizontalStem5pxCallback)
 		self.wStems.horizontalbox.editTextHorizontalStem6px = EditText((370, 100, 30, 22),
-                            callback=self.editTextHorizontalStem6pxCallback)
+			    callback=self.editTextHorizontalStem6pxCallback)
 
 		self.wStems.horizontalbox.buttonAddHorizontalStem = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', 
-                            callback=self.buttonAddHorizontalStemCallback)
+			    callback=self.buttonAddHorizontalStemCallback)
 
 		### Vertical Stems window elements###
 		self.wStems.verticalstemsTitle= TextBox((10, 176, 70, 14), "Vertical (X)", sizeStyle = "small")
@@ -789,37 +790,58 @@ class FL_TTH_Windows(object):
 
 
 	def topUIZones_EditCallBack(self, sender):
-
+		if self.lock:
+			return
+		self.lock = True
 		zonesList = sender.get()
 		sel = sender.getSelection()[0]
 		try:
 			oldZoneName = self.topUIZones[sel]['Name']
 		except:
 			oldZoneName = "" # probably a new zone was created
-		print("Original zone name = ", oldZoneName, ", new zone name = ", zonesList[sel]['Name'])
-		self.clearTopZones()
+			print("ERROR SHOULD NEVER HAPPEN in fl_tth.topUIZones_EditCallBack")
+		
+		zoneDict = zonesList[sel]
 
-		for entryIndex in range(len(zonesList)):
-			zoneDict = zonesList[entryIndex]
-			if 'Name' in zoneDict:
-				zoneName = zoneDict['Name']
-			else:
-				zoneName = 'Top' + '_' + str(entryIndex)
+		if 'Name' in zoneDict:
+			zoneName = zoneDict['Name']
+		else:
+			zoneName = 'Top' + '_' + str(entryIndex)
+			zoneDict['Name'] = zoneName
+
+		print("Original zone name = ", oldZoneName, ", new zone name = ", zoneName)
+		if oldZoneName != zoneName:
+			if zoneName in self.zones:
+				print("ERROR: Can't use an already existing name.")
+				zoneName = oldZoneName
 				zoneDict['Name'] = zoneName
-			self.storeTopZone(zoneName, zoneDict)
-
-		self.buildUIZonesList(self.zones, buildTop=True)
+				self.lock = False
+				return
+			else:
+				del self.zones[oldZoneName]
+		self.storeTopZone(zoneName, zoneDict)
+		self.topUIZones[sel] = self.buildUIZoneDict(self.zones[zoneName], zoneName)
 
 		self.f.lib[FL_tth_key]["zones"] = self.zones
 
+		ttht = self.TTHToolInstance
 		# FIXME: c'est un peu bourin
-		self.TTHToolInstance.resetFonts()
-		
-		#for g in self.f:
-		#	glyphTTHCommands = self.TTHToolInstance.readGlyphFLTTProgram(g)
-		#	if glyphTTHCommands['code'] in ['alignt', 'alignb']:
+		ttht.resetFonts()
+		ttht.resetglyph()
+		if oldZoneName != zoneName:
+			for g in self.f:
+				commands = ttht.readGlyphFLTTProgram(g)
+				if commands == None:
+					continue
+				for command in commands:
+					if command['code'] in ['alignt', 'alignb']:
+						if command['zone'] == oldZoneName:
+							command['zone'] = zonesList[sel]['Name']
+				ttht.writeGlyphFLTTProgram(g)
+			dummy = ttht.readGlyphFLTTProgram(ttht.g) # recover the correct commands list
 
 		UpdateCurrentGlyphView()
+		self.lock = False
 
 
 	def buttonRemoveTopZoneCallback(self, sender):

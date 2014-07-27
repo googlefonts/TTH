@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 import math, os
 
 def pointsApproxEqual(p_glyph, p_cursor):
-	return (abs(p_glyph[0] - p_cursor[0]) < 5) and (abs(p_glyph[1] - p_cursor[1]) < 5)
+	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
 
 def find_in_list(l, p):
 	for e in l:
@@ -80,7 +80,7 @@ class callbackAnchorAlignment():
 	def __call__(self, alignmentType):
 		cmdIndex = self.TTHtoolInstance.commandRightClicked
 		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
-		self.TTHtoolInstance.writeGlyphFLTTProgram()
+		self.TTHtoolInstance.writeGlyphFLTTProgram(self.g)
 
 		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
 
@@ -97,7 +97,7 @@ class callbackZoneAlignment():
 	def __call__(self, alignmentZone):
 		cmdIndex = self.TTHtoolInstance.commandRightClicked
 		self.TTHtoolInstance.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
-		self.TTHtoolInstance.writeGlyphFLTTProgram()
+		self.TTHtoolInstance.writeGlyphFLTTProgram(self.g)
 
 		TTHintAsm.writeAssembly(self.TTHtoolInstance.g, self.TTHtoolInstance.glyphTTHCommands, self.TTHtoolInstance.pointNameToUniqueID, self.TTHtoolInstance.pointNameToIndex)
 
@@ -195,7 +195,7 @@ class TTHTool(BaseEventTool):
 		if self.endPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
 
-		self.writeGlyphFLTTProgram()
+		self.writeGlyphFLTTProgram(self.g)
 
 		#if self.selectedHintingTool == 'Align':
 		#	print 'align'
@@ -425,15 +425,15 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands.append(child.attrib)
 		return self.glyphTTHCommands
 
-	def writeGlyphFLTTProgram(self):
-		if self.g == None:
+	def writeGlyphFLTTProgram(self, g):
+		if g == None:
 			return
 		root = ET.Element('ttProgram')
 		for command in self.glyphTTHCommands:
 			com = ET.SubElement(root, 'ttc')
 			com.attrib = command
 		text = ET.tostring(root)
-		self.g.lib['com.fontlab.ttprogram'] = Data(text)
+		g.lib['com.fontlab.ttprogram'] = Data(text)
 
 
 	def getGlyphIndexByName(self, glyphName):
