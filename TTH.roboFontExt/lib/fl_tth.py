@@ -791,6 +791,12 @@ class FL_TTH_Windows(object):
 	def topUIZones_EditCallBack(self, sender):
 
 		zonesList = sender.get()
+		sel = sender.getSelection()[0]
+		try:
+			oldZoneName = self.topUIZones[sel]['Name']
+		except:
+			oldZoneName = "" # probably a new zone was created
+		print("Original zone name = ", oldZoneName, ", new zone name = ", zonesList[sel]['Name'])
 		self.clearTopZones()
 
 		for entryIndex in range(len(zonesList)):
@@ -806,7 +812,8 @@ class FL_TTH_Windows(object):
 
 		self.f.lib[FL_tth_key]["zones"] = self.zones
 
-		self.TTHToolInstance.resetfonts()
+		# FIXME: c'est un peu bourin
+		self.TTHToolInstance.resetFonts()
 		
 		#for g in self.f:
 		#	glyphTTHCommands = self.TTHToolInstance.readGlyphFLTTProgram(g)

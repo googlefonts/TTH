@@ -127,7 +127,7 @@ class TTHTool(BaseEventTool):
 
 	def becomeActive(self):
 		self.bitmapPreviewSelection = 'Monochrome'
-		self.resetfonts()
+		self.resetFonts(createWindows=True)
 
 	def becomeInactive(self):
 		self.FL_Windows.closeAll()
@@ -138,13 +138,13 @@ class TTHTool(BaseEventTool):
 		self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.previewWindow.closePreview()
-		self.resetfonts()
+		self.resetFonts(createWindows=True)
 
 	def fontBecameCurrent(self, font):
 		self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.previewWindow.closePreview()
-		self.resetfonts()
+		self.resetFonts(createWindows=True)
 		self.resetglyph()
 
 	def viewDidChangeGlyph(self):
@@ -263,7 +263,7 @@ class TTHTool(BaseEventTool):
 			self.menuAction.insertItem_atIndex_(separator, 1)
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
 
-	def resetfonts(self):
+	def resetFonts(self, createWindows=False):
 		self.allFonts = loadFonts()
 		if not self.allFonts:
 			return
@@ -273,9 +273,10 @@ class TTHTool(BaseEventTool):
 		self.pitch = int(self.UPM) / int(self.PPM_Size)
 		self.selectedHintingTool = 'Align'
 
-		self.FL_Windows = fl_tth.FL_TTH_Windows(self.f, self)
-		self.centralWindow = centralWindow(self.f, self)
-		self.previewWindow = previewWindow(self.f, self)
+		if createWindows:
+			self.FL_Windows = fl_tth.FL_TTH_Windows(self.f, self)
+			self.centralWindow = centralWindow(self.f, self)
+			self.previewWindow = previewWindow(self.f, self)
 
 		tt_tables.writeCVTandPREP(self.f, self.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
 		tt_tables.writeFPGM(self.f)
@@ -312,7 +313,7 @@ class TTHTool(BaseEventTool):
 
 
 	def generateFullTempFont(self):
-		root =  os.path.split(self.f.path)[0]
+		root = os.path.split(self.f.path)[0]
 		tail = 'Fulltemp.ttf'
 		self.fulltempfontpath = os.path.join(root, tail)
 
@@ -322,7 +323,7 @@ class TTHTool(BaseEventTool):
 		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.bitmapPreviewSelection)
 
 	def generateMiniTempFont(self):
-		root =  os.path.split(self.f.path)[0]
+		root = os.path.split(self.f.path)[0]
 		tail = 'Minitemp.ttf'
 		self.tempfontpath = os.path.join(root, tail)
 
@@ -355,7 +356,7 @@ class TTHTool(BaseEventTool):
 		print 'mini font generated'
 
 	def mergeMiniAndFullTempFonts(self):
-		root =  os.path.split(self.f.path)[0]
+		root = os.path.split(self.f.path)[0]
 		tail = 'tempTemp.ttf'
 		tempTempfontpath = os.path.join(root, tail)
 
@@ -374,7 +375,7 @@ class TTHTool(BaseEventTool):
 		for contour in g:
 			for point in contour.points:
 				if point.name:
-					name =  point.name.split(',')[0]
+					name = point.name.split(',')[0]
 					result[name] = index
 				index += 1
 		return result
@@ -384,7 +385,7 @@ class TTHTool(BaseEventTool):
 		for contour in g:
 			for point in contour.points:
 				if point.name:
-					name =  point.name.split(',')[0]
+					name = point.name.split(',')[0]
 					uniqueID = point.naked().uniqueID
 					pointNameToUniqueID[name] = uniqueID
 		return pointNameToUniqueID
@@ -608,7 +609,7 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x,  endPoint_y), (offcurve1), (offcurve1) )
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve1) )
 	 
 		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 0/255, 1).set()
 		path.setLineWidth_(scale)
@@ -650,7 +651,7 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (offcurve1), (offcurve2) )
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (offcurve1), (offcurve2) )
 
 	 	doublinkColor = NSColor.colorWithRed_green_blue_alpha_(215/255, 0/255, 215/255, 1)
 
@@ -685,8 +686,8 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((startPoint[0], startPoint[1]))
-		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0],  middlePoint[1]), (center1), (center1) )
-		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0],  endPoint[1]), (center2), (center2) )
+		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
+		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
 		interpolatecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 100/255, 1)
 		interpolatecolor.set()
