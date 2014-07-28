@@ -281,7 +281,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 				if point2UniqueID not in touchedPoints:
 					touchedPoints.append(point2UniqueID)
 
-			elif 'round' in TTHCommand:
+			if 'round' in TTHCommand:
 				singleLink2 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[11100]'
@@ -290,7 +290,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 				if point2UniqueID not in touchedPoints:
 					touchedPoints.append(point2UniqueID)
 
-			elif 'align' in TTHCommand:
+			if 'align' in TTHCommand:
 				singleLink2 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[10000]'
@@ -308,7 +308,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
-				if TTHCommand['align'] in ['left', 'bottom']:
+				elif TTHCommand['align'] in ['left', 'bottom']:
 					align2 = [		
 									'RDTG[ ]',
 									'PUSHW[ ] ' + str(point2Index),
@@ -319,7 +319,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					if point2UniqueID not in touchedPoints:
 						touchedPoints.append(point2UniqueID)
 
-				if TTHCommand['align'] in ['right', 'top']:
+				elif TTHCommand['align'] in ['right', 'top']:
 					align2 = [		
 									'RUTG[ ]',
 									'PUSHW[ ] ' + str(point2Index),
