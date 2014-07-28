@@ -6,7 +6,11 @@ stem_to_cvt = {}
 zone_to_cvt = {}
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
+
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
+
+	f.lib['com.robofont.robohint.maxp.maxFunctionDefs'] = 9
+
 	table_CVT = []
 
 	cvt_index = 0
@@ -503,6 +507,21 @@ def writeFPGM(f):
 	'ENDF[ ]'
 	]
 	table_FPGM.extend(FPGM_8)
+	FPGM_9 = [
+	'PUSHW[ ] 9',
+	'FDEF[ ]',
+	'MPPEM[ ]',
+	'GTEQ[ ]',
+	'IF[ ]',
+	'RCVT[ ]',
+	'WCVTP[ ]',
+	'ELSE[ ]',
+	'POP[ ]',
+	'POP[ ]',
+	'EIF[ ]',
+	'ENDF[ ]'
+	]
+	table_FPGM.extend(FPGM_9)
 
 	# print table_FPGM
 	f.lib['com.robofont.robohint.fpgm'] = table_FPGM

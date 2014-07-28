@@ -1128,4 +1128,5 @@ class previewWindow(object):
 reload(TR)
 reload(TTHintAsm)
 reload(fl_tth)
+reload(tt_tables)
 installTool(TTHTool())
