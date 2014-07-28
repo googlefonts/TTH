@@ -228,6 +228,11 @@ class TTHTool(BaseEventTool):
 		del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
 
+	def dontAlignCallBack(self, item):
+		cmdIndex = self.commandRightClicked
+		del self.glyphTTHCommands[cmdIndex]['align']
+		self.updateGlyphProgram()
+
 	def updateGlyphProgram(self):
 		self.writeGlyphFLTTProgram(self.g)
 
@@ -247,24 +252,26 @@ class TTHTool(BaseEventTool):
 		if self.commandRightClicked != None:
 			self.menuAction = NSMenu.alloc().init()
 			separator = NSMenuItem.separatorItem()
+
+			self.alignmentCallBack_Closest = callbackAlignment(self, 'round')
+			self.alignmentCallBack_Left = callbackAlignment(self, 'left')
+			self.alignmentCallBack_Right = callbackAlignment(self, 'right')
+			self.alignmentCallBack_Center = callbackAlignment(self, 'center')
+			self.alignmentCallBack_Double = callbackAlignment(self, 'double')
+
 			items = []
 			items.append(('Delete Command', self.deleteCommandCallback))
 
 			clickedCommand = self.glyphTTHCommands[self.commandRightClicked]
 
 			if clickedCommand['code'] in ['alignh', 'alignv']:
-				self.anchorAlignmentCallBack_Closest = callbackAlignment(self, 'round')
-				self.anchorAlignmentCallBack_Left = callbackAlignment(self, 'left')
-				self.anchorAlignmentCallBack_Right = callbackAlignment(self, 'right')
-				self.anchorAlignmentCallBack_Center = callbackAlignment(self, 'center')
-				self.anchorAlignmentCallBack_Double = callbackAlignment(self, 'double')
 
 				alignments = [
-							("Closest Pixel Edge", self.anchorAlignmentCallBack_Closest),
-							("Left/Bottom Edge", self.anchorAlignmentCallBack_Left),
-							("Right/Top Edge", self.anchorAlignmentCallBack_Right),
-							("Center of Pixel", self.anchorAlignmentCallBack_Center),
-							("Double Grid", self.anchorAlignmentCallBack_Double)
+							("Closest Pixel Edge", self.alignmentCallBack_Closest),
+							("Left/Bottom Edge", self.alignmentCallBack_Left),
+							("Right/Top Edge", self.alignmentCallBack_Right),
+							("Center of Pixel", self.alignmentCallBack_Center),
+							("Double Grid", self.alignmentCallBack_Double)
 							]
 
 				items.append(("Alignment Type", alignments))
@@ -278,6 +285,12 @@ class TTHTool(BaseEventTool):
 				items.append(("Attach to Zone", zonesListItems))
 
 			if clickedCommand['code'] in ['singleh', 'singlev']:
+				if 'round' not in clickedCommand:
+					items.append(('Round Distance', self.roundDistanceCallback))
+				else:
+					items.append(('Do Not Round Distance', self.dontRoundDistanceCallback))
+
+					
 				if 'stem' in clickedCommand:
 					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
 				else:
@@ -303,15 +316,36 @@ class TTHTool(BaseEventTool):
 
 				items.append(("Distance Alignment", distances))
 
-				if 'round' not in clickedCommand:
-					items.append(('Round Distance', self.roundDistanceCallback))
+				
+				
+
+				if 'align' in clickedCommand:
+					alignments = [
+								('Do Not Align to Grid', self.dontAlignCallBack),
+								("Closest Pixel Edge", self.alignmentCallBack_Closest),
+								("Left/Bottom Edge", self.alignmentCallBack_Left),
+								("Right/Top Edge", self.alignmentCallBack_Right),
+								("Center of Pixel", self.alignmentCallBack_Center),
+								("Double Grid", self.alignmentCallBack_Double)
+								]
+
+					items.append(("Align Destination Position", alignments))
+
 				else:
-					items.append(('Do Not Round Distance', self.dontRoundDistanceCallback))
-			
+					alignments = [
+								("Closest Pixel Edge", self.alignmentCallBack_Closest),
+								("Left/Bottom Edge", self.alignmentCallBack_Left),
+								("Right/Top Edge", self.alignmentCallBack_Right),
+								("Center of Pixel", self.alignmentCallBack_Center),
+								("Double Grid", self.alignmentCallBack_Double)
+								]
+
+					items.append(("Align Destination Position", alignments))
 
 
 
 			menuController = BaseMenu()
+			
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
 			self.menuAction.insertItem_atIndex_(separator, 1)
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
