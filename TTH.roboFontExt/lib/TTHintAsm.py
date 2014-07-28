@@ -270,6 +270,8 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					touchedPoints.append(point1UniqueID)
 
 			singleLink2 = []
+			singleLink3 = []
+			singleLink4 = []
 			align2 = []
 			if 'stem' in TTHCommand:
 				stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
@@ -282,7 +284,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					touchedPoints.append(point2UniqueID)
 
 			if 'round' in TTHCommand:
-				singleLink2 = [
+				singleLink3 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[11100]'
 								]
@@ -291,12 +293,12 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					touchedPoints.append(point2UniqueID)
 
 			if 'align' in TTHCommand:
-				singleLink2 = [
+				singleLink4 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[10000]'
 								]
 				if TTHCommand['align'] == 'round':
-					singleLink2 = [
+					singleLink4 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[10100]'
 								]
@@ -357,7 +359,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 
 					
 			else:
-				singleLink2 = [
+				singleLink4 = [
 								'PUSHW[ ] ' + str(point2Index),
 								'MDRP[10000]'
 								]
@@ -366,6 +368,8 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					touchedPoints.append(point2UniqueID)
 
 			singleLink.extend(singleLink2)
+			singleLink.extend(singleLink3)
+			singleLink.extend(singleLink4)
 			singleLink.extend(align2)
 
 			if TTHCommand['code'] == 'singleh':
