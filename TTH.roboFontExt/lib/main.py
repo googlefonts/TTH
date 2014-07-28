@@ -72,40 +72,35 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
-class callbackAnchorAlignment():
+class callbackAlignment():
 	def __init__(self, TTHtoolInstance, alignmentType):
 		self.ttht = TTHtoolInstance
 		self.alignmentType = alignmentType
 
-	def __call__(self, alignmentType):
+	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
-		self.ttht.writeGlyphFLTTProgram(self.ttht.g)
-
-		TTHintAsm.writeAssembly(self.ttht.g, self.ttht.glyphTTHCommands, self.ttht.pointNameToUniqueID, self.ttht.pointNameToIndex)
-
-		self.ttht.generateMiniTempFont()
-		self.ttht.mergeMiniAndFullTempFonts()
-		self.ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		self.ttht.updateGlyphProgram()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
 		self.ttht = TTHtoolInstance
 		self.alignmentZone = alignmentZone
 
-	def __call__(self, alignmentZone):
+	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
-		self.ttht.writeGlyphFLTTProgram(self.ttht.g)
+		self.ttht.updateGlyphProgram()
 
-		TTHintAsm.writeAssembly(self.ttht.g, self.ttht.glyphTTHCommands, self.ttht.pointNameToUniqueID, self.ttht.pointNameToIndex)
+class callbackDistance():
+	def __init__(self, TTHtoolInstance, stemName):
+		self.ttht = TTHtoolInstance
+		self.stemName = stemName
 
-		self.ttht.generateMiniTempFont()
-		self.ttht.mergeMiniAndFullTempFonts()
-		self.ttht.resetglyph()
-		UpdateCurrentGlyphView()
-
+	def __call__(self, item):
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
+		self.ttht.updateGlyphProgram()
 
 
 class TTHTool(BaseEventTool):
@@ -216,12 +211,34 @@ class TTHTool(BaseEventTool):
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
+		self.updateGlyphProgram()
+
+	def roundDistanceCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
+		self.updateGlyphProgram()
+
+	def dontRoundDistanceCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		del self.glyphTTHCommands[cmdIndex]['round']
+		self.updateGlyphProgram()
+
+	def dontLinkToStemCallBack(self, item):
+		cmdIndex = self.commandRightClicked
+		del self.glyphTTHCommands[cmdIndex]['stem']
+		self.updateGlyphProgram()
+
+	def updateGlyphProgram(self):
+		self.writeGlyphFLTTProgram(self.g)
+
 		TTHintAsm.writeAssembly(self.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateMiniTempFont()
 		self.mergeMiniAndFullTempFonts()
 		self.resetglyph()
 		UpdateCurrentGlyphView()
+
+
 
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -233,30 +250,66 @@ class TTHTool(BaseEventTool):
 			items = []
 			items.append(('Delete Command', self.deleteCommandCallback))
 
-			if self.glyphTTHCommands[self.commandRightClicked]['code'] in ['alignh', 'alignv']:
-				self.anchorAlignmentCallBack_Closest = callbackAnchorAlignment(self, 'round')
-				self.anchorAlignmentCallBack_Left = callbackAnchorAlignment(self, 'left')
-				self.anchorAlignmentCallBack_Right = callbackAnchorAlignment(self, 'right')
-				self.anchorAlignmentCallBack_Center = callbackAnchorAlignment(self, 'center')
-				self.anchorAlignmentCallBack_Double = callbackAnchorAlignment(self, 'double')
+			clickedCommand = self.glyphTTHCommands[self.commandRightClicked]
 
-				anchorsAlignments = [
+			if clickedCommand['code'] in ['alignh', 'alignv']:
+				self.anchorAlignmentCallBack_Closest = callbackAlignment(self, 'round')
+				self.anchorAlignmentCallBack_Left = callbackAlignment(self, 'left')
+				self.anchorAlignmentCallBack_Right = callbackAlignment(self, 'right')
+				self.anchorAlignmentCallBack_Center = callbackAlignment(self, 'center')
+				self.anchorAlignmentCallBack_Double = callbackAlignment(self, 'double')
+
+				alignments = [
 							("Closest Pixel Edge", self.anchorAlignmentCallBack_Closest),
 							("Left/Bottom Edge", self.anchorAlignmentCallBack_Left),
 							("Right/Top Edge", self.anchorAlignmentCallBack_Right),
 							("Center of Pixel", self.anchorAlignmentCallBack_Center),
 							("Double Grid", self.anchorAlignmentCallBack_Double)
-									]
+							]
 
-				items.append(("Alignment Type", anchorsAlignments))
+				items.append(("Alignment Type", alignments))
 
-			if self.glyphTTHCommands[self.commandRightClicked]['code'] in ['alignt', 'alignb']:
+			if clickedCommand['code'] in ['alignt', 'alignb']:
 				zonesListItems = []
 
 				for zone in self.FL_Windows.zones:
 					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
 					zonesListItems.append((zone, self.zoneAlignmentCallBack))
 				items.append(("Attach to Zone", zonesListItems))
+
+			if clickedCommand['code'] in ['singleh', 'singlev']:
+				if 'stem' in clickedCommand:
+					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
+				else:
+					distances = []
+
+				stemsHorizontal = []
+				stemsVertical = []
+
+				for name, stem in self.FL_Windows.stems.iteritems():
+					if stem['horizontal'] == True:
+						stemsHorizontal.append(name)
+					else:
+						stemsVertical.append(name)
+
+				if self.centralWindow.selectedAxis == 'X':
+					stems = stemsVertical
+				else:
+					stems = stemsHorizontal
+
+				for i in stems:
+					self.distanceCallback = callbackDistance(self, i)
+					distances.append((i, self.distanceCallback))
+
+				items.append(("Distance Alignment", distances))
+
+				if 'round' not in clickedCommand:
+					items.append(('Round Distance', self.roundDistanceCallback))
+				else:
+					items.append(('Do Not Round Distance', self.dontRoundDistanceCallback))
+			
+
+
 
 			menuController = BaseMenu()
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
