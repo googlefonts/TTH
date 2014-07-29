@@ -102,6 +102,16 @@ class callbackDistance():
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
 
+class callbackSetDeltaValue():
+	def __init__(self, TTHtoolInstance, value):
+		self.ttht = TTHtoolInstance
+		self.value = str(value)
+
+	def __call__(self, item):
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
+		self.ttht.updateGlyphProgram()
+
 
 class TTHTool(BaseEventTool):
 
@@ -253,25 +263,59 @@ class TTHTool(BaseEventTool):
 			self.menuAction = NSMenu.alloc().init()
 			separator = NSMenuItem.separatorItem()
 
-			self.alignmentCallBack_Closest = callbackAlignment(self, 'round')
-			self.alignmentCallBack_Left = callbackAlignment(self, 'left')
-			self.alignmentCallBack_Right = callbackAlignment(self, 'right')
-			self.alignmentCallBack_Center = callbackAlignment(self, 'center')
-			self.alignmentCallBack_Double = callbackAlignment(self, 'double')
+			alignmentCallBack_Closest = callbackAlignment(self, 'round')
+			alignmentCallBack_Left = callbackAlignment(self, 'left')
+			alignmentCallBack_Right = callbackAlignment(self, 'right')
+			alignmentCallBack_Center = callbackAlignment(self, 'center')
+			alignmentCallBack_Double = callbackAlignment(self, 'double')
 
 			items = []
 			items.append(('Delete Command', self.deleteCommandCallback))
 
 			clickedCommand = self.glyphTTHCommands[self.commandRightClicked]
 
+			if clickedCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
+				deltaValues = []
+				for value in range(-8, 0):
+					deltaValues.append((str(value), callbackSetDeltaValue(self, value)))
+				for value in range(1, 9):
+					deltaValues.append((str(value), callbackSetDeltaValue(self, value)))
+				items.append(("Set Middle Delta Value", deltaValues))
+
+
+			if clickedCommand['code'] in ['interpolateh', 'interpolatev']:
+				if 'align' in clickedCommand:
+					alignments = [
+								('Do Not Align to Grid', self.dontAlignCallBack),
+								("Closest Pixel Edge", alignmentCallBack_Closest),
+								("Left/Bottom Edge", alignmentCallBack_Left),
+								("Right/Top Edge", alignmentCallBack_Right),
+								("Center of Pixel", alignmentCallBack_Center),
+								("Double Grid", alignmentCallBack_Double)
+								]
+
+					items.append(("Align Destination Position", alignments))
+
+				else:
+					alignments = [
+								("Closest Pixel Edge", alignmentCallBack_Closest),
+								("Left/Bottom Edge", alignmentCallBack_Left),
+								("Right/Top Edge", alignmentCallBack_Right),
+								("Center of Pixel", alignmentCallBack_Center),
+								("Double Grid", alignmentCallBack_Double)
+								]
+
+					items.append(("Align Destination Position", alignments))
+
+
 			if clickedCommand['code'] in ['alignh', 'alignv']:
 
 				alignments = [
-							("Closest Pixel Edge", self.alignmentCallBack_Closest),
-							("Left/Bottom Edge", self.alignmentCallBack_Left),
-							("Right/Top Edge", self.alignmentCallBack_Right),
-							("Center of Pixel", self.alignmentCallBack_Center),
-							("Double Grid", self.alignmentCallBack_Double)
+							("Closest Pixel Edge", alignmentCallBack_Closest),
+							("Left/Bottom Edge", alignmentCallBack_Left),
+							("Right/Top Edge", alignmentCallBack_Right),
+							("Center of Pixel", alignmentCallBack_Center),
+							("Double Grid", alignmentCallBack_Double)
 							]
 
 				items.append(("Alignment Type", alignments))
@@ -290,7 +334,7 @@ class TTHTool(BaseEventTool):
 				else:
 					items.append(('Do Not Round Distance', self.dontRoundDistanceCallback))
 
-					
+
 				if 'stem' in clickedCommand:
 					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
 				else:
@@ -316,28 +360,25 @@ class TTHTool(BaseEventTool):
 
 				items.append(("Distance Alignment", distances))
 
-				
-				
-
 				if 'align' in clickedCommand:
 					alignments = [
 								('Do Not Align to Grid', self.dontAlignCallBack),
-								("Closest Pixel Edge", self.alignmentCallBack_Closest),
-								("Left/Bottom Edge", self.alignmentCallBack_Left),
-								("Right/Top Edge", self.alignmentCallBack_Right),
-								("Center of Pixel", self.alignmentCallBack_Center),
-								("Double Grid", self.alignmentCallBack_Double)
+								("Closest Pixel Edge", alignmentCallBack_Closest),
+								("Left/Bottom Edge", alignmentCallBack_Left),
+								("Right/Top Edge", alignmentCallBack_Right),
+								("Center of Pixel", alignmentCallBack_Center),
+								("Double Grid", alignmentCallBack_Double)
 								]
 
 					items.append(("Align Destination Position", alignments))
 
 				else:
 					alignments = [
-								("Closest Pixel Edge", self.alignmentCallBack_Closest),
-								("Left/Bottom Edge", self.alignmentCallBack_Left),
-								("Right/Top Edge", self.alignmentCallBack_Right),
-								("Center of Pixel", self.alignmentCallBack_Center),
-								("Double Grid", self.alignmentCallBack_Double)
+								("Closest Pixel Edge", alignmentCallBack_Closest),
+								("Left/Bottom Edge", alignmentCallBack_Left),
+								("Right/Top Edge", alignmentCallBack_Right),
+								("Center of Pixel", alignmentCallBack_Center),
+								("Double Grid", alignmentCallBack_Double)
 								]
 
 					items.append(("Align Destination Position", alignments))
@@ -803,6 +844,10 @@ class TTHTool(BaseEventTool):
 	 	deltacolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = (point[0] + 10, point[1] - 10)
 		
 		extension = ''
 		text = 'delta'

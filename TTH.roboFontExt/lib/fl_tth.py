@@ -238,7 +238,7 @@ class FL_TTH_Windows(object):
 		self.wStems.open()
 		#########################
 
-		### Genral Options ###
+		### General Options ###
 		self.wGeneral = FloatingWindow((210, 30, 350, 90), "General Options", closable = False, initiallyVisible=False)
 		self.wGeneral.StemSnapTitle= TextBox((10, 10, 300, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "regular")
 		self.wGeneral.AlignmentTitle= TextBox((10, 32, 300, 22), "Stop zone alignment above (ppEm)", sizeStyle = "regular")
