@@ -128,6 +128,8 @@ class TTHTool(BaseEventTool):
 		self.p_glyphList = []
 		self.commandLabelPos = {}
 		self.selectedHintingTool = 'Align'
+		self.selectedAlignmentType = 'round'
+		self.selectedStem = None
 		self.textRenderer = None
 
 	def becomeActive(self):
@@ -1071,8 +1073,17 @@ class centralWindow(object):
 		self.axisList = ['X', 'Y']
 		self.selectedAxis = 'X'
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
+		self.stemTypeList = ['None']
+		self.stemsVertical = []
+		for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
+			if stem['horizontal'] == False:
+				self.stemsVertical.append(name)
+		self.stemTypeList.extend(self.stemsVertical)
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
+
+		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 
 		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
 		
@@ -1100,6 +1111,20 @@ class centralWindow(object):
 		self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
 				self.hintingToolsList, sizeStyle = "small",
 				callback=self.HintingToolPopUpButtonCallback)
+
+		self.wCentral.AlignmentTypeText = TextBox((10, 90, 70, 14), "Alignment:", sizeStyle = "small")
+		self.wCentral.AlignmentTypePopUpButton = PopUpButton((90, 90, 100, 14),
+				self.alignmentTypeListDisplay, sizeStyle = "small",
+				callback=self.AlignmentTypePopUpButtonCallback)
+		self.wCentral.AlignmentTypeText.show(True)
+		self.wCentral.AlignmentTypePopUpButton.show(True)
+
+		self.wCentral.StemTypeText = TextBox((10, 90, 70, 14), "Stem:", sizeStyle = "small")
+		self.wCentral.StemTypePopUpButton = PopUpButton((90, 90, 100, 14),
+				self.stemTypeList, sizeStyle = "small",
+				callback=self.StemTypePopUpButtonCallback)
+		self.wCentral.StemTypeText.show(False)
+		self.wCentral.StemTypePopUpButton.show(False)
 
 		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
 				callback=self.ReadTTProgramButtonCallback)
@@ -1174,11 +1199,50 @@ class centralWindow(object):
 
 	def AxisPopUpButtonCallback(self, sender):
 		self.selectedAxis = self.axisList[sender.get()]
+		self.stemTypeList = ['None']
+		self.stemsHorizontal = []
+		self.stemsVertical = []
+
+		for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
+			if stem['horizontal'] == True:
+				self.stemsHorizontal.append(name)
+			else:
+				self.stemsVertical.append(name)
+
+		if self.selectedAxis == 'X':
+			self.stemTypeList.extend(self.stemsVertical)
+		else:
+			self.stemTypeList.extend(self.stemsHorizontal)
+		self.wCentral.StemTypePopUpButton.setItems(self.stemTypeList)
 		UpdateCurrentGlyphView()
 
 	def HintingToolPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.selectedHintingTool = self.hintingToolsList[sender.get()]
 		print self.TTHToolInstance.selectedHintingTool
+		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link']:
+			self.wCentral.AlignmentTypeText.show(False)
+			self.wCentral.AlignmentTypePopUpButton.show(False)
+			self.wCentral.StemTypeText.show(True)
+			self.wCentral.StemTypePopUpButton.show(True)
+		elif self.TTHToolInstance.selectedHintingTool == 'Align':
+			self.wCentral.AlignmentTypeText.show(True)
+			self.wCentral.AlignmentTypePopUpButton.show(True)
+			self.wCentral.StemTypeText.show(False)
+			self.wCentral.StemTypePopUpButton.show(False)
+		else:
+			self.wCentral.AlignmentTypeText.show(False)
+			self.wCentral.AlignmentTypePopUpButton.show(False)
+			self.wCentral.StemTypeText.show(False)
+			self.wCentral.StemTypePopUpButton.show(False)
+
+
+	def AlignmentTypePopUpButtonCallback(self, sender):
+		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
+		print self.TTHToolInstance.selectedAlignmentType
+
+	def StemTypePopUpButtonCallback(self, sender):
+		self.TTHToolInstance.selectedStem = self.stemTypeList[sender.get()]
+		print self.TTHToolInstance.selectedStem
 
 	def ReadTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.TTHToolInstance.g)
