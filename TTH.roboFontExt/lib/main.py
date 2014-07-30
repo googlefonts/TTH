@@ -201,22 +201,24 @@ class TTHTool(BaseEventTool):
 		print 'glyph end point:', self.endPoint
 		if self.endPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
-			
-		if self.selectedHintingTool == 'Align':
-			cmdIndex = len(self.glyphTTHCommands)
-			newCommand = {}
-			if self.centralWindow.selectedAxis == 'X':
-				angle = 180
-				newCommand['code'] = 'alignh'
-			else:
-				angle = 90
-				newCommand['code'] = 'alignv'
-			if self.endPoint != None:
-				newCommand['point'] = self.pointCoordinatesToUniqueID[self.endPoint]
-				newCommand['align'] = self.selectedAlignmentType
-			print cmdIndex, newCommand
 
-		self.writeGlyphFLTTProgram(self.g)
+			if self.selectedHintingTool == 'Align':
+				cmdIndex = len(self.glyphTTHCommands)
+				newCommand = {}
+				if self.centralWindow.selectedAxis == 'X':
+					angle = 180
+					newCommand['code'] = 'alignh'
+				else:
+					angle = 90
+					newCommand['code'] = 'alignv'
+				if self.endPoint != None:
+
+					newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
+					newCommand['align'] = self.selectedAlignmentType
+
+					self.glyphTTHCommands.append(newCommand)
+
+					self.updateGlyphProgram()
 
 		#if self.selectedHintingTool == 'Align':
 		#	print 'align'
@@ -444,6 +446,7 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.g)
+		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.g)
 		print 'full temp font loaded'
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
@@ -518,9 +521,15 @@ class TTHTool(BaseEventTool):
 		index = 0
 		for contour in g:
 			for point in contour.points:
+				uniqueID = point.naked().uniqueID
 				if point.name:
 					name = point.name.split(',')[0]
-					result[name] = index
+					if name != 'inserted':
+						result[name] = index
+					else:
+						result[uniqueID] = index
+				else:
+					result[uniqueID] = index
 				index += 1
 		return result
 
@@ -528,10 +537,15 @@ class TTHTool(BaseEventTool):
 		pointNameToUniqueID = {}
 		for contour in g:
 			for point in contour.points:
+				uniqueID = point.naked().uniqueID
 				if point.name:
 					name = point.name.split(',')[0]
-					uniqueID = point.naked().uniqueID
-					pointNameToUniqueID[name] = uniqueID
+					if name != 'inserted':
+						pointNameToUniqueID[name] = uniqueID
+					else:
+						pointNameToUniqueID[uniqueID] = uniqueID
+				else:
+					pointNameToUniqueID[uniqueID] = uniqueID
 		return pointNameToUniqueID
 
 	def makePointUniqueIDToCoordinatesDict(self, g):
@@ -549,6 +563,15 @@ class TTHTool(BaseEventTool):
 			for point in contour.points:
 				pointCoordinatesToUniqueID[(point.x, point.y)] = (point.naked().uniqueID)
 		return pointCoordinatesToUniqueID
+
+	def makePointCoordinatesToNameDict(self, g):
+		pointCoordinatesToName = {}
+		pointCoordinatesToName[(0,0)] = 'lsb'
+		pointCoordinatesToName[(self.g.width,0)] = 'rsb'
+		for contour in g:
+			for point in contour.points:
+				pointCoordinatesToName[(point.x, point.y)] = (point.name.split(',')[0])
+		return pointCoordinatesToName
 
 	def readGlyphFLTTProgram(self, g):
 		if g == None:
