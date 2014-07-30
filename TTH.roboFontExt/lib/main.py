@@ -1119,12 +1119,18 @@ class centralWindow(object):
 		self.wCentral.AlignmentTypeText.show(True)
 		self.wCentral.AlignmentTypePopUpButton.show(True)
 
-		self.wCentral.StemTypeText = TextBox((10, 90, 70, 14), "Stem:", sizeStyle = "small")
-		self.wCentral.StemTypePopUpButton = PopUpButton((90, 90, 100, 14),
+		self.wCentral.StemTypeText = TextBox((10, 110, 70, 14), "Stem:", sizeStyle = "small")
+		self.wCentral.StemTypePopUpButton = PopUpButton((90, 110, 100, 14),
 				self.stemTypeList, sizeStyle = "small",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wCentral.StemTypeText.show(False)
 		self.wCentral.StemTypePopUpButton.show(False)
+
+		self.wCentral.RoundDistanceText = TextBox((10, 130, 180, 14), "Round Distance:", sizeStyle = "small")
+		self.wCentral.RoundDistanceCheckBox = CheckBox((-22, 125, -10, 22), "", sizeStyle = "small",
+				callback=self.RoundDistanceCheckBoxCallback)
+		self.wCentral.RoundDistanceText.show(False)
+		self.wCentral.RoundDistanceCheckBox.show(False)
 
 		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
 				callback=self.ReadTTProgramButtonCallback)
@@ -1220,20 +1226,33 @@ class centralWindow(object):
 		self.TTHToolInstance.selectedHintingTool = self.hintingToolsList[sender.get()]
 		print self.TTHToolInstance.selectedHintingTool
 		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link']:
-			self.wCentral.AlignmentTypeText.show(False)
-			self.wCentral.AlignmentTypePopUpButton.show(False)
+			self.wCentral.AlignmentTypeText.show(True)
+			self.wCentral.AlignmentTypePopUpButton.show(True)
 			self.wCentral.StemTypeText.show(True)
 			self.wCentral.StemTypePopUpButton.show(True)
+			self.wCentral.RoundDistanceText.show(True)
+			self.wCentral.RoundDistanceCheckBox.show(True)
 		elif self.TTHToolInstance.selectedHintingTool == 'Align':
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
 			self.wCentral.StemTypeText.show(False)
 			self.wCentral.StemTypePopUpButton.show(False)
+			self.wCentral.RoundDistanceText.show(False)
+			self.wCentral.RoundDistanceCheckBox.show(False)
+		elif self.TTHToolInstance.selectedHintingTool == 'Interpolation':
+			self.wCentral.AlignmentTypeText.show(True)
+			self.wCentral.AlignmentTypePopUpButton.show(True)
+			self.wCentral.StemTypeText.show(False)
+			self.wCentral.StemTypePopUpButton.show(False)
+			self.wCentral.RoundDistanceText.show(False)
+			self.wCentral.RoundDistanceCheckBox.show(False)
 		else:
 			self.wCentral.AlignmentTypeText.show(False)
 			self.wCentral.AlignmentTypePopUpButton.show(False)
 			self.wCentral.StemTypeText.show(False)
 			self.wCentral.StemTypePopUpButton.show(False)
+			self.wCentral.RoundDistanceText.show(False)
+			self.wCentral.RoundDistanceCheckBox.show(False)
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
@@ -1243,6 +1262,9 @@ class centralWindow(object):
 	def StemTypePopUpButtonCallback(self, sender):
 		self.TTHToolInstance.selectedStem = self.stemTypeList[sender.get()]
 		print self.TTHToolInstance.selectedStem
+
+	def RoundDistanceCheckBoxCallback(self, sender):
+		print sender.get()
 
 	def ReadTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.TTHToolInstance.g)
