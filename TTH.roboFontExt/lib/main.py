@@ -1132,6 +1132,21 @@ class centralWindow(object):
 		self.wCentral.RoundDistanceText.show(False)
 		self.wCentral.RoundDistanceCheckBox.show(False)
 
+		self.wCentral.DeltaOffsetText = TextBox((10, 90, 120, 14), "Delta Offset:", sizeStyle = "small")
+		self.wCentral.DeltaOffsetSlider = Slider((10, 110, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+				callback=self.DeltaOffsetSliderCallback)
+		self.wCentral.DeltaOffsetText.show(False)
+		self.wCentral.DeltaOffsetSlider.show(False)
+
+		self.wCentral.DeltaRangeText = TextBox((10, 140, 120, 14), "Delta Range:", sizeStyle = "small")
+		self.wCentral.DeltaRange1EditText = EditText((110, 138, 30, 19), sizeStyle = "small", 
+				callback=self.DeltaRange1EditTextCallback)
+		self.wCentral.DeltaRange2EditText = EditText((150, 138, 30, 19), sizeStyle = "small", 
+				callback=self.DeltaRange2EditTextCallback)
+		self.wCentral.DeltaRangeText.show(False)
+		self.wCentral.DeltaRange1EditText.show(False)
+		self.wCentral.DeltaRange2EditText.show(False)
+
 		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
 				callback=self.ReadTTProgramButtonCallback)
 	
@@ -1232,6 +1247,11 @@ class centralWindow(object):
 			self.wCentral.StemTypePopUpButton.show(True)
 			self.wCentral.RoundDistanceText.show(True)
 			self.wCentral.RoundDistanceCheckBox.show(True)
+			self.wCentral.DeltaOffsetText.show(False)
+			self.wCentral.DeltaOffsetSlider.show(False)
+			self.wCentral.DeltaRangeText.show(False)
+			self.wCentral.DeltaRange1EditText.show(False)
+			self.wCentral.DeltaRange2EditText.show(False)
 		elif self.TTHToolInstance.selectedHintingTool == 'Align':
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
@@ -1239,6 +1259,11 @@ class centralWindow(object):
 			self.wCentral.StemTypePopUpButton.show(False)
 			self.wCentral.RoundDistanceText.show(False)
 			self.wCentral.RoundDistanceCheckBox.show(False)
+			self.wCentral.DeltaOffsetText.show(False)
+			self.wCentral.DeltaOffsetSlider.show(False)
+			self.wCentral.DeltaRangeText.show(False)
+			self.wCentral.DeltaRange1EditText.show(False)
+			self.wCentral.DeltaRange2EditText.show(False)
 		elif self.TTHToolInstance.selectedHintingTool == 'Interpolation':
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
@@ -1246,6 +1271,23 @@ class centralWindow(object):
 			self.wCentral.StemTypePopUpButton.show(False)
 			self.wCentral.RoundDistanceText.show(False)
 			self.wCentral.RoundDistanceCheckBox.show(False)
+			self.wCentral.DeltaOffsetText.show(False)
+			self.wCentral.DeltaOffsetSlider.show(False)
+			self.wCentral.DeltaRangeText.show(False)
+			self.wCentral.DeltaRange1EditText.show(False)
+			self.wCentral.DeltaRange2EditText.show(False)
+		elif self.TTHToolInstance.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+			self.wCentral.AlignmentTypeText.show(False)
+			self.wCentral.AlignmentTypePopUpButton.show(False)
+			self.wCentral.StemTypeText.show(False)
+			self.wCentral.StemTypePopUpButton.show(False)
+			self.wCentral.RoundDistanceText.show(False)
+			self.wCentral.RoundDistanceCheckBox.show(False)
+			self.wCentral.DeltaOffsetText.show(True)
+			self.wCentral.DeltaOffsetSlider.show(True)
+			self.wCentral.DeltaRangeText.show(True)
+			self.wCentral.DeltaRange1EditText.show(True)
+			self.wCentral.DeltaRange2EditText.show(True)
 		else:
 			self.wCentral.AlignmentTypeText.show(False)
 			self.wCentral.AlignmentTypePopUpButton.show(False)
@@ -1253,6 +1295,11 @@ class centralWindow(object):
 			self.wCentral.StemTypePopUpButton.show(False)
 			self.wCentral.RoundDistanceText.show(False)
 			self.wCentral.RoundDistanceCheckBox.show(False)
+			self.wCentral.DeltaOffsetText.show(False)
+			self.wCentral.DeltaOffsetSlider.show(False)
+			self.wCentral.DeltaRangeText.show(False)
+			self.wCentral.DeltaRange1EditText.show(False)
+			self.wCentral.DeltaRange2EditText.show(False)
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
@@ -1264,6 +1311,15 @@ class centralWindow(object):
 		print self.TTHToolInstance.selectedStem
 
 	def RoundDistanceCheckBoxCallback(self, sender):
+		print sender.get()
+
+	def DeltaOffsetSliderCallback(self, sender):
+		print sender.get() - 8
+
+	def DeltaRange1EditTextCallback(self, sender):
+		print sender.get()
+
+	def DeltaRange2EditTextCallback(self, sender):
 		print sender.get()
 
 	def ReadTTProgramButtonCallback(self, sender):
