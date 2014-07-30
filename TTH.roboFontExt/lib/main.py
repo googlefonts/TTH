@@ -201,6 +201,20 @@ class TTHTool(BaseEventTool):
 		print 'glyph end point:', self.endPoint
 		if self.endPoint in self.pointCoordinatesToUniqueID:
 			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
+			
+		if self.selectedHintingTool == 'Align':
+			cmdIndex = len(self.glyphTTHCommands)
+			newCommand = {}
+			if self.centralWindow.selectedAxis == 'X':
+				angle = 180
+				newCommand['code'] = 'alignh'
+			else:
+				angle = 90
+				newCommand['code'] = 'alignv'
+			if self.endPoint != None:
+				newCommand['point'] = self.pointCoordinatesToUniqueID[self.endPoint]
+				newCommand['align'] = self.selectedAlignmentType
+			print cmdIndex, newCommand
 
 		self.writeGlyphFLTTProgram(self.g)
 
@@ -947,18 +961,12 @@ class TTHTool(BaseEventTool):
 				y_end = touchedEnd[1]
 				self.drawDiscAtPoint(5*scale, x_end, y_end)
 
-			if self.selectedHintingTool == 'Align':
-				if self.centralWindow.selectedAxis == 'X':
-					angle = 180
-				elif self.centralWindow.selectedAxis == 'Y':
-					angle = 90
-				self.drawAlign(scale, self.pointCoordinatesToUniqueID[self.startPoint], angle, None)
-			if self.selectedHintingTool == 'Single Link':
-				self.drawLink(scale, self.startPoint, self.currentPoint, '', None)
-			if self.selectedHintingTool == 'Double Link':
-				self.drawDoubleLink(scale, self.startPoint, self.currentPoint, '', None)
-			if self.selectedHintingTool == 'Interpolation':
-				self.drawInterpolate(scale, self.startPoint, self.currentPoint, self.currentPoint, None)
+			# if self.selectedHintingTool == 'Single Link':
+			# 	self.drawLink(scale, self.startPoint, self.currentPoint, '', None)
+			# if self.selectedHintingTool == 'Double Link':
+			# 	self.drawDoubleLink(scale, self.startPoint, self.currentPoint, '', None)
+			# if self.selectedHintingTool == 'Interpolation':
+			# 	self.drawInterpolate(scale, self.startPoint, self.currentPoint, self.currentPoint, None)
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
