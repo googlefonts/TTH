@@ -10,6 +10,7 @@ import fl_tth
 import tt_tables
 import preview
 import TTHintAsm
+import TTHToolModel
 import TextRenderer as TR
 
 import xml.etree.ElementTree as ET
@@ -117,23 +118,24 @@ class TTHTool(BaseEventTool):
 
 	def __init__(self):
 		BaseEventTool.__init__(self)
+		self.ready = False
+		self.unicodeToNameDict = createUnicodeToNameDict()
+		self.p_glyphList = []
+		self.commandLabelPos = {}
+
 		self.f = None
 		self.g = None
 		self.UPM = 1000
 		self.PPM_Size = 9
 		self.pitch = self.UPM/self.PPM_Size
 		self.bitmapPreviewSelection = 'Monochrome'
-		self.unicodeToNameDict = createUnicodeToNameDict()
-		self.ready = False
-		self.p_glyphList = []
-		self.commandLabelPos = {}
 		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentType = 'round'
 		self.selectedStem = None
+		self.roundBool = 0
 		self.textRenderer = None
 
 	def becomeActive(self):
-		self.bitmapPreviewSelection = 'Monochrome'
 		self.resetFonts(createWindows=True)
 
 	def becomeInactive(self):
@@ -180,6 +182,9 @@ class TTHTool(BaseEventTool):
 
 		self.pitch = int(self.UPM / int(self.PPM_Size))
 
+		self.previewWindow.view.setNeedsDisplay_(True)
+		UpdateCurrentGlyphView()
+
 	def isOnPoint(self, p_cursor):
 		def pred0(p_glyph):
 			return pointsApproxEqual(p_glyph, p_cursor)
@@ -204,6 +209,30 @@ class TTHTool(BaseEventTool):
 
 		return touched_p_command
 
+	def isInZone(self, point, y_min, y_max):
+		if point[1]  >= y_min and point[1] <= y_max:
+			return True
+		else:
+			return False
+
+	def isInTopZone(self, point):
+		for zone in self.FL_Windows.topUIZones:
+			y_min = int(zone['Position'])
+			y_max = int(zone['Position']) + int(zone['Width'])
+
+			if self.isInZone(point, y_min, y_max):
+				return zone['Name']
+		return None
+
+	def isInBottomZone(self, point):
+		for zone in self.FL_Windows.bottomUIZones:
+			y_max = int(zone['Position'])
+			y_min = int(zone['Position']) - int(zone['Width'])
+
+			if self.isInZone(point, y_min, y_max):
+				return zone['Name']
+		return None
+
 	def keyDown(self, event):
 		keyDict = {'a':('Anchor', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
 		if event.characters() in keyDict:
@@ -222,32 +251,49 @@ class TTHTool(BaseEventTool):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		print 'glyph end point:', self.endPoint
-		if self.endPoint in self.pointCoordinatesToUniqueID:
-			print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.endPoint]
+		if self.endPoint == None:
+				return
 
-			if self.selectedHintingTool == 'Align':
-				cmdIndex = len(self.glyphTTHCommands)
-				newCommand = {}
-				if self.centralWindow.selectedAxis == 'X':
-					angle = 180
-					newCommand['code'] = 'alignh'
+		cmdIndex = len(self.glyphTTHCommands)
+		newCommand = {}
+
+		if self.selectedHintingTool == 'Align':
+			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
+			if self.centralWindow.selectedAxis == 'X':
+				newCommand['code'] = 'alignh'
+				newCommand['align'] = self.selectedAlignmentType
+			else:
+				if self.isInTopZone(self.endPoint):
+					newCommand['code'] = 'alignt'
+					newCommand['zone'] = self.isInTopZone(self.endPoint)
+				elif self.isInBottomZone(self.endPoint):
+					newCommand['code'] = 'alignb'
+					newCommand['zone'] = self.isInBottomZone(self.endPoint)
 				else:
-					angle = 90
 					newCommand['code'] = 'alignv'
-				if self.endPoint != None:
-
-					newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
 					newCommand['align'] = self.selectedAlignmentType
 
-					self.glyphTTHCommands.append(newCommand)
+		if self.selectedHintingTool == 'Single Link':
+			if self.centralWindow.selectedAxis == 'X':
+				newCommand['code'] = 'singleh'
+			else:
+				newCommand['code'] = 'singlev'
 
-					self.updateGlyphProgram()
+			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
+			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
+			if self.selectedAlignmentType != None:
+				newCommand['align'] = self.selectedAlignmentType
 
-		#if self.selectedHintingTool == 'Align':
-		#	print 'align'
-		#	FLTTProgram = self.readGlyphFLTTProgram(self.g)
-		#	for i in FLTTProgram:
-		#		print i
+			if self.selectedStem != None and self.selectedStem != 'None':
+				newCommand['stem'] = self.selectedStem
+
+			if self.roundBool != 0:
+				newCommand['round'] = 'true'
+
+		self.glyphTTHCommands.append(newCommand)	
+		self.updateGlyphProgram()
+
+
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.g.lib['com.fontlab.ttprogram']
@@ -1240,24 +1286,12 @@ class centralWindow(object):
 
 	def PPEMSizeEditTextCallback(self, sender):
 		self.TTHToolInstance.changeSize(sender.get())
-		#self.TTHToolInstance.PPM_Size = newValue
-		#self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
-		UpdateCurrentGlyphView()
 
 	def PPEMSizePopUpButtonCallback(self, sender):
 		if self.TTHToolInstance.g == None:
 			return
 		size = self.PPMSizesList[sender.get()]
-
 		self.TTHToolInstance.changeSize(size)
-
-		#self.TTHToolInstance.PPM_Size = size
-		#self.wCentral.PPEMSizeEditText.set(size)
-		#self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(size))
-		# REMOVE ME WHEN THAT WORKS self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name, size)
-		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
-		UpdateCurrentGlyphView()
 
 	def BitmapPreviewPopUpButtonCallback(self, sender):
 		tool = self.TTHToolInstance
@@ -1375,7 +1409,7 @@ class centralWindow(object):
 		print self.TTHToolInstance.selectedStem
 
 	def RoundDistanceCheckBoxCallback(self, sender):
-		print sender.get()
+		self.TTHToolInstance.roundBool = sender.get()
 
 	def DeltaOffsetSliderCallback(self, sender):
 		print sender.get() - 8
@@ -1467,4 +1501,5 @@ reload(TR)
 reload(TTHintAsm)
 reload(fl_tth)
 reload(tt_tables)
+reload(TTHToolModel)
 installTool(TTHTool())
