@@ -285,16 +285,6 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
-			self.centralWindow.wCentral.HintingToolPopUpButton.set(val[1])
-			if val[1] == 0:
-				self.centralWindow.centralWindowAlignSettings()
-			if val[1] in [1, 2]:
-				self.centralWindow.centralWindowLinkSettings()
-			if val[1] == 3:
-				self.centralWindow.centralWindowInterpolationSettings()
-			if val[1] in [4, 5]:
-				self.centralWindow.centralWindowDeltaSettings()
-
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
