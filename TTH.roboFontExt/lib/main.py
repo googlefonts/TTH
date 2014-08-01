@@ -157,6 +157,29 @@ class TTHTool(BaseEventTool):
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
 
+	def getSizeListIndex(self, size):
+		sizeIndex = 0
+		for i in range(len(self.centralWindow.PPMSizesList)):
+			if self.centralWindow.PPMSizesList[i] == str(size):
+				sizeIndex = i
+		return sizeIndex
+
+	def getSize(self):
+		return self.PPM_Size
+
+	def changeSize(self, size):
+		try:
+			size = int(size)
+		except ValueError:
+			size = 9
+
+		self.PPM_Size = size
+		sizeIndex = self.getSizeListIndex(size)
+		self.centralWindow.wCentral.PPEMSizePopUpButton.set(sizeIndex)
+		self.centralWindow.wCentral.PPEMSizeEditText.set(size)
+
+		self.pitch = int(self.UPM / int(self.PPM_Size))
+
 	def isOnPoint(self, p_cursor):
 		def pred0(p_glyph):
 			return pointsApproxEqual(p_glyph, p_cursor)
@@ -415,14 +438,15 @@ class TTHTool(BaseEventTool):
 			return
 		self.f = loadCurrentFont(self.allFonts)
 		self.UPM = self.f.info.unitsPerEm
-		self.PPM_Size = 9
-		self.pitch = int(self.UPM) / int(self.PPM_Size)
 		self.selectedHintingTool = 'Align'
+		self.selectedAlignmentType = 'round'
 
 		if createWindows:
 			self.FL_Windows = fl_tth.FL_TTH_Windows(self.f, self)
 			self.centralWindow = centralWindow(self.f, self)
 			self.previewWindow = previewWindow(self.f, self)
+
+		self.centralWindow.wCentral.PPEMSizePopUpButton.set(self.getSizeListIndex(self.getSize()))
 
 		tt_tables.writeCVTandPREP(self.f, self.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
 		tt_tables.writeFPGM(self.f)
@@ -1116,6 +1140,9 @@ class centralWindow(object):
 		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 
+		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeListLink = [None, 'round', 'left', 'right', 'center', 'double']
+
 		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
 		
 		self.wCentral.PPEMSizeEditText = EditText((110, 8, 30, 19), sizeStyle = "small", 
@@ -1126,7 +1153,6 @@ class centralWindow(object):
 		self.wCentral.PPEMSizePopUpButton = PopUpButton((150, 10, 40, 14),
 				self.PPMSizesList, sizeStyle = "small",
 				callback=self.PPEMSizePopUpButtonCallback)
-		self.wCentral.PPEMSizePopUpButton.set(0)
 
 		self.wCentral.BitmapPreviewText= TextBox((10, 30, 70, 14), "Preview:", sizeStyle = "small")
 		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((90, 30, 100, 14),
@@ -1213,14 +1239,9 @@ class centralWindow(object):
 		self.wCentral.close()
 
 	def PPEMSizeEditTextCallback(self, sender):
-		try:
-			newValue = int(sender.get())
-		except ValueError:
-			newValue = 9
-			sender.set(9)
-		self.TTHToolInstance.PPM_Size = newValue
-		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
-		# REMOVE ME WHEN THAT WORKS self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name,  self.TTHToolInstance.PPM_Size)
+		self.TTHToolInstance.changeSize(sender.get())
+		#self.TTHToolInstance.PPM_Size = newValue
+		#self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(self.TTHToolInstance.PPM_Size))
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
@@ -1228,9 +1249,12 @@ class centralWindow(object):
 		if self.TTHToolInstance.g == None:
 			return
 		size = self.PPMSizesList[sender.get()]
-		self.TTHToolInstance.PPM_Size = size
-		self.wCentral.PPEMSizeEditText.set(size)
-		self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(size))
+
+		self.TTHToolInstance.changeSize(size)
+
+		#self.TTHToolInstance.PPM_Size = size
+		#self.wCentral.PPEMSizeEditText.set(size)
+		#self.TTHToolInstance.pitch = int(self.TTHToolInstance.UPM / int(size))
 		# REMOVE ME WHEN THAT WORKS self.TTHToolInstance.loadFaceGlyph(self.TTHToolInstance.g.name, size)
 		self.TTHToolInstance.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
@@ -1272,6 +1296,8 @@ class centralWindow(object):
 		self.TTHToolInstance.selectedHintingTool = self.hintingToolsList[sender.get()]
 		print self.TTHToolInstance.selectedHintingTool
 		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link']:
+			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
 			self.wCentral.StemTypeText.show(True)
@@ -1284,6 +1310,8 @@ class centralWindow(object):
 			self.wCentral.DeltaRange1EditText.show(False)
 			self.wCentral.DeltaRange2EditText.show(False)
 		elif self.TTHToolInstance.selectedHintingTool == 'Align':
+			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[0]
+			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
 			self.wCentral.StemTypeText.show(False)
@@ -1296,6 +1324,8 @@ class centralWindow(object):
 			self.wCentral.DeltaRange1EditText.show(False)
 			self.wCentral.DeltaRange2EditText.show(False)
 		elif self.TTHToolInstance.selectedHintingTool == 'Interpolation':
+			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
 			self.wCentral.AlignmentTypeText.show(True)
 			self.wCentral.AlignmentTypePopUpButton.show(True)
 			self.wCentral.StemTypeText.show(False)
@@ -1334,7 +1364,10 @@ class centralWindow(object):
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
-		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
+		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
+			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[sender.get()]
+		elif self.TTHToolInstance.selectedHintingTool == 'Align':
+			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
 		print self.TTHToolInstance.selectedAlignmentType
 
 	def StemTypePopUpButtonCallback(self, sender):
