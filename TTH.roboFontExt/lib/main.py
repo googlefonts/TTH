@@ -129,7 +129,7 @@ class TTHTool(BaseEventTool):
 		#self.PPM_Size = 9
 		#tthtm.pitch = self.UPM/self.PPM_Size
 		#self.bitmapPreviewSelection = 'Monochrome'
-		self.selectedHintingTool = 'Align'
+		#self.selectedHintingTool = 'Align'
 		self.selectedAlignmentType = 'round'
 		self.selectedStem = None
 		self.roundBool = 0
@@ -201,9 +201,6 @@ class TTHTool(BaseEventTool):
 		return previewIndex
 
 	def changeBitmapPreview(self, preview):
-		# old = tthtm.bitmapPreviewSelection
-		# if preview == old:
-		# 	return
 		tthtm.setBitmapPreview(preview)
 		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, preview)
 		previewIndex = self.getPreviewListIndex(preview)
@@ -213,6 +210,27 @@ class TTHTool(BaseEventTool):
 			return
 		self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
+
+	def getHintingToolIndex(self, hintingTool):
+		hintingToolIndex = 0
+		for i in range(len(self.centralWindow.hintingToolsList)):
+			if self.centralWindow.hintingToolsList[i] == hintingTool:
+				hintingToolIndex = i
+		return hintingToolIndex
+
+	def changeSelectedHintingTool(self, hintingTool):
+		tthtm.setHintingTool(hintingTool)
+		hintingToolIndex = self.getHintingToolIndex(hintingTool)
+		self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
+		if hintingToolIndex == 0:
+			self.centralWindow.centralWindowAlignSettings()
+		if hintingToolIndex in [1, 2]:
+			self.centralWindow.centralWindowLinkSettings()
+		if hintingToolIndex == 3:
+			self.centralWindow.centralWindowInterpolationSettings()
+		if hintingToolIndex in [4, 5]:
+			self.centralWindow.centralWindowDeltaSettings()
+
 
 	def isOnPoint(self, p_cursor):
 		def pred0(p_glyph):
@@ -266,8 +284,17 @@ class TTHTool(BaseEventTool):
 		keyDict = {'a':('Anchor', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
-			self.selectedHintingTool = val[0]
+			self.changeSelectedHintingTool(val[0])
 			self.centralWindow.wCentral.HintingToolPopUpButton.set(val[1])
+			if val[1] == 0:
+				self.centralWindow.centralWindowAlignSettings()
+			if val[1] in [1, 2]:
+				self.centralWindow.centralWindowLinkSettings()
+			if val[1] == 3:
+				self.centralWindow.centralWindowInterpolationSettings()
+			if val[1] in [4, 5]:
+				self.centralWindow.centralWindowDeltaSettings()
+
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -286,7 +313,7 @@ class TTHTool(BaseEventTool):
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
 
-		if self.selectedHintingTool == 'Align':
+		if tthtm.selectedHintingTool == 'Align':
 			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
 			if tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'alignh'
@@ -302,7 +329,7 @@ class TTHTool(BaseEventTool):
 					newCommand['code'] = 'alignv'
 					newCommand['align'] = self.selectedAlignmentType
 
-		if self.selectedHintingTool == 'Single Link':
+		if tthtm.selectedHintingTool == 'Single Link':
 			if tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
 			else:
@@ -513,7 +540,6 @@ class TTHTool(BaseEventTool):
 			return
 		tthtm.setFont(loadCurrentFont(self.allFonts))
 		tthtm.resetPitch()
-		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentType = 'round'
 
 		if createWindows:
@@ -535,6 +561,7 @@ class TTHTool(BaseEventTool):
 		self.changeSize(tthtm.PPM_Size)
 		self.changeAxis(tthtm.selectedAxis)
 		self.changeBitmapPreview(tthtm.bitmapPreviewSelection)
+		self.changeSelectedHintingTool(tthtm.selectedHintingTool)
 
 	def resetglyph(self):
 		tthtm.setGlyph(CurrentGlyph())
@@ -1078,8 +1105,6 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		if self.isDragging() and self.startPoint != None:
-			#print 'is dragging'
-			#print 'current tool:', self.selectedHintingTool
 			x_start = self.startPoint[0]
 			y_start = self.startPoint[1]
 			self.drawDiscAtPoint(5*scale, x_start, y_start)
@@ -1088,13 +1113,6 @@ class TTHTool(BaseEventTool):
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
 				self.drawDiscAtPoint(5*scale, x_end, y_end)
-
-			# if self.selectedHintingTool == 'Single Link':
-			# 	self.drawLink(scale, self.startPoint, self.currentPoint, '', None)
-			# if self.selectedHintingTool == 'Double Link':
-			# 	self.drawDoubleLink(scale, self.startPoint, self.currentPoint, '', None)
-			# if self.selectedHintingTool == 'Interpolation':
-			# 	self.drawInterpolate(scale, self.startPoint, self.currentPoint, self.currentPoint, None)
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
@@ -1352,63 +1370,77 @@ class centralWindow(object):
 		self.wCentral.StemTypePopUpButton.setItems(self.stemTypeList)
 		UpdateCurrentGlyphView()
 
+	def centralWindowLinkSettings(self):
+		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
+		self.wCentral.AlignmentTypeText.show(True)
+		self.wCentral.AlignmentTypePopUpButton.show(True)
+		self.wCentral.StemTypeText.show(True)
+		self.wCentral.StemTypePopUpButton.show(True)
+		self.wCentral.RoundDistanceText.show(True)
+		self.wCentral.RoundDistanceCheckBox.show(True)
+		self.wCentral.DeltaOffsetText.show(False)
+		self.wCentral.DeltaOffsetSlider.show(False)
+		self.wCentral.DeltaRangeText.show(False)
+		self.wCentral.DeltaRange1EditText.show(False)
+		self.wCentral.DeltaRange2EditText.show(False)
+
+	def centralWindowAlignSettings(self):
+		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[0]
+		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
+		self.wCentral.AlignmentTypeText.show(True)
+		self.wCentral.AlignmentTypePopUpButton.show(True)
+		self.wCentral.StemTypeText.show(False)
+		self.wCentral.StemTypePopUpButton.show(False)
+		self.wCentral.RoundDistanceText.show(False)
+		self.wCentral.RoundDistanceCheckBox.show(False)
+		self.wCentral.DeltaOffsetText.show(False)
+		self.wCentral.DeltaOffsetSlider.show(False)
+		self.wCentral.DeltaRangeText.show(False)
+		self.wCentral.DeltaRange1EditText.show(False)
+		self.wCentral.DeltaRange2EditText.show(False)
+
+	def centralWindowInterpolationSettings(self):
+		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
+		self.wCentral.AlignmentTypeText.show(True)
+		self.wCentral.AlignmentTypePopUpButton.show(True)
+		self.wCentral.StemTypeText.show(False)
+		self.wCentral.StemTypePopUpButton.show(False)
+		self.wCentral.RoundDistanceText.show(False)
+		self.wCentral.RoundDistanceCheckBox.show(False)
+		self.wCentral.DeltaOffsetText.show(False)
+		self.wCentral.DeltaOffsetSlider.show(False)
+		self.wCentral.DeltaRangeText.show(False)
+		self.wCentral.DeltaRange1EditText.show(False)
+		self.wCentral.DeltaRange2EditText.show(False)
+
+	def centralWindowDeltaSettings(self):
+		self.wCentral.AlignmentTypeText.show(False)
+		self.wCentral.AlignmentTypePopUpButton.show(False)
+		self.wCentral.StemTypeText.show(False)
+		self.wCentral.StemTypePopUpButton.show(False)
+		self.wCentral.RoundDistanceText.show(False)
+		self.wCentral.RoundDistanceCheckBox.show(False)
+		self.wCentral.DeltaOffsetText.show(True)
+		self.wCentral.DeltaOffsetSlider.show(True)
+		self.wCentral.DeltaRangeText.show(True)
+		self.wCentral.DeltaRange1EditText.show(True)
+		self.wCentral.DeltaRange2EditText.show(True)
+
+
+
 	def HintingToolPopUpButtonCallback(self, sender):
-		self.TTHToolInstance.selectedHintingTool = self.hintingToolsList[sender.get()]
-		print self.TTHToolInstance.selectedHintingTool
-		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link']:
-			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
-			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
-			self.wCentral.AlignmentTypeText.show(True)
-			self.wCentral.AlignmentTypePopUpButton.show(True)
-			self.wCentral.StemTypeText.show(True)
-			self.wCentral.StemTypePopUpButton.show(True)
-			self.wCentral.RoundDistanceText.show(True)
-			self.wCentral.RoundDistanceCheckBox.show(True)
-			self.wCentral.DeltaOffsetText.show(False)
-			self.wCentral.DeltaOffsetSlider.show(False)
-			self.wCentral.DeltaRangeText.show(False)
-			self.wCentral.DeltaRange1EditText.show(False)
-			self.wCentral.DeltaRange2EditText.show(False)
-		elif self.TTHToolInstance.selectedHintingTool == 'Align':
-			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[0]
-			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
-			self.wCentral.AlignmentTypeText.show(True)
-			self.wCentral.AlignmentTypePopUpButton.show(True)
-			self.wCentral.StemTypeText.show(False)
-			self.wCentral.StemTypePopUpButton.show(False)
-			self.wCentral.RoundDistanceText.show(False)
-			self.wCentral.RoundDistanceCheckBox.show(False)
-			self.wCentral.DeltaOffsetText.show(False)
-			self.wCentral.DeltaOffsetSlider.show(False)
-			self.wCentral.DeltaRangeText.show(False)
-			self.wCentral.DeltaRange1EditText.show(False)
-			self.wCentral.DeltaRange2EditText.show(False)
-		elif self.TTHToolInstance.selectedHintingTool == 'Interpolation':
-			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
-			self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
-			self.wCentral.AlignmentTypeText.show(True)
-			self.wCentral.AlignmentTypePopUpButton.show(True)
-			self.wCentral.StemTypeText.show(False)
-			self.wCentral.StemTypePopUpButton.show(False)
-			self.wCentral.RoundDistanceText.show(False)
-			self.wCentral.RoundDistanceCheckBox.show(False)
-			self.wCentral.DeltaOffsetText.show(False)
-			self.wCentral.DeltaOffsetSlider.show(False)
-			self.wCentral.DeltaRangeText.show(False)
-			self.wCentral.DeltaRange1EditText.show(False)
-			self.wCentral.DeltaRange2EditText.show(False)
-		elif self.TTHToolInstance.selectedHintingTool in ['Middle Delta', 'Final Delta']:
-			self.wCentral.AlignmentTypeText.show(False)
-			self.wCentral.AlignmentTypePopUpButton.show(False)
-			self.wCentral.StemTypeText.show(False)
-			self.wCentral.StemTypePopUpButton.show(False)
-			self.wCentral.RoundDistanceText.show(False)
-			self.wCentral.RoundDistanceCheckBox.show(False)
-			self.wCentral.DeltaOffsetText.show(True)
-			self.wCentral.DeltaOffsetSlider.show(True)
-			self.wCentral.DeltaRangeText.show(True)
-			self.wCentral.DeltaRange1EditText.show(True)
-			self.wCentral.DeltaRange2EditText.show(True)
+		self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
+		#print tthtm.selectedHintingTool
+		if tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
+			self.centralWindowLinkSettings()
+		elif tthtm.selectedHintingTool == 'Align':
+			self.centralWindowAlignSettings()
+		elif tthtm.selectedHintingTool == 'Interpolation':
+			self.centralWindowInterpolationSettings()
+		elif tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+			self.centralWindowDeltaSettings()
 		else:
 			self.wCentral.AlignmentTypeText.show(False)
 			self.wCentral.AlignmentTypePopUpButton.show(False)
@@ -1424,11 +1456,11 @@ class centralWindow(object):
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
-		if self.TTHToolInstance.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
+		if tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
 			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[sender.get()]
-		elif self.TTHToolInstance.selectedHintingTool == 'Align':
+		elif tthtm.selectedHintingTool == 'Align':
 			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
-		print self.TTHToolInstance.selectedAlignmentType
+		#print self.TTHToolInstance.selectedAlignmentType
 
 	def StemTypePopUpButtonCallback(self, sender):
 		self.TTHToolInstance.selectedStem = self.stemTypeList[sender.get()]
