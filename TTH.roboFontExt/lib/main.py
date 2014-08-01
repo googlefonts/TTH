@@ -180,7 +180,7 @@ class TTHTool(BaseEventTool):
 		self.centralWindow.wCentral.PPEMSizePopUpButton.set(sizeIndex)
 		self.centralWindow.wCentral.PPEMSizeEditText.set(size)
 
-		tthtm.pitch = int(tthtm.UPM / int(tthtm.PPM_Size))
+		tthtm.resetPitch()
 
 		self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
@@ -512,7 +512,7 @@ class TTHTool(BaseEventTool):
 		if not self.allFonts:
 			return
 		tthtm.setFont(loadCurrentFont(self.allFonts))
-		tthtm.resetFontUPM(tthtm.f)
+		tthtm.resetPitch()
 		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentType = 'round'
 
