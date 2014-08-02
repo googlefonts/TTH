@@ -6,7 +6,6 @@ from AppKit import *
 
 import tt_tables
 import TTHintAsm
-import view
 
 
 FL_tth_key = "com.fontlab.v2.tth"
@@ -532,7 +531,7 @@ class FL_TTH_Windows(object):
 			value = 1
 			sender.set(1)
 
-		stemPitch = float(value)/view.tthtm.UPM
+		stemPitch = float(value)/self.TTHToolInstance.tthtm.UPM
 		stemJump2 = int(2/stemPitch)
 		stemJump3 = int(3/stemPitch)
 		stemJump4 = int(4/stemPitch)
@@ -666,8 +665,8 @@ class FL_TTH_Windows(object):
 			value = 1
 			sender.set(1)
 
-		print view.tthtm.bitmapPreviewSelection
-		stemPitch = float(value)/view.tthtm.UPM
+		print self.TTHToolInstance.tthtm.bitmapPreviewSelection
+		stemPitch = float(value)/self.TTHToolInstance.tthtm.UPM
 		stemJump2 = int(2/stemPitch)
 		stemJump3 = int(3/stemPitch)
 		stemJump4 = int(4/stemPitch)

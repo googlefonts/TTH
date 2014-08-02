@@ -10,6 +10,7 @@ import tt_tables
 import TTHintAsm
 import view
 import TextRenderer as TR
+import TTHToolModel
 
 import xml.etree.ElementTree as ET
 import math, os
@@ -114,12 +115,14 @@ class callbackSetDeltaValue():
 
 class TTHTool(BaseEventTool):
 
-	def __init__(self):
+	def __init__(self, tthm):
 		BaseEventTool.__init__(self)
+
 		self.ready = False
 		self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
 		self.commandLabelPos = {}
+		self.tthtm = tthtm
 
 		#self.f = None
 		#self.g = None
@@ -539,8 +542,8 @@ class TTHTool(BaseEventTool):
 
 		if createWindows:
 			self.FL_Windows = fl_tth.FL_TTH_Windows(view.tthtm.f, self)
-			self.centralWindow = view.centralWindow(self)
-			self.previewWindow = view.previewWindow(self)
+			self.centralWindow = view.centralWindow(self, self.tthtm)
+			self.previewWindow = view.previewWindow(self, self.tthtm)
 
 		tt_tables.writeCVTandPREP(view.tthtm.f, view.tthtm.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
 		tt_tables.writeFPGM(view.tthtm.f)
@@ -1216,4 +1219,7 @@ reload(TTHintAsm)
 reload(fl_tth)
 reload(tt_tables)
 reload(view)
-installTool(TTHTool())
+reload(TTHToolModel)
+
+tthtm = TTHToolModel.TTHToolModel()
+installTool(TTHTool(tthtm))

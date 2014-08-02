@@ -1,10 +1,9 @@
 from vanilla import *
 from mojo.UI import *
-import TTHToolModel
 import preview
 
 class centralWindow(object):
-	def __init__(self, TTHToolInstance):
+	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.wCentral = FloatingWindow((10, 30, 200, 600), "Central", closable = False)
 
@@ -321,7 +320,7 @@ class centralWindow(object):
 
 
 class previewWindow(object):
-	def __init__(self, TTHToolInstance):
+	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		#self.previewString = tthtm.previewString
 
@@ -350,6 +349,3 @@ class previewWindow(object):
 		#self.previewString = sender.get()
 		tthtm.setPreviewString(sender.get())
 		self.view.setNeedsDisplay_(True)
-
-reload(TTHToolModel)
-tthtm = TTHToolModel.TTHToolModel()

@@ -3,7 +3,7 @@ class TTHToolModel():
 	def __init__(self):
 		self.f = None
 		self.g = None
-		self.UPM = self.f.info.unitsPerEm
+		self.UPM = 1000
 		self.PPM_Size = 9
 		self.pitch = self.UPM/self.PPM_Size
 		self.selectedAxis = 'X'
