@@ -10,7 +10,8 @@ class TTHToolModel():
 		self.bitmapPreviewSelection = 'Monochrome'
 
 		self.selectedHintingTool = 'Align'
-		self.selectedAlignmentType = 'round'
+		self.selectedAlignmentTypeAlign = 'round'
+		self.selectedAlignmentTypeLink = None
 		self.selectedStem = None
 		self.roundBool = 0
 		self.textRenderer = None
@@ -48,6 +49,14 @@ class TTHToolModel():
 	def setHintingTool(self, hintingTool):
 		if hintingTool in ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']:
 			self.selectedHintingTool = hintingTool
+
+	def setAlignmentTypeAlign(self, alignmentType):
+		if alignmentType in ['round', 'left', 'right', 'center', 'double']:
+			self.selectedAlignmentTypeAlign = alignmentType
+
+	def setAlignmentTypeLink(self, alignmentType):
+		if alignmentType in ['none', 'round', 'left', 'right', 'center', 'double']:
+			self.selectedAlignmentTypeLink = alignmentType
 
 	def showPreviewWindow(self, ShowHide):
 		if ShowHide == 0:

@@ -27,7 +27,7 @@ class centralWindow(object):
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 
 		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
-		self.alignmentTypeListLink = [None, 'round', 'left', 'right', 'center', 'double']
+		self.alignmentTypeListLink = ['none', 'round', 'left', 'right', 'center', 'double']
 
 		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
 		
@@ -165,7 +165,7 @@ class centralWindow(object):
 		UpdateCurrentGlyphView()
 
 	def centralWindowLinkSettings(self):
-		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
 		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
 		self.wCentral.AlignmentTypeText.show(True)
 		self.wCentral.AlignmentTypePopUpButton.show(True)
@@ -180,7 +180,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRange2EditText.show(False)
 
 	def centralWindowAlignSettings(self):
-		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[0]
+		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
 		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
 		self.wCentral.AlignmentTypeText.show(True)
 		self.wCentral.AlignmentTypePopUpButton.show(True)
@@ -195,7 +195,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRange2EditText.show(False)
 
 	def centralWindowInterpolationSettings(self):
-		self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[0]
+		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
 		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
 		self.wCentral.AlignmentTypeText.show(True)
 		self.wCentral.AlignmentTypePopUpButton.show(True)
@@ -226,11 +226,15 @@ class centralWindow(object):
 
 	def HintingToolPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
-		#print self.tthtm.selectedHintingTool
+		#self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		#self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+
 		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
 			self.centralWindowLinkSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		elif self.tthtm.selectedHintingTool == 'Align':
 			self.centralWindowAlignSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		elif self.tthtm.selectedHintingTool == 'Interpolation':
 			self.centralWindowInterpolationSettings()
 		elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
@@ -251,10 +255,9 @@ class centralWindow(object):
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
 		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
-			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[sender.get()]
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
 		elif self.tthtm.selectedHintingTool == 'Align':
-			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
-		#print self.TTHToolInstance.selectedAlignmentType
+			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
 
 	def StemTypePopUpButtonCallback(self, sender):
 		self.TTHToolInstance.selectedStem = self.stemTypeList[sender.get()]

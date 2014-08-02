@@ -131,7 +131,7 @@ class TTHTool(BaseEventTool):
 		#tthtm.pitch = self.UPM/self.PPM_Size
 		#self.bitmapPreviewSelection = 'Monochrome'
 		#self.selectedHintingTool = 'Align'
-		self.selectedAlignmentType = 'round'
+		#self.selectedAlignmentType = 'round'
 		self.selectedStem = None
 		self.roundBool = 0
 		self.textRenderer = None
@@ -232,6 +232,30 @@ class TTHTool(BaseEventTool):
 		if hintingToolIndex in [4, 5]:
 			self.centralWindow.centralWindowDeltaSettings()
 
+	def getAlignmentTypeAlignIndex(self, alignmentType):
+		alignmentTypeIndex = 0
+		for i in range(len(self.centralWindow.alignmentTypeList)):
+			if self.centralWindow.alignmentTypeList[i] == alignmentType:
+				alignmentTypeIndex = i
+		return alignmentTypeIndex
+
+	def changeSelectedAlignmentTypeAlign(self, alignmentType):
+		self.tthtm.setAlignmentTypeAlign(alignmentType)
+		alignmentTypeIndex = self.getAlignmentTypeAlignIndex(alignmentType)
+		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
+
+	def getAlignmentTypeLinkIndex(self, alignmentType):
+		alignmentTypeIndex = 0
+		for i in range(len(self.centralWindow.alignmentTypeListLink)):
+			if self.centralWindow.alignmentTypeListLink[i] == alignmentType:
+				alignmentTypeIndex = i
+		return alignmentTypeIndex
+
+	def changeSelectedAlignmentTypeLink(self, alignmentType):
+		self.tthtm.setAlignmentTypeLink(alignmentType)
+		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(alignmentType)
+		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
+
 	def showHidePreviewWindow(self, showHide):
 		if showHide == 0:
 			self.previewWindow.hidePreview()
@@ -292,6 +316,8 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
+		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -314,7 +340,7 @@ class TTHTool(BaseEventTool):
 			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'alignh'
-				newCommand['align'] = self.selectedAlignmentType
+				newCommand['align'] = self.tthtm.selectedAlignmentTypeAlign
 			else:
 				if self.isInTopZone(self.endPoint):
 					newCommand['code'] = 'alignt'
@@ -324,7 +350,7 @@ class TTHTool(BaseEventTool):
 					newCommand['zone'] = self.isInBottomZone(self.endPoint)
 				else:
 					newCommand['code'] = 'alignv'
-					newCommand['align'] = self.selectedAlignmentType
+					newCommand['align'] = self.tthtm.selectedAlignmentTypeAlign
 
 		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None:
 			if self.tthtm.selectedAxis == 'X':
@@ -334,8 +360,8 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
-			if self.selectedAlignmentType != None:
-				newCommand['align'] = self.selectedAlignmentType
+			if self.tthtm.selectedAlignmentTypeLink != 'none':
+				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
 
 			if self.selectedStem != None and self.selectedStem != 'None':
 				newCommand['stem'] = self.selectedStem
@@ -538,7 +564,6 @@ class TTHTool(BaseEventTool):
 			return
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
 		self.tthtm.resetPitch()
-		self.selectedAlignmentType = 'round'
 
 		if createWindows:
 			self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
@@ -560,6 +585,9 @@ class TTHTool(BaseEventTool):
 		self.changeAxis(self.tthtm.selectedAxis)
 		self.changeBitmapPreview(self.tthtm.bitmapPreviewSelection)
 		self.changeSelectedHintingTool(self.tthtm.selectedHintingTool)
+		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
 	def resetglyph(self):
