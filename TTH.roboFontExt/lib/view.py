@@ -348,5 +348,5 @@ class previewWindow(object):
 
 	def previewEditTextCallback(self, sender):
 		#self.previewString = sender.get()
-		tthtm.setPreviewString(sender.get())
+		self.tthtm.setPreviewString(sender.get())
 		self.view.setNeedsDisplay_(True)
