@@ -300,7 +300,7 @@ class TTHTool(BaseEventTool):
 	def mouseUp(self, point):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
-		#print 'glyph end point:', self.endPoint
+		print 'glyph end point:', self.endPoint
 		if self.endPoint == None:
 				return
 

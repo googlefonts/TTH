@@ -6,6 +6,8 @@ from AppKit import *
 
 import tt_tables
 import TTHintAsm
+import view
+
 
 FL_tth_key = "com.fontlab.v2.tth"
 
@@ -500,6 +502,11 @@ class FL_TTH_Windows(object):
 
 		self.f.lib[FL_tth_key]["stems"] = self.stems
 
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
 	def buttonRemoveHorizontalStemCallback(self, sender):
 		try:
 			for stem in self.selectedHorizontalStems:
@@ -510,6 +517,11 @@ class FL_TTH_Windows(object):
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.readHorizontalStems())
 		self.wStems.horizontalbox.horizontalStems_List.set(self.horizontalStemsList)
 
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
 	def editTextHorizontalStemNameCallback(self, sender):
 		sender.get()
 
@@ -517,8 +529,22 @@ class FL_TTH_Windows(object):
 		try:
 			value = int(sender.get())
 		except ValueError:
-			value = 0
-			sender.set(0)
+			value = 1
+			sender.set(1)
+
+		stemPitch = float(value)/view.tthtm.UPM
+		stemJump2 = int(2/stemPitch)
+		stemJump3 = int(3/stemPitch)
+		stemJump4 = int(4/stemPitch)
+		stemJump5 = int(5/stemPitch)
+		stemJump6 = int(6/stemPitch)
+
+		self.wStems.horizontalbox.editTextHorizontalStem1px.set(str(0))
+		self.wStems.horizontalbox.editTextHorizontalStem2px.set(str(stemJump2))
+		self.wStems.horizontalbox.editTextHorizontalStem3px.set(str(stemJump3))
+		self.wStems.horizontalbox.editTextHorizontalStem4px.set(str(stemJump4))
+		self.wStems.horizontalbox.editTextHorizontalStem5px.set(str(stemJump5))
+		self.wStems.horizontalbox.editTextHorizontalStem6px.set(str(stemJump6))
 
 	def editTextHorizontalStem1pxCallback(self, sender):
 		try:
@@ -566,6 +592,7 @@ class FL_TTH_Windows(object):
 		name = self.wStems.horizontalbox.editTextHorizontalStemName.get()
 		horizontal = True
 		width = int(self.wStems.horizontalbox.editTextHorizontalStemWidth.get())
+
 		px1 = str(self.wStems.horizontalbox.editTextHorizontalStem1px.get())
 		px2 = str(self.wStems.horizontalbox.editTextHorizontalStem2px.get())
 		px3 = str(self.wStems.horizontalbox.editTextHorizontalStem3px.get())
@@ -578,6 +605,11 @@ class FL_TTH_Windows(object):
 		
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.readHorizontalStems())
 		self.wStems.horizontalbox.horizontalStems_List.set(self.horizontalStemsList)
+
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
 
 
 	########################
@@ -608,6 +640,11 @@ class FL_TTH_Windows(object):
 
 		self.f.lib[FL_tth_key]["stems"] = self.stems
 
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
 
 	def buttonRemoveVerticalStemCallback(self, sender):
 		try:
@@ -626,8 +663,23 @@ class FL_TTH_Windows(object):
 		try:
 			value = int(sender.get())
 		except ValueError:
-			value = 0
-			sender.set(0)
+			value = 1
+			sender.set(1)
+
+		print view.tthtm.bitmapPreviewSelection
+		stemPitch = float(value)/view.tthtm.UPM
+		stemJump2 = int(2/stemPitch)
+		stemJump3 = int(3/stemPitch)
+		stemJump4 = int(4/stemPitch)
+		stemJump5 = int(5/stemPitch)
+		stemJump6 = int(6/stemPitch)
+
+		self.wStems.verticalbox.editTextVerticalStem1px.set(str(0))
+		self.wStems.verticalbox.editTextVerticalStem2px.set(str(stemJump2))
+		self.wStems.verticalbox.editTextVerticalStem3px.set(str(stemJump3))
+		self.wStems.verticalbox.editTextVerticalStem4px.set(str(stemJump4))
+		self.wStems.verticalbox.editTextVerticalStem5px.set(str(stemJump5))
+		self.wStems.verticalbox.editTextVerticalStem6px.set(str(stemJump6))
 
 	def editTextVerticalStem1pxCallback(self, sender):
 		try:
@@ -687,6 +739,11 @@ class FL_TTH_Windows(object):
 		
 		self.verticalStemsList = self.buildVerticalStemsList(self.readVerticalStems())
 		self.wStems.verticalbox.verticalStems_List.set(self.verticalStemsList)
+
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
 
 	########################
 
@@ -791,7 +848,7 @@ class FL_TTH_Windows(object):
 
 
 	def topUIZones_EditCallBack(self, sender):
-		if self.lock:
+		if self.lock or sender.getSelection() == []:
 			return
 		self.lock = True
 		zonesList = sender.get()
@@ -875,24 +932,30 @@ class FL_TTH_Windows(object):
 		sender.get()
 
 	def buttonAddTopZoneCallback(self, sender):
-		try:
-			name = self.wZones.topbox.editTextTopZoneName.get()
-			top = True
-			position = int(self.wZones.topbox.editTextTopZonePosition.get())
-			width = int(self.wZones.topbox.editTextTopZoneWidth.get())
-			delta = self.wZones.topbox.editTextTopZoneDelta.get()
-			deltaDict = self.deltaDictFromString(delta)
-			if deltaDict == {}:
-				self.zones[name] = {'top': top, 'position': position, 'width': width }
-				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
-			else:
-				self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
+		#try:
+		name = self.wZones.topbox.editTextTopZoneName.get()
+		top = True
+		position = int(self.wZones.topbox.editTextTopZonePosition.get())
+		width = int(self.wZones.topbox.editTextTopZoneWidth.get())
+		delta = self.wZones.topbox.editTextTopZoneDelta.get()
+		deltaDict = self.deltaDictFromString(delta)
+		if deltaDict == {}:
+			self.zones[name] = {'top': top, 'position': position, 'width': width }
+			self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
+		else:
+			self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
+			self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
 
-			self.buildUIZonesList(self.zones, buildTop=True)
-			self.wZones.topbox.topzones_List.set(self.topUIZones)
-		except:
-			pass
+		self.buildUIZonesList(self.zones, buildTop=True)
+		self.wZones.topbox.topzones_List.set(self.topUIZones)
+
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
+		#except:
+		#	pass
 
 
 	##############################
@@ -969,6 +1032,11 @@ class FL_TTH_Windows(object):
 
 			self.buildUIZonesList(self.zones, buildTop=False)
 			self.wZones.bottombox.bottomzones_List.set(self.bottomUIZones)
+
+			ttht = self.TTHToolInstance
+			ttht.resetFonts() # FIXME: c'est un peu bourin
+			ttht.resetglyph()
+			UpdateCurrentGlyphView()
 		except:
 			pass
 	##############################
