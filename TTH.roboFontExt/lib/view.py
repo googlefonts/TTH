@@ -232,11 +232,13 @@ class centralWindow(object):
 		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
 			self.centralWindowLinkSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+			self.TTHToolInstance.changeSelectedStem(self.tthtm.selectedStem)
 		elif self.tthtm.selectedHintingTool == 'Align':
 			self.centralWindowAlignSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		elif self.tthtm.selectedHintingTool == 'Interpolation':
 			self.centralWindowInterpolationSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
 			self.centralWindowDeltaSettings()
 		else:
@@ -260,11 +262,11 @@ class centralWindow(object):
 			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
 
 	def StemTypePopUpButtonCallback(self, sender):
-		self.TTHToolInstance.selectedStem = self.stemTypeList[sender.get()]
-		print self.TTHToolInstance.selectedStem
+		self.TTHToolInstance.changeSelectedStem(self.stemTypeList[sender.get()])
+		#print self.tthtm.selectedStem
 
 	def RoundDistanceCheckBoxCallback(self, sender):
-		self.TTHToolInstance.roundBool = sender.get()
+		self.TTHToolInstance.changeRoundBool(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
 		print sender.get() - 8

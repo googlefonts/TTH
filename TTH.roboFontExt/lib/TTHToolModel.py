@@ -11,8 +11,8 @@ class TTHToolModel():
 
 		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentTypeAlign = 'round'
-		self.selectedAlignmentTypeLink = None
-		self.selectedStem = None
+		self.selectedAlignmentTypeLink = 'none'
+		self.selectedStem = 'none'
 		self.roundBool = 0
 		self.textRenderer = None
 
@@ -57,6 +57,15 @@ class TTHToolModel():
 	def setAlignmentTypeLink(self, alignmentType):
 		if alignmentType in ['none', 'round', 'left', 'right', 'center', 'double']:
 			self.selectedAlignmentTypeLink = alignmentType
+
+	def setStem(self, stem):
+		self.selectedStem = str(stem)
+
+	def setRoundBool(self, roundBool):
+		if roundBool in [0, 1]:
+			self.roundBool = roundBool
+
+
 
 	def showPreviewWindow(self, ShowHide):
 		if ShowHide == 0:

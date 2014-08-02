@@ -132,8 +132,8 @@ class TTHTool(BaseEventTool):
 		#self.bitmapPreviewSelection = 'Monochrome'
 		#self.selectedHintingTool = 'Align'
 		#self.selectedAlignmentType = 'round'
-		self.selectedStem = None
-		self.roundBool = 0
+		#self.selectedStem = None
+		#self.roundBool = 0
 		self.textRenderer = None
 
 	def becomeActive(self):
@@ -256,6 +256,25 @@ class TTHTool(BaseEventTool):
 		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(alignmentType)
 		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
+	def getStemIndex(self, stemName):
+		stemIndex = 0
+		for i in range(len(self.centralWindow.stemTypeList)):
+			if self.centralWindow.stemTypeList[i] == stemName:
+				stemIndex = i
+		return stemIndex
+
+	def changeSelectedStem(self, stemName):
+		self.tthtm.setStem(stemName)
+		stemIndex = self.getStemIndex(stemName)
+		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
+
+	def changeRoundBool(self, roundBool):
+		self.tthtm.setRoundBool(roundBool)
+		self.centralWindow.wCentral.RoundDistanceCheckBox.set(roundBool)
+
+
+
+
 	def showHidePreviewWindow(self, showHide):
 		if showHide == 0:
 			self.previewWindow.hidePreview()
@@ -363,10 +382,10 @@ class TTHTool(BaseEventTool):
 			if self.tthtm.selectedAlignmentTypeLink != 'none':
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
 
-			if self.selectedStem != None and self.selectedStem != 'None':
-				newCommand['stem'] = self.selectedStem
+			if self.tthtm.selectedStem != 'none':
+				newCommand['stem'] = self.tthtm.selectedStem
 
-			if self.roundBool != 0:
+			if self.tthtm.roundBool != 0:
 				newCommand['round'] = 'true'
 
 		if newCommand != {}:
@@ -587,6 +606,8 @@ class TTHTool(BaseEventTool):
 		self.changeSelectedHintingTool(self.tthtm.selectedHintingTool)
 		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+		self.changeSelectedStem(self.tthtm.selectedStem)
+		self.changeRoundBool(self.tthtm.roundBool)
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
