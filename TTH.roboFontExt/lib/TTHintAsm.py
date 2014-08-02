@@ -61,7 +61,6 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			elif TTHCommand['point'] == 'rsb':
 				pointIndex = rsbIndex
 			else:
-				print g.name
 				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
 				pointIndex = pointNameToIndex[TTHCommand['point']]
 
