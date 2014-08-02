@@ -27,7 +27,7 @@ class centralWindow(object):
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 
 		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
-		self.alignmentTypeListLink = ['none', 'round', 'left', 'right', 'center', 'double']
+		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
 
 		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
 		
@@ -179,6 +179,19 @@ class centralWindow(object):
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
 
+	def centralWindowDoubleLinkSettings(self):
+		self.wCentral.AlignmentTypeText.show(False)
+		self.wCentral.AlignmentTypePopUpButton.show(False)
+		self.wCentral.StemTypeText.show(True)
+		self.wCentral.StemTypePopUpButton.show(True)
+		self.wCentral.RoundDistanceText.show(False)
+		self.wCentral.RoundDistanceCheckBox.show(False)
+		self.wCentral.DeltaOffsetText.show(False)
+		self.wCentral.DeltaOffsetSlider.show(False)
+		self.wCentral.DeltaRangeText.show(False)
+		self.wCentral.DeltaRange1EditText.show(False)
+		self.wCentral.DeltaRange2EditText.show(False)
+
 	def centralWindowAlignSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
 		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
@@ -229,10 +242,12 @@ class centralWindow(object):
 		#self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		#self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
-		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
+		if self.tthtm.selectedHintingTool == 'Single Link':
 			self.centralWindowLinkSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 			self.TTHToolInstance.changeSelectedStem(self.tthtm.selectedStem)
+		elif self.tthtm.selectedHintingTool == 'Double Link':
+			self.centralWindowDoubleLinkSettings()
 		elif self.tthtm.selectedHintingTool == 'Align':
 			self.centralWindowAlignSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)

@@ -379,14 +379,30 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
-			if self.tthtm.selectedAlignmentTypeLink != 'none':
+			if self.tthtm.selectedAlignmentTypeLink != 'None':
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
 
-			if self.tthtm.selectedStem != 'none':
+			if self.tthtm.selectedStem != 'None':
 				newCommand['stem'] = self.tthtm.selectedStem
 
 			if self.tthtm.roundBool != 0:
 				newCommand['round'] = 'true'
+
+		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None:
+			if self.tthtm.selectedAxis == 'X':
+				newCommand['code'] = 'doubleh'
+			else:
+				newCommand['code'] = 'doublev'
+
+			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
+			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
+
+			if self.tthtm.selectedStem != 'None':
+				newCommand['stem'] = self.tthtm.selectedStem
+			else:
+				newCommand['round'] = 'true'
+
+
 
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
@@ -513,6 +529,34 @@ class TTHTool(BaseEventTool):
 					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
 					zonesListItems.append((zone, self.zoneAlignmentCallBack))
 				items.append(("Attach to Zone", zonesListItems))
+
+			if clickedCommand['code'] in ['doubleh', 'doublev']:
+				if 'stem' in clickedCommand:
+					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
+				else:
+					distances = []
+
+				stemsHorizontal = []
+				stemsVertical = []
+
+				for name, stem in self.FL_Windows.stems.iteritems():
+					if stem['horizontal'] == True:
+						stemsHorizontal.append(name)
+					else:
+						stemsVertical.append(name)
+
+				if self.tthtm.selectedAxis == 'X':
+					stems = stemsVertical
+				else:
+					stems = stemsHorizontal
+
+				for i in stems:
+					self.distanceCallback = callbackDistance(self, i)
+					distances.append((i, self.distanceCallback))
+
+				items.append(("Distance Alignment", distances))
+
+
 
 			if clickedCommand['code'] in ['singleh', 'singlev']:
 				if 'round' not in clickedCommand:
@@ -1011,13 +1055,15 @@ class TTHTool(BaseEventTool):
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
 
 		extension = ''
-		if 'align' in self.glyphTTHCommands[cmdIndex]:
-			extension = self.glyphTTHCommands[cmdIndex]['align']
+		text = 'R'
+		if 'round' in self.glyphTTHCommands[cmdIndex]:
+			if self.glyphTTHCommands[cmdIndex]['round'] == 'true':
+				if stemName != None:
+					text += '_' + stemName
+		elif stemName != None:
+			text += '_' + stemName
 
-		if stemName == None:
-			self.drawTextAtPoint('D_' + extension, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
-		else:
-			self.drawTextAtPoint('D_' + stemName, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
+		self.drawTextAtPoint(text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
