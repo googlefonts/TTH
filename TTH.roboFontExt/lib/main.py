@@ -168,7 +168,7 @@ class TTHTool(BaseEventTool):
 		return sizeIndex
 
 	def getSize(self):
-		return view.tthtm.PPM_Size
+		return self.tthtm.PPM_Size
 
 	def changeSize(self, size):
 		try:
@@ -176,18 +176,18 @@ class TTHTool(BaseEventTool):
 		except ValueError:
 			size = 9
 
-		view.tthtm.PPM_Size = size
+		self.tthtm.PPM_Size = size
 		sizeIndex = self.getSizeListIndex(size)
 		self.centralWindow.wCentral.PPEMSizePopUpButton.set(sizeIndex)
 		self.centralWindow.wCentral.PPEMSizeEditText.set(size)
 
-		view.tthtm.resetPitch()
+		self.tthtm.resetPitch()
 
 		self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
 	def changeAxis(self, axis):
-		view.tthtm.setAxis(axis)
+		self.tthtm.setAxis(axis)
 		if axis == 'X':
 			axisIndex = 0
 		elif axis == 'Y':
@@ -202,12 +202,12 @@ class TTHTool(BaseEventTool):
 		return previewIndex
 
 	def changeBitmapPreview(self, preview):
-		view.tthtm.setBitmapPreview(preview)
+		self.tthtm.setBitmapPreview(preview)
 		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, preview)
 		previewIndex = self.getPreviewListIndex(preview)
 		self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
-		if view.tthtm.g == None:
+		if self.tthtm.g == None:
 			return
 		self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
@@ -220,7 +220,7 @@ class TTHTool(BaseEventTool):
 		return hintingToolIndex
 
 	def changeSelectedHintingTool(self, hintingTool):
-		view.tthtm.setHintingTool(hintingTool)
+		self.tthtm.setHintingTool(hintingTool)
 		hintingToolIndex = self.getHintingToolIndex(hintingTool)
 		self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
 		if hintingToolIndex == 0:
@@ -247,7 +247,7 @@ class TTHTool(BaseEventTool):
 		return touched_p_glyph
 
 	def isOnCommand(self, p_cursor):
-		if view.tthtm.selectedAxis == 'X':
+		if self.tthtm.selectedAxis == 'X':
 			skipper = ['v','t','b']
 		else:
 			skipper = ['h']
@@ -310,9 +310,9 @@ class TTHTool(BaseEventTool):
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
 
-		if view.tthtm.selectedHintingTool == 'Align' and self.endPoint != None:
+		if self.tthtm.selectedHintingTool == 'Align' and self.endPoint != None:
 			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
-			if view.tthtm.selectedAxis == 'X':
+			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'alignh'
 				newCommand['align'] = self.selectedAlignmentType
 			else:
@@ -326,8 +326,8 @@ class TTHTool(BaseEventTool):
 					newCommand['code'] = 'alignv'
 					newCommand['align'] = self.selectedAlignmentType
 
-		if view.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None:
-			if view.tthtm.selectedAxis == 'X':
+		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None:
+			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
 			else:
 				newCommand['code'] = 'singlev'
@@ -350,7 +350,7 @@ class TTHTool(BaseEventTool):
 
 
 	def deleteCommandCallback(self, item):
-		ttprogram = view.tthtm.g.lib['com.fontlab.ttprogram']
+		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
 		#print 'delete command:', self.commandRightClicked
 		self.glyphTTHCommands.pop(self.commandRightClicked)
 		self.commandLabelPos = {}
@@ -360,7 +360,7 @@ class TTHTool(BaseEventTool):
 			for k, v in child.iteritems():
 				ttc.set(k, v)
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
-		view.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
 		self.updateGlyphProgram()
 
@@ -385,9 +385,9 @@ class TTHTool(BaseEventTool):
 		self.updateGlyphProgram()
 
 	def updateGlyphProgram(self):
-		self.writeGlyphFLTTProgram(view.tthtm.g)
+		self.writeGlyphFLTTProgram(self.tthtm.g)
 
-		TTHintAsm.writeAssembly(view.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateMiniTempFont()
 		self.mergeMiniAndFullTempFonts()
@@ -490,7 +490,7 @@ class TTHTool(BaseEventTool):
 					else:
 						stemsVertical.append(name)
 
-				if view.tthtm.selectedAxis == 'X':
+				if self.tthtm.selectedAxis == 'X':
 					stems = stemsVertical
 				else:
 					stems = stemsHorizontal
@@ -536,19 +536,19 @@ class TTHTool(BaseEventTool):
 		self.allFonts = loadFonts()
 		if not self.allFonts:
 			return
-		view.tthtm.setFont(loadCurrentFont(self.allFonts))
-		view.tthtm.resetPitch()
+		self.tthtm.setFont(loadCurrentFont(self.allFonts))
+		self.tthtm.resetPitch()
 		self.selectedAlignmentType = 'round'
 
 		if createWindows:
-			self.FL_Windows = fl_tth.FL_TTH_Windows(view.tthtm.f, self)
+			self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
 			self.previewWindow = view.previewWindow(self, self.tthtm)
 
-		tt_tables.writeCVTandPREP(view.tthtm.f, view.tthtm.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
-		tt_tables.writeFPGM(view.tthtm.f)
+		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
+		tt_tables.writeFPGM(self.tthtm.f)
 
-		for g in view.tthtm.f:
+		for g in self.tthtm.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if glyphTTHCommands != None:
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
@@ -556,48 +556,48 @@ class TTHTool(BaseEventTool):
 		self.generateFullTempFont()
 		self.indexOfGlyphNames = dict([(self.fullTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.fullTempUFO.lib['public.glyphOrder']))])
 
-		self.changeSize(view.tthtm.PPM_Size)
-		self.changeAxis(view.tthtm.selectedAxis)
-		self.changeBitmapPreview(view.tthtm.bitmapPreviewSelection)
-		self.changeSelectedHintingTool(view.tthtm.selectedHintingTool)
-		self.showHidePreviewWindow(view.tthtm.previewWindowVisible)
+		self.changeSize(self.tthtm.PPM_Size)
+		self.changeAxis(self.tthtm.selectedAxis)
+		self.changeBitmapPreview(self.tthtm.bitmapPreviewSelection)
+		self.changeSelectedHintingTool(self.tthtm.selectedHintingTool)
+		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
 	def resetglyph(self):
-		view.tthtm.setGlyph(CurrentGlyph())
-		if view.tthtm.g == None:
+		self.tthtm.setGlyph(CurrentGlyph())
+		if self.tthtm.g == None:
 			return
 
-		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, view.tthtm.bitmapPreviewSelection)
+		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
-		glyphTTHCommands = self.readGlyphFLTTProgram(view.tthtm.g)
+		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		self.commandLabelPos = {}
-		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(view.tthtm.g)
-		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(view.tthtm.g)
-		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(view.tthtm.g)
+		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
+		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
+		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.tthtm.g)
 		#print 'full temp font loaded'
 		self.ready = True
 		self.previewWindow.view.setNeedsDisplay_(True)
 
-		self.p_glyphList = ([(0, 0), (view.tthtm.g.width, 0)])
+		self.p_glyphList = ([(0, 0), (self.tthtm.g.width, 0)])
 
-		for c in view.tthtm.g:
+		for c in self.tthtm.g:
 			for p in c.points:
 				if p.type != 'offCurve':
 					self.p_glyphList.append((p.x, p.y))
 
 
 	def generateFullTempFont(self):
-		root = os.path.split(view.tthtm.f.path)[0]
+		root = os.path.split(self.tthtm.f.path)[0]
 		tail = 'Fulltemp.ttf'
 		self.fulltempfontpath = os.path.join(root, tail)
 
-		view.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
 		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
-		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, view.tthtm.bitmapPreviewSelection)
+		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 	def generateMiniTempFont(self):
-		root = os.path.split(view.tthtm.f.path)[0]
+		root = os.path.split(self.tthtm.f.path)[0]
 		tail = 'Minitemp.ttf'
 		self.tempfontpath = os.path.join(root, tail)
 
@@ -620,22 +620,22 @@ class TTHTool(BaseEventTool):
 			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
 		
 
-		tempFont.newGlyph(view.tthtm.g.name)
-		tempFont[view.tthtm.g.name] = view.tthtm.g
-		if 'com.robofont.robohint.assembly' in view.tthtm.g.lib:
-			tempFont[view.tthtm.g.name].lib['com.robofont.robohint.assembly'] = view.tthtm.g.lib['com.robofont.robohint.assembly']
+		tempFont.newGlyph(self.tthtm.g.name)
+		tempFont[self.tthtm.g.name] = self.tthtm.g
+		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib:
+			tempFont[self.tthtm.g.name].lib['com.robofont.robohint.assembly'] = self.tthtm.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'mini font generated'
 
 	def mergeMiniAndFullTempFonts(self):
-		root = os.path.split(view.tthtm.f.path)[0]
+		root = os.path.split(self.tthtm.f.path)[0]
 		tail = 'tempTemp.ttf'
 		tempTempfontpath = os.path.join(root, tail)
 
 		ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 		ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
-		gName = view.tthtm.g.name
+		gName = self.tthtm.g.name
 		ttFull['glyf'][gName] = ttMini['glyf'][gName]
 		ttFull.save(tempTempfontpath)
 		os.remove(self.fulltempfontpath)
@@ -844,7 +844,7 @@ class TTHTool(BaseEventTool):
 		x = None
 		y = None
 		if pointID != 'lsb' and pointID != 'rsb':
-			for contour in view.tthtm.g:
+			for contour in self.tthtm.g:
 				for point in contour.points:
 					if point.naked().uniqueID == pointID:
 						x = point.x
@@ -852,7 +852,7 @@ class TTHTool(BaseEventTool):
 		elif pointID == 'lsb':
 			x, y = 0, 0
 		elif pointID == 'rsb':
-			x, y = view.tthtm.g.width, 0
+			x, y = self.tthtm.g.width, 0
 
 		self.drawArrowAtPoint(scale, 10, angle, x, y)
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
@@ -864,9 +864,9 @@ class TTHTool(BaseEventTool):
 		extension = ''
 		text = 'A'
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
-			if view.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
+			if self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
 				extension = 'top'
-			elif view.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
+			elif self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
 				extension = 'bottom'
 			else:
 				extension = self.glyphTTHCommands[cmdIndex]['align']
@@ -915,9 +915,9 @@ class TTHTool(BaseEventTool):
 
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
-			if view.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
+			if self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
 				extension = 'top'
-			elif view.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
+			elif self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
 				extension = 'bottom'
 			else:
 				extension = self.glyphTTHCommands[cmdIndex]['align']
@@ -1009,7 +1009,7 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
-	 	path.lineToPoint_((point[0]+ (value[0]/8)*view.tthtm.pitch, point[1] + (value[1]/8)*view.tthtm.pitch))
+	 	path.lineToPoint_((point[0]+ (value[0]/8)*self.tthtm.pitch, point[1] + (value[1]/8)*self.tthtm.pitch))
 
 	 	deltacolor.set()
 		path.setLineWidth_(scale)
@@ -1031,7 +1031,7 @@ class TTHTool(BaseEventTool):
 
 	def drawSideBearings(self, scale, char):
 		try:
-			xPos = view.tthtm.pitch * self.textRenderer.get_char_advance(char)[0] / 64
+			xPos = self.tthtm.pitch * self.textRenderer.get_char_advance(char)[0] / 64
 		except:
 			return
 		pathX = NSBezierPath.bezierPath()
@@ -1058,7 +1058,7 @@ class TTHTool(BaseEventTool):
 
 		# replace @ by current glyph
 		#text = self.previewWindow.previewString.replace('@', curGlyphString)
-		text = view.tthtm.previewString.replace('@', curGlyphString)
+		text = self.tthtm.previewString.replace('@', curGlyphString)
 
 		# replace /name pattern
 		sp = text.split('/')
@@ -1071,7 +1071,7 @@ class TTHTool(BaseEventTool):
 
 		# render user string
 		if self.textRenderer:
-			self.textRenderer.set_cur_size(view.tthtm.PPM_Size)
+			self.textRenderer.set_cur_size(self.tthtm.PPM_Size)
 			self.textRenderer.set_pen((10, 50))
 			self.textRenderer.render_text(text)
 
@@ -1084,23 +1084,23 @@ class TTHTool(BaseEventTool):
 				advance += delta_pos[0] + 5
 
 	def drawBackground(self, scale):
-		if view.tthtm.g == None:
+		if self.tthtm.g == None:
 			return
 
 		curChar = unichr(CurrentGlyph().unicode)
 		
-		self.textRenderer.set_cur_size(view.tthtm.PPM_Size)
+		self.textRenderer.set_cur_size(self.tthtm.PPM_Size)
 		self.textRenderer.set_pen((0, 0))
-		self.textRenderer.render_text_with_scale_and_alpha(curChar, view.tthtm.pitch, 0.4)
+		self.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0)
-		self.drawDiscAtPoint(r, view.tthtm.g.width, 0)
+		self.drawDiscAtPoint(r, self.tthtm.g.width, 0)
 
-		self.drawGrid(scale, view.tthtm.pitch)
+		self.drawGrid(scale, self.tthtm.pitch)
 		self.drawZones(scale)
 
-		self.textRenderer.drawOutline(scale, view.tthtm.pitch, curChar)
+		self.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
 		self.drawSideBearings(scale, curChar)
 
 	def draw(self, scale):
@@ -1128,38 +1128,38 @@ class TTHTool(BaseEventTool):
 				if cmd_code == 'alignh':
 					angle = 180
 				if cmd_pt in ['lsb', 'rsb']:
-					if cmd_code in ['alignv', 'alignt', 'alignb'] and view.tthtm.selectedAxis == 'Y':
+					if cmd_code in ['alignv', 'alignt', 'alignb'] and self.tthtm.selectedAxis == 'Y':
 						self.drawAlign(scale, cmd_pt, angle, cmdIndex)
-					elif cmd_code == 'alignh' and view.tthtm.selectedAxis == 'X':
+					elif cmd_code == 'alignh' and self.tthtm.selectedAxis == 'X':
 						self.drawAlign(scale, cmd_pt, angle, cmdIndex)
-				elif cmd_code in ['alignv', 'alignt', 'alignb'] and view.tthtm.selectedAxis == 'Y':
+				elif cmd_code in ['alignv', 'alignt', 'alignb'] and self.tthtm.selectedAxis == 'Y':
 					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle, cmdIndex)
-				elif cmd_code == 'alignh' and view.tthtm.selectedAxis == 'X':
+				elif cmd_code == 'alignh' and self.tthtm.selectedAxis == 'X':
 					self.drawAlign(scale, self.pointNameToUniqueID[cmd_pt], angle, cmdIndex)
 
 			if cmd_code in ['singleh', 'singlev', 'doubleh', 'doublev']:
 				if cmd_pt1 == 'lsb':
 					startPoint = (0, 0)
 				elif cmd_pt1== 'rsb':
-					startPoint = (0, view.tthtm.g.width)
+					startPoint = (0, self.tthtm.g.width)
 				else:
 					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
 
 				if cmd_pt2 == 'lsb':
 					endPoint = (0, 0)
 				elif cmd_pt2 == 'rsb':
-					endPoint = (view.tthtm.g.width, 0)
+					endPoint = (self.tthtm.g.width, 0)
 				else:
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
 				if cmd_code in ['doubleh', 'doublev']:
-					if view.tthtm.selectedAxis == 'X' and cmd_code == 'doubleh':
+					if self.tthtm.selectedAxis == 'X' and cmd_code == 'doubleh':
 						self.drawDoubleLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
-					elif view.tthtm.selectedAxis == 'Y' and cmd_code == 'doublev':
+					elif self.tthtm.selectedAxis == 'Y' and cmd_code == 'doublev':
 						self.drawDoubleLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
-				elif view.tthtm.selectedAxis == 'X' and cmd_code == 'singleh':
+				elif self.tthtm.selectedAxis == 'X' and cmd_code == 'singleh':
 					self.drawLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
-				elif view.tthtm.selectedAxis == 'Y' and cmd_code == 'singlev':
+				elif self.tthtm.selectedAxis == 'Y' and cmd_code == 'singlev':
 					self.drawLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
 
 			if cmd_code in ['interpolateh', 'interpolatev']:
@@ -1167,27 +1167,27 @@ class TTHTool(BaseEventTool):
 				if cmd_pt == 'lsb':
 					middlePoint = (0, 0)
 				elif cmd_pt== 'rsb':
-					middlePoint = (0, view.tthtm.g.width)
+					middlePoint = (0, self.tthtm.g.width)
 				else:
 					middlePoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
 
 				if cmd_pt1 == 'lsb':
 					startPoint = (0, 0)
 				elif cmd_pt1== 'rsb':
-					startPoint = (0, view.tthtm.g.width)
+					startPoint = (0, self.tthtm.g.width)
 				else:
 					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
 
 				if cmd_pt2 == 'lsb':
 					endPoint = (0, 0)
 				elif cmd_pt2 == 'rsb':
-					endPoint = (view.tthtm.g.width, 0)
+					endPoint = (self.tthtm.g.width, 0)
 				else:
 					endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
 
-				if view.tthtm.selectedAxis == 'X' and cmd_code == 'interpolateh':
+				if self.tthtm.selectedAxis == 'X' and cmd_code == 'interpolateh':
 					self.drawInterpolate(scale, startPoint, endPoint, middlePoint, cmdIndex)
-				elif view.tthtm.selectedAxis == 'Y' and cmd_code == 'interpolatev':
+				elif self.tthtm.selectedAxis == 'Y' and cmd_code == 'interpolatev':
 					self.drawInterpolate(scale, startPoint, endPoint, middlePoint, cmdIndex)
 
 			if cmd_code in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
@@ -1195,7 +1195,7 @@ class TTHTool(BaseEventTool):
 				if cmd_pt == 'lsb':
 					point = (0, 0)
 				elif cmd_pt== 'rsb':
-					point = (view.tthtm.g.width, 0)
+					point = (self.tthtm.g.width, 0)
 				else:
 					point = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
 
@@ -1206,10 +1206,10 @@ class TTHTool(BaseEventTool):
 				else:
 					value = 0
 
-				if int(view.tthtm.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
-					if view.tthtm.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
+				if int(self.tthtm.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
+					if self.tthtm.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
 						self.drawDelta(scale, point, value, cmdIndex)
-					elif view.tthtm.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
+					elif self.tthtm.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
 						self.drawDelta(scale, point, value, cmdIndex)
 
 
