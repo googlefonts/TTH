@@ -5,6 +5,7 @@ import preview
 class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
+		self.tthtm = TTHToolInstance.tthtm
 		self.wCentral = FloatingWindow((10, 30, 200, 600), "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
@@ -33,7 +34,7 @@ class centralWindow(object):
 		self.wCentral.PPEMSizeEditText = EditText((110, 8, 30, 19), sizeStyle = "small", 
 				callback=self.PPEMSizeEditTextCallback)
 
-		self.wCentral.PPEMSizeEditText.set(tthtm.PPM_Size)
+		self.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 		
 		self.wCentral.PPEMSizePopUpButton = PopUpButton((150, 10, 40, 14),
 				self.PPMSizesList, sizeStyle = "small",
@@ -98,10 +99,10 @@ class centralWindow(object):
 		self.wCentral.PreviewHideButton = SquareButton((10, -98, -10, 22), "Hide Preview", sizeStyle = 'small', 
 				callback=self.PreviewHideButtonCallback)
 
-		if tthtm.previewWindowVisible == 0:
+		if self.tthtm.previewWindowVisible == 0:
 			self.wCentral.PreviewHideButton.show(False)
 			self.wCentral.PreviewShowButton.show(True)
-		elif tthtm.previewWindowVisible == 1:
+		elif self.tthtm.previewWindowVisible == 1:
 			self.wCentral.PreviewHideButton.show(True)
 			self.wCentral.PreviewShowButton.show(False)
 
@@ -133,7 +134,7 @@ class centralWindow(object):
 		self.TTHToolInstance.changeSize(sender.get())
 
 	def PPEMSizePopUpButtonCallback(self, sender):
-		if tthtm.g == None:
+		if self.tthtm.g == None:
 			return
 		size = self.PPMSizesList[sender.get()]
 		self.TTHToolInstance.changeSize(size)
@@ -155,7 +156,7 @@ class centralWindow(object):
 			else:
 				self.stemsVertical.append(name)
 
-		if tthtm.selectedAxis == 'X':
+		if self.tthtm.selectedAxis == 'X':
 			self.stemTypeList.extend(self.stemsVertical)
 		else:
 			self.stemTypeList.extend(self.stemsHorizontal)
@@ -225,14 +226,14 @@ class centralWindow(object):
 
 	def HintingToolPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
-		#print tthtm.selectedHintingTool
-		if tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
+		#print self.tthtm.selectedHintingTool
+		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link']:
 			self.centralWindowLinkSettings()
-		elif tthtm.selectedHintingTool == 'Align':
+		elif self.tthtm.selectedHintingTool == 'Align':
 			self.centralWindowAlignSettings()
-		elif tthtm.selectedHintingTool == 'Interpolation':
+		elif self.tthtm.selectedHintingTool == 'Interpolation':
 			self.centralWindowInterpolationSettings()
-		elif tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+		elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
 			self.centralWindowDeltaSettings()
 		else:
 			self.wCentral.AlignmentTypeText.show(False)
@@ -249,9 +250,9 @@ class centralWindow(object):
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
-		if tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
+		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
 			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeListLink[sender.get()]
-		elif tthtm.selectedHintingTool == 'Align':
+		elif self.tthtm.selectedHintingTool == 'Align':
 			self.TTHToolInstance.selectedAlignmentType = self.alignmentTypeList[sender.get()]
 		#print self.TTHToolInstance.selectedAlignmentType
 
@@ -272,7 +273,7 @@ class centralWindow(object):
 		print sender.get()
 
 	def ReadTTProgramButtonCallback(self, sender):
-		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(tthtm.g)
+		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
 		for i in FLTTProgram:
 			print i
 
@@ -280,13 +281,13 @@ class centralWindow(object):
 		self.wCentral.PreviewHideButton.show(True)
 		self.wCentral.PreviewShowButton.show(False)
 		self.TTHToolInstance.previewWindow.showPreview()
-		tthtm.showPreviewWindow(1)
+		self.tthtm.showPreviewWindow(1)
 
 	def PreviewHideButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(False)
 		self.wCentral.PreviewShowButton.show(True)
 		self.TTHToolInstance.previewWindow.hidePreview()
-		tthtm.showPreviewWindow(0)
+		self.tthtm.showPreviewWindow(0)
 
 	def GeneralShowButtonCallback(self, sender):
 		self.wCentral.GeneralHideButton.show(True)
@@ -322,7 +323,7 @@ class centralWindow(object):
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
-		#self.previewString = tthtm.previewString
+		self.tthtm = TTHToolInstance.tthtm
 
 		self.wPreview = FloatingWindow((210, 600, 600, 200), "Preview", closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
@@ -330,7 +331,7 @@ class previewWindow(object):
 		self.view.setFrame_(((0, 0), (1500, 160)))
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
-		self.wPreview.previewEditText.set(tthtm.previewString)
+		self.wPreview.previewEditText.set(self.tthtm.previewString)
 		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -10),
 				self.view)
 
