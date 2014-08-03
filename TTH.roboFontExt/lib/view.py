@@ -162,6 +162,12 @@ class centralWindow(object):
 			self.stemTypeList.extend(self.stemsHorizontal)
 
 		self.wCentral.StemTypePopUpButton.setItems(self.stemTypeList)
+
+		if self.tthtm.selectedAxis == 'X':
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+		else:
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+
 		UpdateCurrentGlyphView()
 
 	def centralWindowLinkSettings(self):
@@ -245,9 +251,16 @@ class centralWindow(object):
 		if self.tthtm.selectedHintingTool == 'Single Link':
 			self.centralWindowLinkSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-			self.TTHToolInstance.changeSelectedStem(self.tthtm.selectedStem)
+			if self.tthtm.selectedAxis == 'X':
+				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+			else:
+				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 		elif self.tthtm.selectedHintingTool == 'Double Link':
 			self.centralWindowDoubleLinkSettings()
+			if self.tthtm.selectedAxis == 'X':
+				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+			else:
+				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 		elif self.tthtm.selectedHintingTool == 'Align':
 			self.centralWindowAlignSettings()
 			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
@@ -277,8 +290,10 @@ class centralWindow(object):
 			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
 
 	def StemTypePopUpButtonCallback(self, sender):
-		self.TTHToolInstance.changeSelectedStem(self.stemTypeList[sender.get()])
-		#print self.tthtm.selectedStem
+		if self.tthtm.selectedAxis == 'X':
+			self.TTHToolInstance.changeSelectedStemX(self.stemTypeList[sender.get()])
+		else:
+			self.TTHToolInstance.changeSelectedStemY(self.stemTypeList[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
 		self.TTHToolInstance.changeRoundBool(sender.get())

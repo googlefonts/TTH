@@ -230,7 +230,8 @@ class TTHTool(BaseEventTool):
 		if hintingToolIndex in [1, 2]:
 			self.centralWindow.centralWindowLinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-			self.changeSelectedStem(self.tthtm.selectedStem)
+			self.changeSelectedStemX(self.tthtm.selectedStemX)
+			self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 			
 		if hintingToolIndex == 3:
@@ -269,8 +270,13 @@ class TTHTool(BaseEventTool):
 				stemIndex = i
 		return stemIndex
 
-	def changeSelectedStem(self, stemName):
-		self.tthtm.setStem(stemName)
+	def changeSelectedStemX(self, stemName):
+		self.tthtm.setStemX(stemName)
+		stemIndex = self.getStemIndex(stemName)
+		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
+
+	def changeSelectedStemY(self, stemName):
+		self.tthtm.setStemY(stemName)
 		stemIndex = self.getStemIndex(stemName)
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
@@ -352,7 +358,7 @@ class TTHTool(BaseEventTool):
 	def mouseUp(self, point):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
-		print 'glyph end point:', self.endPoint
+		#print 'glyph end point:', self.endPoint
 		if self.endPoint == None:
 				return
 
@@ -378,16 +384,19 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
+				if self.tthtm.selectedStemX != 'None':
+					newCommand['stem'] = self.tthtm.selectedStemX
 			else:
 				newCommand['code'] = 'singlev'
+				if self.tthtm.selectedStemY != 'None':
+					newCommand['stem'] = self.tthtm.selectedStemY
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 			if self.tthtm.selectedAlignmentTypeLink != 'None':
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
 
-			if self.tthtm.selectedStem != 'None':
-				newCommand['stem'] = self.tthtm.selectedStem
+			
 
 			if self.tthtm.roundBool != 0:
 				newCommand['round'] = 'true'
@@ -395,16 +404,21 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'doubleh'
+				if self.tthtm.selectedStemX != 'None':
+					newCommand['stem'] = self.tthtm.selectedStemX
+				else:
+					newCommand['round'] = 'true'
 			else:
 				newCommand['code'] = 'doublev'
+				if self.tthtm.selectedStemY != 'None':
+					newCommand['stem'] = self.tthtm.selectedStemY
+				else:
+					newCommand['round'] = 'true'
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 
-			if self.tthtm.selectedStem != 'None':
-				newCommand['stem'] = self.tthtm.selectedStem
-			else:
-				newCommand['round'] = 'true'
+			
 
 
 
@@ -654,7 +668,8 @@ class TTHTool(BaseEventTool):
 		self.changeSelectedHintingTool(self.tthtm.selectedHintingTool)
 		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		self.changeSelectedStem(self.tthtm.selectedStem)
+		self.changeSelectedStemX(self.tthtm.selectedStemX)
+		self.changeSelectedStemY(self.tthtm.selectedStemY)
 		self.changeRoundBool(self.tthtm.roundBool)
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
@@ -932,8 +947,8 @@ class TTHTool(BaseEventTool):
 		NSColor.colorWithRed_green_blue_alpha_(1, 1, 1, .5).set()
 		pathArrow.stroke()
 
-	def drawDiscAtPoint(self, r, x, y):
-		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
+	def drawDiscAtPoint(self, r, x, y, color):
+		NSColor.colorWithRed_green_blue_alpha_(color[0], color[1], color[2], color[3]).set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
 	def drawAlign(self, scale, pointID, angle, cmdIndex):
@@ -1193,8 +1208,8 @@ class TTHTool(BaseEventTool):
 		self.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
 
 		r = 5*scale
-		self.drawDiscAtPoint(r, 0, 0)
-		self.drawDiscAtPoint(r, self.tthtm.g.width, 0)
+		self.drawDiscAtPoint(r, 0, 0, (1, 0, 0, 1))
+		self.drawDiscAtPoint(r, self.tthtm.g.width, 0, (1, 0, 0, 1))
 
 		self.drawGrid(scale, self.tthtm.pitch)
 		self.drawZones(scale)
@@ -1207,12 +1222,12 @@ class TTHTool(BaseEventTool):
 			if self.startPoint != None:
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
-				self.drawDiscAtPoint(5*scale, x_start, y_start)
+				self.drawDiscAtPoint(5*scale, x_start, y_start, (0, 0, 1, 1))
 			touchedEnd = self.isOnPoint(self.currentPoint)
 			if touchedEnd != None:
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
-				self.drawDiscAtPoint(5*scale, x_end, y_end)
+				self.drawDiscAtPoint(5*scale, x_end, y_end, (0, 0, 1, 1))
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):

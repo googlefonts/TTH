@@ -12,7 +12,8 @@ class TTHToolModel():
 		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentTypeAlign = 'round'
 		self.selectedAlignmentTypeLink = 'None'
-		self.selectedStem = 'None'
+		self.selectedStemX = 'None'
+		self.selectedStemY = 'None'
 		self.roundBool = 0
 		self.textRenderer = None
 
@@ -58,8 +59,11 @@ class TTHToolModel():
 		if alignmentType in ['None', 'round', 'left', 'right', 'center', 'double']:
 			self.selectedAlignmentTypeLink = alignmentType
 
-	def setStem(self, stem):
-		self.selectedStem = str(stem)
+	def setStemX(self, stem):
+		self.selectedStemX = str(stem)
+
+	def setStemY(self, stem):
+		self.selectedStemY = str(stem)
 
 	def setRoundBool(self, roundBool):
 		if roundBool in [0, 1]:
