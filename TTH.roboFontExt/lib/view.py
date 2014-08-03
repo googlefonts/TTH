@@ -297,6 +297,9 @@ class centralWindow(object):
 		for i in FLTTProgram:
 			print i
 
+		for i in self.tthtm.g.lib['com.robofont.robohint.assembly']:
+			print i
+
 	def PreviewShowButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(True)
 		self.wCentral.PreviewShowButton.show(False)

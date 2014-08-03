@@ -225,8 +225,14 @@ class TTHTool(BaseEventTool):
 		self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
 		if hintingToolIndex == 0:
 			self.centralWindow.centralWindowAlignSettings()
+			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+			
 		if hintingToolIndex in [1, 2]:
 			self.centralWindow.centralWindowLinkSettings()
+			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+			self.changeSelectedStem(self.tthtm.selectedStem)
+			self.changeRoundBool(self.tthtm.roundBool)
+			
 		if hintingToolIndex == 3:
 			self.centralWindow.centralWindowInterpolationSettings()
 		if hintingToolIndex in [4, 5]:
@@ -335,8 +341,6 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
-		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
