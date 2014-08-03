@@ -964,6 +964,17 @@ class TTHTool(BaseEventTool):
 		NSColor.colorWithRed_green_blue_alpha_(color[0], color[1], color[2], color[3]).set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
+	def drawLozengeAtPoint(self, scale, r, x, y, color):
+		NSColor.colorWithRed_green_blue_alpha_(color[0], color[1], color[2], color[3]).set()
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_((x+r*5, y))
+		path.lineToPoint_((x, y+r*5))
+		path.lineToPoint_((x-r*5, y))
+		path.lineToPoint_((x, y-r*5))
+		path.lineToPoint_((x+r*5, y))
+		#path.setLineWidth_(scale)
+		path.fill()
+
 	def drawAlign(self, scale, pointID, angle, cmdIndex):
 
 		x = None
@@ -1001,7 +1012,7 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
-		self.drawTextAtPoint(text, x + 10, y - 10, NSColor.blueColor())
+		self.drawTextAtPoint(text, x + 10*scale, y - 10*scale, NSColor.blueColor())
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -1235,12 +1246,12 @@ class TTHTool(BaseEventTool):
 			if self.startPoint != None:
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
-				self.drawDiscAtPoint(5*scale, x_start, y_start, (0, 0, 1, 1))
+				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start, (0/255, 180/255, 50/255, 1))
 			touchedEnd = self.isOnPoint(self.currentPoint)
 			if touchedEnd != None:
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
-				self.drawDiscAtPoint(5*scale, x_end, y_end, (0, 0, 1, 1))
+				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end, (0/255, 180/255, 50/255, 1))
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):

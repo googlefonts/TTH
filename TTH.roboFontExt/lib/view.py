@@ -18,11 +18,6 @@ class centralWindow(object):
 			self.stemTypeList = self.tthtm.stemsListX
 		else:
 			self.stemTypeList = self.tthtm.stemsListY
-		#self.stemsVertical = []
-		# for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
-		# 	if stem['horizontal'] == False:
-		# 		self.stemsVertical.append(name)
-		# self.stemTypeList.extend(self.stemsVertical)
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
