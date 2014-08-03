@@ -263,29 +263,41 @@ class TTHTool(BaseEventTool):
 		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(alignmentType)
 		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
-	def getStemIndex(self, stemName):
+	def getStemIndex(self, stemName, axis):
 		stemIndex = 0
-		for i in range(len(self.centralWindow.stemTypeList)):
-			if self.centralWindow.stemTypeList[i] == stemName:
+		if axis == 'X':
+			stemsList = self.tthtm.stemsListX
+		else:
+			stemsList = self.tthtm.stemsListY
+
+		for i in range(len(stemsList)):
+			if stemsList[i] == stemName:
 				stemIndex = i
 		return stemIndex
 
 	def changeSelectedStemX(self, stemName):
 		self.tthtm.setStemX(stemName)
-		stemIndex = self.getStemIndex(stemName)
+		stemIndex = self.getStemIndex(stemName, 'X')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeSelectedStemY(self, stemName):
 		self.tthtm.setStemY(stemName)
-		stemIndex = self.getStemIndex(stemName)
+		stemIndex = self.getStemIndex(stemName, 'Y')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeRoundBool(self, roundBool):
 		self.tthtm.setRoundBool(roundBool)
 		self.centralWindow.wCentral.RoundDistanceCheckBox.set(roundBool)
 
+	def makeStemsListsPopUpMenu(self):
+		self.tthtm.stemsListX = ['None']
+		self.tthtm.stemsListY = ['None']
 
-
+		for name, stem in self.FL_Windows.stems.iteritems():
+			if stem['horizontal'] == True:
+				self.tthtm.stemsListY.append(name)
+			else:
+				self.tthtm.stemsListX.append(name)
 
 	def showHidePreviewWindow(self, showHide):
 		if showHide == 0:
@@ -417,10 +429,6 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
-
-			
-
-
 
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
@@ -668,8 +676,13 @@ class TTHTool(BaseEventTool):
 		self.changeSelectedHintingTool(self.tthtm.selectedHintingTool)
 		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		self.changeSelectedStemX(self.tthtm.selectedStemX)
-		self.changeSelectedStemY(self.tthtm.selectedStemY)
+		self.makeStemsListsPopUpMenu()
+		if self.tthtm.selectedAxis == 'X':
+			self.centralWindow.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+			self.changeSelectedStemX(self.tthtm.selectedStemX)
+		else:
+			self.centralWindow.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+			self.changeSelectedStemY(self.tthtm.selectedStemY)
 		self.changeRoundBool(self.tthtm.roundBool)
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)

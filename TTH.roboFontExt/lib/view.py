@@ -14,12 +14,15 @@ class centralWindow(object):
 							'41', '42', '43', '44', '45', '46', '47', '48', '60', '72' ]
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
-		self.stemTypeList = ['None']
-		self.stemsVertical = []
-		for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
-			if stem['horizontal'] == False:
-				self.stemsVertical.append(name)
-		self.stemTypeList.extend(self.stemsVertical)
+		if self.tthtm.selectedAxis == 'X':
+			self.stemTypeList = self.tthtm.stemsListX
+		else:
+			self.stemTypeList = self.tthtm.stemsListY
+		#self.stemsVertical = []
+		# for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
+		# 	if stem['horizontal'] == False:
+		# 		self.stemsVertical.append(name)
+		# self.stemTypeList.extend(self.stemsVertical)
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
@@ -144,28 +147,13 @@ class centralWindow(object):
 
 	def AxisPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.changeAxis(self.axisList[sender.get()])
-		#tthtm.selectedAxis = self.axisList[sender.get()]
-
-		self.stemTypeList = ['None']
-		self.stemsHorizontal = []
-		self.stemsVertical = []
-
-		for name, stem in self.TTHToolInstance.FL_Windows.stems.iteritems():
-			if stem['horizontal'] == True:
-				self.stemsHorizontal.append(name)
-			else:
-				self.stemsVertical.append(name)
+		self.TTHToolInstance.makeStemsListsPopUpMenu()
 
 		if self.tthtm.selectedAxis == 'X':
-			self.stemTypeList.extend(self.stemsVertical)
-		else:
-			self.stemTypeList.extend(self.stemsHorizontal)
-
-		self.wCentral.StemTypePopUpButton.setItems(self.stemTypeList)
-
-		if self.tthtm.selectedAxis == 'X':
+			self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 		else:
+			self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 
 		UpdateCurrentGlyphView()
@@ -291,9 +279,9 @@ class centralWindow(object):
 
 	def StemTypePopUpButtonCallback(self, sender):
 		if self.tthtm.selectedAxis == 'X':
-			self.TTHToolInstance.changeSelectedStemX(self.stemTypeList[sender.get()])
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.stemsListX[sender.get()])
 		else:
-			self.TTHToolInstance.changeSelectedStemY(self.stemTypeList[sender.get()])
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.stemsListY[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
 		self.TTHToolInstance.changeRoundBool(sender.get())

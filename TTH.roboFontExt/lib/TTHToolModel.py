@@ -14,6 +14,9 @@ class TTHToolModel():
 		self.selectedAlignmentTypeLink = 'None'
 		self.selectedStemX = 'None'
 		self.selectedStemY = 'None'
+		self.stemsListX = []
+		self.stemsListY = []
+
 		self.roundBool = 0
 		self.textRenderer = None
 
