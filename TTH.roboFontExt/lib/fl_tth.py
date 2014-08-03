@@ -59,6 +59,101 @@ def invertedDictionary( dico ):
 #			print '--------------'
 #		print 'do not execute instructions above:', self.FL_codeppm
 
+class ZoneView(object):
+	def __init__(self, controller, height, title, ID, UIZones):
+		self.lock = False
+		self.ID = ID
+		self.controller = controller
+		self.UIZones = UIZones
+		self.zonesTitle = TextBox((10, height-24, 70, 14), title, sizeStyle = "small")
+		self.box = Box((10, height, 330, 132))
+		controller.wZones.__setattr__(ID + 'ZoneViewTitle', self.zonesTitle)
+		controller.wZones.__setattr__(ID + 'ZoneViewBox', self.box)
+		box = self.box
+		box.zones_List = List((0, 0, -0, 100), self.UIZones,
+			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
+					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
+			#selectionCallback=self.UIZones_SelectionCallback,
+			editCallback=self.UIZones_EditCallBack )
+		box.buttonRemoveZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
+		box.editTextZoneName = EditText(    (22, 100, 100, 22),				callback=self.editTextZoneDummyCallback)
+		box.editTextZonePosition = EditText(    (122, 100, 50, 22),			callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneWidth = EditText(    (172, 100, 50, 22),			callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneDelta = EditText(    (222, 100, 78, 22),			callback=self.editTextZoneDummyCallback)
+		box.buttonAddZone     = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
+
+	def UIZones_EditCallBack(self, sender):
+		if self.lock or (sender.getSelection() == []):
+			return
+		self.lock = True
+		selection = sender.getSelection()
+		sender.setSelection([])
+		sel = selection[0]
+		try:
+			oldZoneName = self.UIZones[sel]['Name']
+		except:
+			oldZoneName = "" # probably a new zone was created
+			print("ERROR SHOULD NEVER HAPPEN in fl_tth.UIZones_EditCallBack")
+
+		zoneDict = sender[sel]
+
+		if 'Name' in zoneDict:
+			zoneName = zoneDict['Name']
+		else:
+			zoneName = self.ID + '_' + str(sel)
+			sender[sel]['Name'] = zoneName
+
+		print("Original zone name = ", oldZoneName, ", new zone name = ", zoneName)
+		if oldZoneName != zoneName:
+			if zoneName in self.controller.zones:
+				print("ERROR: Can't use an already existing name.")
+				zoneName = oldZoneName
+				sender[sel]['Name'] = zoneName
+				self.lock = False
+				return
+			else:
+				del self.controller.zones[oldZoneName]
+		self.UIZones[sel] = sender[sel]
+		self.controller.EditZone(oldZoneName, zoneName, zoneDict, self.ID == 'top')
+		self.lock = False
+
+	def buttonRemoveZoneCallback(self, sender):
+		UIList = self.box.zones_List
+		selection = UIList.getSelection()
+		UIList.setSelection([])
+		selected = [UIList[i]['Name'] for i in selection]
+		self.controller.deleteZones(selected, self)
+
+	def editTextZoneDummyCallback(self, sender):
+		pass
+
+	def editTextZoneIntegerCallback(self, sender):
+		try:
+			value = int(sender.get())
+		except ValueError:
+			value = 0
+			sender.set(0)
+
+	def buttonAddZoneCallback(self, sender):
+		name = self.box.editTextZoneName.get()
+		if name == '' or name in self.controller.zones:
+			return
+		position = int(self.box.editTextZonePosition.get())
+		width = int(self.box.editTextZoneWidth.get())
+		delta = self.box.editTextZoneDelta.get()
+		deltaDict = self.controller.deltaDictFromString(delta)
+
+		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width }
+		if deltaDict == {}:
+			newZone['delta'] = deltaDict
+		self.box.zones_List.setSelection([])
+		self.controller.AddZone(name, newZone, self)
+		self.box.editTextZoneName.set("")
+		self.box.editTextZonePosition.set("")
+		self.box.editTextZoneWidth.set("")
+		self.box.editTextZoneDelta.set("")
+
+# ===========================================================================
 
 class FL_TTH_Windows(object):
 	def __init__(self, f, TTHToolInstance):
@@ -110,65 +205,14 @@ class FL_TTH_Windows(object):
 			self.alignppm = 48
 			self.stemsnap = 17
 
-
-		self.buildUIZonesList(self.zones, buildTop=True)
-		self.buildUIZonesList(self.zones, buildTop=False)
-
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.stems)
 		self.verticalStemsList = self.buildVerticalStemsList(self.stems)
 
 		self.wZones = FloatingWindow((210, 30, 350, 400), "Zones", closable = False, initiallyVisible=False)
 
-		### TOP Zones window elements###
-		self.wZones.topzonesTitle= TextBox((10, 10, 70, 14), "Top", sizeStyle = "small")
-		self.wZones.topbox = Box((10, 34, 330, 132))
-		self.wZones.topbox.topzones_List = List((0, 0, -0, 100), self.topUIZones,
-											columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True}, {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
-											selectionCallback=self.topUIZones_SelectionCallback,
-											editCallback=self.topUIZones_EditCallBack )
-		self.wZones.topbox.buttonRemoveTopZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', 
-			    callback=self.buttonRemoveTopZoneCallback)
-
-		self.wZones.topbox.editTextTopZoneName = EditText((22, 100, 100, 22),
-			    callback=self.editTextTopZoneNameCallback)
-
-		self.wZones.topbox.editTextTopZonePosition = EditText((122, 100, 50, 22),
-			    callback=self.editTextTopZonePositionCallback)
-
-		self.wZones.topbox.editTextTopZoneWidth = EditText((172, 100, 50, 22),
-			    callback=self.editTextTopZoneWidthCallback)
-
-		self.wZones.topbox.editTextTopZoneDelta = EditText((222, 100, 78, 22),
-			    callback=self.editTextTopZoneDeltaCallback)
-
-		self.wZones.topbox.buttonAddTopZone = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', 
-			    callback=self.buttonAddTopZoneCallback)
 		#########################
-
-		### BOTTOM Zones window elements###
-		self.wZones.bottomzonesTitle= TextBox((10, 176, 70, 14), "Bottom", sizeStyle = "small")
-		self.wZones.bottombox = Box((10, 200, 330, 132))
-		self.wZones.bottombox.bottomzones_List = List((0, 0, -0, 100), self.bottomUIZones,
-											columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True}, {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
-											selectionCallback=self.bottomUIZones_SelectionCallback,
-											editCallback=self.bottomUIZones_EditCallBack)
-		self.wZones.bottombox.buttonRemoveBottomZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', 
-			    callback=self.buttonRemoveBottomZoneCallback)
-
-		self.wZones.bottombox.editTextBottomZoneName = EditText((22, 100, 100, 22),
-			    callback=self.editTextBottomZoneNameCallback)
-
-		self.wZones.bottombox.editTextBottomZonePosition = EditText((122, 100, 50, 22),
-			    callback=self.editTextBottomZonePositionCallback)
-
-		self.wZones.bottombox.editTextBottomZoneWidth = EditText((172, 100, 50, 22),
-			    callback=self.editTextBottomZoneWidthCallback)
-
-		self.wZones.bottombox.editTextBottomZoneDelta = EditText((222, 100, 78, 22),
-			    callback=self.editTextBottomZoneDeltaCallback)
-
-		self.wZones.bottombox.buttonAddBottomZone = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', 
-			    callback=self.buttonAddBottomZoneCallback)
+		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.buildUIZonesList(self.zones, buildTop=True))
+		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.buildUIZonesList(self.zones, buildTop=False))
 
 		self.wZones.open()
 
@@ -296,7 +340,6 @@ class FL_TTH_Windows(object):
 	def showGeneral(self):
 		self.wGeneral.show()
 
-	
 
 	### Callback for General Window ###
 
@@ -452,7 +495,7 @@ class FL_TTH_Windows(object):
 				return '0'
 		for i in range(1,7):
 			c_stemDict[str(i)+' px'] = getKeyForVal(i)
-		
+
 		return c_stemDict
 
 
@@ -471,7 +514,7 @@ class FL_TTH_Windows(object):
 				c_stemDict = self.buildStemDict(stem, name)
 				stems_List.append(c_stemDict)
 		return stems_List
-			
+
 
 	########################
 
@@ -598,10 +641,10 @@ class FL_TTH_Windows(object):
 		px4 = str(self.wStems.horizontalbox.editTextHorizontalStem4px.get())
 		px5 = str(self.wStems.horizontalbox.editTextHorizontalStem5px.get())
 		px6 = str(self.wStems.horizontalbox.editTextHorizontalStem6px.get())
-		
+
 		self.stems[name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		self.f.lib[FL_tth_key]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
-		
+
 		self.horizontalStemsList = self.buildHorizontalStemsList(self.readHorizontalStems())
 		self.wStems.horizontalbox.horizontalStems_List.set(self.horizontalStemsList)
 
@@ -732,10 +775,10 @@ class FL_TTH_Windows(object):
 		px4 = str(self.wStems.verticalbox.editTextVerticalStem4px.get())
 		px5 = str(self.wStems.verticalbox.editTextVerticalStem5px.get())
 		px6 = str(self.wStems.verticalbox.editTextVerticalStem6px.get())
-		
+
 		self.stems[name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		self.f.lib[FL_tth_key]["stems"][name] = {'horizontal': horizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
-		
+
 		self.verticalStemsList = self.buildVerticalStemsList(self.readVerticalStems())
 		self.wStems.verticalbox.verticalStems_List.set(self.verticalStemsList)
 
@@ -745,7 +788,6 @@ class FL_TTH_Windows(object):
 		UpdateCurrentGlyphView()
 
 	########################
-
 
 	## Functions for Zones ###
 
@@ -760,8 +802,52 @@ class FL_TTH_Windows(object):
 		except:
 			return {}
 
-	def storeZone(self, zoneName, entry):
+	def AddZone(self, name, newZone, zoneView):
+		self.zones[name] = newZone
+		self.f.lib[FL_tth_key]["zones"][name] = newZone
+
+		zoneView.box.zones_List.append(self.buildUIZoneDict(newZone, name))
+
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
+	def deleteZones(self, selected, zoneView):
+		for zoneName in selected:
+			try:
+				del self.f.lib[FL_tth_key]["zones"][zoneName]
+				del self.zones[zoneName]
+			except:
+				pass
+		UIZones = self.buildUIZonesList(self.zones, buildTop = (zoneView.ID == 'top'))
+		zoneView.box.zones_List.setSelection([])
+		zoneView.box.zones_List.set(UIZones)
+
+	def EditZone(self, oldZoneName, zoneName, zoneDict, isTop):
+		self.storeZone(zoneName, zoneDict, isTop)
+		self.f.lib[FL_tth_key]["zones"] = self.zones
+		ttht = self.TTHToolInstance
+		if oldZoneName != zoneName:
+			for g in self.f:
+				commands = ttht.readGlyphFLTTProgram(g)
+				if commands == None:
+					continue
+				for command in commands:
+					if command['code'] in ['alignt', 'alignb']:
+						if command['zone'] == oldZoneName:
+							command['zone'] = zoneName
+				ttht.writeGlyphFLTTProgram(g)
+			dummy = ttht.readGlyphFLTTProgram(ttht.tthtm.g) # recover the correct commands list
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
+
+	def storeZone(self, zoneName, entry, isTop):
+		if zoneName not in self.zones:
+			self.zones[zoneName] = {}
 		zone = self.zones[zoneName]
+		zone['top'] = isTop
 		if 'Position' in entry:
 			zone['position'] = int(entry['Position'])
 		else:
@@ -785,24 +871,6 @@ class FL_TTH_Windows(object):
 			zone['delta'] = {'0': 0}
 			entry['Delta'] = '0@0'
 
-	def storeTopZone(self, zoneName, entry):
-		if zoneName not in self.zones:
-			self.zones[zoneName] = {}
-		self.zones[zoneName]['top'] = True
-		self.storeZone(zoneName, entry)
-
-	def storeBottomZone(self, zoneName, entry):
-		if zoneName not in self.zones:
-			self.zones[zoneName] = {}
-		self.zones[zoneName]['top'] = False
-		self.storeZone(zoneName, entry)
-
-	def clearBottomZones(self):
-		self.zones = dict((k,v) for k,v in self.zones.iteritems() if v['top'])
-
-	def clearTopZones(self):
-		self.zones = dict((k,v) for k,v in self.zones.iteritems() if not v['top'])
-
 	def buildUIZoneDict(self, zone, name):
 		c_zoneDict = {}
 		c_zoneDict['Name'] = name
@@ -824,218 +892,4 @@ class FL_TTH_Windows(object):
 
 
 	def buildUIZonesList(self, zonesDict, buildTop):
-		zones_List = []
-		for name, zone in zonesDict.iteritems():
-			if zone['top'] == buildTop:
-				c_zoneDict = self.buildUIZoneDict(zone, name)
-				zones_List.append(c_zoneDict)
-		if buildTop:
-			self.topUIZones = zones_List
-		else:
-			self.bottomUIZones = zones_List
-
-	#########################
-
-	## TOP Zones CallBacks###
-
-	def topUIZones_SelectionCallback(self, sender):
-		self.selectedTopZones = []
-		if len(sender.getSelection()) != 0:
-			for i in range(len(sender.getSelection())):
-				selectedZone = self.topUIZones[sender.getSelection()[i]]
-				self.selectedTopZones.append(selectedZone)
-
-
-	def topUIZones_EditCallBack(self, sender):
-		if self.lock or sender.getSelection() == []:
-			return
-		self.lock = True
-		zonesList = sender.get()
-		sel = sender.getSelection()[0]
-		try:
-			oldZoneName = self.topUIZones[sel]['Name']
-		except:
-			oldZoneName = "" # probably a new zone was created
-			print("ERROR SHOULD NEVER HAPPEN in fl_tth.topUIZones_EditCallBack")
-		
-		zoneDict = zonesList[sel]
-
-		if 'Name' in zoneDict:
-			zoneName = zoneDict['Name']
-		else:
-			zoneName = 'Top' + '_' + str(entryIndex)
-			zoneDict['Name'] = zoneName
-
-		print("Original zone name = ", oldZoneName, ", new zone name = ", zoneName)
-		if oldZoneName != zoneName:
-			if zoneName in self.zones:
-				print("ERROR: Can't use an already existing name.")
-				zoneName = oldZoneName
-				zoneDict['Name'] = zoneName
-				self.lock = False
-				return
-			else:
-				del self.zones[oldZoneName]
-		self.storeTopZone(zoneName, zoneDict)
-		self.topUIZones[sel] = self.buildUIZoneDict(self.zones[zoneName], zoneName)
-
-		self.f.lib[FL_tth_key]["zones"] = self.zones
-
-		ttht = self.TTHToolInstance
-		if oldZoneName != zoneName:
-			for g in self.f:
-				commands = ttht.readGlyphFLTTProgram(g)
-				if commands == None:
-					continue
-				for command in commands:
-					if command['code'] in ['alignt', 'alignb']:
-						if command['zone'] == oldZoneName:
-							command['zone'] = zoneName
-				ttht.writeGlyphFLTTProgram(g)
-			dummy = ttht.readGlyphFLTTProgram(ttht.g) # recover the correct commands list
-
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
-		self.lock = False
-
-
-	def buttonRemoveTopZoneCallback(self, sender):
-		try:
-			for zone in self.selectedTopZones:
-				del self.f.lib[FL_tth_key]["zones"][zone['Name']]
-				del self.zones[zone['Name']]
-		except:
-			pass
-		self.buildUIZonesList(self.zones, buildTop=True)
-		self.wZones.topbox.topzones_List.set(self.topUIZones)
-
-	def editTextTopZoneNameCallback(self, sender):
-		sender.get()
-
-	def editTextTopZonePositionCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-	def editTextTopZoneWidthCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-	def editTextTopZoneDeltaCallback(self, sender):
-		sender.get()
-
-	def buttonAddTopZoneCallback(self, sender):
-		#try:
-		name = self.wZones.topbox.editTextTopZoneName.get()
-		top = True
-		position = int(self.wZones.topbox.editTextTopZonePosition.get())
-		width = int(self.wZones.topbox.editTextTopZoneWidth.get())
-		delta = self.wZones.topbox.editTextTopZoneDelta.get()
-		deltaDict = self.deltaDictFromString(delta)
-		if deltaDict == {}:
-			self.zones[name] = {'top': top, 'position': position, 'width': width }
-			self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
-		else:
-			self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-			self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-
-		self.buildUIZonesList(self.zones, buildTop=True)
-		self.wZones.topbox.topzones_List.set(self.topUIZones)
-
-		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
-
-		#except:
-		#	pass
-
-
-	##############################
-
-	## BOTTOM Zones CallBacks###
-	def bottomUIZones_SelectionCallback(self, sender):
-		self.selectedBottomZones = []
-		if len(sender.getSelection()) != 0:
-			for i in range(len(sender.getSelection())):
-				selectedZone = self.bottomUIZones[sender.getSelection()[i]]
-				self.selectedBottomZones.append(selectedZone)
-
-	def bottomUIZones_EditCallBack(self, sender):
-		zonesList = sender.get()
-		self.clearBottomZones()
-
-		for entry in zonesList:
-			if 'Name' in entry:
-				zoneName = entry['Name']
-			else:
-				zoneName = 'Top' + '_' + str(len(zonesList))
-				entry['Name'] = zoneName
-			self.storeBottomZone(zoneName, entry)
-
-		self.buildUIZonesList(self.zones, buildTop=False)
-
-		self.f.lib[FL_tth_key]["zones"] = self.zones
-		UpdateCurrentGlyphView()
-
-	def buttonRemoveBottomZoneCallback(self, sender):
-		try:
-			for zone in self.selectedBottomZones:
-				del self.f.lib[FL_tth_key]["zones"][zone['Name']]
-				del self.zones[zone['Name']]
-		except:
-			pass
-		self.buildUIZonesList(self.zones, buildTop=False)
-		self.wZones.bottombox.bottomzones_List.set(self.bottomUIZones)
-
-	def editTextBottomZoneNameCallback(self, sender):
-		sender.get()
-
-	def editTextBottomZonePositionCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-	def editTextBottomZoneWidthCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-	def editTextBottomZoneDeltaCallback(self, sender):
-		sender.get()
-
-	def buttonAddBottomZoneCallback(self, sender):
-		try:
-			name = self.wZones.bottombox.editTextBottomZoneName.get()
-			top = False
-			position = int(self.wZones.bottombox.editTextBottomZonePosition.get())
-			width = int(self.wZones.bottombox.editTextBottomZoneWidth.get())
-			delta = self.wZones.bottombox.editTextBottomZoneDelta.get()
-			deltaDict = self.deltaDictFromString(delta)
-			if deltaDict == {}:
-				self.zones[name] = {'top': top, 'position': position, 'width': width }
-				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width }
-			else:
-				self.zones[name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-				self.f.lib[FL_tth_key]["zones"][name] = {'top': top, 'position': position, 'width': width, 'delta': deltaDict }
-
-			self.buildUIZonesList(self.zones, buildTop=False)
-			self.wZones.bottombox.bottomzones_List.set(self.bottomUIZones)
-
-			ttht = self.TTHToolInstance
-			ttht.resetFonts() # FIXME: c'est un peu bourin
-			ttht.resetglyph()
-			UpdateCurrentGlyphView()
-		except:
-			pass
-	##############################
+		return [self.buildUIZoneDict(zone, name) for name, zone in zonesDict.iteritems() if zone['top'] == buildTop]

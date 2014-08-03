@@ -319,7 +319,7 @@ class TTHTool(BaseEventTool):
 			return False
 
 	def isInTopZone(self, point):
-		for zone in self.FL_Windows.topUIZones:
+		for zone in self.FL_Windows.topZoneView.UIZones:
 			y_min = int(zone['Position'])
 			y_max = int(zone['Position']) + int(zone['Width'])
 
@@ -328,7 +328,7 @@ class TTHTool(BaseEventTool):
 		return None
 
 	def isInBottomZone(self, point):
-		for zone in self.FL_Windows.bottomUIZones:
+		for zone in self.FL_Windows.bottomZoneView.UIZones:
 			y_max = int(zone['Position'])
 			y_min = int(zone['Position']) - int(zone['Width'])
 
@@ -867,7 +867,7 @@ class TTHTool(BaseEventTool):
 		zonecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
 		zonecolorLabel = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
 
-		for zone in self.FL_Windows.topUIZones:
+		for zone in self.FL_Windows.topZoneView.UIZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
@@ -881,7 +881,7 @@ class TTHTool(BaseEventTool):
 
 			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
 
-		for zone in self.FL_Windows.bottomUIZones:
+		for zone in self.FL_Windows.bottomZoneView.UIZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
