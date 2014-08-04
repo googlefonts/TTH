@@ -16,8 +16,11 @@ class TTHToolModel():
 		self.selectedStemY = 'None'
 		self.stemsListX = []
 		self.stemsListY = []
-
 		self.roundBool = 0
+		self.deltaOffset = 0
+		self.deltaRange1 = 9
+		self.deltaRange2 = 9
+
 		self.textRenderer = None
 
 		self.previewWindowVisible = 0
@@ -30,7 +33,10 @@ class TTHToolModel():
 		self.g = glyph
 
 	def setUPM(self, UPM):
-		self.UPM = UPM
+		self.UPM = int(UPM)
+
+	def setSize(self, size):
+		self.PPM_Size = int(size)
 
 	def resetFontUPM(self, font):
 		if font != None:
@@ -72,6 +78,15 @@ class TTHToolModel():
 		if roundBool in [0, 1]:
 			self.roundBool = roundBool
 
+	def setDeltaOffset(self, offset):
+		if offset >= -8 and offset <= 8:
+			self.deltaOffset = int(offset)
+
+	def setDeltaRange1(self, value):
+		self.deltaRange1 = int(value)
+
+	def setDeltaRange2(self, value):
+		self.deltaRange2 = int(value)
 
 
 	def showPreviewWindow(self, ShowHide):

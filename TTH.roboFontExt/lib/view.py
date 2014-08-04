@@ -87,6 +87,8 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
+		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
+		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
 		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
 				callback=self.ReadTTProgramButtonCallback)
@@ -282,13 +284,13 @@ class centralWindow(object):
 		self.TTHToolInstance.changeRoundBool(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
-		print sender.get() - 8
+		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))
 
 	def DeltaRange1EditTextCallback(self, sender):
-		print sender.get()
+		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
 
 	def DeltaRange2EditTextCallback(self, sender):
-		print sender.get()
+		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
 
 	def ReadTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)

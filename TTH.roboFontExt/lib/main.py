@@ -124,18 +124,6 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
 
-		#self.f = None
-		#self.g = None
-		#self.UPM = 1000
-		#self.PPM_Size = 9
-		#tthtm.pitch = self.UPM/self.PPM_Size
-		#self.bitmapPreviewSelection = 'Monochrome'
-		#self.selectedHintingTool = 'Align'
-		#self.selectedAlignmentType = 'round'
-		#self.selectedStem = None
-		#self.roundBool = 0
-		self.textRenderer = None
-
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
 
@@ -176,12 +164,14 @@ class TTHTool(BaseEventTool):
 		except ValueError:
 			size = 9
 
-		self.tthtm.PPM_Size = size
-		sizeIndex = self.getSizeListIndex(size)
+		self.tthtm.setSize(size)
+		sizeIndex = self.getSizeListIndex(self.tthtm.PPM_Size)
 		self.centralWindow.wCentral.PPEMSizePopUpButton.set(sizeIndex)
-		self.centralWindow.wCentral.PPEMSizeEditText.set(size)
+		self.centralWindow.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.tthtm.resetPitch()
+
+		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
 
 		self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
@@ -203,7 +193,7 @@ class TTHTool(BaseEventTool):
 
 	def changeBitmapPreview(self, preview):
 		self.tthtm.setBitmapPreview(preview)
-		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, preview)
+		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, preview)
 		previewIndex = self.getPreviewListIndex(preview)
 		self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
@@ -221,7 +211,7 @@ class TTHTool(BaseEventTool):
 
 	def changeSelectedHintingTool(self, hintingTool):
 		self.tthtm.setHintingTool(hintingTool)
-		hintingToolIndex = self.getHintingToolIndex(hintingTool)
+		hintingToolIndex = self.getHintingToolIndex(self.tthtm.selectedHintingTool)
 		self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
 		if hintingToolIndex == 0:
 			self.centralWindow.centralWindowAlignSettings()
@@ -248,7 +238,7 @@ class TTHTool(BaseEventTool):
 
 	def changeSelectedAlignmentTypeAlign(self, alignmentType):
 		self.tthtm.setAlignmentTypeAlign(alignmentType)
-		alignmentTypeIndex = self.getAlignmentTypeAlignIndex(alignmentType)
+		alignmentTypeIndex = self.getAlignmentTypeAlignIndex(self.tthtm.selectedAlignmentTypeAlign)
 		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
 	def getAlignmentTypeLinkIndex(self, alignmentType):
@@ -260,7 +250,7 @@ class TTHTool(BaseEventTool):
 
 	def changeSelectedAlignmentTypeLink(self, alignmentType):
 		self.tthtm.setAlignmentTypeLink(alignmentType)
-		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(alignmentType)
+		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
 		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
 	def getStemIndex(self, stemName, axis):
@@ -277,17 +267,37 @@ class TTHTool(BaseEventTool):
 
 	def changeSelectedStemX(self, stemName):
 		self.tthtm.setStemX(stemName)
-		stemIndex = self.getStemIndex(stemName, 'X')
+		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'X')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeSelectedStemY(self, stemName):
 		self.tthtm.setStemY(stemName)
-		stemIndex = self.getStemIndex(stemName, 'Y')
+		stemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'Y')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeRoundBool(self, roundBool):
 		self.tthtm.setRoundBool(roundBool)
-		self.centralWindow.wCentral.RoundDistanceCheckBox.set(roundBool)
+		self.centralWindow.wCentral.RoundDistanceCheckBox.set(self.tthtm.roundBool)
+
+	def changeDeltaOffset(self, offset):
+		self.tthtm.setDeltaOffset(offset)
+		self.centralWindow.wCentral.DeltaOffsetSlider.set(self.tthtm.deltaOffset + 8)
+
+	def changeDeltaRange(self, value1, value2):
+		try:
+			value1 = int(value1)
+		except ValueError:
+			value1 = 9
+
+		try:
+			value2 = int(value2)
+		except ValueError:
+			value2 = 9
+
+		self.tthtm.setDeltaRange1(value1)
+		self.centralWindow.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
+		self.tthtm.setDeltaRange2(value2)
+		self.centralWindow.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
 	def makeStemsListsPopUpMenu(self):
 		self.tthtm.stemsListX = ['None']
@@ -373,9 +383,7 @@ class TTHTool(BaseEventTool):
 		#print 'glyph end point:', self.endPoint
 		if self.endPoint == None:
 				return
-		# self.point1 = None
-		# self.point2 = None
-		# self.point3 = None
+
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
 
@@ -450,6 +458,26 @@ class TTHTool(BaseEventTool):
 			self.point1 = None
 			self.point = None
 			self.point2 = None
+
+		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta'] and self.endPoint != None:
+			if self.tthtm.deltaOffset == 0:
+				return
+			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
+			newCommand['ppm1'] = str(self.tthtm.deltaRange1)
+			newCommand['ppm2'] = str(self.tthtm.deltaRange2)
+			newCommand['delta'] = str(self.tthtm.deltaOffset)
+			if self.tthtm.selectedHintingTool == 'Middle Delta':
+				if self.tthtm.selectedAxis == 'X':
+					newCommand['code'] = 'mdeltah'
+				else:
+					newCommand['code'] = 'mdeltav'
+			if self.tthtm.selectedHintingTool == 'Final Delta':
+				if self.tthtm.selectedAxis == 'X':
+					newCommand['code'] = 'fdeltah'
+				else:
+					newCommand['code'] = 'fdeltav'
+
+
 
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
@@ -705,6 +733,8 @@ class TTHTool(BaseEventTool):
 			self.centralWindow.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 			self.changeSelectedStemY(self.tthtm.selectedStemY)
 		self.changeRoundBool(self.tthtm.roundBool)
+		self.changeDeltaOffset(self.tthtm.deltaOffset)
+		self.changeDeltaRange(self.tthtm.deltaRange1, self.tthtm.deltaRange2)
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
@@ -713,7 +743,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 
-		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
+		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		self.commandLabelPos = {}
@@ -740,7 +770,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
 		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
-		self.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
+		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 	def generateMiniTempFont(self):
 		root = os.path.split(self.tthtm.f.path)[0]
@@ -1016,7 +1046,7 @@ class TTHTool(BaseEventTool):
 
 		# compute x, y
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (x + 10, y - 10)
+			self.commandLabelPos[cmdIndex] = (x + 10*scale, y - 10*scale)
 
 		extension = ''
 		text = 'A'
@@ -1176,7 +1206,7 @@ class TTHTool(BaseEventTool):
 
 		# compute x, y
 		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (point[0] + 10, point[1] - 10)
+			self.commandLabelPos[cmdIndex] = (point[0] - 10*scale, point[1] + 10*scale)
 		
 		extension = ''
 		text = 'delta'
@@ -1186,11 +1216,11 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'][:1] == 'f':
 			extension = '_F'
 		text += extension + ':' + value
-		self.drawTextAtPoint(text, point[0]+10, point[1]-10, deltacolor)
+		self.drawTextAtPoint(text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
 
 	def drawSideBearings(self, scale, char):
 		try:
-			xPos = self.tthtm.pitch * self.textRenderer.get_char_advance(char)[0] / 64
+			xPos = self.tthtm.pitch * self.tthtm.textRenderer.get_char_advance(char)[0] / 64
 		except:
 			return
 		pathX = NSBezierPath.bezierPath()
@@ -1229,17 +1259,17 @@ class TTHTool(BaseEventTool):
 		text = ''.join(sp)
 
 		# render user string
-		if self.textRenderer:
-			self.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-			self.textRenderer.set_pen((10, 50))
-			self.textRenderer.render_text(text)
+		if self.tthtm.textRenderer:
+			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+			self.tthtm.textRenderer.set_pen((10, 50))
+			self.tthtm.textRenderer.render_text(text)
 
 			# render current glyph at various sizes
 			advance = 10
 			for size in range(9, 48, 1):
-				self.textRenderer.set_cur_size(size)
-				self.textRenderer.set_pen((advance, 100))
-				delta_pos = self.textRenderer.render_text(curGlyphString)
+				self.tthtm.textRenderer.set_cur_size(size)
+				self.tthtm.textRenderer.set_pen((advance, 100))
+				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
 				advance += delta_pos[0] + 5
 
 	def drawBackground(self, scale):
@@ -1248,9 +1278,9 @@ class TTHTool(BaseEventTool):
 
 		curChar = unichr(CurrentGlyph().unicode)
 		
-		self.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-		self.textRenderer.set_pen((0, 0))
-		self.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
+		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+		self.tthtm.textRenderer.set_pen((0, 0))
+		self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0, (1, 0, 0, 1))
@@ -1259,7 +1289,7 @@ class TTHTool(BaseEventTool):
 		self.drawGrid(scale, self.tthtm.pitch)
 		self.drawZones(scale)
 
-		self.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
+		self.tthtm.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
 		self.drawSideBearings(scale, curChar)
 
 	def draw(self, scale):
