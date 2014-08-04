@@ -373,7 +373,9 @@ class TTHTool(BaseEventTool):
 		#print 'glyph end point:', self.endPoint
 		if self.endPoint == None:
 				return
-
+		# self.point1 = None
+		# self.point2 = None
+		# self.point3 = None
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
 
@@ -429,6 +431,25 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
+
+		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint != self.endPoint and self.startPoint != None:
+			self.point1 = self.startPoint
+			self.point = self.endPoint
+		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint == self.endPoint and self.startPoint != None and self.point1 != None and self.point != None:
+			self.point2 = self.endPoint
+			if self.tthtm.selectedAxis == 'X':
+				newCommand['code'] = 'interpolateh'
+			else:
+				newCommand['code'] = 'interpolatev'
+			newCommand['point1'] = self.pointCoordinatesToName[self.point1]
+			newCommand['point'] = self.pointCoordinatesToName[self.point]
+			newCommand['point2'] = self.pointCoordinatesToName[self.point2]
+			if self.tthtm.selectedAlignmentTypeLink != 'None':
+				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
+
+			self.point1 = None
+			self.point = None
+			self.point2 = None
 
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
