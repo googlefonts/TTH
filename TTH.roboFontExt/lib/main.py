@@ -267,12 +267,12 @@ class TTHTool(BaseEventTool):
 
 	def changeSelectedStemX(self, stemName):
 		self.tthtm.setStemX(stemName)
-		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'X')
+		stemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'X')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeSelectedStemY(self, stemName):
 		self.tthtm.setStemY(stemName)
-		stemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'Y')
+		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
 		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
 
 	def changeRoundBool(self, roundBool):
