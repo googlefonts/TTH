@@ -713,7 +713,7 @@ class TTHTool(BaseEventTool):
 		if self.commandRightClicked == None:
 			self.menuAction = NSMenu.alloc().init()
 			items = []
-			items.append(('Delete All Commands', self.deleteAllCommandsCallback))
+			items.append(('Clear All Program', self.deleteAllCommandsCallback))
 			menuController = BaseMenu()
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
@@ -1371,8 +1371,15 @@ class TTHTool(BaseEventTool):
 		extension = ''
 		text = 'I'
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
-			extension = self.glyphTTHCommands[cmdIndex]['align']
-			text += '_' + extension
+			if self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
+				extension = 'top'
+				text += '_' + extension
+			elif self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'left':
+				extension = 'bottom'
+				text += '_' + extension
+			else:
+				extension = self.glyphTTHCommands[cmdIndex]['align']
+				text += '_' + extension
 
 		self.drawTextAtPoint(text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
 
