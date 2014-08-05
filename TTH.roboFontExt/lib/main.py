@@ -495,7 +495,7 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
 
-	def compareCommands(A, B):
+	def compareCommands(self, A, B):
 		order = None
 		A_isAlign = False
 		B_isAlign = False
