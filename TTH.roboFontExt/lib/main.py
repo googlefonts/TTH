@@ -50,7 +50,7 @@ def topologicalSort(l, f):
 		result.append(l[i])
 	for i in range(n):
 		visit(i)
-	result.reverse()
+	#result.reverse()
 	return result
 
 def pointsApproxEqual(p_glyph, p_cursor):
@@ -531,6 +531,8 @@ class TTHTool(BaseEventTool):
 
 	def compareCommands(self, A, B):
 		order = None
+		ab = 1
+		ba = 2
 		A_isAlign = False
 		B_isAlign = False
 		A_isSingleLink = False
@@ -561,61 +563,61 @@ class TTHTool(BaseEventTool):
 			if A['point'] == B['point']:
 				order = 'BUG'
 		elif A_isSingleLink and B_isAlign:
-			if A['point1'] == B['point']:
-				order = 2
+			if A['pointab'] == B['point']:
+				order = ba
 		elif A_isAlign and B_isSingleLink:
-			if A['point'] == B['point1']:
-				order = 1
+			if A['point'] == B['pointab']:
+				order = ab
 		elif A_isSingleLink and B_isSingleLink:
-			if A['point1'] == B['point2']:
-				order = 2
-			elif A['point2'] == B['point1']:
-				order = 1
-			elif A['point2'] == B['point2']:
+			if A['pointab'] == B['pointba']:
+				order = ba
+			elif A['pointba'] == B['pointab']:
+				order = ab
+			elif A['pointba'] == B['pointba']:
 				order = 'BUG'
 		elif A_isAlign and B_isInterpolate:
-			if A['point'] == B['point1'] or A['point'] == B['point2']:
-				order = 1
+			if A['point'] == B['pointab'] or A['point'] == B['pointba']:
+				order = ab
 		elif A_isInterpolate and B_isAlign:
-			if B['point'] == A['point1'] or B['point'] == A['point2']:
-				order = 2
+			if B['point'] == A['pointab'] or B['point'] == A['pointba']:
+				order = ba
 		elif A_isSingleLink and B_isInterpolate:
-			if A['point2'] == B['point1'] or A['point2'] == B['point2']:
-				order = 1
+			if A['pointba'] == B['pointab'] or A['pointba'] == B['pointba']:
+				order = ab
 		elif A_isInterpolate and B_isSingleLink:
-			if B['point2'] == A['point1'] or B['point2'] == A['point2']:
-				order = 2
+			if B['pointba'] == A['pointab'] or B['pointba'] == A['pointba']:
+				order = ba
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
-				order = 1
+				order = ab
 		elif A_isMiddleDelta and B_isMiddleDelta:
 			if A['point'] == B['point']:
 				order = 'BUG'
 		elif A_isMiddleDelta and B_isAlign:
 			if A['point'] == B['point']:
-				order = 2
+				order = ba
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
-				order = 1
+				order = ab
 		elif A_isMiddleDelta and B_isSingleLink:
-			if A['point'] == B['point1']:
-				order = 1
-			elif A['point'] == B['point2']:
-				order = 2
+			if A['point'] == B['pointab']:
+				order = ab
+			elif A['point'] == B['pointba']:
+				order = ba
 		elif A_isSingleLink and B_isMiddleDelta:
-			if A['point1'] == B['point']:
-				order = 2
-			elif A['point2'] == B['point']:
-				order = 1
+			if A['pointab'] == B['point']:
+				order = ba
+			elif A['pointba'] == B['point']:
+				order = ab
 		elif A_isMiddleDelta and B_isInterpolate:
-			if A['point'] == B['point1'] or A['point'] == B['point2']:
-				order = 1
+			if A['point'] == B['pointab'] or A['point'] == B['pointba']:
+				order = ab
 		elif A_isInterpolate and B_isMiddleDelta:
-			if A['point1'] == B['point'] or A['point2'] == B['point']:
-				order = 2
-		if order == 1:
+			if A['pointab'] == B['point'] or A['pointba'] == B['point']:
+				order = ba
+		if order == ab:
 			return (True, False)
-		elif order == 2:
+		elif order == ba:
 			return (True, True)
 		return (False, False)
 
