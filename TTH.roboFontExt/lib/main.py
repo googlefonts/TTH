@@ -1,5 +1,6 @@
 from mojo.events import *
 from mojo.UI import *
+from mojo.extensions import *
 from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
@@ -14,6 +15,9 @@ import TTHToolModel
 
 import xml.etree.ElementTree as ET
 import math, os
+
+
+toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
 def pointsApproxEqual(p_glyph, p_cursor):
 	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
@@ -123,6 +127,15 @@ class TTHTool(BaseEventTool):
 		self.p_glyphList = []
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
+
+	### TTH Tool Icon ###
+	def getToolbarIcon(self):
+		## return the toolbar icon
+		return toolbarIcon
+		
+	def getToolbarTip(self):
+		return "TTH Hinting Tool"
+	###############
 
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
