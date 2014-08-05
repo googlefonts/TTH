@@ -640,7 +640,8 @@ class TTHTool(BaseEventTool):
 			else:
 				y.append(e)
 		x = topologicalSort(x, self.compareCommands)
-		self.glyphTTHCommands = sum([topologicalSort(l, self.compareCommands) for l in [ytb,y,fdeltah,fdeltav]], x)
+		x.extend(ytb)
+		self.glyphTTHCommands = sum([topologicalSort(l, self.compareCommands) for l in [y,fdeltah,fdeltav]], x)
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
