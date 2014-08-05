@@ -610,9 +610,13 @@ class TTHTool(BaseEventTool):
 		elif A_isMiddleDelta and B_isInterpolate:
 			if A['point'] == B['point1'] or A['point'] == B['point2']:
 				order = 1
+			elif A['point'] == B['point']:
+				order = 2
 		elif A_isInterpolate and B_isMiddleDelta:
 			if A['point1'] == B['point'] or A['point2'] == B['point']:
 				order = 2
+			elif A['point'] == B['point']:
+				order = 1
 		if order == 1:
 			return (True, False)
 		elif order == 2:
@@ -686,9 +690,8 @@ class TTHTool(BaseEventTool):
 		self.updateGlyphProgram()
 
 	def updateGlyphProgram(self):
-		self.writeGlyphFLTTProgram(self.tthtm.g)
-
 		self.prepareCommands()
+		self.writeGlyphFLTTProgram(self.tthtm.g)
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateMiniTempFont()
