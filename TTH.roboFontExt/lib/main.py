@@ -533,7 +533,7 @@ class TTHTool(BaseEventTool):
 			if A['point'] == B['point1']:
 				order = (A, B)
 		elif A_isSingleLink and B_isSingleLink:
-			elif A['point1'] == B['point2']:
+			if A['point1'] == B['point2']:
 				order = (B, A)
 			elif A['point2'] == B['point1']:
 				order = (A, B)
@@ -598,6 +598,13 @@ class TTHTool(BaseEventTool):
 
 		self.updateGlyphProgram()
 
+	def deleteAllCommandsCallback(self, item):
+		emptyProgram = ''
+		self.glyphTTHCommands = {}
+		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
+		self.updateGlyphProgram()
+
+
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
@@ -634,7 +641,15 @@ class TTHTool(BaseEventTool):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.commandRightClicked = self.isOnCommand(self.p_cursor)
 		#print 'command point:', self.commandRightClicked
-		if self.commandRightClicked != None:
+		if self.commandRightClicked == None:
+			self.menuAction = NSMenu.alloc().init()
+			items = []
+			items.append(('Delete All Commands', self.deleteAllCommandsCallback))
+			menuController = BaseMenu()
+			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
+			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
+
+		else:
 			self.menuAction = NSMenu.alloc().init()
 			separator = NSMenuItem.separatorItem()
 
