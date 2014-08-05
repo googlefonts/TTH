@@ -50,7 +50,6 @@ def topologicalSort(l, f):
 		result.append(l[i])
 	for i in range(n):
 		visit(i)
-	#result.reverse()
 	return result
 
 def pointsApproxEqual(p_glyph, p_cursor):
@@ -584,9 +583,13 @@ class TTHTool(BaseEventTool):
 		elif A_isSingleLink and B_isInterpolate:
 			if A['point2'] == B['point1'] or A['point2'] == B['point2']:
 				order = ab
+			elif A['point1'] == B['point']:
+				order = ba
 		elif A_isInterpolate and B_isSingleLink:
 			if B['point2'] == A['point1'] or B['point2'] == A['point2']:
 				order = ba
+			elif A['point'] == B['point1']:
+				order = ab
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
 				order = ab
