@@ -563,29 +563,29 @@ class TTHTool(BaseEventTool):
 			if A['point'] == B['point']:
 				order = 'BUG'
 		elif A_isSingleLink and B_isAlign:
-			if A['pointab'] == B['point']:
+			if A['point1'] == B['point']:
 				order = ba
 		elif A_isAlign and B_isSingleLink:
-			if A['point'] == B['pointab']:
+			if A['point'] == B['point1']:
 				order = ab
 		elif A_isSingleLink and B_isSingleLink:
-			if A['pointab'] == B['pointba']:
+			if A['point1'] == B['point2']:
 				order = ba
-			elif A['pointba'] == B['pointab']:
+			elif A['point2'] == B['point1']:
 				order = ab
-			elif A['pointba'] == B['pointba']:
+			elif A['point2'] == B['point2']:
 				order = 'BUG'
 		elif A_isAlign and B_isInterpolate:
-			if A['point'] == B['pointab'] or A['point'] == B['pointba']:
+			if A['point'] == B['point1'] or A['point'] == B['point2']:
 				order = ab
 		elif A_isInterpolate and B_isAlign:
-			if B['point'] == A['pointab'] or B['point'] == A['pointba']:
+			if B['point'] == A['point1'] or B['point'] == A['point2']:
 				order = ba
 		elif A_isSingleLink and B_isInterpolate:
-			if A['pointba'] == B['pointab'] or A['pointba'] == B['pointba']:
+			if A['point2'] == B['point1'] or A['point2'] == B['point2']:
 				order = ab
 		elif A_isInterpolate and B_isSingleLink:
-			if B['pointba'] == A['pointab'] or B['pointba'] == A['pointba']:
+			if B['point2'] == A['point1'] or B['point2'] == A['point2']:
 				order = ba
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
@@ -600,14 +600,14 @@ class TTHTool(BaseEventTool):
 			if A['point'] == B['point']:
 				order = ab
 		elif A_isMiddleDelta and B_isSingleLink:
-			if A['point'] == B['pointab']:
+			if A['point'] == B['point1']:
 				order = ab
-			elif A['point'] == B['pointba']:
+			elif A['point'] == B['point2']:
 				order = ba
 		elif A_isSingleLink and B_isMiddleDelta:
-			if A['pointab'] == B['point']:
+			if A['point1'] == B['point']:
 				order = ba
-			elif A['pointba'] == B['point']:
+			elif A['point2'] == B['point']:
 				order = ab
 		elif A_isMiddleDelta and B_isInterpolate:
 			if A['point'] == B['point1'] or A['point'] == B['point2']:
