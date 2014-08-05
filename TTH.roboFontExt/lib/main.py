@@ -19,6 +19,40 @@ import math, os
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
+def topologicalSort(l, f):
+	n = len(l)
+	preds = [[] for i in range(n)]
+	visited = [False for i in l]
+	loop = [False for i in l]
+	for i in range(n):
+		li = l[i]
+		for j in range(n):
+			if i == j:
+				continue
+			(comp, swap) = f(li, l[j])
+			if comp:
+				if swap:
+					preds[i].append(j)
+				else:
+					preds[j].append(i)
+	result = []
+	def visit(i):
+		if loop[i]:
+			print "ERROR: Loop in topological sort"
+			return l
+		if visited[i]:
+			return
+		loop[i] = True
+		for p in preds[i]:
+			visit(p)
+		loop[i] = False
+		visited[i] = True
+		result.append(l[i])
+	for i in range(n):
+		visit(i)
+	result.reverse()
+	return result
+
 def pointsApproxEqual(p_glyph, p_cursor):
 	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
 
@@ -528,60 +562,85 @@ class TTHTool(BaseEventTool):
 				order = 'BUG'
 		elif A_isSingleLink and B_isAlign:
 			if A['point1'] == B['point']:
-				order = (B, A)
+				order = 2
 		elif A_isAlign and B_isSingleLink:
 			if A['point'] == B['point1']:
-				order = (A, B)
+				order = 1
 		elif A_isSingleLink and B_isSingleLink:
 			if A['point1'] == B['point2']:
-				order = (B, A)
+				order = 2
 			elif A['point2'] == B['point1']:
-				order = (A, B)
+				order = 1
 			elif A['point2'] == B['point2']:
 				order = 'BUG'
 		elif A_isAlign and B_isInterpolate:
 			if A['point'] == B['point1'] or A['point'] == B['point2']:
-				order = (A, B)
+				order = 1
 		elif A_isInterpolate and B_isAlign:
 			if B['point'] == A['point1'] or B['point'] == A['point2']:
-				order = (B, A)
+				order = 2
 		elif A_isSingleLink and B_isInterpolate:
 			if A['point2'] == B['point1'] or A['point2'] == B['point2']:
-				order = (A, B)
+				order = 1
 		elif A_isInterpolate and B_isSingleLink:
 			if B['point2'] == A['point1'] or B['point2'] == A['point2']:
-				order = (B, A)
+				order = 2
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
-				order = (A, B)
+				order = 1
 		elif A_isMiddleDelta and B_isMiddleDelta:
 			if A['point'] == B['point']:
 				order = 'BUG'
 		elif A_isMiddleDelta and B_isAlign:
 			if A['point'] == B['point']:
-				order = (B, A)
+				order = 2
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
-				order = (A, B)
+				order = 1
 		elif A_isMiddleDelta and B_isSingleLink:
 			if A['point'] == B['point1']:
-				order = (A, B)
+				order = 1
 			elif A['point'] == B['point2']:
-				order = (B, A)
+				order = 2
 		elif A_isSingleLink and B_isMiddleDelta:
 			if A['point1'] == B['point']:
-				order = (B, A)
+				order = 2
 			elif A['point2'] == B['point']:
-				order = (A, B)
+				order = 1
 		elif A_isMiddleDelta and B_isInterpolate:
 			if A['point'] == B['point1'] or A['point'] == B['point2']:
-				order = (A, B)
+				order = 1
 		elif A_isInterpolate and B_isMiddleDelta:
 			if A['point1'] == B['point'] or A['point2'] == B['point']:
-				order = (B, A)
+				order = 2
+		if order == 1:
+			return (True, False)
+		elif order == 2:
+			return (True, True)
+		return (False, False)
 
-		return order
-
+	def prepareCommands(self):
+		x = []
+		ytb = []
+		y = []
+		fdeltah = []
+		fdeltav = []
+		for e in self.glyphTTHCommands:
+			code = e['code']
+			if code == 'fdeltah':
+				fdeltah.append(e)
+			elif code == 'fdeltav':
+				fdeltav.append(e)
+			elif code[-1] in ['h']:
+				x.append(e)
+			elif code[-1] in ['v']:
+				y.append(e)
+			elif code[-1] in ['t', 'b']:
+				ytb.append(e)
+			else:
+				y.append(e)
+		x = topologicalSort(x, self.compareCommands)
+		self.glyphTTHCommands = sum([topologicalSort(l, self.compareCommands) for l in [ytb,y,fdeltah,fdeltav]], x)
 
 	def deleteCommandCallback(self, item):
 		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
@@ -628,6 +687,7 @@ class TTHTool(BaseEventTool):
 	def updateGlyphProgram(self):
 		self.writeGlyphFLTTProgram(self.tthtm.g)
 
+		self.prepareCommands()
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateMiniTempFont()
@@ -827,6 +887,7 @@ class TTHTool(BaseEventTool):
 		for g in self.tthtm.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if glyphTTHCommands != None:
+				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		self.generateFullTempFont()
