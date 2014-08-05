@@ -491,11 +491,96 @@ class TTHTool(BaseEventTool):
 					newCommand['code'] = 'fdeltav'
 
 
-
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
 
+	def compareCommands(A, B):
+		order = None
+		A_isAlign = False
+		B_isAlign = False
+		A_isSingleLink = False
+		B_isSingleLink = False
+		A_isInterpolate = False
+		B_isInterpolate= False
+		A_isMiddleDelta = False
+		B_isMiddleDelta = False
+
+		if A['code'] in ['alignh', 'alignv']:
+			A_isAlign = True
+		if B['code'] in ['alignh', 'alignv']:
+			B_isAlign = True
+		if A['code'] in ['singleh', 'singlev']:
+			A_isSingleLink = True
+		if B['code'] in ['singleh', 'singlev']:
+			B_isSingleLink = True
+		if A['code'] in ['interpolateh', 'interpolatev']:
+			A_isInterpolate = True
+		if B['code'] in ['interpolateh', 'interpolatev']:
+			B_isInterpolate = True
+		if A['code'] in ['mdeltah', 'mdeltav']:
+			A_isMiddleDelta = True
+		if B['code'] in ['mdeltah', 'mdeltav']:
+			B_isMiddleDelta = True
+
+		if A_isAlign and B_isAlign:
+			if A['point'] == B['point']:
+				order = 'BUG'
+		elif A_isSingleLink and B_isAlign:
+			if A['point1'] == B['point']:
+				order = (B, A)
+		elif A_isAlign and B_isSingleLink:
+			if A['point'] == B['point1']:
+				order = (A, B)
+		elif A_isSingleLink and B_isSingleLink:
+			elif A['point1'] == B['point2']:
+				order = (B, A)
+			elif A['point2'] == B['point1']:
+				order = (A, B)
+			elif A['point2'] == B['point2']:
+				order = 'BUG'
+		elif A_isAlign and B_isInterpolate:
+			if A['point'] == B['point1'] or A['point'] == B['point2']:
+				order = (A, B)
+		elif A_isInterpolate and B_isAlign:
+			if B['point'] == A['point1'] or B['point'] == A['point2']:
+				order = (B, A)
+		elif A_isSingleLink and B_isInterpolate:
+			if A['point2'] == B['point1'] or A['point2'] == B['point2']:
+				order = (A, B)
+		elif A_isInterpolate and B_isSingleLink:
+			if B['point2'] == A['point1'] or B['point2'] == A['point2']:
+				order = (B, A)
+		elif A_isAlign and B_isMiddleDelta:
+			if A['point'] == B['point']:
+				order = (A, B)
+		elif A_isMiddleDelta and B_isMiddleDelta:
+			if A['point'] == B['point']:
+				order = 'BUG'
+		elif A_isMiddleDelta and B_isAlign:
+			if A['point'] == B['point']:
+				order = (B, A)
+		elif A_isAlign and B_isMiddleDelta:
+			if A['point'] == B['point']:
+				order = (A, B)
+		elif A_isMiddleDelta and B_isSingleLink:
+			if A['point'] == B['point1']:
+				order = (A, B)
+			elif A['point'] == B['point2']:
+				order = (B, A)
+		elif A_isSingleLink and B_isMiddleDelta:
+			if A['point1'] == B['point']:
+				order = (B, A)
+			elif A['point2'] == B['point']:
+				order = (A, B)
+		elif A_isMiddleDelta and B_isInterpolate:
+			if A['point'] == B['point1'] or A['point'] == B['point2']:
+				order = (A, B)
+		elif A_isInterpolate and B_isMiddleDelta:
+			if A['point1'] == B['point'] or A['point2'] == B['point']:
+				order = (B, A)
+
+		return order
 
 
 	def deleteCommandCallback(self, item):
