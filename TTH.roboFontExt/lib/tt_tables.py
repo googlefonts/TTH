@@ -9,7 +9,7 @@ stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 
 
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 
-	f.lib['com.robofont.robohint.maxp.maxFunctionDefs'] = 9
+	f.lib['com.robofont.robohint.maxp.maxFunctionDefs'] = 10
 
 	table_CVT = []
 

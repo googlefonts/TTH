@@ -4,6 +4,7 @@ from mojo.extensions import *
 from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
+from robofab.world import *
 import fontTools
 
 import fl_tth
@@ -11,11 +12,9 @@ import tt_tables
 import TTHintAsm
 import view
 import TextRenderer as TR
-import TTHToolModel
 
 import xml.etree.ElementTree as ET
 import math, os
-
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
@@ -152,7 +151,7 @@ class callbackSetDeltaValue():
 
 class TTHTool(BaseEventTool):
 
-	def __init__(self, tthm):
+	def __init__(self, tthtm):
 		BaseEventTool.__init__(self)
 
 		self.ready = False
@@ -1598,7 +1597,5 @@ reload(TTHintAsm)
 reload(fl_tth)
 reload(tt_tables)
 reload(view)
-reload(TTHToolModel)
 
-tthtm = TTHToolModel.TTHToolModel()
-installTool(TTHTool(tthtm))
+

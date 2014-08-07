@@ -96,5 +96,5 @@ class TTHToolModel():
 			self.previewWindowVisible = 1
 
 	def setPreviewString(self, previewString):
-		self.previewString = str(previewString)
+		self.previewString = previewString
 
