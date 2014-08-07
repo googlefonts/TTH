@@ -1094,39 +1094,41 @@ class TTHTool(BaseEventTool):
 			return None
 
 	def drawGrid(self, scale, pitch):
+		gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
+
 		for xPos in range(0, 5000, int(pitch)):
 			pathX = NSBezierPath.bezierPath()
 			pathX.moveToPoint_((xPos, -5000))
 			pathX.lineToPoint_((xPos, 5000))
-			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
+			gridColor.set()
 			pathX.setLineWidth_(scale)
 			pathX.stroke()
 		for xPos in range(0, -5000, -int(pitch)):
 			pathX = NSBezierPath.bezierPath()
 			pathX.moveToPoint_((xPos, -5000))
 			pathX.lineToPoint_((xPos, 5000))
-			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
+			gridColor.set()
 			pathX.setLineWidth_(scale)
 			pathX.stroke()
 		for yPos in range(0, 5000, int(pitch)):
 			pathY = NSBezierPath.bezierPath()
 			pathY.moveToPoint_((-5000, yPos))
 			pathY.lineToPoint_((5000, yPos))
-			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
+			gridColor.set()
 			pathY.setLineWidth_(scale)
 			pathY.stroke()
 		for yPos in range(0, -5000, -int(pitch)):
 			pathY = NSBezierPath.bezierPath()
 			pathY.moveToPoint_((-5000, yPos))
 			pathY.lineToPoint_((5000, yPos))
-			NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.1).set()
+			gridColor.set()
 			pathY.setLineWidth_(scale)
 			pathY.stroke()
 
 	def drawZones(self, scale):
 
-		zonecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
-		zonecolorLabel = NSColor.colorWithRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
+		zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
+		zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
 
 		for zone in self.FL_Windows.topZoneView.UIZones:
 			y_start = int(zone['Position'])
@@ -1173,6 +1175,9 @@ class TTHTool(BaseEventTool):
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 		if x == None or y == None:
 			return
+
+		arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 0/255, 255/255, 1)
+		outlineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 	 	arrowAngle = math.radians(20)
 	 	initAngle = math.radians(a)
 
@@ -1187,18 +1192,20 @@ class TTHTool(BaseEventTool):
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 		pathArrow.lineToPoint_((x, y))
 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 255/255, 1).set()
+		arrowColor.set()
 		pathArrow.setLineWidth_(scale)
 		pathArrow.fill()
-		NSColor.colorWithRed_green_blue_alpha_(1, 1, 1, .5).set()
+		outlineColor.set()
 		pathArrow.stroke()
 
 	def drawDiscAtPoint(self, r, x, y, color):
-		NSColor.colorWithRed_green_blue_alpha_(color[0], color[1], color[2], color[3]).set()
+		discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0], color[1], color[2], color[3])
+		discColor.set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
 	def drawLozengeAtPoint(self, scale, r, x, y, color):
-		NSColor.colorWithRed_green_blue_alpha_(color[0], color[1], color[2], color[3]).set()
+		lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(color[0], color[1], color[2], color[3])
+		lozengeColor.set()
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((x+r*5, y))
 		path.lineToPoint_((x, y+r*5))
@@ -1272,8 +1279,9 @@ class TTHTool(BaseEventTool):
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve1) )
-	 
-		NSColor.colorWithRed_green_blue_alpha_(0/255, 0/255, 0/255, 1).set()
+	 	
+	 	linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 0/255, 0/255, 1)
+		linkColor.set()
 		path.setLineWidth_(scale)
 		pathArrow.fill()
 		path.stroke()
@@ -1320,7 +1328,7 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (offcurve1), (offcurve2) )
 
-	 	doublinkColor = NSColor.colorWithRed_green_blue_alpha_(215/255, 0/255, 215/255, 1)
+	 	doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(215/255, 0/255, 215/255, 1)
 
 		doublinkColor.set()
 		path.setLineWidth_(scale)
@@ -1358,7 +1366,7 @@ class TTHTool(BaseEventTool):
 		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
-		interpolatecolor = NSColor.colorWithRed_green_blue_alpha_(0/255, 215/255, 100/255, 1)
+		interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 215/255, 100/255, 1)
 		interpolatecolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
@@ -1383,7 +1391,7 @@ class TTHTool(BaseEventTool):
 		self.drawTextAtPoint(text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
 
 	def drawDelta(self, scale, point, value, cmdIndex):
-		deltacolor = NSColor.colorWithRed_green_blue_alpha_(255/255, 128/255, 0/255, 1)
+		deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(255/255, 128/255, 0/255, 1)
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
@@ -1415,14 +1423,15 @@ class TTHTool(BaseEventTool):
 		pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((xPos, -5000))
 		pathX.lineToPoint_((xPos, 5000))
-		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
+		sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
+		sidebearingColor.set()
 		pathX.setLineWidth_(scale)
 		pathX.stroke()
 
 		pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((0, -5000))
 		pathX.lineToPoint_((0, 5000))
-		NSColor.colorWithRed_green_blue_alpha_(1, 0, 0, 1).set()
+		sidebearingColor.set()
 		pathX.setLineWidth_(scale)
 		pathX.stroke()
 
