@@ -33,6 +33,7 @@ class TextRenderer (object):
 		# drawing position
 		self.pen = (0,0)
 		self.set_cur_size(9)
+		self.outlineColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(255/255, 75/255, 240/255, 1)
 
 		self.render_func = drawBitmapGray
 		self.render_mode = FT.FT_RENDER_MODE_NORMAL
@@ -124,9 +125,7 @@ class TextRenderer (object):
 		paths = self.getBezierPath(scale, pitch, char)
 		if paths is None:
 			return
-			
-		outlineColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(255/255, 75/255, 240/255, 1)
-		outlineColor.set()
+		self.outlineColor.set()
 		for p  in paths:
 			p.setLineWidth_(scale*2)
 			p.stroke()
