@@ -153,7 +153,6 @@ class TTHTool(BaseEventTool):
 
 	def __init__(self, tthtm):
 		BaseEventTool.__init__(self)
-
 		self.ready = False
 		self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
