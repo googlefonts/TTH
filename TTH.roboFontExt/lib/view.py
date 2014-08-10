@@ -90,8 +90,10 @@ class centralWindow(object):
 		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wCentral.ReadTTProgramButton = SquareButton((10, 180, -10, 22), "Read Glyph TT program", sizeStyle = 'small', 
-				callback=self.ReadTTProgramButtonCallback)
+		self.wCentral.PrintTTProgramButton = SquareButton((10, 180, -10, 22), "Print Glyph's program", sizeStyle = 'small', 
+				callback=self.PrintTTProgramButtonCallback)
+		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
+				callback=self.PrintAssemblyButtonCallback)
 	
 
 		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
@@ -292,11 +294,12 @@ class centralWindow(object):
 	def DeltaRange2EditTextCallback(self, sender):
 		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
 
-	def ReadTTProgramButtonCallback(self, sender):
+	def PrintTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
 		for i in FLTTProgram:
 			print i
 
+	def PrintAssemblyButtonCallback(self, sender):
 		for i in self.tthtm.g.lib['com.robofont.robohint.assembly']:
 			print i
 

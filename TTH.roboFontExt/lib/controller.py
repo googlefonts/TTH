@@ -1109,8 +1109,8 @@ class TTHTool(BaseEventTool):
 
 	def drawZones(self, scale):
 
-		zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 180/255, 50/255, .2)
-		zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 180/255, 50/255, 1)
+		zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
+		zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
 
 		for zone in self.FL_Windows.topZoneView.UIZones:
 			y_start = int(zone['Position'])
@@ -1158,7 +1158,7 @@ class TTHTool(BaseEventTool):
 		if x == None or y == None:
 			return
 
-		arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 0/255, 255/255, 1)
+		arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 1, 1)
 		outlineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 	 	arrowAngle = math.radians(20)
 	 	initAngle = math.radians(a)
@@ -1262,7 +1262,7 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve1) )
 	 	
-	 	linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 0/255, 0/255, 1)
+	 	linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 1)
 		linkColor.set()
 		path.setLineWidth_(scale)
 		pathArrow.fill()
@@ -1310,7 +1310,7 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (offcurve1), (offcurve2) )
 
-	 	doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(215/255, 0/255, 215/255, 1)
+	 	doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.84, 0, .84, 1)
 
 		doublinkColor.set()
 		path.setLineWidth_(scale)
@@ -1348,7 +1348,7 @@ class TTHTool(BaseEventTool):
 		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
-		interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0/255, 215/255, 100/255, 1)
+		interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .84, .39, 1)
 		interpolatecolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
@@ -1373,7 +1373,7 @@ class TTHTool(BaseEventTool):
 		self.drawTextAtPoint(text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
 
 	def drawDelta(self, scale, point, value, cmdIndex):
-		deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(255/255, 128/255, 0/255, 1)
+		deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
@@ -1405,7 +1405,7 @@ class TTHTool(BaseEventTool):
 		pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((xPos, -5000))
 		pathX.lineToPoint_((xPos, 5000))
-		sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
+		sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 		sidebearingColor.set()
 		pathX.setLineWidth_(scale)
 		pathX.stroke()
@@ -1463,8 +1463,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
 
 		r = 5*scale
-		self.drawDiscAtPoint(r, 0, 0, (1, 0, 0, 1))
-		self.drawDiscAtPoint(r, self.tthtm.g.width, 0, (1, 0, 0, 1))
+		self.drawDiscAtPoint(r, 0, 0, (1, .3, .94, 1))
+		self.drawDiscAtPoint(r, self.tthtm.g.width, 0, (1, .3, .94, 1))
 
 		self.drawGrid(scale, self.tthtm.pitch)
 		self.drawZones(scale)
@@ -1477,12 +1477,12 @@ class TTHTool(BaseEventTool):
 			if self.startPoint != None:
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
-				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start, (0/255, 180/255, 50/255, 1))
+				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start, (1, 0, 0, 1))
 			touchedEnd = self.isOnPoint(self.currentPoint)
 			if touchedEnd != None:
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
-				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end, (0/255, 180/255, 50/255, 1))
+				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end, (1, 0, 0, 1))
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
