@@ -20,25 +20,23 @@ toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
 def topologicalSort(l, f):
 	n = len(l)
-	preds = [[] for i in range(n)]
+	preds = [[] for i in l]
 	visited = [False for i in l]
-	loop = [False for i in l]
+	loop = list(visited) # separate copy of visited
+	# build the list of predecessors for each element of |l|
 	for i in range(n):
-		li = l[i]
-		for j in range(n):
-			if i == j:
+		for j in range(i+1,n):
+			(comp, swap) = f(l[i], l[j])
+			if not comp:
 				continue
-			(comp, swap) = f(li, l[j])
-			if comp:
-				if swap:
-					preds[i].append(j)
-				else:
-					preds[j].append(i)
+			if swap:
+				preds[i].append(j)
+			else:
+				preds[j].append(i)
 	result = []
 	def visit(i):
 		if loop[i]:
-			print "ERROR: Loop in topological sort"
-			return l
+			raise Exception("loop")
 		if visited[i]:
 			return
 		loop[i] = True
@@ -47,9 +45,14 @@ def topologicalSort(l, f):
 		loop[i] = False
 		visited[i] = True
 		result.append(l[i])
-	for i in range(n):
-		visit(i)
-	return result
+	try:
+		for i in range(n):
+			visit(i)
+		return result
+	except:
+		pass
+	print "ERROR: Found a loop in topological sort"
+	return l
 
 def pointsApproxEqual(p_glyph, p_cursor):
 	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
@@ -530,31 +533,15 @@ class TTHTool(BaseEventTool):
 		order = None
 		ab = 1
 		ba = 2
-		A_isAlign = False
-		B_isAlign = False
-		A_isSingleLink = False
-		B_isSingleLink = False
-		A_isInterpolate = False
-		B_isInterpolate= False
-		A_isMiddleDelta = False
-		B_isMiddleDelta = False
 
-		if A['code'] in ['alignh', 'alignv']:
-			A_isAlign = True
-		if B['code'] in ['alignh', 'alignv']:
-			B_isAlign = True
-		if A['code'] in ['singleh', 'singlev']:
-			A_isSingleLink = True
-		if B['code'] in ['singleh', 'singlev']:
-			B_isSingleLink = True
-		if A['code'] in ['interpolateh', 'interpolatev']:
-			A_isInterpolate = True
-		if B['code'] in ['interpolateh', 'interpolatev']:
-			B_isInterpolate = True
-		if A['code'] in ['mdeltah', 'mdeltav']:
-			A_isMiddleDelta = True
-		if B['code'] in ['mdeltah', 'mdeltav']:
-			B_isMiddleDelta = True
+		A_isAlign	= A['code'] in ['alignh', 'alignv']
+		B_isAlign	= B['code'] in ['alignh', 'alignv']
+		A_isSingleLink	= A['code'] in ['singleh', 'singlev']
+		B_isSingleLink	= B['code'] in ['singleh', 'singlev']
+		A_isInterpolate = A['code'] in ['interpolateh', 'interpolatev']
+		B_isInterpolate = B['code'] in ['interpolateh', 'interpolatev']
+		A_isMiddleDelta = A['code'] in ['mdeltah', 'mdeltav']
+		B_isMiddleDelta = B['code'] in ['mdeltah', 'mdeltav']
 
 		if A_isAlign and B_isAlign:
 			if A['point'] == B['point']:
@@ -627,11 +614,7 @@ class TTHTool(BaseEventTool):
 		return (False, False)
 
 	def prepareCommands(self):
-		x = []
-		ytb = []
-		y = []
-		fdeltah = []
-		fdeltav = []
+		x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
 		for e in self.glyphTTHCommands:
 			code = e['code']
 			if code == 'fdeltah':
