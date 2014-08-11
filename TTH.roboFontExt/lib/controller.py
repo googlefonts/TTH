@@ -1124,7 +1124,7 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start, zonecolorLabel)
 
 		for zone in self.FL_Windows.bottomZoneView.UIZones:
 			y_start = int(zone['Position'])
@@ -1138,21 +1138,44 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(zone['Name'], -100, y_start, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start, zonecolorLabel)
 
 
-	def drawTextAtPoint(self, title, x, y, backgroundColor):
+	def drawTextAtPoint(self, scale, title, x, y, backgroundColor):
 		currentTool = getActiveEventTool()
 		view = currentTool.getNSView()
 
 		attributes = {
-			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9*scale),
 			NSForegroundColorAttributeName : NSColor.whiteColor(),
 			}
 		backgroundStrokeColor = NSColor.whiteColor()
 
-		view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
-			
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		width, height = text.size()
+		fontSize = attributes[NSFontAttributeName].pointSize()
+		x -= width / 2
+		y -= fontSize
+		x = int(x)
+		y = int(y)
+
+		#shadow = NSShadow.alloc().init()
+		#shadow.setShadowColor_(backgroundColor)
+		#shadow.setShadowOffset_((0, 0))
+		#shadow.setShadowBlurRadius_(3)
+		width += 4*scale
+		height += 2*scale
+		#x = x - (2*scale)
+		#y = y - (1*scale)
+		context = NSGraphicsContext.currentContext()
+		context.saveGraphicsState()
+		#shadow.set()
+		backgroundColor.set()
+		NSRectFill(((x, y), (width, height)))
+		context.restoreGraphicsState()
+		text.drawAtPoint_((x, y))
+
+		#view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
 
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 		if x == None or y == None:
@@ -1234,7 +1257,7 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
-		self.drawTextAtPoint(text, x + 10*scale, y - 10*scale, NSColor.blueColor())
+		self.drawTextAtPoint(scale, text, x + 10*scale, y - 10*scale, NSColor.blueColor())
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -1296,7 +1319,7 @@ class TTHTool(BaseEventTool):
 			elif stemName != None:
 				text += '_' + stemName
 
-		self.drawTextAtPoint(text, offcurve1[0], offcurve1[1], NSColor.blackColor())
+		self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], NSColor.blackColor())
 
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
@@ -1329,7 +1352,7 @@ class TTHTool(BaseEventTool):
 		elif stemName != None:
 			text += '_' + stemName
 
-		self.drawTextAtPoint(text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
+		self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
@@ -1370,7 +1393,7 @@ class TTHTool(BaseEventTool):
 				extension = self.glyphTTHCommands[cmdIndex]['align']
 				text += '_' + extension
 
-		self.drawTextAtPoint(text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
+		self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
 
 	def drawDelta(self, scale, point, value, cmdIndex):
 		deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
@@ -1395,7 +1418,7 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'][:1] == 'f':
 			extension = '_F'
 		text += extension + ':' + value
-		self.drawTextAtPoint(text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+		self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
 
 	def drawSideBearings(self, scale, char):
 		try:
