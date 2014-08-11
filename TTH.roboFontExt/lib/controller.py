@@ -659,6 +659,7 @@ class TTHTool(BaseEventTool):
 	def deleteAllCommandsCallback(self, item):
 		emptyProgram = ''
 		self.glyphTTHCommands = {}
+		self.commandLabelPos = {}
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
 		self.updateGlyphProgram()
 
@@ -1162,6 +1163,8 @@ class TTHTool(BaseEventTool):
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
 		width, height = text.size()
 		fontSize = attributes[NSFontAttributeName].pointSize()
+		width += 4*scale
+		height += 2*scale
 		x -= width / 2
 		y -= fontSize / 2
 		#x = int(x)
@@ -1171,8 +1174,7 @@ class TTHTool(BaseEventTool):
 		#shadow.setShadowColor_(backgroundColor)
 		#shadow.setShadowOffset_((0, 0))
 		#shadow.setShadowBlurRadius_(3)
-		width += 4*scale
-		height += 2*scale
+		
 		#x = x - (2*scale)
 		#y = y - (1*scale)
 		context = NSGraphicsContext.currentContext()
@@ -1265,8 +1267,8 @@ class TTHTool(BaseEventTool):
 		(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, NSColor.blueColor())
 
 		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = ((x+ 10*scale, y- 20*scale), (width, height))
+		if cmdIndex != None:
+			self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -1327,7 +1329,7 @@ class TTHTool(BaseEventTool):
 		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], NSColor.blackColor())
 
 		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0], offcurve1[1]), (width, height))
 
 
@@ -1360,7 +1362,7 @@ class TTHTool(BaseEventTool):
 		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
 
 		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = (((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 ), (width, height))
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
@@ -1401,7 +1403,7 @@ class TTHTool(BaseEventTool):
 		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
 
 		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((middlePoint[0] + 10*scale, middlePoint[1] - 10*scale), (width, height))
 
 	def drawDelta(self, scale, point, value, cmdIndex):
@@ -1426,7 +1428,7 @@ class TTHTool(BaseEventTool):
 		(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
 
 		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] + 10*scale), (width, height))
 
 	def drawSideBearings(self, scale, char):
