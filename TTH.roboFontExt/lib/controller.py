@@ -1176,25 +1176,12 @@ class TTHTool(BaseEventTool):
 		height = 13*scale
 		x -= width / 2
 		y -= fontSize / 2
-		#x = int(x)
-		#y = int(y)
-
-		#shadow = NSShadow.alloc().init()
-		#shadow.setShadowColor_(backgroundColor)
-		#shadow.setShadowOffset_((0, 0))
-		#shadow.setShadowBlurRadius_(3)
-		
-		#x = x - (2*scale)
-		#y = y - (1*scale)
 		context = NSGraphicsContext.currentContext()
 		context.saveGraphicsState()
-		#shadow.set()
 		backgroundColor.set()
 		NSRectFill(((x, y), (width, height)))
 		context.restoreGraphicsState()
-		text.drawAtPoint_((x+2*scale, y+1*scale))
-		
-		#view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
+		text.drawAtPoint_((x+4*scale, y+1*scale))
 		return (width, height)
 
 	def drawArrowAtPoint(self, scale, r, a, x, y):
