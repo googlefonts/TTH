@@ -57,6 +57,13 @@ def topologicalSort(l, f):
 def pointsApproxEqual(p_glyph, p_cursor):
 	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
 
+def pointInCommand(commandPos, p_cursor):
+	x = commandPos[0][0]
+	y = commandPos[0][1]
+	width = commandPos[1][0]
+	height = commandPos[1][1]
+	return (p_cursor[0] >= (x-width/2) and p_cursor[0] <= (x+width/2) and p_cursor[1] >= (y-height/2) and p_cursor[1] <= (y+height/2))
+
 def find_in_list(l, p):
 	for e in l:
 		if p(e):
@@ -87,17 +94,17 @@ def loadCurrentFont(allFonts):
 		if f.fileName == cf.fileName:
 			return cf
 
-def createUnicodeToNameDict():
-	glyphList = open('../resources/GlyphList.txt', 'r')
-	unicodeToNameDict ={}
-	for i in glyphList:
-		if i[:1] != '#':
-			name = i.split(';')[0]
-			unicodeGlyph = '0x' + i.split(';')[1][:-1]
-			unicodeGlyph = unicodeGlyph.split(' ')[0]
-			if int(unicodeGlyph, 16) not in unicodeToNameDict:
-				unicodeToNameDict[int(unicodeGlyph, 16)] = name
-	return unicodeToNameDict
+# def createUnicodeToNameDict():
+# 	glyphList = open('../resources/GlyphList.txt', 'r')
+# 	unicodeToNameDict ={}
+# 	for i in glyphList:
+# 		if i[:1] != '#':
+# 			name = i.split(';')[0]
+# 			unicodeGlyph = '0x' + i.split(';')[1][:-1]
+# 			unicodeGlyph = unicodeGlyph.split(' ')[0]
+# 			if int(unicodeGlyph, 16) not in unicodeToNameDict:
+# 				unicodeToNameDict[int(unicodeGlyph, 16)] = name
+# 	return unicodeToNameDict
 
 
 def getGlyphNameByUnicode(unicodeToNameDict, unicodeChar):
@@ -157,10 +164,11 @@ class TTHTool(BaseEventTool):
 	def __init__(self, tthtm):
 		BaseEventTool.__init__(self)
 		self.ready = False
-		self.unicodeToNameDict = createUnicodeToNameDict()
+		#self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
+		self.startPoint = None
 
 	### TTH Tool Icon ###
 	def getToolbarIcon(self):
@@ -381,7 +389,7 @@ class TTHTool(BaseEventTool):
 				return False
 			if self.glyphTTHCommands[cmdIdx]['code'][-1] in skipper:
 				return False
-			return pointsApproxEqual(commandPos, p_cursor)
+			return pointInCommand(commandPos, p_cursor)
 
 		touched_p_command = find_in_dict(self.commandLabelPos, pred0)
 
@@ -1155,9 +1163,9 @@ class TTHTool(BaseEventTool):
 		width, height = text.size()
 		fontSize = attributes[NSFontAttributeName].pointSize()
 		x -= width / 2
-		y -= fontSize
-		x = int(x)
-		y = int(y)
+		y -= fontSize / 2
+		#x = int(x)
+		#y = int(y)
 
 		#shadow = NSShadow.alloc().init()
 		#shadow.setShadowColor_(backgroundColor)
@@ -1173,9 +1181,10 @@ class TTHTool(BaseEventTool):
 		backgroundColor.set()
 		NSRectFill(((x, y), (width, height)))
 		context.restoreGraphicsState()
-		text.drawAtPoint_((x, y))
-
+		text.drawAtPoint_((x+2*scale, y+1*scale))
+		
 		#view._drawTextAtPoint(title, attributes, (x, y), drawBackground=True, backgroundColor=backgroundColor, backgroundStrokeColor=backgroundStrokeColor)
+		return (width, height)
 
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 		if x == None or y == None:
@@ -1238,10 +1247,6 @@ class TTHTool(BaseEventTool):
 		self.drawArrowAtPoint(scale, 10, angle, x, y)
 		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
 
-		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (x + 10*scale, y - 10*scale)
-
 		extension = ''
 		text = 'A'
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -1257,7 +1262,11 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
-		self.drawTextAtPoint(scale, text, x + 10*scale, y - 10*scale, NSColor.blueColor())
+		(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, NSColor.blueColor())
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = ((x+ 10*scale, y- 20*scale), (width, height))
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
@@ -1291,10 +1300,6 @@ class TTHTool(BaseEventTool):
 		pathArrow.fill()
 		path.stroke()
 
-		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (offcurve1[0], offcurve1[1])
-
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
 			if self.tthtm.selectedAxis == 'Y' and self.glyphTTHCommands[cmdIndex]['align'] == 'right':
@@ -1319,7 +1324,11 @@ class TTHTool(BaseEventTool):
 			elif stemName != None:
 				text += '_' + stemName
 
-		self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], NSColor.blackColor())
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], NSColor.blackColor())
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = ((offcurve1[0], offcurve1[1]), (width, height))
 
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
@@ -1339,10 +1348,6 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
-		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = ((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 )
-
 		extension = ''
 		text = 'R'
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
@@ -1352,7 +1357,11 @@ class TTHTool(BaseEventTool):
 		elif stemName != None:
 			text += '_' + stemName
 
-		self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
+		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = (((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 ), (width, height))
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
@@ -1376,10 +1385,6 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
-		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (middlePoint[0] + 10*scale, middlePoint[1] - 10*scale)
-
 		extension = ''
 		text = 'I'
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -1393,7 +1398,11 @@ class TTHTool(BaseEventTool):
 				extension = self.glyphTTHCommands[cmdIndex]['align']
 				text += '_' + extension
 
-		self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
+		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = ((middlePoint[0] + 10*scale, middlePoint[1] - 10*scale), (width, height))
 
 	def drawDelta(self, scale, point, value, cmdIndex):
 		deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
@@ -1405,10 +1414,6 @@ class TTHTool(BaseEventTool):
 	 	deltacolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
-
-		# compute x, y
-		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
-			self.commandLabelPos[cmdIndex] = (point[0] - 10*scale, point[1] + 10*scale)
 		
 		extension = ''
 		text = 'delta'
@@ -1418,7 +1423,11 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'][:1] == 'f':
 			extension = '_F'
 		text += extension + ':' + value
-		self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+		(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+
+		# compute x, y
+		if cmdIndex != None and cmdIndex not in self.commandLabelPos:
+			self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] + 10*scale), (width, height))
 
 	def drawSideBearings(self, scale, char):
 		try:
