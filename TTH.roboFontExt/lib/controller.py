@@ -183,6 +183,12 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
 		self.startPoint = None
+		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		self.fulltempfontpath = temp.name
+		temp.close()
+		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		self.tempfontpath = temp.name
+		temp.close()
 
 	### TTH Tool Icon ###
 	def getToolbarIcon(self):
@@ -959,12 +965,6 @@ class TTHTool(BaseEventTool):
 
 
 	def generateFullTempFont(self):
-		root = os.path.split(self.tthtm.f.path)[0]
-		temp = tempfile.NamedTemporaryFile(suffix='.ttf', dir=root)
-		print temp.name
-		self.fulltempfontpath = temp.name
-		#tail = 'Fulltemp.ttf'
-		#self.fulltempfontpath = os.path.join(root, tail)
 
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
@@ -972,11 +972,6 @@ class TTHTool(BaseEventTool):
 		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 	def generateMiniTempFont(self):
-		root = os.path.split(self.tthtm.f.path)[0]
-		temp = tempfile.NamedTemporaryFile(suffix='.ttf', dir=root)
-		self.tempfontpath = temp.name
-		#tail = 'Minitemp.ttf'
-		#self.tempfontpath = os.path.join(root, tail)
 
 		tempFont = RFont(showUI=False)
 		tempFont.preferredSegmentType = 'qCurve'
