@@ -6,6 +6,7 @@ from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 from robofab.world import *
 import fontTools
+import tempfile
 
 import fl_tth
 import tt_tables
@@ -959,8 +960,11 @@ class TTHTool(BaseEventTool):
 
 	def generateFullTempFont(self):
 		root = os.path.split(self.tthtm.f.path)[0]
-		tail = 'Fulltemp.ttf'
-		self.fulltempfontpath = os.path.join(root, tail)
+		temp = tempfile.NamedTemporaryFile(suffix='.ttf', dir=root)
+		print temp.name
+		self.fulltempfontpath = temp.name
+		#tail = 'Fulltemp.ttf'
+		#self.fulltempfontpath = os.path.join(root, tail)
 
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
@@ -969,8 +973,10 @@ class TTHTool(BaseEventTool):
 
 	def generateMiniTempFont(self):
 		root = os.path.split(self.tthtm.f.path)[0]
-		tail = 'Minitemp.ttf'
-		self.tempfontpath = os.path.join(root, tail)
+		temp = tempfile.NamedTemporaryFile(suffix='.ttf', dir=root)
+		self.tempfontpath = temp.name
+		#tail = 'Minitemp.ttf'
+		#self.tempfontpath = os.path.join(root, tail)
 
 		tempFont = RFont(showUI=False)
 		tempFont.preferredSegmentType = 'qCurve'
