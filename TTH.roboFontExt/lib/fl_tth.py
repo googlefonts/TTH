@@ -494,13 +494,13 @@ class FL_TTH_Windows(object):
 			return {}
 
 	def AddZone(self, name, newZone, zoneView):
+                # add the zone in the model
 		self.zones[name] = newZone
 		self.f.lib[FL_tth_key]["zones"][name] = newZone
-
-		zoneView.box.zones_List.append(self.buildUIZoneDict(newZone, name))
-		self.topZoneView.UIZones = self.buildUIZonesList(buildTop=True)
-		self.bottomZoneView.UIZones = self.buildUIZonesList(buildTop=False)
-
+                # add the zone in the UI
+                uiZone = self.buildUIZoneDict(newZone, name)
+		zoneView.box.zones_List.append(uiZone)
+		zoneView.UIZones.append(uiZone)
 
 		ttht = self.TTHToolInstance
 		ttht.resetFonts() # FIXME: c'est un peu bourin
