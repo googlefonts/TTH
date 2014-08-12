@@ -498,6 +498,9 @@ class FL_TTH_Windows(object):
 		self.f.lib[FL_tth_key]["zones"][name] = newZone
 
 		zoneView.box.zones_List.append(self.buildUIZoneDict(newZone, name))
+		self.topZoneView.UIZones = self.buildUIZonesList(buildTop=True)
+		self.bottomZoneView.UIZones = self.buildUIZonesList(buildTop=False)
+
 
 		ttht = self.TTHToolInstance
 		ttht.resetFonts() # FIXME: c'est un peu bourin
@@ -512,6 +515,7 @@ class FL_TTH_Windows(object):
 			except:
 				pass
 		zoneView.set(self.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
+		UpdateCurrentGlyphView()
 
 	def EditZone(self, oldZoneName, zoneName, zoneDict, isTop):
 		self.storeZone(zoneName, zoneDict, isTop)
