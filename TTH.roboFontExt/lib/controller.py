@@ -348,6 +348,14 @@ class TTHTool(BaseEventTool):
 		self.centralWindow.wCentral.RoundDistanceCheckBox.set(self.tthtm.roundBool)
 
 	def changeDeltaOffset(self, offset):
+		try:
+			offset = int(offset)
+			if offset > 8:
+				offset = 8
+			if offset < -8:
+				offset = -8
+		except ValueError:
+			offset = 0
 		self.tthtm.setDeltaOffset(offset)
 		self.centralWindow.wCentral.DeltaOffsetSlider.set(self.tthtm.deltaOffset + 8)
 		self.centralWindow.wCentral.DeltaOffsetEditText.set(offset)

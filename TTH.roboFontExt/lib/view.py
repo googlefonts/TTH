@@ -298,7 +298,7 @@ class centralWindow(object):
 		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))
 
 	def DeltaOffsetEditTextCallback(self, sender):
-		print sender.get()
+		self.TTHToolInstance.changeDeltaOffset(sender.get())
 
 	def DeltaRange1EditTextCallback(self, sender):
 		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
