@@ -76,8 +76,12 @@ class centralWindow(object):
 		self.wCentral.DeltaOffsetText = TextBox((10, 90, 120, 14), "Delta Offset:", sizeStyle = "small")
 		self.wCentral.DeltaOffsetSlider = Slider((10, 110, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
+		self.wCentral.DeltaOffsetEditText = EditText((110, 90, 30, 19), sizeStyle = "small", 
+				callback=self.DeltaOffsetEditTextCallback)
 		self.wCentral.DeltaOffsetText.show(False)
 		self.wCentral.DeltaOffsetSlider.show(False)
+		self.wCentral.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
+		self.wCentral.DeltaOffsetEditText.show(False)
 
 		self.wCentral.DeltaRangeText = TextBox((10, 140, 120, 14), "Delta Range:", sizeStyle = "small")
 		self.wCentral.DeltaRange1EditText = EditText((110, 138, 30, 19), sizeStyle = "small", 
@@ -171,6 +175,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
+		self.wCentral.DeltaOffsetEditText.show(False)
 
 	def centralWindowDoubleLinkSettings(self):
 		self.wCentral.AlignmentTypeText.show(False)
@@ -184,6 +189,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
+		self.wCentral.DeltaOffsetEditText.show(False)
 
 	def centralWindowAlignSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
@@ -199,6 +205,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
+		self.wCentral.DeltaOffsetEditText.show(False)
 
 	def centralWindowInterpolationSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -214,6 +221,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
 		self.wCentral.DeltaRange2EditText.show(False)
+		self.wCentral.DeltaOffsetEditText.show(False)
 
 	def centralWindowDeltaSettings(self):
 		self.wCentral.AlignmentTypeText.show(False)
@@ -227,6 +235,7 @@ class centralWindow(object):
 		self.wCentral.DeltaRangeText.show(True)
 		self.wCentral.DeltaRange1EditText.show(True)
 		self.wCentral.DeltaRange2EditText.show(True)
+		self.wCentral.DeltaOffsetEditText.show(True)
 
 
 
@@ -287,6 +296,9 @@ class centralWindow(object):
 
 	def DeltaOffsetSliderCallback(self, sender):
 		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))
+
+	def DeltaOffsetEditTextCallback(self, sender):
+		print sender.get()
 
 	def DeltaRange1EditTextCallback(self, sender):
 		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)

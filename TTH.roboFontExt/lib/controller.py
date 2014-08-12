@@ -350,6 +350,7 @@ class TTHTool(BaseEventTool):
 	def changeDeltaOffset(self, offset):
 		self.tthtm.setDeltaOffset(offset)
 		self.centralWindow.wCentral.DeltaOffsetSlider.set(self.tthtm.deltaOffset + 8)
+		self.centralWindow.wCentral.DeltaOffsetEditText.set(offset)
 
 	def changeDeltaRange(self, value1, value2):
 		try:
