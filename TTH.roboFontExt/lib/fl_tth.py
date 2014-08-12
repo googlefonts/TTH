@@ -494,11 +494,11 @@ class FL_TTH_Windows(object):
 			return {}
 
 	def AddZone(self, name, newZone, zoneView):
-                # add the zone in the model
+		# add the zone in the model
 		self.zones[name] = newZone
 		self.f.lib[FL_tth_key]["zones"][name] = newZone
-                # add the zone in the UI
-                uiZone = self.buildUIZoneDict(newZone, name)
+		# add the zone in the UI
+		uiZone = self.buildUIZoneDict(newZone, name)
 		zoneView.box.zones_List.append(uiZone)
 		zoneView.UIZones.append(uiZone)
 
