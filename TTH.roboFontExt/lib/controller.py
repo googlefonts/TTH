@@ -1440,10 +1440,12 @@ class TTHTool(BaseEventTool):
 	def drawPreviewWindow(self):
 		if self.ready == False:
 			return
-		if CurrentGlyph() == None:
+		if self.tthtm.g == None:
 			return
-
-		curGlyphString = unichr(CurrentGlyph().unicode)
+		if self.tthtm.g.unicode == None:
+			print 'Glyph %s must have Unicode value' % self.tthtm.g.name
+			return
+		curGlyphString = unichr(self.tthtm.g.unicode)
 
 		# replace @ by current glyph
 		#text = self.previewWindow.previewString.replace('@', curGlyphString)
@@ -1475,8 +1477,11 @@ class TTHTool(BaseEventTool):
 	def drawBackground(self, scale):
 		if self.tthtm.g == None:
 			return
+		if self.tthtm.g.unicode == None:
+			print 'Glyph %s must have Unicode value' % self.tthtm.g.name
+			return
 
-		curChar = unichr(CurrentGlyph().unicode)
+		curChar = unichr(self.tthtm.g.unicode)
 		
 		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
 		self.tthtm.textRenderer.set_pen((0, 0))
