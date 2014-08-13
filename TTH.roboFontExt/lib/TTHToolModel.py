@@ -25,6 +25,7 @@ class TTHToolModel():
 
 		self.previewWindowVisible = 0
 		self.previewString = ''
+		self.alwaysRefresh = 1
 
 	def setFont(self, font):
 		self.f = font
@@ -97,4 +98,9 @@ class TTHToolModel():
 
 	def setPreviewString(self, previewString):
 		self.previewString = previewString
+
+	def setAlwaysRefresh(self, valueBool):
+		if valueBool in (0, 1):
+			self.alwaysRefresh = valueBool
+
 

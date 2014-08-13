@@ -100,6 +100,10 @@ class centralWindow(object):
 				callback=self.PrintAssemblyButtonCallback)
 		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Apply & Refresh Glyph", sizeStyle = 'small', 
 				callback=self.RefreshGlyphButtonCallback)
+		self.wCentral.AlwaysRefreshText = TextBox((10, 251, 180, 14), "Always Refresh Glyph:", sizeStyle = "small")
+		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 246, -10, 22), "", sizeStyle = "small",
+				callback=self.AlwaysRefreshCheckBoxCallback)
+		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
 
 		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
@@ -329,6 +333,9 @@ class centralWindow(object):
 	def RefreshGlyphButtonCallback(self, sender):
 		self.TTHToolInstance.refreshGlyph()
 		self.TTHToolInstance.updateGlyphProgram()
+
+	def AlwaysRefreshCheckBoxCallback(self, sender):
+		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
 
 	def PreviewShowButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(True)

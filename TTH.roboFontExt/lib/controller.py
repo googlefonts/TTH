@@ -142,6 +142,8 @@ class callbackAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		self.ttht.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
@@ -152,6 +154,8 @@ class callbackZoneAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 class callbackDistance():
 	def __init__(self, TTHtoolInstance, stemName):
@@ -162,6 +166,8 @@ class callbackDistance():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 class callbackSetDeltaValue():
 	def __init__(self, TTHtoolInstance, value):
@@ -172,6 +178,8 @@ class callbackSetDeltaValue():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 
 class TTHTool(BaseEventTool):
@@ -384,6 +392,10 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setDeltaRange2(value2)
 		self.centralWindow.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
+	def changeAlwaysRefresh(self, valueBool):
+		self.tthtm.setAlwaysRefresh(valueBool)
+		self.centralWindow.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
+
 	def makeStemsListsPopUpMenu(self):
 		self.tthtm.stemsListX = ['None']
 		self.tthtm.stemsListY = ['None']
@@ -566,6 +578,8 @@ class TTHTool(BaseEventTool):
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
+			if self.tthtm.alwaysRefresh == 1:
+				self.refreshGlyph()
 
 	def compareCommands(self, A, B):
 		order = None
@@ -685,6 +699,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 	def deleteAllCommandsCallback(self, item):
 		emptyProgram = ''
@@ -692,27 +708,37 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 	def dontRoundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['round']
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 	def dontLinkToStemCallBack(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 	def dontAlignCallBack(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['align']
 		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
 
 	def updateGlyphProgram(self):
 		self.prepareCommands()
