@@ -364,7 +364,10 @@ class FL_TTH_Windows(object):
 		self.wGeneral.show()
 
 	def ApplyButtonCallback(self, sender):
-		pass
+		ttht = self.TTHToolInstance
+		ttht.resetFonts() # FIXME: c'est un peu bourin
+		ttht.resetglyph()
+		UpdateCurrentGlyphView()
 
 
 	### Callback for General Window ###
@@ -459,10 +462,10 @@ class FL_TTH_Windows(object):
 		self.storeStem(newStemName, stemDict, horizontal)
 		self.f.lib[FL_tth_key]["stems"] = self.stems
 
-		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		# ttht = self.TTHToolInstance
+		# ttht.resetFonts() # FIXME: c'est un peu bourin
+		# ttht.resetglyph()
+		# UpdateCurrentGlyphView()
 
 	def deleteStems(self, selected, stemView):
 		for name in selected:
@@ -471,21 +474,21 @@ class FL_TTH_Windows(object):
 				del self.stems[name]
 			except:
 				pass
-		stemView.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
-		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		# stemView.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
+		# ttht = self.TTHToolInstance
+		# ttht.resetFonts() # FIXME: c'est un peu bourin
+		# ttht.resetglyph()
+		# UpdateCurrentGlyphView()
 
 	def addStem(self, name, stemDict, stemView):
 		self.stems[name] = stemDict
 		self.f.lib[FL_tth_key]["stems"][name] = stemDict
 		stemView.box.stemsList.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
 
-		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		# ttht = self.TTHToolInstance
+		# ttht.resetFonts() # FIXME: c'est un peu bourin
+		# ttht.resetglyph()
+		# UpdateCurrentGlyphView()
 
 	# ==================================== Functions for Zones
 
@@ -509,10 +512,10 @@ class FL_TTH_Windows(object):
 		zoneView.box.zones_List.append(uiZone)
 		zoneView.UIZones.append(uiZone)
 
-		ttht = self.TTHToolInstance
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		# ttht = self.TTHToolInstance
+		# ttht.resetFonts() # FIXME: c'est un peu bourin
+		# ttht.resetglyph()
+		# UpdateCurrentGlyphView()
 
 	def deleteZones(self, selected, zoneView):
 		for zoneName in selected:
@@ -539,9 +542,9 @@ class FL_TTH_Windows(object):
 							command['zone'] = zoneName
 				ttht.writeGlyphFLTTProgram(g)
 			dummy = ttht.readGlyphFLTTProgram(ttht.tthtm.g) # recover the correct commands list
-		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		# ttht.resetFonts() # FIXME: c'est un peu bourin
+		# ttht.resetglyph()
+		# UpdateCurrentGlyphView()
 
 	def storeZone(self, zoneName, entry, isTop):
 		if zoneName not in self.zones:
