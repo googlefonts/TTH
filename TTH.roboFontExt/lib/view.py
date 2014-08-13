@@ -385,10 +385,10 @@ class previewWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
-		self.wPreview = FloatingWindow((210, 600, 600, 200), "Preview", closable = False, initiallyVisible=False)
+		self.wPreview = FloatingWindow((210, 600, 600, 400), "Preview", closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
-		self.view.setFrame_(((0, 0), (1500, 160)))
+		self.view.setFrame_(((0, 0), (1200, 850)))
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
