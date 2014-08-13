@@ -141,7 +141,7 @@ class callbackAlignment():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
-		self.ttht.updateGlyphProgram()
+		#self.ttht.updateGlyphProgram()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
@@ -151,7 +151,7 @@ class callbackZoneAlignment():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
-		self.ttht.updateGlyphProgram()
+		#self.ttht.updateGlyphProgram()
 
 class callbackDistance():
 	def __init__(self, TTHtoolInstance, stemName):
@@ -161,7 +161,7 @@ class callbackDistance():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
-		self.ttht.updateGlyphProgram()
+		#self.ttht.updateGlyphProgram()
 
 class callbackSetDeltaValue():
 	def __init__(self, TTHtoolInstance, value):
@@ -171,7 +171,7 @@ class callbackSetDeltaValue():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
-		self.ttht.updateGlyphProgram()
+		#self.ttht.updateGlyphProgram()
 
 
 class TTHTool(BaseEventTool):
@@ -565,7 +565,7 @@ class TTHTool(BaseEventTool):
 
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
-			self.updateGlyphProgram()
+			#self.updateGlyphProgram()
 
 	def compareCommands(self, A, B):
 		order = None
@@ -684,14 +684,14 @@ class TTHTool(BaseEventTool):
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
-		self.updateGlyphProgram()
+		#self.updateGlyphProgram()
 
 	def deleteAllCommandsCallback(self, item):
 		emptyProgram = ''
 		self.glyphTTHCommands = {}
 		self.commandLabelPos = {}
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
-		self.updateGlyphProgram()
+		#self.updateGlyphProgram()
 
 
 	def roundDistanceCallback(self, item):
@@ -702,17 +702,17 @@ class TTHTool(BaseEventTool):
 	def dontRoundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['round']
-		self.updateGlyphProgram()
+		#self.updateGlyphProgram()
 
 	def dontLinkToStemCallBack(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['stem']
-		self.updateGlyphProgram()
+		#self.updateGlyphProgram()
 
 	def dontAlignCallBack(self, item):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['align']
-		self.updateGlyphProgram()
+		#self.updateGlyphProgram()
 
 	def updateGlyphProgram(self):
 		self.prepareCommands()

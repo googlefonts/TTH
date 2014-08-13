@@ -94,10 +94,12 @@ class centralWindow(object):
 		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wCentral.PrintTTProgramButton = SquareButton((10, 180, -10, 22), "Print Glyph's program", sizeStyle = 'small', 
+		self.wCentral.PrintTTProgramButton = SquareButton((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
 				callback=self.PrintTTProgramButtonCallback)
 		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
 				callback=self.PrintAssemblyButtonCallback)
+		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Refresh Glyph", sizeStyle = 'small', 
+				callback=self.RefreshGlyphButtonCallback)
 	
 
 		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
@@ -308,12 +310,24 @@ class centralWindow(object):
 
 	def PrintTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
+		if not FLTTProgram:
+			print 'There is no Program in this glyph'
+			return
 		for i in FLTTProgram:
 			print i
 
 	def PrintAssemblyButtonCallback(self, sender):
-		for i in self.tthtm.g.lib['com.robofont.robohint.assembly']:
+		glyphAssembly = ''
+		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib:
+			glyphAssembly = self.tthtm.g.lib['com.robofont.robohint.assembly']
+		if not glyphAssembly:
+			print 'There is no Assembly in this glyph'
+			return
+		for i in glyphAssembly:
 			print i
+
+	def RefreshGlyphButtonCallback(self, sender):
+		self.TTHToolInstance.updateGlyphProgram()
 
 	def PreviewShowButtonCallback(self, sender):
 		self.wCentral.PreviewHideButton.show(True)
