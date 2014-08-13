@@ -474,7 +474,7 @@ class FL_TTH_Windows(object):
 				del self.stems[name]
 			except:
 				pass
-		# stemView.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
+		stemView.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
 		# ttht = self.TTHToolInstance
 		# ttht.resetFonts() # FIXME: c'est un peu bourin
 		# ttht.resetglyph()
