@@ -1526,7 +1526,7 @@ class TTHTool(BaseEventTool):
 		# render user string
 		if self.tthtm.textRenderer:
 			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-			self.tthtm.textRenderer.set_pen((10, 50))
+			self.tthtm.textRenderer.set_pen((10, 30))
 			self.tthtm.textRenderer.render_text(text)
 
 			# render current glyph at various sizes
