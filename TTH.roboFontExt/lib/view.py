@@ -98,7 +98,7 @@ class centralWindow(object):
 				callback=self.PrintTTProgramButtonCallback)
 		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
 				callback=self.PrintAssemblyButtonCallback)
-		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Refresh Glyph", sizeStyle = 'small', 
+		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Apply & Refresh Glyph", sizeStyle = 'small', 
 				callback=self.RefreshGlyphButtonCallback)
 	
 
