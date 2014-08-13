@@ -294,12 +294,16 @@ class FL_TTH_Windows(object):
 		self.wZones = FloatingWindow((210, 30, 350, 400), "Zones", closable = False, initiallyVisible=False)
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.buildUIZonesList(buildTop=True))
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.buildUIZonesList(buildTop=False))
+		self.wZones.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+				callback=self.ApplyButtonCallback)
 		self.wZones.open()
 
 		# The Stems window
 		self.wStems = FloatingWindow((210, 30, 450, 400), "Stems", closable = False, initiallyVisible=False)
 		self.horizontalStemView	= StemView(self, 34, "Horizontal (Y)", True, self.buildStemsUIList(horizontal=True))
 		self.verticalStemView	= StemView(self, 200, "Vertical (X)", False, self.buildStemsUIList(horizontal=False))
+		self.wStems.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+				callback=self.ApplyButtonCallback)
 		self.wStems.open()
 
 		# General Options
@@ -358,6 +362,9 @@ class FL_TTH_Windows(object):
 
 	def showGeneral(self):
 		self.wGeneral.show()
+
+	def ApplyButtonCallback(self, sender):
+		pass
 
 
 	### Callback for General Window ###

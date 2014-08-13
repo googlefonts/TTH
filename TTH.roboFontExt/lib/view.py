@@ -327,6 +327,7 @@ class centralWindow(object):
 			print i
 
 	def RefreshGlyphButtonCallback(self, sender):
+		self.TTHToolInstance.refreshGlyph()
 		self.TTHToolInstance.updateGlyphProgram()
 
 	def PreviewShowButtonCallback(self, sender):
