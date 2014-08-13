@@ -7,6 +7,7 @@ from robofab.plistlib import Data
 from robofab.world import *
 import fontTools
 import tempfile
+import time
 
 import fl_tth
 import tt_tables
@@ -965,14 +966,18 @@ class TTHTool(BaseEventTool):
 
 
 	def generateFullTempFont(self):
+		start = time.time()
 
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
 		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
 		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
-	def generateMiniTempFont(self):
+		finishedin = time.time() - start
+		print 'full temp font generated in', finishedin
 
+	def generateMiniTempFont(self):
+		start = time.time()
 		tempFont = RFont(showUI=False)
 		tempFont.preferredSegmentType = 'qCurve'
 		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
@@ -999,8 +1004,11 @@ class TTHTool(BaseEventTool):
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'mini font generated'
+		finishedin = time.time() - start
+		print 'mini temp font generated in', finishedin
 
 	def mergeMiniAndFullTempFonts(self):
+		start = time.time()
 		root = os.path.split(self.tthtm.f.path)[0]
 		tail = 'tempTemp.ttf'
 		tempTempfontpath = os.path.join(root, tail)
@@ -1013,6 +1021,8 @@ class TTHTool(BaseEventTool):
 		os.remove(self.fulltempfontpath)
 		os.rename(tempTempfontpath, self.fulltempfontpath)
 		#print 'temp fonts merged'
+		finishedin = time.time() - start
+		print 'merging fonts in', finishedin
 
 	def makePointNameToIndexDict(self, g):
 		result = {}
