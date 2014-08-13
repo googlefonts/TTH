@@ -142,8 +142,8 @@ class callbackAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		self.ttht.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.refreshGlyph()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
@@ -154,8 +154,8 @@ class callbackZoneAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.refreshGlyph()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
 
 class callbackDistance():
 	def __init__(self, TTHtoolInstance, stemName):
@@ -166,8 +166,8 @@ class callbackDistance():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.refreshGlyph()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
 
 class callbackSetDeltaValue():
 	def __init__(self, TTHtoolInstance, value):
@@ -178,8 +178,8 @@ class callbackSetDeltaValue():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.refreshGlyph()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
 
 
 class TTHTool(BaseEventTool):
@@ -1030,26 +1030,29 @@ class TTHTool(BaseEventTool):
 			tempFont[self.tthtm.g.name].lib['com.robofont.robohint.assembly'] = self.tthtm.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 		#print 'mini font generated'
 		finishedin = time.time() - start
 		print 'mini temp font generated in', finishedin
 
 	def mergeMiniAndFullTempFonts(self):
-		start = time.time()
+		
 		root = os.path.split(self.tthtm.f.path)[0]
 		tail = 'tempTemp.ttf'
 		tempTempfontpath = os.path.join(root, tail)
 
-		ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
+		#ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 		ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
 		gName = self.tthtm.g.name
-		ttFull['glyf'][gName] = ttMini['glyf'][gName]
-		ttFull.save(tempTempfontpath)
+		self.ttFull['glyf'][gName] = ttMini['glyf'][gName]
+		start = time.time()
+		self.ttFull.save(tempTempfontpath)
+		finishedin = time.time() - start
 		os.remove(self.fulltempfontpath)
 		os.rename(tempTempfontpath, self.fulltempfontpath)
 		#print 'temp fonts merged'
-		finishedin = time.time() - start
-		print 'merging fonts in', finishedin
+		
+		print 'saving full temp font in', finishedin
 
 	def makePointNameToIndexDict(self, g):
 		result = {}
@@ -1348,6 +1351,8 @@ class TTHTool(BaseEventTool):
 				extension = 'bottom'
 			else:
 				extension = self.glyphTTHCommands[cmdIndex]['align']
+				if extension == 'round':
+					extension = 'closest'
 
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
 			if self.glyphTTHCommands[cmdIndex]['round'] == 'true':
