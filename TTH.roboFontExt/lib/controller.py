@@ -23,13 +23,13 @@ toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
-arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 1, 1)
+arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
 outlineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
-linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 1)
+linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, 0, 0, 1)
 doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.84, 0, .84, 1)
-interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .84, .39, 1)
+interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.2, .5, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 
@@ -1210,8 +1210,8 @@ class TTHTool(BaseEventTool):
 
 
 	def drawTextAtPoint(self, scale, title, x, y, backgroundColor):
-		currentTool = getActiveEventTool()
-		view = currentTool.getNSView()
+		#currentTool = getActiveEventTool()
+		#view = currentTool.getNSView()
 
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9*scale),
@@ -1233,6 +1233,17 @@ class TTHTool(BaseEventTool):
 		context.restoreGraphicsState()
 		text.drawAtPoint_((x+4*scale, y+1*scale))
 		return (width, height)
+
+	def drawPreviewSize(self, title, x, y):
+		#currentview = self.previewWindow.view
+
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
+			NSForegroundColorAttributeName : NSColor.blackColor(),
+			}
+
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		text.drawAtPoint_((x, y))
 
 	def drawArrowAtPoint(self, scale, r, a, x, y):
 		if x == None or y == None:
@@ -1306,7 +1317,7 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
-		(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, NSColor.blueColor())
+		(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, arrowColor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -1369,7 +1380,7 @@ class TTHTool(BaseEventTool):
 			elif stemName != None:
 				text += '_' + stemName
 
-		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], NSColor.blackColor())
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], linkColor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -1524,7 +1535,10 @@ class TTHTool(BaseEventTool):
 				self.tthtm.textRenderer.set_cur_size(size)
 				self.tthtm.textRenderer.set_pen((advance, 100))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
+				self.drawPreviewSize(str(size), advance, 75)
 				advance += delta_pos[0] + 5
+				
+				
 
 	def drawBackground(self, scale):
 		if self.tthtm.g == None:

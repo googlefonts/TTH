@@ -34,7 +34,7 @@ class TextRenderer (object):
 		self.pen = (0,0)
 		self.set_cur_size(9)
 
-		self.outlinecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
+		self.outlinecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .43, .81, 1)
 
 		self.render_func = drawBitmapGray
 		self.render_mode = FT.FT_RENDER_MODE_NORMAL

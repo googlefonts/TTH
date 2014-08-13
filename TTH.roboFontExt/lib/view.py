@@ -98,9 +98,9 @@ class centralWindow(object):
 				callback=self.PrintTTProgramButtonCallback)
 		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
 				callback=self.PrintAssemblyButtonCallback)
-		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Apply & Refresh Glyph", sizeStyle = 'small', 
+		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
 				callback=self.RefreshGlyphButtonCallback)
-		self.wCentral.AlwaysRefreshText = TextBox((10, 251, 180, 14), "Always Refresh Glyph:", sizeStyle = "small")
+		self.wCentral.AlwaysRefreshText = TextBox((10, 251, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
 		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 246, -10, 22), "", sizeStyle = "small",
 				callback=self.AlwaysRefreshCheckBoxCallback)
 		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
