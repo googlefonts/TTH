@@ -365,9 +365,11 @@ class FL_TTH_Windows(object):
 
 	def ApplyButtonCallback(self, sender):
 		ttht = self.TTHToolInstance
+		#ttht.generatePartialTempFont()
 		ttht.resetFonts() # FIXME: c'est un peu bourin
-		ttht.resetglyph()
-		UpdateCurrentGlyphView()
+		ttht.refreshGlyph()
+		#ttht.resetglyph()
+		#UpdateCurrentGlyphView()
 
 
 	### Callback for General Window ###

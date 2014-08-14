@@ -1397,6 +1397,8 @@ class TTHTool(BaseEventTool):
 				extension = 'bottom'
 			else:
 				extension = self.glyphTTHCommands[cmdIndex]['align']
+				if extension == 'round':
+					extension = 'closest'
 
 
 			text += '_' + extension
