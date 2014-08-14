@@ -5,7 +5,6 @@ from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 from robofab.world import *
-import fontTools
 import tempfile
 import time
 
@@ -29,9 +28,11 @@ discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
 linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
-interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .75, 0, 1)
+interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .6, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
+borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
+shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -1248,11 +1249,11 @@ class TTHTool(BaseEventTool):
 
 
 	def drawTextAtPoint(self, scale, title, x, y, backgroundColor):
-		#currentTool = getActiveEventTool()
-		#view = currentTool.getNSView()
+		currentTool = getActiveEventTool()
+		view = currentTool.getNSView()
 
 		attributes = {
-			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9*scale),
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
 			NSForegroundColorAttributeName : NSColor.whiteColor(),
 			}
 		backgroundStrokeColor = NSColor.whiteColor()
@@ -1260,16 +1261,34 @@ class TTHTool(BaseEventTool):
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
 		width, height = text.size()
 		fontSize = attributes[NSFontAttributeName].pointSize()
-		width += 8*scale
+		width = width*scale
+		width += 8.0*scale
 		height = 13*scale
-		x -= width / 2
-		y -= fontSize / 2
+		x -= width / 2.0
+		y -= fontSize*scale / 2.0
+		
+		
+		#NSRectFill(((x, y), (width, height)))
+		shadow = NSShadow.alloc().init()
+		shadow.setShadowColor_(shadowColor)
+		shadow.setShadowOffset_((0, -1))
+		shadow.setShadowBlurRadius_(2)
+		thePath = NSBezierPath.bezierPath()
+		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x, y), (width, height)), 3*scale, 3*scale)
+		
 		context = NSGraphicsContext.currentContext()
 		context.saveGraphicsState()
+
+		shadow.set()
+		thePath.setLineWidth_(scale)
 		backgroundColor.set()
-		NSRectFill(((x, y), (width, height)))
+		thePath.fill()
+		borderColor.set()
+		thePath.stroke()
+		#text.drawAtPoint_((int(x+4.0*scale), int(y+2.0*scale)))
 		context.restoreGraphicsState()
-		text.drawAtPoint_((x+4*scale, y+1*scale))
+		
+		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
 
 	def drawPreviewSize(self, title, x, y):
