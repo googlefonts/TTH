@@ -27,9 +27,9 @@ arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
 outlineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
-linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, 0, 0, 1)
-doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.84, 0, .84, 1)
-interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.2, .5, 0, 1)
+linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
+doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
+interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .75, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 
@@ -1327,9 +1327,8 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
 
-	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
-	 	
-	 	start_end_diff = difference(startPoint, endPoint)
+	def drawLinkDragging(self, scale, startPoint, endPoint):
+		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
 	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10*scale, startPoint[1] - dy + math.sin(angle)*10*scale)
@@ -1357,6 +1356,16 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		pathArrow.fill()
 		path.stroke()
+
+
+	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
+	 	
+	 	self.drawLinkDragging(scale, startPoint, endPoint)
+
+	 	start_end_diff = difference(startPoint, endPoint)
+	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
+	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10*scale, startPoint[1] - dy + math.sin(angle)*10*scale)
 
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -1390,10 +1399,8 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0], offcurve1[1]), (width, height))
 
-
-	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
-	 	
-	 	start_end_diff = difference(endPoint, startPoint)
+	def drawDoubleLinkDragging(self, scale, startPoint, endPoint):
+		start_end_diff = difference(endPoint, startPoint)
 	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
 	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
 		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
@@ -1406,6 +1413,14 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
+	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
+
+	 	self.drawDoubleLinkDragging(scale, startPoint, endPoint)
+
+	 	start_end_diff = difference(endPoint, startPoint)
+	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
+	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
+		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
 		extension = ''
 		text = 'R'
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
@@ -1453,6 +1468,8 @@ class TTHTool(BaseEventTool):
 				text += '_' + extension
 			else:
 				extension = self.glyphTTHCommands[cmdIndex]['align']
+				if extension == 'round':
+					extension = 'closest'
 				text += '_' + extension
 
 		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
@@ -1581,6 +1598,10 @@ class TTHTool(BaseEventTool):
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
 				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start)
+				if self.tthtm.selectedHintingTool == 'Single Link':
+					self.drawLinkDragging(scale, self.startPoint, self.currentPoint)
+				elif self.tthtm.selectedHintingTool == 'Double Link':
+					self.drawDoubleLinkDragging(scale, self.startPoint, self.currentPoint)
 			touchedEnd = self.isOnPoint(self.currentPoint)
 			if touchedEnd != None:
 				x_end = touchedEnd[0]
