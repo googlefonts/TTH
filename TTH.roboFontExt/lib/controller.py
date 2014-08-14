@@ -994,7 +994,7 @@ class TTHTool(BaseEventTool):
 
 	def generateFullTempFont(self):
 
-		start = time.time()
+		#start = time.time()
 
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'full font generated'
@@ -1005,11 +1005,11 @@ class TTHTool(BaseEventTool):
 		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 
 		finishedin = time.time() - start
-		print 'full temp font generated in', finishedin
+		#print 'full temp font generated in', finishedin
 
 
 	def generateMiniTempFont(self):
-		start = time.time()
+		#start = time.time()
 		tempFont = RFont(showUI=False)
 		tempFont.preferredSegmentType = 'qCurve'
 		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
@@ -1036,8 +1036,8 @@ class TTHTool(BaseEventTool):
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		#print 'mini font generated'
-		finishedin = time.time() - start
-		print 'mini temp font generated in', finishedin
+		#finishedin = time.time() - start
+		#print 'mini temp font generated in', finishedin
 
 	def mergeMiniAndFullTempFonts(self):
 		
@@ -1049,14 +1049,14 @@ class TTHTool(BaseEventTool):
 		ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
 		gName = self.tthtm.g.name
 		self.ttFull['glyf'][gName] = ttMini['glyf'][gName]
-		start = time.time()
+		#start = time.time()
 		self.ttFull.save(tempTempfontpath)
-		finishedin = time.time() - start
+		#finishedin = time.time() - start
 		os.remove(self.fulltempfontpath)
 		os.rename(tempTempfontpath, self.fulltempfontpath)
 		#print 'temp fonts merged'
 		
-		print 'saving full temp font in', finishedin
+		#print 'saving full temp font in', finishedin
 
 	def makePointNameToIndexDict(self, g):
 		result = {}
