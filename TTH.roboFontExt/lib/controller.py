@@ -193,13 +193,13 @@ class TTHTool(BaseEventTool):
 		self.tthtm = tthtm
 		self.startPoint = None
 
-		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		self.fulltempfontpath = temp.name
-		temp.close()
+		# temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		# self.fulltempfontpath = temp.name
+		# temp.close()
 
-		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		self.tempfontpath = temp.name
-		temp.close()
+		# temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		# self.tempfontpath = temp.name
+		# temp.close()
 
 		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.partialtempfontpath = temp.name
@@ -285,7 +285,7 @@ class TTHTool(BaseEventTool):
 
 	def changeBitmapPreview(self, preview):
 		self.tthtm.setBitmapPreview(preview)
-		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, preview)
+		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, preview)
 		previewIndex = self.getPreviewListIndex(preview)
 		self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
@@ -754,8 +754,10 @@ class TTHTool(BaseEventTool):
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 	def refreshGlyph(self):
-		self.generateMiniTempFont()
-		self.mergeMiniAndFullTempFonts()
+		#self.generateMiniTempFont()
+		#self.mergeMiniAndFullTempFonts()
+		#self.resetglyph()
+		self.generatePartialTempFont()
 		self.resetglyph()
 		UpdateCurrentGlyphView()
 
@@ -955,8 +957,10 @@ class TTHTool(BaseEventTool):
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
-		self.generateFullTempFont()
-		self.indexOfGlyphNames = dict([(self.fullTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.fullTempUFO.lib['public.glyphOrder']))])
+		#self.generateFullTempFont()
+		self.resetglyph()
+
+		#self.indexOfGlyphNames = dict([(self.partialTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.partialTempUFO.lib['public.glyphOrder']))])
 
 		self.changeSize(self.tthtm.PPM_Size)
 		self.changeAxis(self.tthtm.selectedAxis)
@@ -992,7 +996,7 @@ class TTHTool(BaseEventTool):
 		#self.tthtm.requiredGlyphsForPartialTempFont = self.defineGlyphsForPartialTempFont(text, curGlyphString)
 		#self.generatePartialTempFont()		
 
-		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
+		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		self.commandLabelPos = {}
@@ -1011,20 +1015,20 @@ class TTHTool(BaseEventTool):
 					self.p_glyphList.append((p.x, p.y))
 
 
-	def generateFullTempFont(self):
+	# def generateFullTempFont(self):
 
-		#start = time.time()
+	# 	#start = time.time()
 
-		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		#print 'full font generated'
-		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
-		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
+	# 	self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+	# 	#print 'full font generated'
+	# 	self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
+	# 	self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
-		#keep full temporary font loaded in fontTools in advance for merging faster later
-		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
+	# 	#keep full temporary font loaded in fontTools in advance for merging faster later
+	# 	self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 
-		#finishedin = time.time() - start
-		#print 'full temp font generated in', finishedin
+	# 	#finishedin = time.time() - start
+	# 	#print 'full temp font generated in', finishedin
 
 	def buildUnicodeToNameDict(self, f):
 		unicodeToNameDict = {}
@@ -1073,66 +1077,67 @@ class TTHTool(BaseEventTool):
 			tempFont.newGlyph(gName)
 			tempFont[gName] = self.tthtm.f[gName]
 			if 'com.robofont.robohint.assembly' in self.tthtm.f[gName].lib:
-				tempFont[self.tthtm.f[gName].name].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
+				tempFont[gName].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 
 		finishedin = time.time() - start
 		
 		print 'partial temp font generated in %f seconds' % finishedin
+		self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
 		#print 'with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
 
 
-	def generateMiniTempFont(self):
-		#start = time.time()
-		tempFont = RFont(showUI=False)
-		#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
-		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
-		tempFont.info.ascender = self.tthtm.f.info.ascender
-		tempFont.info.descender = self.tthtm.f.info.descender
-		tempFont.info.xHeight = self.tthtm.f.info.xHeight
-		tempFont.info.capHeight = self.tthtm.f.info.capHeight
+	# def generateMiniTempFont(self):
+	# 	#start = time.time()
+	# 	tempFont = RFont(showUI=False)
+	# 	#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
+	# 	tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
+	# 	tempFont.info.ascender = self.tthtm.f.info.ascender
+	# 	tempFont.info.descender = self.tthtm.f.info.descender
+	# 	tempFont.info.xHeight = self.tthtm.f.info.xHeight
+	# 	tempFont.info.capHeight = self.tthtm.f.info.capHeight
 
-		tempFont.info.familyName = self.tthtm.f.info.familyName
-		tempFont.info.styleName = self.tthtm.f.info.styleName
+	# 	tempFont.info.familyName = self.tthtm.f.info.familyName
+	# 	tempFont.info.styleName = self.tthtm.f.info.styleName
 
-		if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
-		if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
-		if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
+	# 	if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
+	# 		tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
+	# 	if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
+	# 		tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
+	# 	if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
+	# 		tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
 		
 
-		tempFont.newGlyph(self.tthtm.g.name)
-		tempFont[self.tthtm.g.name] = self.tthtm.g
-		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib:
-			tempFont[self.tthtm.g.name].lib['com.robofont.robohint.assembly'] = self.tthtm.g.lib['com.robofont.robohint.assembly']
+	# 	tempFont.newGlyph(self.tthtm.g.name)
+	# 	tempFont[self.tthtm.g.name] = self.tthtm.g
+	# 	if 'com.robofont.robohint.assembly' in self.tthtm.g.lib:
+	# 		tempFont[self.tthtm.g.name].lib['com.robofont.robohint.assembly'] = self.tthtm.g.lib['com.robofont.robohint.assembly']
 
-		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		#print 'mini font generated'
-		#finishedin = time.time() - start
-		#print 'mini temp font generated in', finishedin
+	# 	tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+	# 	#print 'mini font generated'
+	# 	#finishedin = time.time() - start
+	# 	#print 'mini temp font generated in', finishedin
 
-	def mergeMiniAndFullTempFonts(self):
+	# def mergeMiniAndFullTempFonts(self):
 		
-		root = os.path.split(self.tthtm.f.path)[0]
-		tail = 'tempTemp.ttf'
-		tempTempfontpath = os.path.join(root, tail)
+	# 	root = os.path.split(self.tthtm.f.path)[0]
+	# 	tail = 'tempTemp.ttf'
+	# 	tempTempfontpath = os.path.join(root, tail)
 
-		#ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
-		ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
-		gName = self.tthtm.g.name
-		self.ttFull['glyf'][gName] = ttMini['glyf'][gName]
-		#start = time.time()
-		self.ttFull.save(tempTempfontpath)
-		#finishedin = time.time() - start
-		os.remove(self.fulltempfontpath)
-		os.rename(tempTempfontpath, self.fulltempfontpath)
-		#print 'temp fonts merged'
+	# 	#ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
+	# 	ttMini = fontTools.ttLib.TTFont(self.tempfontpath)
+	# 	gName = self.tthtm.g.name
+	# 	self.ttFull['glyf'][gName] = ttMini['glyf'][gName]
+	# 	#start = time.time()
+	# 	self.ttFull.save(tempTempfontpath)
+	# 	#finishedin = time.time() - start
+	# 	os.remove(self.fulltempfontpath)
+	# 	os.rename(tempTempfontpath, self.fulltempfontpath)
+	# 	#print 'temp fonts merged'
 		
-		#print 'saving full temp font in', finishedin
+	# 	#print 'saving full temp font in', finishedin
 
 	def makePointNameToIndexDict(self, g):
 		result = {}
@@ -1221,11 +1226,11 @@ class TTHTool(BaseEventTool):
 		g.lib['com.fontlab.ttprogram'] = Data(text)
 
 
-	def getGlyphIndexByName(self, glyphName):
-		try:
-			return self.indexOfGlyphNames[glyphName]
-		except:
-			return None
+	# def getGlyphIndexByName(self, glyphName):
+	# 	try:
+	# 		return self.indexOfGlyphNames[glyphName]
+	# 	except:
+	# 		return None
 
 	def drawGrid(self, scale, pitch):
 
@@ -1613,8 +1618,8 @@ class TTHTool(BaseEventTool):
 		nbsp = len(sp)
 		for i in range(1,nbsp):
 			sub = sp[i].split(' ', 1)
-			if sub[0] in self.fullTempUFO:
-				sp[i] = unichr(self.fullTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
+			if sub[0] in self.partialTempUFO:
+				sp[i] = unichr(self.partialTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
 		text = ''.join(sp)
 		self.previewText = text
 		return (text, curGlyphString)

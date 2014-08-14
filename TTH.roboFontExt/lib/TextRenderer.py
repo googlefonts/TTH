@@ -15,7 +15,7 @@ class TRCache (object):
 		self.bitmaps = {}
 		self.advances = {}
 
-class TextRenderer (object):
+class TextRenderer(object):
 
 	def __init__(self, face_path, renderMode):
 		self.face = FT.Face(face_path)

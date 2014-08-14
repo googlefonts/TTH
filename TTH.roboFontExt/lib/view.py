@@ -414,6 +414,7 @@ class previewWindow(object):
 		if newGlyphSet != self.tthtm.requiredGlyphsForPartialTempFont:
 			self.tthtm.requiredGlyphsForPartialTempFont = self.TTHToolInstance.defineGlyphsForPartialTempFont(text, curGlyphString)
 			self.TTHToolInstance.generatePartialTempFont()
+			self.TTHToolInstance.resetglyph()
 			
 			
 
