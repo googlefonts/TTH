@@ -1703,8 +1703,6 @@ class TTHTool(BaseEventTool):
 					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint)
 
 
-
-
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
 			# search elements only once
 			cmd_code = getOrNone(c, 'code')
