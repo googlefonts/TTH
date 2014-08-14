@@ -197,6 +197,7 @@ class TTHTool(BaseEventTool):
 		temp.close()
 		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.tempfontpath = temp.name
+		self.previewText = ''
 		temp.close()
 
 	### TTH Tool Icon ###
@@ -930,6 +931,7 @@ class TTHTool(BaseEventTool):
 		if not self.allFonts:
 			return
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
+		self.unicodeToNameDict = self.buildUnicodeToNameDict(self.tthtm.f)
 		self.tthtm.resetPitch()
 
 		if createWindows:
@@ -972,7 +974,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setGlyph(CurrentGlyph())
 		if self.tthtm.g == None:
 			return
-
+		self.defineGlyphsForPartialTempFont()
 		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
@@ -1007,11 +1009,34 @@ class TTHTool(BaseEventTool):
 		#finishedin = time.time() - start
 		#print 'full temp font generated in', finishedin
 
+	def buildUnicodeToNameDict(self, f):
+		unicodeToNameDict = {}
+		for g in f:
+			unicodeToNameDict[g.unicode] = g.name
+		return unicodeToNameDict
+
+	def defineGlyphsForPartialTempFont(self):
+		requiredGlyphs = []
+		requiredGlyphs.append(self.tthtm.g.name)
+		if len(self.tthtm.g.components) > 0:
+			for component in self.tthtm.g.components:
+				requiredGlyphs.append(component.baseGlyph)
+
+		for c in self.previewText:
+			name = self.unicodeToNameDict[ord(c)]
+			if name not in requiredGlyphs:
+				requiredGlyphs.append(name)
+				if len(self.tthtm.f[name].components) > 0:
+					for component in self.tthtm.f[name].components:
+						requiredGlyphs.append(component.baseGlyph)
+		print requiredGlyphs
+
+
 
 	def generateMiniTempFont(self):
 		#start = time.time()
 		tempFont = RFont(showUI=False)
-		tempFont.preferredSegmentType = 'qCurve'
+		#tempFont.preferredSegmentType = 'qCurve'
 		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
 		tempFont.info.ascender = self.tthtm.f.info.ascender
 		tempFont.info.descender = self.tthtm.f.info.descender
@@ -1543,6 +1568,7 @@ class TTHTool(BaseEventTool):
 			if sub[0] in self.fullTempUFO:
 				sp[i] = unichr(self.fullTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
 		text = ''.join(sp)
+		self.previewText = text
 
 		# render user string
 		if self.tthtm.textRenderer:

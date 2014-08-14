@@ -409,4 +409,5 @@ class previewWindow(object):
 	def previewEditTextCallback(self, sender):
 		#self.previewString = sender.get()
 		self.tthtm.setPreviewString(sender.get())
+		self.TTHToolInstance.defineGlyphsForPartialTempFont()
 		self.view.setNeedsDisplay_(True)
