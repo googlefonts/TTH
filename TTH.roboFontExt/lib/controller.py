@@ -1004,7 +1004,7 @@ class TTHTool(BaseEventTool):
 		#keep full temporary font loaded in fontTools in advance for merging faster later
 		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 
-		finishedin = time.time() - start
+		#finishedin = time.time() - start
 		#print 'full temp font generated in', finishedin
 
 
