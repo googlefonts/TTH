@@ -1056,7 +1056,7 @@ class TTHTool(BaseEventTool):
 		#start = time.time()
 		
 		tempFont = RFont(showUI=False)
-		tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
+		#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
 		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
 		tempFont.info.ascender = self.tthtm.f.info.ascender
 		tempFont.info.descender = self.tthtm.f.info.descender
