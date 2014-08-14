@@ -112,6 +112,8 @@ class TextRenderer(object):
 		if index not in self.cache.bitmaps:
 			#print "!! ", self.get_glyph_image(index).format,
 			result = self.get_glyph_image(index).to_bitmap(self.render_mode, 0)
+			if self.render_mode == FT.FT_RENDER_MODE_LCD:
+				result = (result, desaturateBufferFromFTBuffer(result))
 			#print self.get_glyph_image(index).format
 			self.cache.bitmaps[index] = result
 			return result
@@ -262,7 +264,7 @@ def drawBitmapGray(bmg, scale, advance, height, alpha):
 		Quartz.CGContextSetAlpha(port, 1.0)
 	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
 
-def drawBitmapSubPixelColor(bmg, scale, advance, height, alpha):
+def desaturateBufferFromFTBuffer(bmg):
 	bm = bmg.bitmap
 	pixelWidth = int(bm.width/3)
 	numBytes = 4 * bm.rows * pixelWidth
@@ -280,9 +282,7 @@ def drawBitmapSubPixelColor(bmg, scale, advance, height, alpha):
 			buf[pos+3] = 0
 			pos += 4
 			source += 3
-
 	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-
 	cgimg = Quartz.CGImageCreate(
 			pixelWidth,
 			bm.rows,
@@ -297,8 +297,12 @@ def drawBitmapSubPixelColor(bmg, scale, advance, height, alpha):
 			False, # bool shouldInterpolate,
 			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
+	return cgimg
+
+def drawBitmapSubPixelColor((bmg, cgimg), scale, advance, height, alpha):
+	bm = bmg.bitmap
+	pixelWidth = int(bm.width/3)
 	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, pixelWidth*scale, bm.rows*scale)
-	
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1:
 		Quartz.CGContextSetAlpha(port, alpha)
