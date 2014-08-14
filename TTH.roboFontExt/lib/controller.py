@@ -428,6 +428,13 @@ class TTHTool(BaseEventTool):
 
 		return touched_p_glyph
 
+	def isOffPoint(self, p_cursor):
+		def pred0(p_glyph):
+			return pointsApproxEqual(p_glyph, p_cursor)
+		touched_p_glyph = find_in_list(self.pOff_glyphList, pred0)
+
+		return touched_p_glyph
+
 	def isOnCommand(self, p_cursor):
 		if self.tthtm.selectedAxis == 'X':
 			skipper = ['v','t','b']
@@ -485,8 +492,9 @@ class TTHTool(BaseEventTool):
 	def mouseUp(self, point):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
+		self.endPointOff = self.isOffPoint(self.p_cursor)
 		#print 'glyph end point:', self.endPoint
-		if self.endPoint == None:
+		if self.endPoint == None and self.endPointOff == None:
 				return
 
 		cmdIndex = len(self.glyphTTHCommands)
@@ -564,10 +572,13 @@ class TTHTool(BaseEventTool):
 			self.point = None
 			self.point2 = None
 
-		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta'] and self.endPoint != None:
+		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta'] and (self.endPoint != None or self.endPointOff != None):
 			if self.tthtm.deltaOffset == 0:
 				return
-			newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
+			if self.endPoint != None:
+				newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
+			if self.endPointOff != None:
+				newCommand['point'] = self.pointCoordinatesToName[self.endPointOff]
 			newCommand['ppm1'] = str(self.tthtm.deltaRange1)
 			newCommand['ppm2'] = str(self.tthtm.deltaRange2)
 			newCommand['delta'] = str(self.tthtm.deltaOffset)
@@ -582,7 +593,9 @@ class TTHTool(BaseEventTool):
 				else:
 					newCommand['code'] = 'fdeltav'
 
-
+		self.endPoint = None
+		self.startPoint = None
+		self.endPointOff = None
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
@@ -758,7 +771,7 @@ class TTHTool(BaseEventTool):
 		#self.mergeMiniAndFullTempFonts()
 		#self.resetglyph()
 		self.generatePartialTempFont()
-		self.resetglyph()
+		self.resetglyph(forceRegenerate = True)
 		UpdateCurrentGlyphView()
 
 
@@ -981,24 +994,26 @@ class TTHTool(BaseEventTool):
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
-	def updatePartialFont(self):
+	def updatePartialFont(self, forceRegenerate = False):
 		(text, curGlyphString) = self.prepareText()
 		newGlyphSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
 		regenerate = not newGlyphSet.issubset(self.tthtm.requiredGlyphsForPartialTempFont)
 		n = len(self.tthtm.requiredGlyphsForPartialTempFont)
 		if (n > 128) and (len(newGlyphSet) < n):
 			regenerate = True
+		if forceRegenerate:
+			regenerate = True
 		if regenerate:
 			self.tthtm.requiredGlyphsForPartialTempFont = newGlyphSet
 			self.generatePartialTempFont()
 			self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
 
-	def resetglyph(self):
+	def resetglyph(self, forceRegenerate = False):
 		self.tthtm.setGlyph(CurrentGlyph())
 		if self.tthtm.g == None:
 			return
 
-		self.updatePartialFont()
+		self.updatePartialFont(forceRegenerate)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		self.commandLabelPos = {}
@@ -1010,11 +1025,14 @@ class TTHTool(BaseEventTool):
 		self.previewWindow.view.setNeedsDisplay_(True)
 
 		self.p_glyphList = ([(0, 0), (self.tthtm.g.width, 0)])
+		self.pOff_glyphList = []
 
 		for c in self.tthtm.g:
 			for p in c.points:
 				if p.type != 'offCurve':
 					self.p_glyphList.append((p.x, p.y))
+				else:
+					self.pOff_glyphList.append((p.x, p.y))
 
 	def buildUnicodeToNameDict(self, f):
 		unicodeToNameDict = {}
@@ -1500,11 +1518,15 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
-	 	path.lineToPoint_((point[0]+ (value[0]/8)*self.tthtm.pitch, point[1] + (value[1]/8)*self.tthtm.pitch))
+	 	end_x = point[0] + (value[0]/8.0)*self.tthtm.pitch
+	 	end_y = point[1] + (value[1]/8.0)*self.tthtm.pitch
+	 	path.lineToPoint_((end_x, end_y))
 
 	 	deltacolor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
+		r = 3
+		NSBezierPath.bezierPathWithOvalInRect_(((end_x-r, end_y-r), (r*2, r*2))).fill()
 		
 		extension = ''
 		text = 'delta'
