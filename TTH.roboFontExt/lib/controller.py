@@ -1411,7 +1411,7 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
 
-	def drawLinkDragging(self, scale, startPoint, endPoint):
+	def drawLinkArrow(self, scale, startPoint, endPoint):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
@@ -1444,7 +1444,7 @@ class TTHTool(BaseEventTool):
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	
-	 	self.drawLinkDragging(scale, startPoint, endPoint)
+	 	self.drawLinkArrow(scale, startPoint, endPoint)
 
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
@@ -1686,19 +1686,23 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		if self.isDragging():
+			self.endPoint = self.currentPoint
+			touchedEnd = self.isOnPoint(self.currentPoint)
+			if touchedEnd != None:
+				self.endPoint = touchedEnd
+				x_end = touchedEnd[0]
+				y_end = touchedEnd[1]
+				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
 			if self.startPoint != None:
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
 				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start)
 				if self.tthtm.selectedHintingTool == 'Single Link':
-					self.drawLinkDragging(scale, self.startPoint, self.currentPoint)
+					self.drawLinkArrow(scale, self.startPoint, self.endPoint)
 				elif self.tthtm.selectedHintingTool == 'Double Link':
-					self.drawDoubleLinkDragging(scale, self.startPoint, self.currentPoint)
-			touchedEnd = self.isOnPoint(self.currentPoint)
-			if touchedEnd != None:
-				x_end = touchedEnd[0]
-				y_end = touchedEnd[1]
-				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
+					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint)
+
+
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
