@@ -985,10 +985,9 @@ class TTHTool(BaseEventTool):
 		(text, curGlyphString) = self.prepareText()
 		newGlyphSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
 		regenerate = not newGlyphSet.issubset(self.tthtm.requiredGlyphsForPartialTempFont)
-		if not regenerate:
-			n = len(self.tthtm.requiredGlyphsForPartialTempFont)
-			if (n > 128) and (len(newGlyphSet) < n):
-				regenerate = True
+		n = len(self.tthtm.requiredGlyphsForPartialTempFont)
+		if (n > 128) and (len(newGlyphSet) < n):
+			regenerate = True
 		if regenerate:
 			self.tthtm.requiredGlyphsForPartialTempFont = newGlyphSet
 			self.generatePartialTempFont()
