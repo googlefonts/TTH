@@ -993,6 +993,7 @@ class TTHTool(BaseEventTool):
 
 
 	def generateFullTempFont(self):
+
 		start = time.time()
 
 		self.tthtm.f.generate(self.fulltempfontpath,'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
@@ -1000,28 +1001,32 @@ class TTHTool(BaseEventTool):
 		self.fullTempUFO = OpenFont(self.fulltempfontpath, showUI=False)
 		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
+		#keep full temporary font loaded in fontTools in advance for merging faster later
+		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
+
 		finishedin = time.time() - start
 		print 'full temp font generated in', finishedin
+
 
 	def generateMiniTempFont(self):
 		start = time.time()
 		tempFont = RFont(showUI=False)
 		tempFont.preferredSegmentType = 'qCurve'
-		tempFont.info.unitsPerEm = CurrentFont().info.unitsPerEm
-		tempFont.info.ascender = CurrentFont().info.ascender
-		tempFont.info.descender = CurrentFont().info.descender
-		tempFont.info.xHeight = CurrentFont().info.xHeight
-		tempFont.info.capHeight = CurrentFont().info.capHeight
+		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
+		tempFont.info.ascender = self.tthtm.f.info.ascender
+		tempFont.info.descender = self.tthtm.f.info.descender
+		tempFont.info.xHeight = self.tthtm.f.info.xHeight
+		tempFont.info.capHeight = self.tthtm.f.info.capHeight
 
-		tempFont.info.familyName = CurrentFont().info.familyName
-		tempFont.info.styleName = CurrentFont().info.styleName
+		tempFont.info.familyName = self.tthtm.f.info.familyName
+		tempFont.info.styleName = self.tthtm.f.info.styleName
 
-		if 'com.robofont.robohint.cvt ' in CurrentFont().lib:
-			tempFont.lib['com.robofont.robohint.cvt '] = CurrentFont().lib['com.robofont.robohint.cvt ']
-		if 'com.robofont.robohint.prep' in CurrentFont().lib:
-			tempFont.lib['com.robofont.robohint.prep'] = CurrentFont().lib['com.robofont.robohint.prep']
-		if 'com.robofont.robohint.fpgm' in CurrentFont().lib:
-			tempFont.lib['com.robofont.robohint.fpgm'] = CurrentFont().lib['com.robofont.robohint.fpgm']
+		if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
+		if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
+		if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
 		
 
 		tempFont.newGlyph(self.tthtm.g.name)
@@ -1030,7 +1035,6 @@ class TTHTool(BaseEventTool):
 			tempFont[self.tthtm.g.name].lib['com.robofont.robohint.assembly'] = self.tthtm.g.lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.tempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		self.ttFull = fontTools.ttLib.TTFont(self.fulltempfontpath)
 		#print 'mini font generated'
 		finishedin = time.time() - start
 		print 'mini temp font generated in', finishedin
