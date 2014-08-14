@@ -1053,7 +1053,7 @@ class TTHTool(BaseEventTool):
 		return glyphSet
 
 	def generatePartialTempFont(self):
-		start = time.time()
+		#start = time.time()
 		
 		tempFont = RFont(showUI=False)
 		tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
@@ -1076,16 +1076,17 @@ class TTHTool(BaseEventTool):
 		for gName in self.tthtm.requiredGlyphsForPartialTempFont:
 			tempFont.newGlyph(gName)
 			tempFont[gName] = self.tthtm.f[gName]
+			tempFont[gName].unicode = self.tthtm.f[gName].unicode
 			if 'com.robofont.robohint.assembly' in self.tthtm.f[gName].lib:
 				tempFont[gName].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
 
 		tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 
-		finishedin = time.time() - start
+		#finishedin = time.time() - start
 		
-		print 'partial temp font generated in %f seconds' % finishedin
-		self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
-		#print 'with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
+		#print 'partial temp font generated in %f seconds' % finishedin
+		#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
+		#print 'temp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
 
 
@@ -1618,8 +1619,10 @@ class TTHTool(BaseEventTool):
 		nbsp = len(sp)
 		for i in range(1,nbsp):
 			sub = sp[i].split(' ', 1)
-			if sub[0] in self.partialTempUFO:
-				sp[i] = unichr(self.partialTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
+			if sub[0] in self.tthtm.f:
+				sp[i] = unichr(self.tthtm.f[sub[0]].unicode) + (' '.join(sub[1:]))
+			else:
+				sp[i] = ''
 		text = ''.join(sp)
 		self.previewText = text
 		return (text, curGlyphString)
