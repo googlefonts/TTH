@@ -409,5 +409,12 @@ class previewWindow(object):
 	def previewEditTextCallback(self, sender):
 		#self.previewString = sender.get()
 		self.tthtm.setPreviewString(sender.get())
-		self.TTHToolInstance.defineGlyphsForPartialTempFont()
+		(text, curGlyphString) = self.TTHToolInstance.prepareText()
+		newGlyphSet = self.TTHToolInstance.defineGlyphsForPartialTempFont(text, curGlyphString)
+		if newGlyphSet != self.tthtm.requiredGlyphsForPartialTempFont:
+			self.tthtm.requiredGlyphsForPartialTempFont = self.TTHToolInstance.defineGlyphsForPartialTempFont(text, curGlyphString)
+			self.TTHToolInstance.generatePartialTempFont()
+			
+			
+
 		self.view.setNeedsDisplay_(True)

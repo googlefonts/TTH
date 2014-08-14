@@ -192,13 +192,20 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
 		self.startPoint = None
+
 		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.fulltempfontpath = temp.name
 		temp.close()
+
 		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.tempfontpath = temp.name
-		self.previewText = ''
 		temp.close()
+
+		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		self.partialtempfontpath = temp.name
+		temp.close()
+
+		self.previewText = ''
 
 	### TTH Tool Icon ###
 	def getToolbarIcon(self):
@@ -974,7 +981,17 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setGlyph(CurrentGlyph())
 		if self.tthtm.g == None:
 			return
-		self.defineGlyphsForPartialTempFont()
+
+		(text, curGlyphString) = self.prepareText()
+
+		newGlyphSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
+		if sorted(newGlyphSet) != sorted(self.tthtm.requiredGlyphsForPartialTempFont):
+			self.tthtm.requiredGlyphsForPartialTempFont = self.defineGlyphsForPartialTempFont(text, curGlyphString)
+			self.generatePartialTempFont()
+
+		#self.tthtm.requiredGlyphsForPartialTempFont = self.defineGlyphsForPartialTempFont(text, curGlyphString)
+		#self.generatePartialTempFont()		
+
 		self.tthtm.textRenderer = TR.TextRenderer(self.fulltempfontpath, self.tthtm.bitmapPreviewSelection)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
@@ -1015,28 +1032,62 @@ class TTHTool(BaseEventTool):
 			unicodeToNameDict[g.unicode] = g.name
 		return unicodeToNameDict
 
-	def defineGlyphsForPartialTempFont(self):
-		requiredGlyphs = []
-		requiredGlyphs.append(self.tthtm.g.name)
+	def defineGlyphsForPartialTempFont(self, text, curGlyphString):
+		glyphSet = []
+		glyphSet.append(self.unicodeToNameDict[ord(curGlyphString)])
 		if len(self.tthtm.g.components) > 0:
 			for component in self.tthtm.g.components:
-				requiredGlyphs.append(component.baseGlyph)
-
-		for c in self.previewText:
+				glyphSet.append(component.baseGlyph)
+		for c in text:
 			name = self.unicodeToNameDict[ord(c)]
-			if name not in requiredGlyphs:
-				requiredGlyphs.append(name)
+			if name not in glyphSet:
+				glyphSet.append(name)
 				if len(self.tthtm.f[name].components) > 0:
 					for component in self.tthtm.f[name].components:
-						requiredGlyphs.append(component.baseGlyph)
-		print requiredGlyphs
+						glyphSet.append(component.baseGlyph)
+
+		return glyphSet
+
+	def generatePartialTempFont(self):
+		start = time.time()
+		
+		tempFont = RFont(showUI=False)
+		tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
+		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
+		tempFont.info.ascender = self.tthtm.f.info.ascender
+		tempFont.info.descender = self.tthtm.f.info.descender
+		tempFont.info.xHeight = self.tthtm.f.info.xHeight
+		tempFont.info.capHeight = self.tthtm.f.info.capHeight
+
+		tempFont.info.familyName = self.tthtm.f.info.familyName
+		tempFont.info.styleName = self.tthtm.f.info.styleName
+
+		if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
+		if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
+		if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
+			tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
+
+		for gName in self.tthtm.requiredGlyphsForPartialTempFont:
+			tempFont.newGlyph(gName)
+			tempFont[gName] = self.tthtm.f[gName]
+			if 'com.robofont.robohint.assembly' in self.tthtm.f[gName].lib:
+				tempFont[self.tthtm.f[gName].name].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
+
+		tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+
+		finishedin = time.time() - start
+		
+		print 'partial temp font generated in %f seconds' % finishedin
+		#print 'with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
 
 
 	def generateMiniTempFont(self):
 		#start = time.time()
 		tempFont = RFont(showUI=False)
-		#tempFont.preferredSegmentType = 'qCurve'
+		#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
 		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
 		tempFont.info.ascender = self.tthtm.f.info.ascender
 		tempFont.info.descender = self.tthtm.f.info.descender
@@ -1546,14 +1597,11 @@ class TTHTool(BaseEventTool):
 		pathX.setLineWidth_(scale)
 		pathX.stroke()
 
-	def drawPreviewWindow(self):
-		if self.ready == False:
-			return
-		if self.tthtm.g == None:
-			return
+	def prepareText(self):
 		if self.tthtm.g.unicode == None:
 			print 'Glyph %s must have Unicode value' % self.tthtm.g.name
 			return
+
 		curGlyphString = unichr(self.tthtm.g.unicode)
 
 		# replace @ by current glyph
@@ -1569,7 +1617,15 @@ class TTHTool(BaseEventTool):
 				sp[i] = unichr(self.fullTempUFO[sub[0]].unicode) + (' '.join(sub[1:]))
 		text = ''.join(sp)
 		self.previewText = text
+		return (text, curGlyphString)
 
+	def drawPreviewWindow(self):
+		if self.ready == False:
+			return
+		if self.tthtm.g == None:
+			return
+
+		(text, curGlyphString) = self.prepareText()
 		# render user string
 		if self.tthtm.textRenderer:
 			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
