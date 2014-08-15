@@ -768,14 +768,9 @@ class TTHTool(BaseEventTool):
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 	def refreshGlyph(self):
-		#self.generateMiniTempFont()
-		#self.mergeMiniAndFullTempFonts()
-		#self.resetglyph()
-		self.generatePartialTempFont()
-		self.resetglyph(forceRegenerate = True)
+		self.updatePartialFont() # to update the newly modified current glyph
+		self.resetglyph()
 		UpdateCurrentGlyphView()
-
-
 
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -995,26 +990,28 @@ class TTHTool(BaseEventTool):
 
 		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
-	def updatePartialFont(self, forceRegenerate = False):
+	def updatePartialFontIfNeeded(self):
+		"""Re-create the partial font if new glyphs are required."""
 		(text, curGlyphString) = self.prepareText()
-		newGlyphSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
-		regenerate = not newGlyphSet.issubset(self.tthtm.requiredGlyphsForPartialTempFont)
-		n = len(self.tthtm.requiredGlyphsForPartialTempFont)
-		if (n > 128) and (len(newGlyphSet) < n):
-			regenerate = True
-		if forceRegenerate:
+		curSet = self.tthtm.requiredGlyphsForPartialTempFont
+		newSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
+		regenerate = not newSet.issubset(curSet)
+		n = len(curSet)
+		if (n > 128) and (len(newSet) < n):
 			regenerate = True
 		if regenerate:
-			self.tthtm.requiredGlyphsForPartialTempFont = newGlyphSet
-			self.generatePartialTempFont()
-			self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
+			self.tthtm.requiredGlyphsForPartialTempFont = newSet
+			self.updatePartialFont()
 
-	def resetglyph(self, forceRegenerate = False):
+	def updatePartialFont(self):
+		"""Typically called directly when the current glyph has been modifed."""
+		self.generatePartialTempFont()
+		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
+
+	def resetglyph(self):
 		self.tthtm.setGlyph(CurrentGlyph())
 		if self.tthtm.g == None:
 			return
-
-		self.updatePartialFont(forceRegenerate)
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		self.commandLabelPos = {}

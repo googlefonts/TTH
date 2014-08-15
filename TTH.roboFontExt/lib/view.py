@@ -407,7 +407,6 @@ class previewWindow(object):
 		self.wPreview.hide()
 
 	def previewEditTextCallback(self, sender):
-		#self.previewString = sender.get()
 		self.tthtm.setPreviewString(sender.get())
-                self.TTHToolInstance.updatePartialFont()
+		self.TTHToolInstance.updatePartialFontIfNeeded()
 		self.view.setNeedsDisplay_(True)
