@@ -385,10 +385,12 @@ class previewWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
-		self.wPreview = FloatingWindow((10, 450, 400, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
+		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (1200, 850)))
+		self.view.setFrameOrigin_((0, 2400))
+		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
