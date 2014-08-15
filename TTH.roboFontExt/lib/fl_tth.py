@@ -300,18 +300,20 @@ class FL_TTH_Windows(object):
 
 		# The Stems window
 		self.wStems = FloatingWindow((210, 30, 450, 400), "Stems", closable = False, initiallyVisible=False)
-		self.horizontalStemView	= StemView(self, 34, "Horizontal (Y)", True, self.buildStemsUIList(horizontal=True))
-		self.verticalStemView	= StemView(self, 200, "Vertical (X)", False, self.buildStemsUIList(horizontal=False))
+		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.buildStemsUIList(horizontal=True))
+		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.buildStemsUIList(horizontal=False))
 		self.wStems.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 		self.wStems.open()
 
 		# General Options
-		self.wGeneral = FloatingWindow((210, 30, 350, 90), "General Options", closable = False, initiallyVisible=False)
+		self.wGeneral = FloatingWindow((210, 30, 350, 120), "General Options", closable = False, initiallyVisible=False)
 		w = self.wGeneral
 		w.StemSnapTitle= TextBox((10, 10, 300, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "regular")
 		w.AlignmentTitle= TextBox((10, 32, 300, 22), "Stop zone alignment above (ppEm)", sizeStyle = "regular")
 		w.InstructionsTitle= TextBox((10, 54, 300, 22), "Do not execute instructions above (ppEm)", sizeStyle = "regular")
+		w.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+				callback=self.ApplyButtonCallback)
 
 		w.editTextStemSnap = EditText((300, 10, 30, 22), callback=self.editTextStemSnapCallback)
 		w.editTextStemSnap.set(self.stemsnap)

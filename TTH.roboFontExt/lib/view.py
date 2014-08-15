@@ -6,7 +6,7 @@ class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.wCentral = FloatingWindow((10, 30, 200, 600), "Central", closable = False)
+		self.wCentral = FloatingWindow((10, 30, 200, 400), "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
@@ -98,17 +98,17 @@ class centralWindow(object):
 				callback=self.PrintTTProgramButtonCallback)
 		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
 				callback=self.PrintAssemblyButtonCallback)
-		self.wCentral.RefreshGlyphButton = SquareButton((10, 224, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
+		self.wCentral.RefreshGlyphButton = SquareButton((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
 				callback=self.RefreshGlyphButtonCallback)
-		self.wCentral.AlwaysRefreshText = TextBox((10, 251, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
-		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 246, -10, 22), "", sizeStyle = "small",
+		self.wCentral.AlwaysRefreshText = TextBox((10, 266, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
+		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 261, -10, 22), "", sizeStyle = "small",
 				callback=self.AlwaysRefreshCheckBoxCallback)
 		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
 
-		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview", sizeStyle = 'small', 
+		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview Window", sizeStyle = 'small', 
 				callback=self.PreviewShowButtonCallback)
-		self.wCentral.PreviewHideButton = SquareButton((10, -98, -10, 22), "Hide Preview", sizeStyle = 'small', 
+		self.wCentral.PreviewHideButton = SquareButton((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
 				callback=self.PreviewHideButtonCallback)
 
 		if self.tthtm.previewWindowVisible == 0:
@@ -385,7 +385,7 @@ class previewWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
-		self.wPreview = FloatingWindow((210, 600, 600, 400), "Preview", closable = False, initiallyVisible=False)
+		self.wPreview = FloatingWindow((10, 450, 400, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (1200, 850)))
