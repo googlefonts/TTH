@@ -1660,6 +1660,7 @@ class TTHTool(BaseEventTool):
 		self.drawSideBearings(scale, curChar)
 
 	def draw(self, scale):
+
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
