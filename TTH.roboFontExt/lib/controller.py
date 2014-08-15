@@ -1646,7 +1646,6 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None or self.doneGeneratingPartialFont == False:
 			return
 		if self.tthtm.g.unicode == None:
-			print 'Glyph %s must have Unicode value to be hinted' % self.tthtm.g.name
 			return
 
 		curChar = unichr(self.tthtm.g.unicode)
