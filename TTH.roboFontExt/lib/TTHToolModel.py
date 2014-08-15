@@ -26,6 +26,7 @@ class TTHToolModel():
 		self.previewWindowVisible = 0
 		self.previewString = ''
 		self.requiredGlyphsForPartialTempFont = set()
+		self.requiredGlyphsForPartialTempFont.add('.notdef')
 		self.alwaysRefresh = 1
 
 	def setFont(self, font):

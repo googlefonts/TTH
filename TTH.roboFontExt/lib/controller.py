@@ -188,6 +188,7 @@ class TTHTool(BaseEventTool):
 	def __init__(self, tthtm):
 		BaseEventTool.__init__(self)
 		self.ready = False
+		self.doneGeneratingPartialFont = False
 		#self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
 		self.commandLabelPos = {}
@@ -219,6 +220,7 @@ class TTHTool(BaseEventTool):
 
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
+		self.updatePartialFont()
 
 	def becomeInactive(self):
 		self.FL_Windows.closeAll()
@@ -240,6 +242,7 @@ class TTHTool(BaseEventTool):
 
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
+		self.updatePartialFontIfNeeded()
 
 	def getSizeListIndex(self, size):
 		sizeIndex = 0
@@ -285,6 +288,8 @@ class TTHTool(BaseEventTool):
 		return previewIndex
 
 	def changeBitmapPreview(self, preview):
+		if self.doneGeneratingPartialFont == False:
+			return
 		self.tthtm.setBitmapPreview(preview)
 		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, preview)
 		previewIndex = self.getPreviewListIndex(preview)
@@ -1088,7 +1093,8 @@ class TTHTool(BaseEventTool):
 		
 		#print 'partial temp font generated in %f seconds' % finishedin
 		#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
-		#print 'temp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
+		self.doneGeneratingPartialFont = True
+		#print 'DONE generating partialtemp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
 	def makePointNameToIndexDict(self, g):
 		result = {}
@@ -1634,7 +1640,7 @@ class TTHTool(BaseEventTool):
 				
 
 	def drawBackground(self, scale):
-		if self.tthtm.g == None:
+		if self.tthtm.g == None or self.doneGeneratingPartialFont == False:
 			return
 		if self.tthtm.g.unicode == None:
 			print 'Glyph %s must have Unicode value' % self.tthtm.g.name
