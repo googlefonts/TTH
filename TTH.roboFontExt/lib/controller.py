@@ -242,6 +242,7 @@ class TTHTool(BaseEventTool):
 
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
+
 		self.updatePartialFontIfNeeded()
 
 	def getSizeListIndex(self, size):
@@ -1586,7 +1587,7 @@ class TTHTool(BaseEventTool):
 	def prepareText(self):
 		if self.tthtm.g.unicode == None:
 			print 'Glyph %s must have Unicode value' % self.tthtm.g.name
-			return
+			return (' ', ' ')
 
 		curGlyphString = unichr(self.tthtm.g.unicode)
 
