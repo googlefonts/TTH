@@ -255,6 +255,22 @@ class TTHTool(BaseEventTool):
 	def getSize(self):
 		return self.tthtm.PPM_Size
 
+	def setPreviewSize(self, size):
+		try:
+			size = int(size)
+		except ValueError:
+			size = 9
+
+		return size
+
+	def changePreviewSize(self, FromSize, ToSize):
+		if FromSize > ToSize:
+			FromSize = ToSize
+		self.tthtm.previewFrom = FromSize
+		self.tthtm.previewTo = ToSize
+		self.previewWindow.wPreview.DisplayFromEditText.set(FromSize)
+		self.previewWindow.wPreview.DisplayToEditText.set(ToSize)
+
 	def changeSize(self, size):
 		try:
 			size = int(size)
@@ -1638,7 +1654,7 @@ class TTHTool(BaseEventTool):
 			self.tthtm.textRenderer.set_pen((20, 700))
 			self.tthtm.textRenderer.render_text(text)
 			y = 650
-			for size in range(9, 48, 1):	
+			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):	
 				self.drawPreviewSize(str(size), 10, y)
 				self.tthtm.textRenderer.set_cur_size(size)
 				self.tthtm.textRenderer.set_pen((30, y))
@@ -1648,7 +1664,7 @@ class TTHTool(BaseEventTool):
 
 			# render current glyph at various sizes
 			advance = 10
-			for size in range(9, 48, 1):
+			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 				self.tthtm.textRenderer.set_cur_size(size)
 				self.tthtm.textRenderer.set_pen((advance, 780))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)

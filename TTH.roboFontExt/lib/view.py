@@ -385,17 +385,31 @@ class previewWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
+		self.FromSize = self.tthtm.previewFrom
+		self.ToSize = self.tthtm.previewTo
+
 		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (1200, 850)))
-		self.view.setFrameOrigin_((0, 2400))
+		self.view.setFrameOrigin_((0, 3000))
 		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
-		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -10),
+		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -40),
 				self.view)
+		self.wPreview.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
+		self.wPreview.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
+				callback=self.DisplayFromEditTextCallback)
+		self.wPreview.DisplayFromEditText.set(self.FromSize)
+
+		self.wPreview.DisplayToSizeText = TextBox((170, -30, 22, -10), "To:", sizeStyle = "small")
+		self.wPreview.DisplayToEditText = EditText((202, -32, 30, 19), sizeStyle = "small", 
+				callback=self.DisplayToEditTextCallback)
+		self.wPreview.DisplayToEditText.set(self.ToSize)
+		self.wPreview.ApplyButton = SquareButton((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
+				callback=self.ApplyButtonCallback)
 
 		self.wPreview.open()
 
@@ -411,4 +425,14 @@ class previewWindow(object):
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())
 		self.TTHToolInstance.updatePartialFontIfNeeded()
+		self.view.setNeedsDisplay_(True)
+
+	def DisplayFromEditTextCallback(self, sender):
+		self.FromSize = self.TTHToolInstance.setPreviewSize(sender.get())
+
+	def DisplayToEditTextCallback(self, sender):
+		self.ToSize = self.TTHToolInstance.setPreviewSize(sender.get())
+
+	def ApplyButtonCallback(self, sender):
+		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
 		self.view.setNeedsDisplay_(True)

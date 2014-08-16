@@ -25,9 +25,12 @@ class TTHToolModel():
 
 		self.previewWindowVisible = 0
 		self.previewString = ''
+		self.previewFrom = 9
+		self.previewTo = 48
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
+
 
 	def setFont(self, font):
 		self.f = font
