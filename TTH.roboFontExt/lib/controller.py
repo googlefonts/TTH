@@ -1262,7 +1262,7 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start+y_end/2, zonecolorLabel)
 
 		for zone in self.FL_Windows.bottomZoneView.UIZones:
 			y_start = int(zone['Position'])
@@ -1276,7 +1276,7 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start-y_end/2, zonecolorLabel)
 
 
 	def drawTextAtPoint(self, scale, title, x, y, backgroundColor):
