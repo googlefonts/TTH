@@ -1380,11 +1380,17 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'] == 'alignt' or self.glyphTTHCommands[cmdIndex]['code'] == 'alignb':
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
-		(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, arrowColor)
+		if self.glyphTTHCommands[cmdIndex]['code'] == 'alignt':
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y + 20*scale, arrowColor)
+		else:
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, arrowColor)
 
 		# compute x, y
 		if cmdIndex != None:
-			self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
+			if self.glyphTTHCommands[cmdIndex]['code'] == 'alignt':
+				self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
+			else:
+				self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
 
 	def drawLinkArrow(self, scale, startPoint, endPoint):
 		start_end_diff = difference(startPoint, endPoint)
@@ -1549,7 +1555,7 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 		r = 3
-		NSBezierPath.bezierPathWithOvalInRect_(((end_x-r, end_y-r), (r*2, r*2))).fill()
+		NSBezierPath.bezierPathWithOvalInRect_(((end_x-r*scale, end_y-r*scale), (r*2*scale, r*2*scale))).fill()
 		
 		extension = ''
 		text = 'delta'
@@ -1559,11 +1565,20 @@ class TTHTool(BaseEventTool):
 		elif self.glyphTTHCommands[cmdIndex]['code'][:1] == 'f':
 			extension = '_F'
 		text += extension + ':' + value
-		(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+
+		
+		if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'v' and int(value) < 0:
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+		else:
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, deltacolor)
 
 		# compute x, y
 		if cmdIndex != None:
-			self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] + 10*scale), (width, height))
+			if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'v' and int(value) < 0:
+				self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] + 10*scale), (width, height))
+			else:
+				self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] - 10*scale), (width, height))
+			
 
 	def drawSideBearings(self, scale, char):
 		try:
