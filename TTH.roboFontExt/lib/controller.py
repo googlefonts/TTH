@@ -189,6 +189,7 @@ class TTHTool(BaseEventTool):
 		BaseEventTool.__init__(self)
 		self.ready = False
 		self.doneGeneratingPartialFont = False
+		self.fontClosed = False
 		#self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
 		self.commandLabelPos = {}
@@ -228,17 +229,27 @@ class TTHTool(BaseEventTool):
 		self.previewWindow.closePreview()
 
 	def fontResignCurrent(self, font):
+		if self.fontClosed:
+			return
 		self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 
 	def fontBecameCurrent(self, font):
+		if not self.fontClosed:
+			self.FL_Windows.closeAll()
+			self.centralWindow.closeCentral()
+			self.previewWindow.closePreview()
+		self.resetFonts(createWindows=True)
+		self.resetglyph()
+		self.fontClosed = False
+
+	def fontWillClose(self, font):
 		self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.previewWindow.closePreview()
-		self.resetFonts(createWindows=True)
-		self.resetglyph()
+		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
