@@ -1101,6 +1101,8 @@ class TTHTool(BaseEventTool):
 		tempFont.info.familyName = self.tthtm.f.info.familyName
 		tempFont.info.styleName = self.tthtm.f.info.styleName
 
+		tempFont.glyphOrder = self.tthtm.f.glyphOrder
+
 		if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
 			tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
 		if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
