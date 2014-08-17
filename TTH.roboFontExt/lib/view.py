@@ -391,8 +391,8 @@ class previewWindow(object):
 		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
-		self.view.setFrame_(((0, 0), (1200, 850)))
-		self.view.setFrameOrigin_((0, 3000))
+		self.view.setFrame_(((0, 0), (2000, 2000)))
+		self.view.setFrameOrigin_((0, 20000))
 		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)

@@ -1664,9 +1664,9 @@ class TTHTool(BaseEventTool):
 		# render user string
 		if self.tthtm.textRenderer:
 			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-			self.tthtm.textRenderer.set_pen((20, 700))
+			self.tthtm.textRenderer.set_pen((20, 1850))
 			self.tthtm.textRenderer.render_text(text)
-			y = 650
+			y = 1800
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):	
 				self.drawPreviewSize(str(size), 10, y)
 				self.tthtm.textRenderer.set_cur_size(size)
@@ -1679,9 +1679,9 @@ class TTHTool(BaseEventTool):
 			advance = 10
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 				self.tthtm.textRenderer.set_cur_size(size)
-				self.tthtm.textRenderer.set_pen((advance, 780))
+				self.tthtm.textRenderer.set_pen((advance, 1930))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
-				self.drawPreviewSize(str(size), advance, 755)
+				self.drawPreviewSize(str(size), advance, 1905)
 				advance += delta_pos[0] + 5
 				
 				
