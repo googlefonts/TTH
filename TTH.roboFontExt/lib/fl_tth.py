@@ -109,8 +109,11 @@ class ZoneView(object):
 		try:
 			value = int(sender.get())
 		except ValueError:
-			value = 0
-			sender.set(0)
+			if sender.get() != '-':
+				value = 0
+			else:
+				value = '-'
+			sender.set(value)
 
 	def buttonAddZoneCallback(self, sender):
 		name = self.box.editTextZoneName.get()
