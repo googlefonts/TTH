@@ -1089,42 +1089,44 @@ class TTHTool(BaseEventTool):
 
 	def generatePartialTempFont(self):
 		#start = time.time()
-		
-		tempFont = RFont(showUI=False)
-		#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
-		tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
-		tempFont.info.ascender = self.tthtm.f.info.ascender
-		tempFont.info.descender = self.tthtm.f.info.descender
-		tempFont.info.xHeight = self.tthtm.f.info.xHeight
-		tempFont.info.capHeight = self.tthtm.f.info.capHeight
+		try:
+			tempFont = RFont(showUI=False)
+			#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
+			tempFont.info.unitsPerEm = self.tthtm.f.info.unitsPerEm
+			tempFont.info.ascender = self.tthtm.f.info.ascender
+			tempFont.info.descender = self.tthtm.f.info.descender
+			tempFont.info.xHeight = self.tthtm.f.info.xHeight
+			tempFont.info.capHeight = self.tthtm.f.info.capHeight
 
-		tempFont.info.familyName = self.tthtm.f.info.familyName
-		tempFont.info.styleName = self.tthtm.f.info.styleName
+			tempFont.info.familyName = self.tthtm.f.info.familyName
+			tempFont.info.styleName = self.tthtm.f.info.styleName
 
-		tempFont.glyphOrder = self.tthtm.f.glyphOrder
+			tempFont.glyphOrder = self.tthtm.f.glyphOrder
 
-		if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
-		if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
-		if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
-			tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
+			if 'com.robofont.robohint.cvt ' in self.tthtm.f.lib:
+				tempFont.lib['com.robofont.robohint.cvt '] = self.tthtm.f.lib['com.robofont.robohint.cvt ']
+			if 'com.robofont.robohint.prep' in self.tthtm.f.lib:
+				tempFont.lib['com.robofont.robohint.prep'] = self.tthtm.f.lib['com.robofont.robohint.prep']
+			if 'com.robofont.robohint.fpgm' in self.tthtm.f.lib:
+				tempFont.lib['com.robofont.robohint.fpgm'] = self.tthtm.f.lib['com.robofont.robohint.fpgm']
 
-		for gName in self.tthtm.requiredGlyphsForPartialTempFont:
-			tempFont.newGlyph(gName)
-			tempFont[gName] = self.tthtm.f[gName]
-			tempFont[gName].unicode = self.tthtm.f[gName].unicode
-			if 'com.robofont.robohint.assembly' in self.tthtm.f[gName].lib:
-				tempFont[gName].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
+			for gName in self.tthtm.requiredGlyphsForPartialTempFont:
+				tempFont.newGlyph(gName)
+				tempFont[gName] = self.tthtm.f[gName]
+				tempFont[gName].unicode = self.tthtm.f[gName].unicode
+				if 'com.robofont.robohint.assembly' in self.tthtm.f[gName].lib:
+					tempFont[gName].lib['com.robofont.robohint.assembly'] = self.tthtm.f[gName].lib['com.robofont.robohint.assembly']
 
-		tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+			tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 
-		#finishedin = time.time() - start
-		
-		#print 'partial temp font generated in %f seconds' % finishedin
-		#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
-		self.doneGeneratingPartialFont = True
-		#print 'DONE generating partialtemp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
+			#finishedin = time.time() - start
+			
+			#print 'partial temp font generated in %f seconds' % finishedin
+			#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
+			self.doneGeneratingPartialFont = True
+		except:
+			print 'ERROR: Unable to generate temporary font'
+			#print 'DONE generating partialtemp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
 	def makePointNameToIndexDict(self, g):
 		result = {}

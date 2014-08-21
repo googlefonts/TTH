@@ -2,7 +2,10 @@
 from objc import allocateBuffer
 import Quartz
 from mojo.UI import *
-import freetype as FT
+try:
+	import freetype as FT
+except:
+	print 'ERROR: freetype not installed'
 
 grayCS = Quartz.CGColorSpaceCreateDeviceGray()
 rgbCS = Quartz.CGColorSpaceCreateDeviceRGB()
@@ -18,11 +21,15 @@ class TRCache (object):
 class TextRenderer(object):
 
 	def __init__(self, face_path, renderMode):
-		self.face = FT.Face(face_path)
-		# the glyph slot in the face, from which we extract the images
-		# (contour) of requested glyphs, before storing them in the
-		# cache
-		self.slot = self.face.glyph
+		try:
+			self.face = FT.Face(face_path)
+			# the glyph slot in the face, from which we extract the images
+			# (contour) of requested glyphs, before storing them in the
+			# cache
+			self.slot = self.face.glyph
+		except:
+			self.face = None
+			print 'ERROR: FreeType could not load temporary font'
 		# a dictionary mapping text size in pixel to the TRCache
 		# storing the glyphs images/bitmaps/advances already loaded.
 		self.caches = {} 
@@ -59,6 +66,8 @@ class TextRenderer(object):
 		self.cache = self.caches[self.curSize]
 
 	def render_text_with_scale_and_alpha(self, text, scale, alpha):
+		if self.face == None:
+			return
 		org = self.pen
 		for c in text:
 			index = self.face.get_char_index(c)

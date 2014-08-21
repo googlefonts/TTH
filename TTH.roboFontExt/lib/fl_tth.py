@@ -46,12 +46,12 @@ class ZoneView(object):
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
 					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
 			editCallback = self.UIZones_EditCallBack )
-		box.buttonRemoveZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
+		box.buttonRemoveZone = Button((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
 		box.editTextZoneName = EditText(    (22, 100, 100, 22),				callback=self.editTextZoneDummyCallback)
 		box.editTextZonePosition = EditText(    (122, 100, 50, 22),			callback=self.editTextZoneIntegerCallback)
 		box.editTextZoneWidth = EditText(    (172, 100, 50, 22),			callback=self.editTextZoneIntegerCallback)
 		box.editTextZoneDelta = EditText(    (222, 100, 78, 22),			callback=self.editTextZoneDummyCallback)
-		box.buttonAddZone     = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
+		box.buttonAddZone     = Button((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
 
 	def set(self, uiZones):
 		self.UIZones = uiZones
@@ -162,7 +162,7 @@ class StemView(object):
 				{"title": "3 px", "editable": True}, {"title": "4 px", "editable": True},
 				{"title": "5 px", "editable": True}, {"title": "6 px", "editable": True}], 
 			editCallback = self.stemsList_editCallback)
-		box.buttonRemoveStem = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveCallback)
+		box.buttonRemoveStem = Button((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveCallback)
 		box.editTextStemName = EditText((22, 100, 118, 22), callback=self.editTextDummyCallback)
 		box.editTextStemWidth = EditText((140, 100, 80, 22), callback=self.editTextWidthCallback)
 
@@ -172,7 +172,7 @@ class StemView(object):
 		box.editTextStem4px = EditText((310, 100, 30, 22), callback=self.editTextIntegerCallback)
 		box.editTextStem5px = EditText((340, 100, 30, 22), callback=self.editTextIntegerCallback)
 		box.editTextStem6px = EditText((370, 100, 30, 22), callback=self.editTextIntegerCallback)
-		box.buttonAddStem = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddCallback)
+		box.buttonAddStem = Button((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddCallback)
 
 	def set(self, uiStems):
 		self.UIStems = uiStems
@@ -297,7 +297,7 @@ class FL_TTH_Windows(object):
 		self.wZones = FloatingWindow((210, 30, 350, 400), "Zones Settings", closable = False, initiallyVisible=False)
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.buildUIZonesList(buildTop=True))
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.buildUIZonesList(buildTop=False))
-		self.wZones.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+		self.wZones.ApplyButton = Button((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 		self.wZones.open()
 
@@ -305,7 +305,7 @@ class FL_TTH_Windows(object):
 		self.wStems = FloatingWindow((210, 30, 450, 400), "Stems Settings", closable = False, initiallyVisible=False)
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.buildStemsUIList(horizontal=True))
 		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.buildStemsUIList(horizontal=False))
-		self.wStems.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+		self.wStems.ApplyButton = Button((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 		self.wStems.open()
 
@@ -315,7 +315,7 @@ class FL_TTH_Windows(object):
 		w.StemSnapTitle= TextBox((10, 10, 300, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "regular")
 		w.AlignmentTitle= TextBox((10, 32, 300, 22), "Stop zone alignment above (ppEm)", sizeStyle = "regular")
 		w.InstructionsTitle= TextBox((10, 54, 300, 22), "Do not execute instructions above (ppEm)", sizeStyle = "regular")
-		w.ApplyButton = SquareButton((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
+		w.ApplyButton = Button((10, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 
 		w.editTextStemSnap = EditText((300, 10, 30, 22), callback=self.editTextStemSnapCallback)

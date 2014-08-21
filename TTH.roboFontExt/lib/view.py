@@ -94,11 +94,11 @@ class centralWindow(object):
 		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wCentral.PrintTTProgramButton = SquareButton((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
+		self.wCentral.PrintTTProgramButton = Button((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
 				callback=self.PrintTTProgramButtonCallback)
-		self.wCentral.PrintAssemblyButton = SquareButton((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
+		self.wCentral.PrintAssemblyButton = Button((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
 				callback=self.PrintAssemblyButtonCallback)
-		self.wCentral.RefreshGlyphButton = SquareButton((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
+		self.wCentral.RefreshGlyphButton = Button((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
 				callback=self.RefreshGlyphButtonCallback)
 		self.wCentral.AlwaysRefreshText = TextBox((10, 266, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
 		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 261, -10, 22), "", sizeStyle = "small",
@@ -106,9 +106,9 @@ class centralWindow(object):
 		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
 
-		self.wCentral.PreviewShowButton = SquareButton((10, -98, -10, 22), "Show Preview Window", sizeStyle = 'small', 
+		self.wCentral.PreviewShowButton = Button((10, -98, -10, 22), "Show Preview Window", sizeStyle = 'small', 
 				callback=self.PreviewShowButtonCallback)
-		self.wCentral.PreviewHideButton = SquareButton((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
+		self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
 				callback=self.PreviewHideButtonCallback)
 
 		if self.tthtm.previewWindowVisible == 0:
@@ -118,21 +118,21 @@ class centralWindow(object):
 			self.wCentral.PreviewHideButton.show(True)
 			self.wCentral.PreviewShowButton.show(False)
 
-		self.wCentral.GeneralShowButton = SquareButton((10, -76, -10, 22), "Show General Options", sizeStyle = 'small', 
+		self.wCentral.GeneralShowButton = Button((10, -76, -10, 22), "Show General Options", sizeStyle = 'small', 
 				callback=self.GeneralShowButtonCallback)
-		self.wCentral.GeneralHideButton = SquareButton((10, -76, -10, 22), "Hide General Options", sizeStyle = 'small', 
+		self.wCentral.GeneralHideButton = Button((10, -76, -10, 22), "Hide General Options", sizeStyle = 'small', 
 				callback=self.GeneralHideButtonCallback)
 		self.wCentral.GeneralHideButton.show(False)
 
-		self.wCentral.StemsShowButton = SquareButton((10, -54, -10, 22), "Show Stems Settings", sizeStyle = 'small', 
+		self.wCentral.StemsShowButton = Button((10, -54, -10, 22), "Show Stems Settings", sizeStyle = 'small', 
 				callback=self.StemsShowButtonCallback)
-		self.wCentral.StemsHideButton = SquareButton((10, -54, -10, 22), "Hide Stems Settings", sizeStyle = 'small', 
+		self.wCentral.StemsHideButton = Button((10, -54, -10, 22), "Hide Stems Settings", sizeStyle = 'small', 
 				callback=self.StemsHideButtonCallback)
 		self.wCentral.StemsHideButton.show(False)
 
-		self.wCentral.ZonesShowButton = SquareButton((10, -32, -10, 22), "Show Zones Settings", sizeStyle = 'small', 
+		self.wCentral.ZonesShowButton = Button((10, -32, -10, 22), "Show Zones Settings", sizeStyle = 'small', 
 				callback=self.ZonesShowButtonCallback)
-		self.wCentral.ZonesHideButton = SquareButton((10, -32, -10, 22), "Hide Zones Settings", sizeStyle = 'small', 
+		self.wCentral.ZonesHideButton = Button((10, -32, -10, 22), "Hide Zones Settings", sizeStyle = 'small', 
 				callback=self.ZonesHideButtonCallback)
 		self.wCentral.ZonesHideButton.show(False)
 
@@ -388,7 +388,7 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), maxSize=(1200, 850), closable = False, initiallyVisible=False)
+		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), closable = False, initiallyVisible=False)
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (2000, 2000)))
@@ -408,7 +408,7 @@ class previewWindow(object):
 		self.wPreview.DisplayToEditText = EditText((202, -32, 30, 19), sizeStyle = "small", 
 				callback=self.DisplayToEditTextCallback)
 		self.wPreview.DisplayToEditText.set(self.ToSize)
-		self.wPreview.ApplyButton = SquareButton((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
+		self.wPreview.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 
 		self.wPreview.open()
