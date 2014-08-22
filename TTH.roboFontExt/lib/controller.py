@@ -5,6 +5,7 @@ from mojo.drawingTools import *
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 from robofab.world import *
+from mojo.roboFont import *
 import tempfile
 import time
 
@@ -18,6 +19,29 @@ import xml.etree.ElementTree as ET
 import math, os
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
+
+cursorDefaultPath = ExtensionBundle("TTH").get("cursorDefaultTTH")
+cursorDefault = CreateCursor(cursorDefaultPath, hotSpot=(0, 0))
+
+cursorAlignPath = ExtensionBundle("TTH").get("cursorAlign")
+cursorAlign = CreateCursor(cursorAlignPath, hotSpot=(2, 2))
+
+cursorSingleLinkPath = ExtensionBundle("TTH").get("cursorSingleLink")
+cursorSingleLink = CreateCursor(cursorSingleLinkPath, hotSpot=(2, 2))
+
+cursorDoubleLinkPath = ExtensionBundle("TTH").get("cursorDoubleLink")
+cursorDoubleLink = CreateCursor(cursorDoubleLinkPath, hotSpot=(2, 2))
+
+cursorInterpolationPath = ExtensionBundle("TTH").get("cursorInterpolation")
+cursorInterpolation = CreateCursor(cursorInterpolationPath, hotSpot=(2, 2))
+
+cursorMiddleDeltaPath = ExtensionBundle("TTH").get("cursorMiddleDelta")
+cursorMiddleDelta = CreateCursor(cursorMiddleDeltaPath, hotSpot=(2, 2))
+
+cursorFinalDeltaPath = ExtensionBundle("TTH").get("cursorFinalDelta")
+cursorFinalDelta = CreateCursor(cursorFinalDeltaPath, hotSpot=(2, 2))
+
+
 
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
@@ -210,13 +234,28 @@ class TTHTool(BaseEventTool):
 
 		self.previewText = ''
 
-	### TTH Tool Icon ###
+	### TTH Tool Icon and cursor ###
 	def getToolbarIcon(self):
 		## return the toolbar icon
 		return toolbarIcon
 		
 	def getToolbarTip(self):
 		return "TTH Hinting Tool"
+
+	def getDefaultCursor(self):
+		if self.tthtm.selectedHintingTool == "Align":
+			return cursorAlign
+		elif self.tthtm.selectedHintingTool == "Single Link":
+			return cursorSingleLink
+		elif self.tthtm.selectedHintingTool == "Double Link":
+			return cursorDoubleLink
+		elif self.tthtm.selectedHintingTool == "Interpolation":
+			return cursorInterpolation
+		elif self.tthtm.selectedHintingTool == "Middle Delta":
+			return cursorMiddleDelta
+		elif self.tthtm.selectedHintingTool == "Final Delta":
+			return cursorFinalDelta
+		return cursorDefault
 	###############
 
 	def becomeActive(self):
@@ -515,6 +554,12 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
+		elif event.characters() == 'A':
+			if self.tthtm.selectedAxis == 'X':
+				self.tthtm.setAxis('Y')
+			else:
+				self.tthtm.setAxis('X')
+
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -550,7 +595,7 @@ class TTHTool(BaseEventTool):
 					newCommand['code'] = 'alignv'
 					newCommand['align'] = self.tthtm.selectedAlignmentTypeAlign
 
-		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None:
+		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
 				if self.tthtm.selectedStemX != 'None':
@@ -559,7 +604,6 @@ class TTHTool(BaseEventTool):
 				newCommand['code'] = 'singlev'
 				if self.tthtm.selectedStemY != 'None':
 					newCommand['stem'] = self.tthtm.selectedStemY
-
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 			if self.tthtm.selectedAlignmentTypeLink != 'None':
@@ -570,7 +614,7 @@ class TTHTool(BaseEventTool):
 			if self.tthtm.roundBool != 0:
 				newCommand['round'] = 'true'
 
-		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None:
+		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'doubleh'
 				if self.tthtm.selectedStemX != 'None':
@@ -587,7 +631,7 @@ class TTHTool(BaseEventTool):
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 
-		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint != self.endPoint and self.startPoint != None:
+		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			self.point1 = self.startPoint
 			self.point = self.endPoint
 		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint == self.endPoint and self.startPoint != None and self.point1 != None and self.point != None:
