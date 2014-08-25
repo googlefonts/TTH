@@ -1,12 +1,21 @@
 from vanilla import *
 from mojo.UI import *
+from mojo.extensions import *
 import preview
+import view_ControlValues as CV
+
+buttonAlignPath = ExtensionBundle("TTH").get("buttonAlign")
+buttonSingleLinkPath = ExtensionBundle("TTH").get("buttonSingleLink")
+buttonDoubleLinkPath = ExtensionBundle("TTH").get("buttonDoubleLink")
+buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
+buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
+buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 
 class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.wCentral = FloatingWindow((10, 30, 200, 400), "Central", closable = False)
+		self.wCentral = FloatingWindow((10, 30, 200, 422), "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
@@ -106,35 +115,32 @@ class centralWindow(object):
 		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
 
-		self.wCentral.PreviewShowButton = Button((10, -98, -10, 22), "Show Preview Window", sizeStyle = 'small', 
+		self.wCentral.PreviewShowButton = Button((10, -98, -10, 22), "Preview", sizeStyle = 'small', 
 				callback=self.PreviewShowButtonCallback)
-		self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
-				callback=self.PreviewHideButtonCallback)
+		self.wCentral.AlignButton = ImageButton((10, -120, 18, 18), imageObject = buttonAlignPath,
+                            callback=self.InterpolationButtonCallback)
+		self.wCentral.SingleLinkButton = ImageButton((28, -120, 18, 18), imageObject = buttonSingleLinkPath,
+                            callback=self.InterpolationButtonCallback)
+		self.wCentral.DoubleLinkButton = ImageButton((46, -120, 18, 18), imageObject = buttonDoubleLinkPath,
+                            callback=self.InterpolationButtonCallback)
+		self.wCentral.InterpolationButton = ImageButton((64, -120, 18, 18), imageObject = buttonInterpolationPath,
+                            callback=self.InterpolationButtonCallback)		
+		self.wCentral.MiddleDeltaButton = ImageButton((82, -120, 18, 18), imageObject = buttonMiddleDeltaPath,
+                            callback=self.InterpolationButtonCallback)
+		self.wCentral.FinalDeltaButton = ImageButton((100, -120, 18, 18), imageObject = buttonFinalDeltaPath,
+                            callback=self.InterpolationButtonCallback)
+		#self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
+		#		callback=self.PreviewHideButtonCallback)
 
-		if self.tthtm.previewWindowVisible == 0:
-			self.wCentral.PreviewHideButton.show(False)
-			self.wCentral.PreviewShowButton.show(True)
-		elif self.tthtm.previewWindowVisible == 1:
-			self.wCentral.PreviewHideButton.show(True)
-			self.wCentral.PreviewShowButton.show(False)
+		# if self.tthtm.previewWindowVisible == 0:
+		# 	self.wCentral.PreviewHideButton.show(False)
+		# 	self.wCentral.PreviewShowButton.show(True)
+		# elif self.tthtm.previewWindowVisible == 1:
+		# 	self.wCentral.PreviewHideButton.show(True)
+		# 	self.wCentral.PreviewShowButton.show(False)
 
-		self.wCentral.GeneralShowButton = Button((10, -76, -10, 22), "Show General Options", sizeStyle = 'small', 
-				callback=self.GeneralShowButtonCallback)
-		self.wCentral.GeneralHideButton = Button((10, -76, -10, 22), "Hide General Options", sizeStyle = 'small', 
-				callback=self.GeneralHideButtonCallback)
-		self.wCentral.GeneralHideButton.show(False)
-
-		self.wCentral.StemsShowButton = Button((10, -54, -10, 22), "Show Stems Settings", sizeStyle = 'small', 
-				callback=self.StemsShowButtonCallback)
-		self.wCentral.StemsHideButton = Button((10, -54, -10, 22), "Hide Stems Settings", sizeStyle = 'small', 
-				callback=self.StemsHideButtonCallback)
-		self.wCentral.StemsHideButton.show(False)
-
-		self.wCentral.ZonesShowButton = Button((10, -32, -10, 22), "Show Zones Settings", sizeStyle = 'small', 
-				callback=self.ZonesShowButtonCallback)
-		self.wCentral.ZonesHideButton = Button((10, -32, -10, 22), "Hide Zones Settings", sizeStyle = 'small', 
-				callback=self.ZonesHideButtonCallback)
-		self.wCentral.ZonesHideButton.show(False)
+		self.wCentral.ControlValuesButton = Button((10, -32, -10, 22), "Control Values", sizeStyle = 'small', 
+				callback=self.ControlValuesButtonCallback)
 
 
 		self.wCentral.open()
@@ -338,46 +344,23 @@ class centralWindow(object):
 		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
 
 	def PreviewShowButtonCallback(self, sender):
-		self.wCentral.PreviewHideButton.show(True)
-		self.wCentral.PreviewShowButton.show(False)
-		self.TTHToolInstance.previewWindow.showPreview()
-		self.tthtm.showPreviewWindow(1)
+		#self.wCentral.PreviewHideButton.show(True)
+		#self.wCentral.PreviewShowButton.show(False)
+		# self.TTHToolInstance.previewWindow.showPreview()
+		# self.tthtm.showPreviewWindow(1)
+		self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
 
-	def PreviewHideButtonCallback(self, sender):
-		self.wCentral.PreviewHideButton.show(False)
-		self.wCentral.PreviewShowButton.show(True)
-		self.TTHToolInstance.previewWindow.hidePreview()
-		self.tthtm.showPreviewWindow(0)
+	# def PreviewHideButtonCallback(self, sender):
+	# 	self.wCentral.PreviewHideButton.show(False)
+	# 	self.wCentral.PreviewShowButton.show(True)
+	# 	self.TTHToolInstance.previewWindow.hidePreview()
+	# 	self.tthtm.showPreviewWindow(0)
 
-	def GeneralShowButtonCallback(self, sender):
-		self.wCentral.GeneralHideButton.show(True)
-		self.wCentral.GeneralShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showGeneral()
+	def ControlValuesButtonCallback(self, sender):
+		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
 
-	def GeneralHideButtonCallback(self, sender):
-		self.wCentral.GeneralHideButton.show(False)
-		self.wCentral.GeneralShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideGeneral()
-
-	def StemsShowButtonCallback(self, sender):
-		self.wCentral.StemsHideButton.show(True)
-		self.wCentral.StemsShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showStems()
-
-	def StemsHideButtonCallback(self, sender):
-		self.wCentral.StemsHideButton.show(False)
-		self.wCentral.StemsShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideStems()
-
-	def ZonesShowButtonCallback(self, sender):
-		self.wCentral.ZonesHideButton.show(True)
-		self.wCentral.ZonesShowButton.show(False)
-		self.TTHToolInstance.FL_Windows.showZones()
-
-	def ZonesHideButtonCallback(self, sender):
-		self.wCentral.ZonesHideButton.show(False)
-		self.wCentral.ZonesShowButton.show(True)
-		self.TTHToolInstance.FL_Windows.hideZones()
+	def InterpolationButtonCallback(self, sender):
+		pass
 
 
 class previewWindow(object):
@@ -388,7 +371,7 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200), closable = False, initiallyVisible=False)
+		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200))
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (2000, 2000)))
@@ -410,17 +393,18 @@ class previewWindow(object):
 		self.wPreview.DisplayToEditText.set(self.ToSize)
 		self.wPreview.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
-
+		self.tthtm.previewWindowVisible = 1
 		self.wPreview.open()
 
 	def closePreview(self):
+		self.tthtm.previewWindowVisible = 0
 		self.wPreview.close()
 
-	def showPreview(self):
-		self.wPreview.show()
+	# def showPreview(self):
+	# 	self.wPreview.show()
 
-	def hidePreview(self):
-		self.wPreview.hide()
+	# def hidePreview(self):
+	# 	self.wPreview.hide()
 
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())
@@ -436,3 +420,5 @@ class previewWindow(object):
 	def ApplyButtonCallback(self, sender):
 		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
 		self.view.setNeedsDisplay_(True)
+
+reload (CV)

@@ -9,7 +9,7 @@ from mojo.roboFont import *
 import tempfile
 import time
 
-import fl_tth
+#import fl_tth
 import tt_tables
 import TTHintAsm
 import view
@@ -21,7 +21,7 @@ import math, os
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
 cursorDefaultPath = ExtensionBundle("TTH").get("cursorDefaultTTH")
-cursorDefault = CreateCursor(cursorDefaultPath, hotSpot=(0, 0))
+cursorDefault = CreateCursor(cursorDefaultPath, hotSpot=(2, 2))
 
 cursorAlignPath = ExtensionBundle("TTH").get("cursorAlign")
 cursorAlign = CreateCursor(cursorAlignPath, hotSpot=(2, 2))
@@ -263,31 +263,31 @@ class TTHTool(BaseEventTool):
 		self.updatePartialFont()
 
 	def becomeInactive(self):
-		self.FL_Windows.closeAll()
+	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
-		self.previewWindow.closePreview()
+	#	self.previewWindow.closePreview()
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
 			return
-		self.FL_Windows.closeAll()
+	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
-		self.previewWindow.closePreview()
+	#	self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 
 	def fontBecameCurrent(self, font):
 		if not self.fontClosed:
-			self.FL_Windows.closeAll()
+		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
-			self.previewWindow.closePreview()
+			#self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 		self.resetglyph()
 		self.fontClosed = False
 
 	def fontWillClose(self, font):
-		self.FL_Windows.closeAll()
+		#self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
-		self.previewWindow.closePreview()
+		#self.previewWindow.closePreview()
 		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
@@ -335,8 +335,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.resetPitch()
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
-
-		self.previewWindow.view.setNeedsDisplay_(True)
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
 	def changeAxis(self, axis):
@@ -364,7 +364,8 @@ class TTHTool(BaseEventTool):
 
 		if self.tthtm.g == None:
 			return
-		self.previewWindow.view.setNeedsDisplay_(True)
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.view.setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
 	def getHintingToolIndex(self, hintingTool):
@@ -477,21 +478,45 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setAlwaysRefresh(valueBool)
 		self.centralWindow.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 
+	def changeStemSnap(self, value):
+		try:
+			value = int(value)
+		except ValueError:
+			value = 17
+		self.tthtm.setStemsnap(value)
+		self.tthtm.f.lib["com.fontlab.v2.tth"]["stemsnap"] = value
+
+	def changeAlignppm(self, value):
+		try:
+			value = int(value)
+		except ValueError:
+			value = 48
+		self.tthtm.setAlignppm(value)
+		self.tthtm.f.lib["com.fontlab.v2.tth"]["alignppm"] = value
+
+	def changeCodeppm(self, value):
+		try:
+			value = int(value)
+		except ValueError:
+			value = 48
+		self.tthtm.setCodeppm(value)
+		self.tthtm.f.lib["com.fontlab.v2.tth"]["codeppm"] = value
+
 	def makeStemsListsPopUpMenu(self):
 		self.tthtm.stemsListX = ['None']
 		self.tthtm.stemsListY = ['None']
 
-		for name, stem in self.FL_Windows.stems.iteritems():
+		for name, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] == True:
 				self.tthtm.stemsListY.append(name)
 			else:
 				self.tthtm.stemsListX.append(name)
 
-	def showHidePreviewWindow(self, showHide):
-		if showHide == 0:
-			self.previewWindow.hidePreview()
-		elif showHide == 1:
-			self.previewWindow.showPreview()
+	# def showHidePreviewWindow(self, showHide):
+	# 	if showHide == 0:
+	# 		self.previewWindow.hidePreview()
+	# 	elif showHide == 1:
+	# 		self.previewWindow.showPreview()
 
 
 	def isOnPoint(self, p_cursor):
@@ -532,7 +557,7 @@ class TTHTool(BaseEventTool):
 			return False
 
 	def isInTopZone(self, point):
-		for zone in self.FL_Windows.topZoneView.UIZones:
+		for zone in self.tthtm.UITopZones:
 			y_min = int(zone['Position'])
 			y_max = int(zone['Position']) + int(zone['Width'])
 
@@ -541,7 +566,7 @@ class TTHTool(BaseEventTool):
 		return None
 
 	def isInBottomZone(self, point):
-		for zone in self.FL_Windows.bottomZoneView.UIZones:
+		for zone in self.tthtm.UIBottomZones:
 			y_max = int(zone['Position'])
 			y_min = int(zone['Position']) - int(zone['Width'])
 
@@ -925,7 +950,7 @@ class TTHTool(BaseEventTool):
 			if clickedCommand['code'] in ['alignt', 'alignb']:
 				zonesListItems = []
 
-				for zone in self.FL_Windows.zones:
+				for zone in self.tthtm.zones:
 					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
 					zonesListItems.append((zone, self.zoneAlignmentCallBack))
 				items.append(("Attach to Zone", zonesListItems))
@@ -939,7 +964,7 @@ class TTHTool(BaseEventTool):
 				stemsHorizontal = []
 				stemsVertical = []
 
-				for name, stem in self.FL_Windows.stems.iteritems():
+				for name, stem in self.tthtm.stems.iteritems():
 					if stem['horizontal'] == True:
 						stemsHorizontal.append(name)
 					else:
@@ -973,7 +998,7 @@ class TTHTool(BaseEventTool):
 				stemsHorizontal = []
 				stemsVertical = []
 
-				for name, stem in self.FL_Windows.stems.iteritems():
+				for name, stem in self.tthtm.stems.iteritems():
 					if stem['horizontal'] == True:
 						stemsHorizontal.append(name)
 					else:
@@ -1030,11 +1055,11 @@ class TTHTool(BaseEventTool):
 		self.tthtm.resetPitch()
 
 		if createWindows:
-			self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
+			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
-			self.previewWindow = view.previewWindow(self, self.tthtm)
+			#self.previewWindow = view.previewWindow(self, self.tthtm)
 
-		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.FL_Windows.alignppm, self.FL_Windows.stems, self.FL_Windows.zones, self.FL_Windows.codeppm)
+		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.tthtm.alignppm, self.tthtm.stems, self.tthtm.zones, self.tthtm.codeppm)
 		tt_tables.writeFPGM(self.tthtm.f)
 
 		for g in self.tthtm.f:
@@ -1065,7 +1090,7 @@ class TTHTool(BaseEventTool):
 		self.changeDeltaOffset(self.tthtm.deltaOffset)
 		self.changeDeltaRange(self.tthtm.deltaRange1, self.tthtm.deltaRange2)
 
-		self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
+		#self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
 
 	def updatePartialFontIfNeeded(self):
 		"""Re-create the partial font if new glyphs are required."""
@@ -1097,7 +1122,8 @@ class TTHTool(BaseEventTool):
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.tthtm.g)
 		#print 'full temp font loaded'
 		self.ready = True
-		self.previewWindow.view.setNeedsDisplay_(True)
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.view.setNeedsDisplay_(True)
 
 		self.p_glyphList = ([(0, 0), (self.tthtm.g.width, 0)])
 		self.pOff_glyphList = []
@@ -1298,7 +1324,7 @@ class TTHTool(BaseEventTool):
 
 	def drawZones(self, scale):
 
-		for zone in self.FL_Windows.topZoneView.UIZones:
+		for zone in self.tthtm.UITopZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
@@ -1312,7 +1338,7 @@ class TTHTool(BaseEventTool):
 
 			self.drawTextAtPoint(scale, zone['Name'], -100, y_start+y_end/2, zonecolorLabel)
 
-		for zone in self.FL_Windows.bottomZoneView.UIZones:
+		for zone in self.tthtm.UIBottomZones:
 			y_start = int(zone['Position'])
 			y_end = int(zone['Width'])
 			pathZone = NSBezierPath.bezierPath()
@@ -1874,7 +1900,7 @@ class TTHTool(BaseEventTool):
 
 reload(TR)
 reload(TTHintAsm)
-reload(fl_tth)
+#reload(fl_tth)
 reload(tt_tables)
 reload(view)
 
