@@ -4,6 +4,8 @@ from mojo.extensions import *
 import preview
 import view_ControlValues as CV
 
+buttonXPath = ExtensionBundle("TTH").get("buttonX")
+buttonYPath = ExtensionBundle("TTH").get("buttonY")
 buttonAlignPath = ExtensionBundle("TTH").get("buttonAlign")
 buttonSingleLinkPath = ExtensionBundle("TTH").get("buttonSingleLink")
 buttonDoubleLinkPath = ExtensionBundle("TTH").get("buttonDoubleLink")
@@ -15,7 +17,8 @@ class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.wCentral = FloatingWindow((10, 30, 200, 422), "Central", closable = False)
+		length = 335
+		self.wCentral = FloatingWindow((10, 30, length, 115), "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
@@ -36,66 +39,66 @@ class centralWindow(object):
 		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
 		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
 
-		self.wCentral.PPEMSizeText= TextBox((10, 10, 70, 14), "ppEm Size:", sizeStyle = "small")
+		self.wCentral.PPEMSizeText= TextBox((10, 12, 50, 15), "ppEm:", sizeStyle = "mini")
 		
-		self.wCentral.PPEMSizeEditText = EditText((110, 8, 30, 19), sizeStyle = "small", 
+		self.wCentral.PPEMSizeEditText = EditText((60, 10, 30, 15), sizeStyle = "mini", 
 				callback=self.PPEMSizeEditTextCallback)
 
 		self.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 		
-		self.wCentral.PPEMSizePopUpButton = PopUpButton((150, 10, 40, 14),
-				self.PPMSizesList, sizeStyle = "small",
+		self.wCentral.PPEMSizePopUpButton = PopUpButton((100, 10, 40, 15),
+				self.PPMSizesList, sizeStyle = "mini",
 				callback=self.PPEMSizePopUpButtonCallback)
 
-		self.wCentral.BitmapPreviewText= TextBox((10, 30, 70, 14), "Preview:", sizeStyle = "small")
-		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((90, 30, 100, 14),
-				self.BitmapPreviewList, sizeStyle = "small",
+		self.wCentral.BitmapPreviewText= TextBox((10, 32, 50, 15), "Preview:", sizeStyle = "mini")
+		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((60, 30, 80, 15),
+				self.BitmapPreviewList, sizeStyle = "mini",
 				callback=self.BitmapPreviewPopUpButtonCallback)
 
-		self.wCentral.AxisText= TextBox((10, 50, 70, 14), "Axis:", sizeStyle = "small")
-		self.wCentral.AxisPopUpButton = PopUpButton((150, 50, 40, 14),
-				self.axisList, sizeStyle = "small",
-				callback=self.AxisPopUpButtonCallback)
+		# self.wCentral.AxisText= TextBox((10, 50, 70, 14), "Axis:", sizeStyle = "small")
+		# self.wCentral.AxisPopUpButton = PopUpButton((150, 50, 40, 14),
+		# 		self.axisList, sizeStyle = "small",
+		# 		callback=self.AxisPopUpButtonCallback)
 
-		self.wCentral.HintingToolText= TextBox((10, 70, 70, 14), "Tool:", sizeStyle = "small")
-		self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
-				self.hintingToolsList, sizeStyle = "small",
-				callback=self.HintingToolPopUpButtonCallback)
+		# self.wCentral.HintingToolText= TextBox((10, 70, 70, 14), "Tool:", sizeStyle = "small")
+		# self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
+		# 		self.hintingToolsList, sizeStyle = "small",
+		# 		callback=self.HintingToolPopUpButtonCallback)
 
-		self.wCentral.AlignmentTypeText = TextBox((10, 90, 70, 14), "Alignment:", sizeStyle = "small")
-		self.wCentral.AlignmentTypePopUpButton = PopUpButton((90, 90, 100, 14),
-				self.alignmentTypeListDisplay, sizeStyle = "small",
+		self.wCentral.AlignmentTypeText = TextBox((10, 52, 70, 15), "Align:", sizeStyle = "mini")
+		self.wCentral.AlignmentTypePopUpButton = PopUpButton((60, 50, 80, 15),
+				self.alignmentTypeListDisplay, sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
 		self.wCentral.AlignmentTypeText.show(True)
 		self.wCentral.AlignmentTypePopUpButton.show(True)
 
-		self.wCentral.StemTypeText = TextBox((10, 110, 70, 14), "Stem:", sizeStyle = "small")
-		self.wCentral.StemTypePopUpButton = PopUpButton((90, 110, 100, 14),
-				self.stemTypeList, sizeStyle = "small",
+		self.wCentral.StemTypeText = TextBox((150, 52, 30, 15), "Stem:", sizeStyle = "mini")
+		self.wCentral.StemTypePopUpButton = PopUpButton((180, 50, 80, 15),
+				self.stemTypeList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wCentral.StemTypeText.show(False)
 		self.wCentral.StemTypePopUpButton.show(False)
 
-		self.wCentral.RoundDistanceText = TextBox((10, 130, 180, 14), "Round Distance:", sizeStyle = "small")
-		self.wCentral.RoundDistanceCheckBox = CheckBox((-22, 125, -10, 22), "", sizeStyle = "small",
+		self.wCentral.RoundDistanceText = TextBox((270, 52, 40, 15), "Round:", sizeStyle = "mini")
+		self.wCentral.RoundDistanceCheckBox = CheckBox((310, 50, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wCentral.RoundDistanceText.show(False)
 		self.wCentral.RoundDistanceCheckBox.show(False)
 
-		self.wCentral.DeltaOffsetText = TextBox((10, 90, 120, 14), "Delta Offset:", sizeStyle = "small")
-		self.wCentral.DeltaOffsetSlider = Slider((10, 110, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+		self.wCentral.DeltaOffsetText = TextBox((10, 52, 50, 15), "Offset:", sizeStyle = "mini")
+		self.wCentral.DeltaOffsetSlider = Slider((10, 70, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
-		self.wCentral.DeltaOffsetEditText = EditText((110, 90, 30, 19), sizeStyle = "small", 
+		self.wCentral.DeltaOffsetEditText = EditText((60, 50, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wCentral.DeltaOffsetText.show(False)
 		self.wCentral.DeltaOffsetSlider.show(False)
 		self.wCentral.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
 		self.wCentral.DeltaOffsetEditText.show(False)
 
-		self.wCentral.DeltaRangeText = TextBox((10, 140, 120, 14), "Delta Range:", sizeStyle = "small")
-		self.wCentral.DeltaRange1EditText = EditText((110, 138, 30, 19), sizeStyle = "small", 
+		self.wCentral.DeltaRangeText = TextBox((100, 52, 40, 15), "Range:", sizeStyle = "mini")
+		self.wCentral.DeltaRange1EditText = EditText((150, 50, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange1EditTextCallback)
-		self.wCentral.DeltaRange2EditText = EditText((150, 138, 30, 19), sizeStyle = "small", 
+		self.wCentral.DeltaRange2EditText = EditText((180, 50, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange2EditTextCallback)
 		self.wCentral.DeltaRangeText.show(False)
 		self.wCentral.DeltaRange1EditText.show(False)
@@ -103,32 +106,34 @@ class centralWindow(object):
 		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wCentral.PrintTTProgramButton = Button((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
-				callback=self.PrintTTProgramButtonCallback)
-		self.wCentral.PrintAssemblyButton = Button((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
-				callback=self.PrintAssemblyButtonCallback)
-		self.wCentral.RefreshGlyphButton = Button((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
-				callback=self.RefreshGlyphButtonCallback)
-		self.wCentral.AlwaysRefreshText = TextBox((10, 266, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
-		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 261, -10, 22), "", sizeStyle = "small",
-				callback=self.AlwaysRefreshCheckBoxCallback)
-		self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
+		# self.wCentral.PrintTTProgramButton = Button((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
+		# 		callback=self.PrintTTProgramButtonCallback)
+		# self.wCentral.PrintAssemblyButton = Button((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
+		# 		callback=self.PrintAssemblyButtonCallback)
+		# self.wCentral.RefreshGlyphButton = Button((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
+		# 		callback=self.RefreshGlyphButtonCallback)
+		# self.wCentral.AlwaysRefreshText = TextBox((10, 266, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
+		# self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 261, -10, 22), "", sizeStyle = "small",
+		# 		callback=self.AlwaysRefreshCheckBoxCallback)
+		# self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
-
-		self.wCentral.PreviewShowButton = Button((10, -98, -10, 22), "Preview", sizeStyle = 'small', 
-				callback=self.PreviewShowButtonCallback)
-		self.wCentral.AlignButton = ImageButton((10, -120, 18, 18), imageObject = buttonAlignPath,
-                            callback=self.InterpolationButtonCallback)
-		self.wCentral.SingleLinkButton = ImageButton((28, -120, 18, 18), imageObject = buttonSingleLinkPath,
-                            callback=self.InterpolationButtonCallback)
-		self.wCentral.DoubleLinkButton = ImageButton((46, -120, 18, 18), imageObject = buttonDoubleLinkPath,
-                            callback=self.InterpolationButtonCallback)
-		self.wCentral.InterpolationButton = ImageButton((64, -120, 18, 18), imageObject = buttonInterpolationPath,
+		
+		self.wCentral.XButton = ImageButton((150, 10, 18, 18), imageObject = buttonXPath,
+                            callback=self.AxisXButtonCallback)
+		self.wCentral.YButton = ImageButton((168, 10, 18, 18), imageObject = buttonYPath,
+                            callback=self.AxisYButtonCallback)
+		self.wCentral.AlignButton = ImageButton((204, 10, 18, 18), imageObject = buttonAlignPath,
+                            callback=self.AlignButtonCallback)
+		self.wCentral.SingleLinkButton = ImageButton((222, 10, 18, 18), imageObject = buttonSingleLinkPath,
+                            callback=self.SingleLinkButtonCallback)
+		self.wCentral.DoubleLinkButton = ImageButton((240, 10, 18, 18), imageObject = buttonDoubleLinkPath,
+                            callback=self.DoubleLinkButtonCallback)
+		self.wCentral.InterpolationButton = ImageButton((258, 10, 18, 18), imageObject = buttonInterpolationPath,
                             callback=self.InterpolationButtonCallback)		
-		self.wCentral.MiddleDeltaButton = ImageButton((82, -120, 18, 18), imageObject = buttonMiddleDeltaPath,
-                            callback=self.InterpolationButtonCallback)
-		self.wCentral.FinalDeltaButton = ImageButton((100, -120, 18, 18), imageObject = buttonFinalDeltaPath,
-                            callback=self.InterpolationButtonCallback)
+		self.wCentral.MiddleDeltaButton = ImageButton((276, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
+                            callback=self.DeltaButtonCallback)
+		self.wCentral.FinalDeltaButton = ImageButton((294, 10, 18, 18), imageObject = buttonFinalDeltaPath,
+                            callback=self.DeltaButtonCallback)
 		#self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
 		#		callback=self.PreviewHideButtonCallback)
 
@@ -138,8 +143,10 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
+		self.wCentral.PreviewShowButton = Button((10, -25, (length/2)-5, 15), "Preview", sizeStyle = 'mini', 
+				callback=self.PreviewShowButtonCallback)
 
-		self.wCentral.ControlValuesButton = Button((10, -32, -10, 22), "Control Values", sizeStyle = 'small', 
+		self.wCentral.ControlValuesButton = Button((15+(length/2), -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
 
 
@@ -160,18 +167,18 @@ class centralWindow(object):
 	def BitmapPreviewPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.changeBitmapPreview(self.BitmapPreviewList[sender.get()])
 
-	def AxisPopUpButtonCallback(self, sender):
-		self.TTHToolInstance.changeAxis(self.axisList[sender.get()])
-		self.TTHToolInstance.makeStemsListsPopUpMenu()
+	# def AxisPopUpButtonCallback(self, sender):
+	# 	self.TTHToolInstance.changeAxis(self.axisList[sender.get()])
+	# 	self.TTHToolInstance.makeStemsListsPopUpMenu()
 
-		if self.tthtm.selectedAxis == 'X':
-			self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
-			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-		else:
-			self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
-			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+	# 	if self.tthtm.selectedAxis == 'X':
+	# 		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+	# 		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+	# 	else:
+	# 		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+	# 		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 
-		UpdateCurrentGlyphView()
+	# 	UpdateCurrentGlyphView()
 
 	def centralWindowLinkSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -251,44 +258,44 @@ class centralWindow(object):
 
 
 
-	def HintingToolPopUpButtonCallback(self, sender):
-		self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
-		#self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-		#self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+	# def HintingToolPopUpButtonCallback(self, sender):
+	# 	self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
+	# 	#self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+	# 	#self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
-		if self.tthtm.selectedHintingTool == 'Single Link':
-			self.centralWindowLinkSettings()
-			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-			if self.tthtm.selectedAxis == 'X':
-				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-			else:
-				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-		elif self.tthtm.selectedHintingTool == 'Double Link':
-			self.centralWindowDoubleLinkSettings()
-			if self.tthtm.selectedAxis == 'X':
-				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-			else:
-				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-		elif self.tthtm.selectedHintingTool == 'Align':
-			self.centralWindowAlignSettings()
-			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-		elif self.tthtm.selectedHintingTool == 'Interpolation':
-			self.centralWindowInterpolationSettings()
-			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
-			self.centralWindowDeltaSettings()
-		else:
-			self.wCentral.AlignmentTypeText.show(False)
-			self.wCentral.AlignmentTypePopUpButton.show(False)
-			self.wCentral.StemTypeText.show(False)
-			self.wCentral.StemTypePopUpButton.show(False)
-			self.wCentral.RoundDistanceText.show(False)
-			self.wCentral.RoundDistanceCheckBox.show(False)
-			self.wCentral.DeltaOffsetText.show(False)
-			self.wCentral.DeltaOffsetSlider.show(False)
-			self.wCentral.DeltaRangeText.show(False)
-			self.wCentral.DeltaRange1EditText.show(False)
-			self.wCentral.DeltaRange2EditText.show(False)
+	# 	if self.tthtm.selectedHintingTool == 'Single Link':
+	# 		self.centralWindowLinkSettings()
+	# 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+	# 		if self.tthtm.selectedAxis == 'X':
+	# 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+	# 		else:
+	# 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+	# 	elif self.tthtm.selectedHintingTool == 'Double Link':
+	# 		self.centralWindowDoubleLinkSettings()
+	# 		if self.tthtm.selectedAxis == 'X':
+	# 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+	# 		else:
+	# 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+	# 	elif self.tthtm.selectedHintingTool == 'Align':
+	# 		self.centralWindowAlignSettings()
+	# 		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+	# 	elif self.tthtm.selectedHintingTool == 'Interpolation':
+	# 		self.centralWindowInterpolationSettings()
+	# 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+	# 	elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+	# 		self.centralWindowDeltaSettings()
+	# 	else:
+	# 		self.wCentral.AlignmentTypeText.show(False)
+	# 		self.wCentral.AlignmentTypePopUpButton.show(False)
+	# 		self.wCentral.StemTypeText.show(False)
+	# 		self.wCentral.StemTypePopUpButton.show(False)
+	# 		self.wCentral.RoundDistanceText.show(False)
+	# 		self.wCentral.RoundDistanceCheckBox.show(False)
+	# 		self.wCentral.DeltaOffsetText.show(False)
+	# 		self.wCentral.DeltaOffsetSlider.show(False)
+	# 		self.wCentral.DeltaRangeText.show(False)
+	# 		self.wCentral.DeltaRange1EditText.show(False)
+	# 		self.wCentral.DeltaRange2EditText.show(False)
 
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
@@ -344,23 +351,48 @@ class centralWindow(object):
 		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
 
 	def PreviewShowButtonCallback(self, sender):
-		#self.wCentral.PreviewHideButton.show(True)
-		#self.wCentral.PreviewShowButton.show(False)
-		# self.TTHToolInstance.previewWindow.showPreview()
-		# self.tthtm.showPreviewWindow(1)
 		self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
-
-	# def PreviewHideButtonCallback(self, sender):
-	# 	self.wCentral.PreviewHideButton.show(False)
-	# 	self.wCentral.PreviewShowButton.show(True)
-	# 	self.TTHToolInstance.previewWindow.hidePreview()
-	# 	self.tthtm.showPreviewWindow(0)
 
 	def ControlValuesButtonCallback(self, sender):
 		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
 
+	def AxisXButtonCallback(self, sender):
+		self.TTHToolInstance.changeAxis('X')
+		self.TTHToolInstance.makeStemsListsPopUpMenu()
+		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+
+	def AxisYButtonCallback(self, sender):
+		self.TTHToolInstance.changeAxis('Y')
+		self.TTHToolInstance.makeStemsListsPopUpMenu()
+		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+	
+	def AlignButtonCallback(self, sender):
+		self.centralWindowAlignSettings()
+		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+
+	def SingleLinkButtonCallback(self, sender):
+		self.centralWindowLinkSettings()
+		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+		if self.tthtm.selectedAxis == 'X':
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+		else:
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+
+	def DoubleLinkButtonCallback(self, sender):
+		self.centralWindowDoubleLinkSettings()
+		if self.tthtm.selectedAxis == 'X':
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+		else:
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+			
 	def InterpolationButtonCallback(self, sender):
-		pass
+		self.centralWindowInterpolationSettings()
+		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+
+	def DeltaButtonCallback(self, sender):
+		self.centralWindowDeltaSettings()
 
 
 class previewWindow(object):
@@ -396,15 +428,8 @@ class previewWindow(object):
 		self.tthtm.previewWindowVisible = 1
 		self.wPreview.open()
 
-	def closePreview(self):
-		self.tthtm.previewWindowVisible = 0
-		self.wPreview.close()
-
-	# def showPreview(self):
-	# 	self.wPreview.show()
-
-	# def hidePreview(self):
-	# 	self.wPreview.hide()
+	def windowCloseCallback(self, sender):
+		print 'bye'
 
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())

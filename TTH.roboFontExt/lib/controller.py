@@ -6,6 +6,8 @@ from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 from robofab.world import *
 from mojo.roboFont import *
+from vanilla import *
+from defconAppKit.windows.baseWindow import BaseWindowController
 import tempfile
 import time
 
@@ -214,25 +216,17 @@ class TTHTool(BaseEventTool):
 		self.ready = False
 		self.doneGeneratingPartialFont = False
 		self.fontClosed = False
-		#self.unicodeToNameDict = createUnicodeToNameDict()
 		self.p_glyphList = []
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
 		self.startPoint = None
-
-		# temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		# self.fulltempfontpath = temp.name
-		# temp.close()
-
-		# temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		# self.tempfontpath = temp.name
-		# temp.close()
 
 		temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.partialtempfontpath = temp.name
 		temp.close()
 
 		self.previewText = ''
+
 
 	### TTH Tool Icon and cursor ###
 	def getToolbarIcon(self):
@@ -292,7 +286,6 @@ class TTHTool(BaseEventTool):
 
 	def viewDidChangeGlyph(self):
 		self.resetglyph()
-
 		self.updatePartialFontIfNeeded()
 
 	def getSizeListIndex(self, size):
@@ -341,11 +334,7 @@ class TTHTool(BaseEventTool):
 
 	def changeAxis(self, axis):
 		self.tthtm.setAxis(axis)
-		if axis == 'X':
-			axisIndex = 0
-		elif axis == 'Y':
-			axisIndex = 1
-		self.centralWindow.wCentral.AxisPopUpButton.set(axisIndex)
+		UpdateCurrentGlyphView()
 
 	def getPreviewListIndex(self, preview):
 		previewIndex = 0
@@ -378,13 +367,20 @@ class TTHTool(BaseEventTool):
 	def changeSelectedHintingTool(self, hintingTool):
 		self.tthtm.setHintingTool(hintingTool)
 		hintingToolIndex = self.getHintingToolIndex(self.tthtm.selectedHintingTool)
-		self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
+		#self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
 		if hintingToolIndex == 0:
 			self.centralWindow.centralWindowAlignSettings()
 			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 			
-		if hintingToolIndex in [1, 2]:
+		if hintingToolIndex == 1:
 			self.centralWindow.centralWindowLinkSettings()
+			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+			self.changeSelectedStemX(self.tthtm.selectedStemX)
+			self.changeSelectedStemY(self.tthtm.selectedStemY)
+			self.changeRoundBool(self.tthtm.roundBool)
+
+		if hintingToolIndex == 2:
+			self.centralWindow.centralWindowDoubleLinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 			self.changeSelectedStemX(self.tthtm.selectedStemX)
 			self.changeSelectedStemY(self.tthtm.selectedStemY)
@@ -1903,5 +1899,4 @@ reload(TTHintAsm)
 #reload(fl_tth)
 reload(tt_tables)
 reload(view)
-
 
