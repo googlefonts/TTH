@@ -49,7 +49,7 @@ class ZoneView(object):
 			oldZoneName = self.UIZones[sel]['Name']
 		except:
 			oldZoneName = "" # probably a new zone was created
-			print("ERROR SHOULD NEVER HAPPEN in ZoneView.UIZones_EditCallBack")
+			print "ERROR SHOULD NEVER HAPPEN in ZoneView.UIZones_EditCallBack"
 
 		zoneDict = sender[sel]
 
@@ -60,17 +60,24 @@ class ZoneView(object):
 			sender[sel]['Name'] = newZoneName
 
 		if oldZoneName != newZoneName:
-			print("Original zone name = ", oldZoneName, ", new zone name = ", newZoneName)
-			if newZoneName in self.controller.zones:
-				print("ERROR: Can't use an already existing name.")
+			print "Original zone name = ", oldZoneName, ", new zone name = ", newZoneName
+			if newZoneName in self.controller.tthtm.zones:
+				print "ERROR: Can't use an already existing name."
 				newZoneName = oldZoneName
 				sender[sel]['Name'] = newZoneName
 				self.lock = False
 				return
 			else:
-				del self.controller.zones[oldZoneName]
-		self.UIZones[sel] = sender[sel]
-		self.controller.EditZone(oldZoneName, newZoneName, zoneDict, self.ID == 'top')
+				del self.controller.tthtm.zones[oldZoneName]
+		self.controller.controller.EditZone(oldZoneName, newZoneName, zoneDict, self.ID == 'top')
+		self.controller.tthtm.UITopZones = self.controller.tthtm.buildUIZonesList(buildTop=True)
+		self.controller.tthtm.UIBottomZones = self.controller.tthtm.buildUIZonesList(buildTop=False)
+		if self.ID == 'top':
+			self.UIZones = self.controller.tthtm.UITopZones
+			self.box.zones_List.set(self.controller.tthtm.UITopZones)
+		elif self.ID == 'bottom':
+			self.UIZones = self.controller.tthtm.UIBottomZones
+			self.box.zones_List.set(self.controller.tthtm.UIBottomZones)
 		self.lock = False
 
 	def buttonRemoveZoneCallback(self, sender):
@@ -79,7 +86,7 @@ class ZoneView(object):
 		UIList.setSelection([])
 		selected = [UIList[i]['Name'] for i in selection]
 		self.lock = True
-		self.controller.tthtm.deleteZones(selected, self)
+		self.controller.controller.deleteZones(selected, self)
 		self.lock = False
 
 	def editTextZoneDummyCallback(self, sender):
@@ -102,14 +109,14 @@ class ZoneView(object):
 		position = int(self.box.editTextZonePosition.get())
 		width = int(self.box.editTextZoneWidth.get())
 		delta = self.box.editTextZoneDelta.get()
-		deltaDict = self.controller.tthtm.deltaDictFromString(delta)
+		deltaDict = self.controller.controller.deltaDictFromString(delta)
 
 		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width }
 		if deltaDict == {}:
 			newZone['delta'] = deltaDict
 		self.box.zones_List.setSelection([])
 		self.lock = True
-		self.controller.tthtm.AddZone(name, newZone, self)
+		self.controller.controller.AddZone(name, newZone, self)
 		self.box.editTextZoneName.set("")
 		self.box.editTextZonePosition.set("")
 		self.box.editTextZoneWidth.set("")
@@ -285,8 +292,8 @@ class SheetControlValues(object):
 		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
 
 		w.zoneBox = Box((10, 50, 485, 350))
-		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
-		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
+		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.UITopZones)
+		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.UIBottomZones)
 
 		w.stemBox = Box((505, 50, 485, 350))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(horizontal=True))

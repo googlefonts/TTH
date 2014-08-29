@@ -20,6 +20,8 @@ import TextRenderer as TR
 import xml.etree.ElementTree as ET
 import math, os
 
+FL_tth_key = "com.fontlab.v2.tth"
+
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
 cursorDefaultPath = ExtensionBundle("TTH").get("cursorDefaultTTH")
@@ -511,6 +513,87 @@ class TTHTool(BaseEventTool):
 				self.tthtm.stemsListY.append(name)
 			else:
 				self.tthtm.stemsListX.append(name)
+
+#============== Fonctions for zones
+
+	def deltaDictFromString(self, s):
+		try:
+			if s == '0@0':
+				return {}
+			listOfLists = [[int(i) for i in reversed(x.split('@'))] for x in s.split(',')]
+			for i in range(len(listOfLists)):
+				listOfLists[i][0] = str(listOfLists[i][0])
+			return dict(listOfLists)
+		except:
+			return {}
+
+	def AddZone(self, name, newZone, zoneView):
+		# add the zone in the model
+		self.tthtm.zones[name] = newZone
+		self.tthtm.f.lib[FL_tth_key]["zones"][name] = newZone
+		# add the zone in the UI
+		uiZone = self.tthtm.buildUIZoneDict(newZone, name)
+		zoneView.box.zones_List.append(uiZone)
+		#zoneView.UIZones.append(uiZone)
+		if zoneView.ID == 'top':
+			self.tthtm.UITopZones.append(uiZone)
+		elif zoneView.ID == 'bottom':
+			self.tthtm.UIBottomZones.append(uiZone)
+
+
+	def deleteZones(self, selected, zoneView):
+		for zoneName in selected:
+			try:
+				del self.tthtm.f.lib[FL_tth_key]["zones"][zoneName]
+				del self.tthtm.zones[zoneName]
+			except:
+				pass
+		self.tthtm.UITopZones = self.tthtm.buildUIZonesList(buildTop = True)
+		self.tthtm.UIBottomZones = self.tthtm.buildUIZonesList(buildTop = False)
+		zoneView.set(self.tthtm.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
+
+	def EditZone(self, oldZoneName, zoneName, zoneDict, isTop):
+		self.storeZone(zoneName, zoneDict, isTop)
+		self.tthtm.f.lib[FL_tth_key]["zones"] = self.tthtm.zones
+		if oldZoneName != zoneName:
+			for g in self.tthtm.f:
+				commands = self.readGlyphFLTTProgram(g)
+				if commands == None:
+					continue
+				for command in commands:
+					if command['code'] in ['alignt', 'alignb']:
+						if command['zone'] == oldZoneName:
+							command['zone'] = zoneName
+				self.writeGlyphFLTTProgram(g)
+			dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+
+	def storeZone(self, zoneName, entry, isTop):
+		if zoneName not in self.tthtm.zones:
+			self.tthtm.zones[zoneName] = {}
+		zone = self.tthtm.zones[zoneName]
+		zone['top'] = isTop
+		if 'Position' in entry:
+			zone['position'] = int(entry['Position'])
+		else:
+			zone['position'] = 0
+			entry['Position'] = 0
+		if 'Width' in entry:
+			zone['width'] = int(entry['Width'])
+		else:
+			zone['width'] = 0
+			entry['Width'] = 0
+		if 'Delta' in entry:
+			deltaDict = self.deltaDictFromString(entry['Delta'])
+			if deltaDict != {}:
+				zone['delta'] = deltaDict
+			else:
+				try:
+					del zone['delta']
+				except:
+					pass
+		else:
+			zone['delta'] = {'0': 0}
+			entry['Delta'] = '0@0'
 
 	# def showHidePreviewWindow(self, showHide):
 	# 	if showHide == 0:
