@@ -222,9 +222,9 @@ class toolsWindow(object):
 		self.wTools.InterpolationButton = ImageButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
                             callback=self.InterpolationButtonCallback)		
 		self.wTools.MiddleDeltaButton = ImageButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
-                            callback=self.DeltaButtonCallback)
+                            callback=self.MiddleDeltaButtonCallback)
 		self.wTools.FinalDeltaButton = ImageButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
-                            callback=self.DeltaButtonCallback)
+                            callback=self.FinalDeltaButtonCallback)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 30, 65, 15),
@@ -391,6 +391,7 @@ class toolsWindow(object):
 	def AlignButtonCallback(self, sender):
 		self.AlignSettings()
 		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		self.TTHToolInstance.changeSelectedHintingTool('Align')
 
 	def SingleLinkButtonCallback(self, sender):
 		self.LinkSettings()
@@ -399,6 +400,7 @@ class toolsWindow(object):
 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 		else:
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+		self.TTHToolInstance.changeSelectedHintingTool('Single Link')
 
 	def DoubleLinkButtonCallback(self, sender):
 		self.DoubleLinkSettings()
@@ -406,13 +408,20 @@ class toolsWindow(object):
 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 		else:
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+		self.TTHToolInstance.changeSelectedHintingTool('Double Link')
 			
 	def InterpolationButtonCallback(self, sender):
 		self.InterpolationSettings()
 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+		self.TTHToolInstance.changeSelectedHintingTool('Interpolation')
 
-	def DeltaButtonCallback(self, sender):
+	def MiddleDeltaButtonCallback(self, sender):
 		self.DeltaSettings()
+		self.TTHToolInstance.changeSelectedHintingTool('Middle Delta')
+
+	def FinalDeltaButtonCallback(self, sender):
+		self.DeltaSettings()
+		self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
 
 class previewWindow(object):
