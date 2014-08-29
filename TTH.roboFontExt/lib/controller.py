@@ -259,6 +259,7 @@ class TTHTool(BaseEventTool):
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
+		self.toolsWindow.closeTools()
 	#	self.previewWindow.closePreview()
 
 	def fontResignCurrent(self, font):
@@ -266,6 +267,7 @@ class TTHTool(BaseEventTool):
 			return
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
+		self.toolsWindow.closeTools()
 	#	self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 
@@ -273,6 +275,7 @@ class TTHTool(BaseEventTool):
 		if not self.fontClosed:
 		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
+			self.toolsWindow.closeTools()
 			#self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 		self.resetglyph()
@@ -281,6 +284,7 @@ class TTHTool(BaseEventTool):
 	def fontWillClose(self, font):
 		#self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
+		self.toolsWindow.closeTools()
 		#self.previewWindow.closePreview()
 		self.fontClosed = True
 
@@ -359,8 +363,8 @@ class TTHTool(BaseEventTool):
 
 	def getHintingToolIndex(self, hintingTool):
 		hintingToolIndex = 0
-		for i in range(len(self.centralWindow.hintingToolsList)):
-			if self.centralWindow.hintingToolsList[i] == hintingTool:
+		for i in range(len(self.toolsWindow.hintingToolsList)):
+			if self.toolsWindow.hintingToolsList[i] == hintingTool:
 				hintingToolIndex = i
 		return hintingToolIndex
 
@@ -369,51 +373,51 @@ class TTHTool(BaseEventTool):
 		hintingToolIndex = self.getHintingToolIndex(self.tthtm.selectedHintingTool)
 		#self.centralWindow.wCentral.HintingToolPopUpButton.set(hintingToolIndex)
 		if hintingToolIndex == 0:
-			self.centralWindow.centralWindowAlignSettings()
+			self.toolsWindow.AlignSettings()
 			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 			
 		if hintingToolIndex == 1:
-			self.centralWindow.centralWindowLinkSettings()
+			self.toolsWindow.LinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 			self.changeSelectedStemX(self.tthtm.selectedStemX)
 			self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 
 		if hintingToolIndex == 2:
-			self.centralWindow.centralWindowDoubleLinkSettings()
+			self.toolsWindow.DoubleLinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 			self.changeSelectedStemX(self.tthtm.selectedStemX)
 			self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 			
 		if hintingToolIndex == 3:
-			self.centralWindow.centralWindowInterpolationSettings()
+			self.toolsWindow.InterpolationSettings()
 		if hintingToolIndex in [4, 5]:
-			self.centralWindow.centralWindowDeltaSettings()
+			self.toolsWindow.DeltaSettings()
 
 	def getAlignmentTypeAlignIndex(self, alignmentType):
 		alignmentTypeIndex = 0
-		for i in range(len(self.centralWindow.alignmentTypeList)):
-			if self.centralWindow.alignmentTypeList[i] == alignmentType:
+		for i in range(len(self.toolsWindow.alignmentTypeList)):
+			if self.toolsWindow.alignmentTypeList[i] == alignmentType:
 				alignmentTypeIndex = i
 		return alignmentTypeIndex
 
 	def changeSelectedAlignmentTypeAlign(self, alignmentType):
 		self.tthtm.setAlignmentTypeAlign(alignmentType)
 		alignmentTypeIndex = self.getAlignmentTypeAlignIndex(self.tthtm.selectedAlignmentTypeAlign)
-		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
+		self.toolsWindow.wTools.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
 	def getAlignmentTypeLinkIndex(self, alignmentType):
 		alignmentTypeIndex = 0
-		for i in range(len(self.centralWindow.alignmentTypeListLink)):
-			if self.centralWindow.alignmentTypeListLink[i] == alignmentType:
+		for i in range(len(self.toolsWindow.alignmentTypeListLink)):
+			if self.toolsWindow.alignmentTypeListLink[i] == alignmentType:
 				alignmentTypeIndex = i
 		return alignmentTypeIndex
 
 	def changeSelectedAlignmentTypeLink(self, alignmentType):
 		self.tthtm.setAlignmentTypeLink(alignmentType)
 		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
-		self.centralWindow.wCentral.AlignmentTypePopUpButton.set(alignmentTypeIndex)
+		self.toolsWindow.wTools.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
 	def getStemIndex(self, stemName, axis):
 		stemIndex = 0
@@ -430,16 +434,16 @@ class TTHTool(BaseEventTool):
 	def changeSelectedStemX(self, stemName):
 		self.tthtm.setStemX(stemName)
 		stemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'X')
-		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
+		self.toolsWindow.wTools.StemTypePopUpButton.set(stemIndex)
 
 	def changeSelectedStemY(self, stemName):
 		self.tthtm.setStemY(stemName)
 		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
-		self.centralWindow.wCentral.StemTypePopUpButton.set(stemIndex)
+		self.toolsWindow.wTools.StemTypePopUpButton.set(stemIndex)
 
 	def changeRoundBool(self, roundBool):
 		self.tthtm.setRoundBool(roundBool)
-		self.centralWindow.wCentral.RoundDistanceCheckBox.set(self.tthtm.roundBool)
+		self.toolsWindow.wTools.RoundDistanceCheckBox.set(self.tthtm.roundBool)
 
 	def changeDeltaOffset(self, offset):
 		try:
@@ -451,8 +455,8 @@ class TTHTool(BaseEventTool):
 		except ValueError:
 			offset = 0
 		self.tthtm.setDeltaOffset(offset)
-		self.centralWindow.wCentral.DeltaOffsetSlider.set(self.tthtm.deltaOffset + 8)
-		self.centralWindow.wCentral.DeltaOffsetEditText.set(offset)
+		self.toolsWindow.wTools.DeltaOffsetSlider.set(self.tthtm.deltaOffset + 8)
+		self.toolsWindow.wTools.DeltaOffsetEditText.set(offset)
 
 	def changeDeltaRange(self, value1, value2):
 		try:
@@ -466,9 +470,9 @@ class TTHTool(BaseEventTool):
 			value2 = 9
 
 		self.tthtm.setDeltaRange1(value1)
-		self.centralWindow.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
+		self.toolsWindow.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.tthtm.setDeltaRange2(value2)
-		self.centralWindow.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
+		self.toolsWindow.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
 	def changeAlwaysRefresh(self, valueBool):
 		self.tthtm.setAlwaysRefresh(valueBool)
@@ -1053,6 +1057,7 @@ class TTHTool(BaseEventTool):
 		if createWindows:
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
+			self.toolsWindow = view.toolsWindow(self, self.tthtm)
 			#self.previewWindow = view.previewWindow(self, self.tthtm)
 
 		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.tthtm.alignppm, self.tthtm.stems, self.tthtm.zones, self.tthtm.codeppm)
@@ -1077,10 +1082,10 @@ class TTHTool(BaseEventTool):
 		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		self.makeStemsListsPopUpMenu()
 		if self.tthtm.selectedAxis == 'X':
-			self.centralWindow.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+			self.toolsWindow.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
 			self.changeSelectedStemX(self.tthtm.selectedStemX)
 		else:
-			self.centralWindow.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+			self.toolsWindow.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 			self.changeSelectedStemY(self.tthtm.selectedStemY)
 		self.changeRoundBool(self.tthtm.roundBool)
 		self.changeDeltaOffset(self.tthtm.deltaOffset)

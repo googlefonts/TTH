@@ -17,27 +17,16 @@ class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		length = 335
+		length = 160
 		self.wCentral = FloatingWindow((10, 30, length, 115), "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
 							'31', '32', '33', '34', '35', '36', '37', '38', '39', '40',
 							'41', '42', '43', '44', '45', '46', '47', '48', '60', '72' ]
-		self.axisList = ['X', 'Y']
-		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
-		if self.tthtm.selectedAxis == 'X':
-			self.stemTypeList = self.tthtm.stemsListX
-		else:
-			self.stemTypeList = self.tthtm.stemsListY
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
-		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
-		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
-
-		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
-		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
 
 		self.wCentral.PPEMSizeText= TextBox((10, 12, 50, 15), "ppEm:", sizeStyle = "mini")
 		
@@ -65,47 +54,6 @@ class centralWindow(object):
 		# 		self.hintingToolsList, sizeStyle = "small",
 		# 		callback=self.HintingToolPopUpButtonCallback)
 
-		self.wCentral.AlignmentTypeText = TextBox((10, 52, 70, 15), "Align:", sizeStyle = "mini")
-		self.wCentral.AlignmentTypePopUpButton = PopUpButton((60, 50, 80, 15),
-				self.alignmentTypeListDisplay, sizeStyle = "mini",
-				callback=self.AlignmentTypePopUpButtonCallback)
-		self.wCentral.AlignmentTypeText.show(True)
-		self.wCentral.AlignmentTypePopUpButton.show(True)
-
-		self.wCentral.StemTypeText = TextBox((150, 52, 30, 15), "Stem:", sizeStyle = "mini")
-		self.wCentral.StemTypePopUpButton = PopUpButton((180, 50, 80, 15),
-				self.stemTypeList, sizeStyle = "mini",
-				callback=self.StemTypePopUpButtonCallback)
-		self.wCentral.StemTypeText.show(False)
-		self.wCentral.StemTypePopUpButton.show(False)
-
-		self.wCentral.RoundDistanceText = TextBox((270, 52, 40, 15), "Round:", sizeStyle = "mini")
-		self.wCentral.RoundDistanceCheckBox = CheckBox((310, 50, 15, 15), "", sizeStyle = "mini",
-				callback=self.RoundDistanceCheckBoxCallback)
-		self.wCentral.RoundDistanceText.show(False)
-		self.wCentral.RoundDistanceCheckBox.show(False)
-
-		self.wCentral.DeltaOffsetText = TextBox((10, 52, 50, 15), "Offset:", sizeStyle = "mini")
-		self.wCentral.DeltaOffsetSlider = Slider((10, 70, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
-				callback=self.DeltaOffsetSliderCallback)
-		self.wCentral.DeltaOffsetEditText = EditText((60, 50, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaOffsetEditTextCallback)
-		self.wCentral.DeltaOffsetText.show(False)
-		self.wCentral.DeltaOffsetSlider.show(False)
-		self.wCentral.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
-		self.wCentral.DeltaOffsetEditText.show(False)
-
-		self.wCentral.DeltaRangeText = TextBox((100, 52, 40, 15), "Range:", sizeStyle = "mini")
-		self.wCentral.DeltaRange1EditText = EditText((150, 50, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaRange1EditTextCallback)
-		self.wCentral.DeltaRange2EditText = EditText((180, 50, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaRange2EditTextCallback)
-		self.wCentral.DeltaRangeText.show(False)
-		self.wCentral.DeltaRange1EditText.show(False)
-		self.wCentral.DeltaRange2EditText.show(False)
-		self.wCentral.DeltaRange1EditText.set(self.tthtm.deltaRange1)
-		self.wCentral.DeltaRange2EditText.set(self.tthtm.deltaRange2)
-
 		# self.wCentral.PrintTTProgramButton = Button((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
 		# 		callback=self.PrintTTProgramButtonCallback)
 		# self.wCentral.PrintAssemblyButton = Button((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
@@ -118,22 +66,7 @@ class centralWindow(object):
 		# self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 	
 		
-		self.wCentral.XButton = ImageButton((150, 10, 18, 18), imageObject = buttonXPath,
-                            callback=self.AxisXButtonCallback)
-		self.wCentral.YButton = ImageButton((168, 10, 18, 18), imageObject = buttonYPath,
-                            callback=self.AxisYButtonCallback)
-		self.wCentral.AlignButton = ImageButton((204, 10, 18, 18), imageObject = buttonAlignPath,
-                            callback=self.AlignButtonCallback)
-		self.wCentral.SingleLinkButton = ImageButton((222, 10, 18, 18), imageObject = buttonSingleLinkPath,
-                            callback=self.SingleLinkButtonCallback)
-		self.wCentral.DoubleLinkButton = ImageButton((240, 10, 18, 18), imageObject = buttonDoubleLinkPath,
-                            callback=self.DoubleLinkButtonCallback)
-		self.wCentral.InterpolationButton = ImageButton((258, 10, 18, 18), imageObject = buttonInterpolationPath,
-                            callback=self.InterpolationButtonCallback)		
-		self.wCentral.MiddleDeltaButton = ImageButton((276, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
-                            callback=self.DeltaButtonCallback)
-		self.wCentral.FinalDeltaButton = ImageButton((294, 10, 18, 18), imageObject = buttonFinalDeltaPath,
-                            callback=self.DeltaButtonCallback)
+		
 		#self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
 		#		callback=self.PreviewHideButtonCallback)
 
@@ -143,7 +76,7 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
-		self.wCentral.PreviewShowButton = Button((10, -25, (length/2)-5, 15), "Preview", sizeStyle = 'mini', 
+		self.wCentral.PreviewShowButton = Button((10, -25, (length/2)-15, 15), "Preview", sizeStyle = 'mini', 
 				callback=self.PreviewShowButtonCallback)
 
 		self.wCentral.ControlValuesButton = Button((15+(length/2), -25, -10, 15), "Control Values", sizeStyle = 'mini', 
@@ -179,82 +112,6 @@ class centralWindow(object):
 	# 		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 
 	# 	UpdateCurrentGlyphView()
-
-	def centralWindowLinkSettings(self):
-		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
-		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
-		self.wCentral.AlignmentTypeText.show(True)
-		self.wCentral.AlignmentTypePopUpButton.show(True)
-		self.wCentral.StemTypeText.show(True)
-		self.wCentral.StemTypePopUpButton.show(True)
-		self.wCentral.RoundDistanceText.show(True)
-		self.wCentral.RoundDistanceCheckBox.show(True)
-		self.wCentral.DeltaOffsetText.show(False)
-		self.wCentral.DeltaOffsetSlider.show(False)
-		self.wCentral.DeltaRangeText.show(False)
-		self.wCentral.DeltaRange1EditText.show(False)
-		self.wCentral.DeltaRange2EditText.show(False)
-		self.wCentral.DeltaOffsetEditText.show(False)
-
-	def centralWindowDoubleLinkSettings(self):
-		self.wCentral.AlignmentTypeText.show(False)
-		self.wCentral.AlignmentTypePopUpButton.show(False)
-		self.wCentral.StemTypeText.show(True)
-		self.wCentral.StemTypePopUpButton.show(True)
-		self.wCentral.RoundDistanceText.show(False)
-		self.wCentral.RoundDistanceCheckBox.show(False)
-		self.wCentral.DeltaOffsetText.show(False)
-		self.wCentral.DeltaOffsetSlider.show(False)
-		self.wCentral.DeltaRangeText.show(False)
-		self.wCentral.DeltaRange1EditText.show(False)
-		self.wCentral.DeltaRange2EditText.show(False)
-		self.wCentral.DeltaOffsetEditText.show(False)
-
-	def centralWindowAlignSettings(self):
-		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
-		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
-		self.wCentral.AlignmentTypeText.show(True)
-		self.wCentral.AlignmentTypePopUpButton.show(True)
-		self.wCentral.StemTypeText.show(False)
-		self.wCentral.StemTypePopUpButton.show(False)
-		self.wCentral.RoundDistanceText.show(False)
-		self.wCentral.RoundDistanceCheckBox.show(False)
-		self.wCentral.DeltaOffsetText.show(False)
-		self.wCentral.DeltaOffsetSlider.show(False)
-		self.wCentral.DeltaRangeText.show(False)
-		self.wCentral.DeltaRange1EditText.show(False)
-		self.wCentral.DeltaRange2EditText.show(False)
-		self.wCentral.DeltaOffsetEditText.show(False)
-
-	def centralWindowInterpolationSettings(self):
-		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
-		self.wCentral.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
-		self.wCentral.AlignmentTypeText.show(True)
-		self.wCentral.AlignmentTypePopUpButton.show(True)
-		self.wCentral.StemTypeText.show(False)
-		self.wCentral.StemTypePopUpButton.show(False)
-		self.wCentral.RoundDistanceText.show(False)
-		self.wCentral.RoundDistanceCheckBox.show(False)
-		self.wCentral.DeltaOffsetText.show(False)
-		self.wCentral.DeltaOffsetSlider.show(False)
-		self.wCentral.DeltaRangeText.show(False)
-		self.wCentral.DeltaRange1EditText.show(False)
-		self.wCentral.DeltaRange2EditText.show(False)
-		self.wCentral.DeltaOffsetEditText.show(False)
-
-	def centralWindowDeltaSettings(self):
-		self.wCentral.AlignmentTypeText.show(False)
-		self.wCentral.AlignmentTypePopUpButton.show(False)
-		self.wCentral.StemTypeText.show(False)
-		self.wCentral.StemTypePopUpButton.show(False)
-		self.wCentral.RoundDistanceText.show(False)
-		self.wCentral.RoundDistanceCheckBox.show(False)
-		self.wCentral.DeltaOffsetText.show(True)
-		self.wCentral.DeltaOffsetSlider.show(True)
-		self.wCentral.DeltaRangeText.show(True)
-		self.wCentral.DeltaRange1EditText.show(True)
-		self.wCentral.DeltaRange2EditText.show(True)
-		self.wCentral.DeltaOffsetEditText.show(True)
 
 
 
@@ -298,33 +155,6 @@ class centralWindow(object):
 	# 		self.wCentral.DeltaRange2EditText.show(False)
 
 
-	def AlignmentTypePopUpButtonCallback(self, sender):
-		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
-			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
-		elif self.tthtm.selectedHintingTool == 'Align':
-			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
-
-	def StemTypePopUpButtonCallback(self, sender):
-		if self.tthtm.selectedAxis == 'X':
-			self.TTHToolInstance.changeSelectedStemX(self.tthtm.stemsListX[sender.get()])
-		else:
-			self.TTHToolInstance.changeSelectedStemY(self.tthtm.stemsListY[sender.get()])
-
-	def RoundDistanceCheckBoxCallback(self, sender):
-		self.TTHToolInstance.changeRoundBool(sender.get())
-
-	def DeltaOffsetSliderCallback(self, sender):
-		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))
-
-	def DeltaOffsetEditTextCallback(self, sender):
-		self.TTHToolInstance.changeDeltaOffset(sender.get())
-
-	def DeltaRange1EditTextCallback(self, sender):
-		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
-
-	def DeltaRange2EditTextCallback(self, sender):
-		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
-
 	def PrintTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
 		if not FLTTProgram:
@@ -356,24 +186,214 @@ class centralWindow(object):
 	def ControlValuesButtonCallback(self, sender):
 		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
 
+class toolsWindow(object):
+	def __init__(self, TTHToolInstance, tthtm):
+		self.TTHToolInstance = TTHToolInstance
+		self.tthtm = TTHToolInstance.tthtm
+		length = 215
+
+		self.axisList = ['X', 'Y']
+		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
+		if self.tthtm.selectedAxis == 'X':
+			self.stemTypeList = self.tthtm.stemsListX
+		else:
+			self.stemTypeList = self.tthtm.stemsListY
+
+		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
+
+		self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
+
+
+
+		self.wTools = FloatingWindow((170, 30, length, 65), "Tools", closable = False)
+
+		self.wTools.XButton = ImageButton((10, 10, 18, 18), imageObject = buttonXPath,
+                            callback=self.AxisXButtonCallback)
+		self.wTools.YButton = ImageButton((28, 10, 18, 18), imageObject = buttonYPath,
+                            callback=self.AxisYButtonCallback)
+		self.wTools.AlignButton = ImageButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
+                            callback=self.AlignButtonCallback)
+		self.wTools.SingleLinkButton = ImageButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
+                            callback=self.SingleLinkButtonCallback)
+		self.wTools.DoubleLinkButton = ImageButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
+                            callback=self.DoubleLinkButtonCallback)
+		self.wTools.InterpolationButton = ImageButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
+                            callback=self.InterpolationButtonCallback)		
+		self.wTools.MiddleDeltaButton = ImageButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
+                            callback=self.DeltaButtonCallback)
+		self.wTools.FinalDeltaButton = ImageButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
+                            callback=self.DeltaButtonCallback)
+
+		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
+		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 30, 65, 15),
+				self.alignmentTypeListDisplay, sizeStyle = "mini",
+				callback=self.AlignmentTypePopUpButtonCallback)
+		self.wTools.AlignmentTypeText.show(True)
+		self.wTools.AlignmentTypePopUpButton.show(True)
+
+		self.wTools.StemTypeText = TextBox((110, 32, 30, 15), "Stem:", sizeStyle = "mini")
+		self.wTools.StemTypePopUpButton = PopUpButton((140, 30, 65, 15),
+				self.stemTypeList, sizeStyle = "mini",
+				callback=self.StemTypePopUpButtonCallback)
+		self.wTools.StemTypeText.show(False)
+		self.wTools.StemTypePopUpButton.show(False)
+
+		self.wTools.RoundDistanceText = TextBox((10, 47, 80, 15), "Round Distance:", sizeStyle = "mini")
+		self.wTools.RoundDistanceCheckBox = CheckBox((90, 45, 15, 15), "", sizeStyle = "mini",
+				callback=self.RoundDistanceCheckBoxCallback)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+
+		self.wTools.DeltaOffsetText = TextBox((10, 32, 50, 15), "Offset:", sizeStyle = "mini")
+		self.wTools.DeltaOffsetSlider = Slider((10, 45, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+				callback=self.DeltaOffsetSliderCallback)
+		self.wTools.DeltaOffsetEditText = EditText((60, 30, 30, 15), sizeStyle = "mini", 
+				callback=self.DeltaOffsetEditTextCallback)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
+		self.wTools.DeltaOffsetEditText.show(False)
+
+		self.wTools.DeltaRangeText = TextBox((100, 32, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1EditText = EditText((150, 30, 30, 15), sizeStyle = "mini", 
+				callback=self.DeltaRange1EditTextCallback)
+		self.wTools.DeltaRange2EditText = EditText((180, 30, 30, 15), sizeStyle = "mini", 
+				callback=self.DeltaRange2EditTextCallback)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
+		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
+
+		self.wTools.open()
+
+
+	def closeTools(self):
+		self.wTools.close()
+
+	def LinkSettings(self):
+		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
+		self.wTools.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
+		self.wTools.AlignmentTypeText.show(True)
+		self.wTools.AlignmentTypePopUpButton.show(True)
+		self.wTools.StemTypeText.show(True)
+		self.wTools.StemTypePopUpButton.show(True)
+		self.wTools.RoundDistanceText.show(True)
+		self.wTools.RoundDistanceCheckBox.show(True)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaOffsetEditText.show(False)
+
+	def DoubleLinkSettings(self):
+		self.wTools.AlignmentTypeText.show(False)
+		self.wTools.AlignmentTypePopUpButton.show(False)
+		self.wTools.StemTypeText.show(True)
+		self.wTools.StemTypePopUpButton.show(True)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaOffsetEditText.show(False)
+
+	def AlignSettings(self):
+		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
+		self.wTools.AlignmentTypePopUpButton.setItems(self.alignmentTypeListDisplay)
+		self.wTools.AlignmentTypeText.show(True)
+		self.wTools.AlignmentTypePopUpButton.show(True)
+		self.wTools.StemTypeText.show(False)
+		self.wTools.StemTypePopUpButton.show(False)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaOffsetEditText.show(False)
+
+	def InterpolationSettings(self):
+		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
+		self.wTools.AlignmentTypePopUpButton.setItems(self.alignmentTypeListLinkDisplay)
+		self.wTools.AlignmentTypeText.show(True)
+		self.wTools.AlignmentTypePopUpButton.show(True)
+		self.wTools.StemTypeText.show(False)
+		self.wTools.StemTypePopUpButton.show(False)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaOffsetEditText.show(False)
+
+	def DeltaSettings(self):
+		self.wTools.AlignmentTypeText.show(False)
+		self.wTools.AlignmentTypePopUpButton.show(False)
+		self.wTools.StemTypeText.show(False)
+		self.wTools.StemTypePopUpButton.show(False)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+		self.wTools.DeltaOffsetText.show(True)
+		self.wTools.DeltaOffsetSlider.show(True)
+		self.wTools.DeltaRangeText.show(True)
+		self.wTools.DeltaRange1EditText.show(True)
+		self.wTools.DeltaRange2EditText.show(True)
+		self.wTools.DeltaOffsetEditText.show(True)
+
+	def AlignmentTypePopUpButtonCallback(self, sender):
+		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
+		elif self.tthtm.selectedHintingTool == 'Align':
+			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
+
+	def StemTypePopUpButtonCallback(self, sender):
+		if self.tthtm.selectedAxis == 'X':
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.stemsListX[sender.get()])
+		else:
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.stemsListY[sender.get()])
+
+	def RoundDistanceCheckBoxCallback(self, sender):
+		self.TTHToolInstance.changeRoundBool(sender.get())
+
+	def DeltaOffsetSliderCallback(self, sender):
+		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))
+
+	def DeltaOffsetEditTextCallback(self, sender):
+		self.TTHToolInstance.changeDeltaOffset(sender.get())
+
+	def DeltaRange1EditTextCallback(self, sender):
+		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
+
+	def DeltaRange2EditTextCallback(self, sender):
+		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
+
 	def AxisXButtonCallback(self, sender):
 		self.TTHToolInstance.changeAxis('X')
 		self.TTHToolInstance.makeStemsListsPopUpMenu()
-		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+		self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
 		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 
 	def AxisYButtonCallback(self, sender):
 		self.TTHToolInstance.changeAxis('Y')
 		self.TTHToolInstance.makeStemsListsPopUpMenu()
-		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+		self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 	
 	def AlignButtonCallback(self, sender):
-		self.centralWindowAlignSettings()
+		self.AlignSettings()
 		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 
 	def SingleLinkButtonCallback(self, sender):
-		self.centralWindowLinkSettings()
+		self.LinkSettings()
 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		if self.tthtm.selectedAxis == 'X':
 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
@@ -381,18 +401,18 @@ class centralWindow(object):
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 
 	def DoubleLinkButtonCallback(self, sender):
-		self.centralWindowDoubleLinkSettings()
+		self.DoubleLinkSettings()
 		if self.tthtm.selectedAxis == 'X':
 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 		else:
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 			
 	def InterpolationButtonCallback(self, sender):
-		self.centralWindowInterpolationSettings()
+		self.InterpolationSettings()
 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
 	def DeltaButtonCallback(self, sender):
-		self.centralWindowDeltaSettings()
+		self.DeltaSettings()
 
 
 class previewWindow(object):
