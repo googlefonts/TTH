@@ -189,16 +189,20 @@ class StemView(object):
 
 		if oldStemName != newStemName:
 			#print("Original stem name = ", oldStemName, ", new stem name = ", newStemName)
-			if newStemName in self.controller.stems:
-				print("ERROR: Can't use an already existing name.")
+			if newStemName in self.controller.controller.tthtm.stems:
+				#print("ERROR: Can't use an already existing name.")
 				newStemName = oldStemName
 				sender[sel]['Name'] = newStemName
 				self.lock = False
 				return
 			else:
-				del self.controller.stems[oldStemName]
+				del self.controller.controller.tthtm.stems[oldStemName]
 		self.UIStems[sel] = sender[sel]
-		self.controller.EditStem(oldStemName, newStemName, stemDict, self.isHorizontal)
+		self.controller.controller.EditStem(oldStemName, newStemName, stemDict, self.isHorizontal)
+		if self.isHorizontal:
+			self.box.stemsList.set(self.controller.tthtm.buildStemsUIList(horizontal=True))
+		else:
+			self.box.stemsList.set(self.controller.tthtm.buildStemsUIList(horizontal=False))
 		self.lock = False
 
 	def editTextDummyCallback(self, sender):
@@ -213,7 +217,7 @@ class StemView(object):
 		except ValueError:
 			value = 1
 		sender.set(value)
-		stemPitch = float(self.controller.tthtm.UPM)/value
+		stemPitch = float(self.controller.controller.tthtm.UPM)/value
 		self.box.editTextStem1px.set(str(0))
 		self.box.editTextStem2px.set(str(int(2*stemPitch)))
 		self.box.editTextStem3px.set(str(int(3*stemPitch)))
@@ -235,7 +239,7 @@ class StemView(object):
 		UI.setSelection([])
 		selected = [UI[i]['Name'] for i in selection]
 		self.lock = True
-		self.controller.tthtm.deleteStems(selected, self)
+		self.controller.controller.deleteStems(selected, self)
 		self.lock = False
 
 	def buttonAddCallback(self, sender):
@@ -259,7 +263,7 @@ class StemView(object):
 
 		stemDict = {'horizontal': self.isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		self.lock = True
-		self.controller.tthtm.addStem(name, stemDict, self)
+		self.controller.controller.addStem(name, stemDict, self)
 		self.box.editTextStemName.set("")
 		self.box.editTextStemWidth.set("")
 		self.box.editTextStem1px.set("")
@@ -296,8 +300,8 @@ class SheetControlValues(object):
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.UIBottomZones)
 
 		w.stemBox = Box((505, 50, 485, 350))
-		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(horizontal=True))
-		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.buildStemsUIList(horizontal=False))
+		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.UIHorizontalStems)
+		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.UIVerticalStems)
 
 
 		w.applyButton = Button((-130, -32, 120, 22), "Apply and Close", sizeStyle = "small", callback=self.applyButtonCallback)

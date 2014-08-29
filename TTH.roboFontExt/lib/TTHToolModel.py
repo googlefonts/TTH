@@ -4,22 +4,6 @@ from robofab.world import *
 
 FL_tth_key = "com.fontlab.v2.tth"
 
-def invertedDictionary( dico ):
-	return dict([(v,k) for (k,v) in dico.iteritems()])
-
-def getOrDefault(dico, key, default):
-	try:
-		return dico[key]
-	except:
-		return default
-
-def getOrPutDefault(dico, key, default):
-	try:
-		return dico[key]
-	except:
-		dico[key] = default
-		return default
-
 # ======================================================================
 
 class TTHToolModel():
@@ -55,18 +39,36 @@ class TTHToolModel():
 		self.alwaysRefresh = 1
 
 		try:
-			tth_lib = getOrPutDefault(self.f.lib, FL_tth_key, {})
-			self.zones	= getOrPutDefault(tth_lib, "zones", {})
+			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
+			self.zones	= self.getOrPutDefault(tth_lib, "zones", {})
 			self.UITopZones = self.buildUIZonesList(buildTop=True)
 			self.UIBottomZones = self.buildUIZonesList(buildTop=False)
-			self.stems	= getOrPutDefault(tth_lib, "stems", {})
-			self.codeppm	= getOrPutDefault(tth_lib, "codeppm", 48)
-			self.alignppm	= getOrPutDefault(tth_lib, "alignppm", 48)
-			self.stemsnap	= getOrPutDefault(tth_lib, "stemsnap", 17)
-			self.stems = getOrPutDefault(tth_lib, "stems", {})
+			self.stems	= self.getOrPutDefault(tth_lib, "stems", {})
+			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 48)
+			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 48)
+			self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
+			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
+			self.UIHorizontalStems = self.buildStemsUIList(horizontal=True)
+			self.UIVerticalStems = self.buildStemsUIList(horizontal=False)
 		except:
 			pass
 
+
+	def invertedDictionary(self, dico):
+		return dict([(v,k) for (k,v) in dico.iteritems()])
+
+	def getOrDefault(self, dico, key, default):
+		try:
+			return dico[key]
+		except:
+			return default
+
+	def getOrPutDefault(self, dico, key, default):
+		try:
+			return dico[key]
+		except:
+			dico[key] = default
+			return default
 
 	def setFont(self, font):
 		self.f = font
@@ -177,54 +179,18 @@ class TTHToolModel():
 	def buildUIZonesList(self, buildTop):
 		return [self.buildUIZoneDict(zone, name) for name, zone in self.zones.iteritems() if zone['top'] == buildTop]
 
-	# ======================================= Functions for Stems
+# ======================================= Functions for Stems
 
-	def storeStem(self, stemName, entry, horizontal):
-		stem = getOrPutDefault(self.stems, stemName, {})
-		stem['width'] = getOrDefault(entry, 'Width', 0)
-		stem['horizontal'] = horizontal
-		# stems round dict
-		sr = {}
-		stem['round'] = sr
-		def addRound(colName, val, col):
-			if colName in entry:
-				sr[str(entry[colName])] = col
-			else:
-				print("DOES THAT REALLY HAPPEN!?")
-				sr[val] = col
-		addRound('1 px', '0', 1)
-		addRound('2 px', '12', 2)
-		addRound('3 px', '16', 3)
-		addRound('4 px', '24', 4)
-		addRound('5 px', '32', 5)
-		addRound('6 px', '64', 6)
 
 	def buildStemUIDict(self, stem, name):
 		c_stemDict = {}
 		c_stemDict['Name'] = name
 		c_stemDict['Width'] = stem['width']
-		invDico = invertedDictionary(stem['round'])
+		invDico = self.invertedDictionary(stem['round'])
 		for i in range(1,7):
-			c_stemDict[str(i)+' px'] = getOrDefault(invDico, i, '0')
+			c_stemDict[str(i)+' px'] = self.getOrDefault(invDico, i, '0')
 		return c_stemDict
 
 	def buildStemsUIList(self, horizontal=True):
 		return [self.buildStemUIDict(stem, name) for name, stem in self.stems.iteritems() if stem['horizontal'] == horizontal]
 
-	def EditStem(self, oldStemName, newStemName, stemDict, horizontal):
-		self.storeStem(newStemName, stemDict, horizontal)
-		self.f.lib[FL_tth_key]["stems"] = self.stems
-
-	def deleteStems(self, selected, stemView):
-		for name in selected:
-			try:
-				del self.f.lib[FL_tth_key]["stems"][name]
-				del self.stems[name]
-			except:
-				pass
-		stemView.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))
-
-	def addStem(self, name, stemDict, stemView):
-		self.stems[name] = stemDict
-		self.f.lib[FL_tth_key]["stems"][name] = stemDict
-		stemView.box.stemsList.set(self.buildStemsUIList(horizontal=stemView.isHorizontal))

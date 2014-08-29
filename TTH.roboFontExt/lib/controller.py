@@ -548,6 +548,19 @@ class TTHTool(BaseEventTool):
 				del self.tthtm.zones[zoneName]
 			except:
 				pass
+		for g in self.tthtm.f:
+			commands = self.readGlyphFLTTProgram(g)
+			if commands == None:
+				continue
+			for command in commands:
+				if command['code'] in ['alignt', 'alignb']:
+					if command['zone'] == zoneName:
+						command['code'] = 'alignv'
+						del command['zone']
+						command['align'] = 'round'
+			self.writeGlyphFLTTProgram(g)
+		dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+
 		self.tthtm.UITopZones = self.tthtm.buildUIZonesList(buildTop = True)
 		self.tthtm.UIBottomZones = self.tthtm.buildUIZonesList(buildTop = False)
 		zoneView.set(self.tthtm.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
@@ -594,6 +607,74 @@ class TTHTool(BaseEventTool):
 		else:
 			zone['delta'] = {'0': 0}
 			entry['Delta'] = '0@0'
+
+#================ Functions for Stems
+
+	def storeStem(self, stemName, entry, horizontal):
+		stem = self.tthtm.getOrPutDefault(self.tthtm.stems, stemName, {})
+		stem['width'] = self.tthtm.getOrDefault(entry, 'Width', 0)
+		stem['horizontal'] = horizontal
+		# stems round dict
+		sr = {}
+		stem['round'] = sr
+		def addRound(colName, val, col):
+			if colName in entry:
+				sr[str(entry[colName])] = col
+			else:
+				print("DOES THAT REALLY HAPPEN!?")
+				sr[val] = col
+		width =  int(self.tthtm.stems[stemName]['width'])
+
+		stemPitch = float(self.tthtm.UPM)/width
+		addRound('1 px', '0', 1)
+		addRound('2 px', str(int(2*stemPitch)), 2)
+		addRound('3 px', str(int(3*stemPitch)), 3)
+		addRound('4 px', str(int(4*stemPitch)), 4)
+		addRound('5 px', str(int(5*stemPitch)), 5)
+		addRound('6 px', str(int(6*stemPitch)), 6)
+
+	def EditStem(self, oldStemName, newStemName, stemDict, horizontal):
+		self.storeStem(newStemName, stemDict, horizontal)
+		self.tthtm.f.lib[FL_tth_key]["stems"] = self.tthtm.stems
+
+	def deleteStems(self, selected, stemView):
+		for name in selected:
+			try:
+				del self.tthtm.f.lib[FL_tth_key]["stems"][name]
+				del self.tthtm.stems[name]
+			except:
+				pass
+
+		for g in self.tthtm.f:
+			commands = self.readGlyphFLTTProgram(g)
+			if commands == None:
+				continue
+			for command in commands:
+				if 'stem' in command:
+					if command['stem'] == name:
+						del command['stem']
+			self.writeGlyphFLTTProgram(g)
+		dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+
+		tth_lib = self.tthtm.getOrPutDefault(self.tthtm.f.lib, FL_tth_key, {})
+		self.tthtm.stems = self.tthtm.getOrPutDefault(tth_lib, "stems", {})
+		if stemView.isHorizontal:
+			self.tthtm.UIHorizontalStems = self.tthtm.buildStemsUIList(horizontal=True)
+			stemView.set(self.tthtm.UIHorizontalStems)
+		else:
+			self.tthtm.UIVerticalStems = self.tthtm.buildStemsUIList(horizontal=False)
+			stemView.set(self.tthtm.UIVerticalStems)
+		
+
+	def addStem(self, name, stemDict, stemView):
+		self.tthtm.stems[name] = stemDict
+		self.tthtm.f.lib[FL_tth_key]["stems"][name] = stemDict
+		if stemView.isHorizontal:
+			self.tthtm.UIHorizontalStems = self.tthtm.buildStemsUIList(horizontal=True)
+			stemView.box.stemsList.set(self.tthtm.UIHorizontalStems)
+		else:
+			self.tthtm.UIVerticalStems = self.tthtm.buildStemsUIList(horizontal=False)
+			stemView.box.stemsList.set(self.tthtm.UIVerticalStems)
 
 	# def showHidePreviewWindow(self, showHide):
 	# 	if showHide == 0:
