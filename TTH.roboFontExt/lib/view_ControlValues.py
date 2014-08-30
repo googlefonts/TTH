@@ -177,7 +177,7 @@ class StemView(object):
 			oldStemName = self.UIStems[sel]['Name']
 		except:
 			oldStemName = "" # probably a new stem was created
-			print("ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallBack")
+			print "ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallBack"
 
 		stemDict = sender[sel]
 
@@ -188,9 +188,9 @@ class StemView(object):
 			sender[sel]['Name'] = newStemName
 
 		if oldStemName != newStemName:
-			#print("Original stem name = ", oldStemName, ", new stem name = ", newStemName)
+			print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
 			if newStemName in self.controller.controller.tthtm.stems:
-				#print("ERROR: Can't use an already existing name.")
+				print "ERROR: Can't use an already existing name."
 				newStemName = oldStemName
 				sender[sel]['Name'] = newStemName
 				self.lock = False

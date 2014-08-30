@@ -38,6 +38,7 @@ class TTHToolModel():
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
 
+	def setControlValues(self):
 		try:
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
 			self.zones	= self.getOrPutDefault(tth_lib, "zones", {})
@@ -51,6 +52,7 @@ class TTHToolModel():
 			self.UIHorizontalStems = self.buildStemsUIList(horizontal=True)
 			self.UIVerticalStems = self.buildStemsUIList(horizontal=False)
 		except:
+			print "ERROR: can't set font's control values"
 			pass
 
 

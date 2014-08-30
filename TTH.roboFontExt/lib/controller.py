@@ -1217,6 +1217,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
 		self.unicodeToNameDict = self.buildUnicodeToNameDict(self.tthtm.f)
 		self.tthtm.resetPitch()
+		self.tthtm.setControlValues()
 
 		if createWindows:
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
