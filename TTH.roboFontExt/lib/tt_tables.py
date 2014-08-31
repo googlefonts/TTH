@@ -27,24 +27,24 @@ def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 
 	for stem in stemsHorizontal:
 		cvt_index += 1
-		cvt = stem[1]['width']
+		cvt = int(stem[1]['width'])
 		table_CVT.append(cvt)
 		stem_to_cvt[stem[0]] = cvt_index
 
 	for stem in stemsVertical:
 		cvt_index += 1
-		cvt = stem[1]['width']
+		cvt = int(stem[1]['width'])
 		table_CVT.append(cvt)
 		stem_to_cvt[stem[0]] = cvt_index
 
 	for name, zone in zones.iteritems():
 		cvt_index += 1
-		cvt = zone['position']
+		cvt = int(zone['position'])
 		table_CVT.append(cvt)
 		zone_to_cvt[name] = cvt_index
 
 		cvt_index += 1
-		cvt = zone['width']
+		cvt = int(zone['width'])
 		table_CVT.append(cvt)
 
 	f.lib['com.robofont.robohint.cvt '] = table_CVT

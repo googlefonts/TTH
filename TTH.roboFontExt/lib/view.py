@@ -76,10 +76,10 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
-		self.wCentral.PreviewShowButton = Button((10, -25, (length/2)-15, 15), "Preview", sizeStyle = 'mini', 
+		self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview", sizeStyle = 'mini', 
 				callback=self.PreviewShowButtonCallback)
 
-		self.wCentral.ControlValuesButton = Button((15+(length/2), -25, -10, 15), "Control Values", sizeStyle = 'mini', 
+		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
 
 
@@ -181,7 +181,8 @@ class centralWindow(object):
 		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
 
 	def PreviewShowButtonCallback(self, sender):
-		self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
+		if self.tthtm.previewWindowVisible == 0:
+			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
 
 	def ControlValuesButtonCallback(self, sender):
 		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
@@ -190,7 +191,6 @@ class toolsWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		length = 215
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
@@ -207,7 +207,7 @@ class toolsWindow(object):
 
 
 
-		self.wTools = FloatingWindow((170, 30, length, 65), "Tools", closable = False)
+		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "Tools", closable = False)
 
 		self.wTools.XButton = ImageButton((10, 10, 18, 18), imageObject = buttonXPath,
                             callback=self.AxisXButtonCallback)
@@ -267,11 +267,18 @@ class toolsWindow(object):
 		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
+		self.wTools.bind("move", self.toolsWindowMovedorResized)
+		self.wTools.bind("resize", self.toolsWindowMovedorResized)
+
 		self.wTools.open()
 
 
 	def closeTools(self):
 		self.wTools.close()
+
+	def toolsWindowMovedorResized(self, sender):
+		self.tthtm.toolsWindowPosSize = self.wTools.getPosSize()
+
 
 	def LinkSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -432,7 +439,7 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.wPreview = FloatingWindow((10, 450, 500, 300), "Preview", minSize=(300, 200))
+		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(300, 200))
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), (2000, 2000)))
@@ -455,10 +462,19 @@ class previewWindow(object):
 		self.wPreview.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 		self.tthtm.previewWindowVisible = 1
+		self.wPreview.bind("close", self.previewWindowWillClose)
+		self.wPreview.bind("move", self.previewWindowMovedorResized)
+		self.wPreview.bind("resize", self.previewWindowMovedorResized)
 		self.wPreview.open()
 
-	def windowCloseCallback(self, sender):
-		print 'bye'
+	def closePreview(self):
+		self.wPreview.close()
+
+	def previewWindowWillClose(self, sender):
+		self.tthtm.previewWindowVisible = 0
+
+	def previewWindowMovedorResized(self, sender):
+		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
 
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())

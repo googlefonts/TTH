@@ -47,6 +47,7 @@ cursorFinalDelta = CreateCursor(cursorFinalDeltaPath, hotSpot=(2, 2))
 
 
 
+axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
@@ -262,7 +263,8 @@ class TTHTool(BaseEventTool):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-	#	self.previewWindow.closePreview()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.closePreview()
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
@@ -270,7 +272,8 @@ class TTHTool(BaseEventTool):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-	#	self.previewWindow.closePreview()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 
 	def fontBecameCurrent(self, font):
@@ -278,7 +281,8 @@ class TTHTool(BaseEventTool):
 		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
 			self.toolsWindow.closeTools()
-			#self.previewWindow.closePreview()
+			if self.tthtm.previewWindowVisible == 1:
+				self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 		self.resetglyph()
 		self.fontClosed = False
@@ -287,7 +291,8 @@ class TTHTool(BaseEventTool):
 		#self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		#self.previewWindow.closePreview()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.closePreview()
 		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
@@ -624,7 +629,6 @@ class TTHTool(BaseEventTool):
 				print("DOES THAT REALLY HAPPEN!?")
 				sr[val] = col
 		width =  int(self.tthtm.stems[stemName]['width'])
-
 		stemPitch = float(self.tthtm.UPM)/width
 		addRound('1 px', '0', 1)
 		addRound('2 px', str(int(2*stemPitch)), 2)
@@ -636,6 +640,18 @@ class TTHTool(BaseEventTool):
 	def EditStem(self, oldStemName, newStemName, stemDict, horizontal):
 		self.storeStem(newStemName, stemDict, horizontal)
 		self.tthtm.f.lib[FL_tth_key]["stems"] = self.tthtm.stems
+		if oldStemName != newStemName:
+			for g in self.tthtm.f:
+				commands = self.readGlyphFLTTProgram(g)
+				if commands == None:
+					continue
+				for command in commands:
+					if 'stem' in command:
+						if command['stem'] == oldStemName:
+							command['stem'] = newStemName
+				self.writeGlyphFLTTProgram(g)
+			dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+
 
 	def deleteStems(self, selected, stemView):
 		for name in selected:
@@ -1223,7 +1239,8 @@ class TTHTool(BaseEventTool):
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
 			self.toolsWindow = view.toolsWindow(self, self.tthtm)
-			#self.previewWindow = view.previewWindow(self, self.tthtm)
+			# if self.tthtm.previewWindowVisible == 1:
+			# 	self.previewWindow = view.previewWindow(self, self.tthtm)
 
 		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.tthtm.alignppm, self.tthtm.stems, self.tthtm.zones, self.tthtm.codeppm)
 		tt_tables.writeFPGM(self.tthtm.f)
@@ -1561,6 +1578,28 @@ class TTHTool(BaseEventTool):
 		
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
+
+	def drawRawTextAtPoint(self, scale, title, x, y, size):
+		currentTool = getActiveEventTool()
+		view = currentTool.getNSView()
+
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(size),
+			NSForegroundColorAttributeName : discColor,
+			}
+
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		width, height = text.size()
+		fontSize = attributes[NSFontAttributeName].pointSize()
+		width = width*scale
+		width += 8.0*scale
+		height = 13*scale
+		x -= width / 2.0
+		y -= fontSize*scale / 2.0
+		
+		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
+		return (width, height)
+
 
 	def drawPreviewSize(self, title, x, y):
 		#currentview = self.previewWindow.view
@@ -1929,6 +1968,8 @@ class TTHTool(BaseEventTool):
 			return
 		if self.tthtm.g.unicode == None:
 			return
+
+		self.drawRawTextAtPoint(scale, self.tthtm.selectedAxis, -50, -50, 60)
 
 		curChar = unichr(self.tthtm.g.unicode)
 		
