@@ -1204,12 +1204,6 @@ class TTHTool(BaseEventTool):
 				else:
 					items.append((u'✓ Round Distance', self.dontRoundDistanceCallback))
 
-
-				if 'stem' in clickedCommand:
-					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
-				else:
-					distances = [(u'✓ Do Not Link to Stem', self.dontLinkToStemCallBack)]
-
 				stemsHorizontal = []
 				stemsVertical = []
 
@@ -1224,15 +1218,23 @@ class TTHTool(BaseEventTool):
 				else:
 					stems = stemsHorizontal
 
-				for i in stems:
-					self.distanceCallback = callbackDistance(self, i)
-					if 'stem' in clickedCommand:
+
+				if 'stem' in clickedCommand:
+					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
+					for i in stems:
+						self.distanceCallback = callbackDistance(self, i)
 						if clickedCommand['stem'] == i:
 							stemContext = u'✓ ' + str(i)
-					else:
-						stemContext = str(i)
-					distances.append((stemContext, self.distanceCallback))
+						else:
+							stemContext = str(i)
+						distances.append((stemContext, self.distanceCallback))
+				else:
+					distances = [(u'✓ Do Not Link to Stem', self.dontLinkToStemCallBack)]
+					for i in stems:
+						self.distanceCallback = callbackDistance(self, i)
+						distances.append((i, self.distanceCallback))
 
+				
 				items.append(("Distance Alignment", distances))
 
 				doNotAlignContext = 'Do Not Align to Grid'
