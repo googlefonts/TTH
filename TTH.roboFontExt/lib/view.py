@@ -17,8 +17,7 @@ class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		length = 160
-		self.wCentral = FloatingWindow((10, 30, length, 115), "Central", closable = False)
+		self.wCentral = FloatingWindow(self.tthtm.centralWindowPosSize, "Central", closable = False)
 
 		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
 							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
@@ -82,11 +81,14 @@ class centralWindow(object):
 		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
 
-
+		self.wCentral.bind("move", self.centralWindowMovedorResized)
 		self.wCentral.open()
 
 	def closeCentral(self):
 		self.wCentral.close()
+
+	def centralWindowMovedorResized(self, sender):
+		self.tthtm.centralWindowPosSize = self.wCentral.getPosSize()
 
 	def PPEMSizeEditTextCallback(self, sender):
 		self.TTHToolInstance.changeSize(sender.get())
@@ -268,7 +270,6 @@ class toolsWindow(object):
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
-		self.wTools.bind("resize", self.toolsWindowMovedorResized)
 
 		self.wTools.open()
 

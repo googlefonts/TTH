@@ -1,3 +1,5 @@
+#coding=utf-8
+
 from mojo.events import *
 from mojo.UI import *
 from mojo.extensions import *
@@ -285,10 +287,13 @@ class TTHTool(BaseEventTool):
 				self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 		self.resetglyph()
+		self.updatePartialFont()
 		self.fontClosed = False
 
 	def fontWillClose(self, font):
 		#self.FL_Windows.closeAll()
+		if len(loadFonts()) > 1:
+			return
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		if self.tthtm.previewWindowVisible == 1:
@@ -296,6 +301,10 @@ class TTHTool(BaseEventTool):
 		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
+		self.resetglyph()
+		self.updatePartialFontIfNeeded()
+
+	def currentGlyphChanged(self):
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
 
@@ -399,6 +408,7 @@ class TTHTool(BaseEventTool):
 			
 		if hintingToolIndex == 3:
 			self.toolsWindow.InterpolationSettings()
+			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		if hintingToolIndex in [4, 5]:
 			self.toolsWindow.DeltaSettings()
 
@@ -759,11 +769,10 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
-		elif event.characters() == 'A':
-			if self.tthtm.selectedAxis == 'X':
-				self.tthtm.setAxis('Y')
-			else:
-				self.tthtm.setAxis('X')
+		elif event.characters() == 'h':
+			self.tthtm.setAxis('X')
+		elif event.characters() == 'v':
+			self.tthtm.setAxis('Y')
 
 
 	def mouseDown(self, point, clickCount):
@@ -1091,38 +1100,64 @@ class TTHTool(BaseEventTool):
 
 
 			if clickedCommand['code'] in ['interpolateh', 'interpolatev']:
+			
+				doNotAlignContext = 'Do Not Align to Grid'
+				closestContext = "Closest Pixel Edge"
+				leftContext = "Left/Bottom Edge"
+				rightContext = "Right/Top Edge"
+				centerContext = "Center of Pixel"
+				doubleContext = "Double Grid"
 				if 'align' in clickedCommand:
-					alignments = [
-								('Do Not Align to Grid', self.dontAlignCallBack),
-								("Closest Pixel Edge", alignmentCallBack_Closest),
-								("Left/Bottom Edge", alignmentCallBack_Left),
-								("Right/Top Edge", alignmentCallBack_Right),
-								("Center of Pixel", alignmentCallBack_Center),
-								("Double Grid", alignmentCallBack_Double)
-								]
-
-					items.append(("Align Destination Position", alignments))
-
+					if clickedCommand['align'] == 'round':
+						closestContext = u"✓ Closest Pixel Edge"
+					elif clickedCommand['align'] == 'left':
+						leftContext = u"✓ Left/Bottom Edge"
+					elif clickedCommand['align'] == 'right':
+						rightContext = u"✓ Right/Top Edge"
+					elif clickedCommand['align'] == 'center':
+						centerContext = u"✓ Center of Pixel"
+					elif clickedCommand['align'] == 'double':
+						doubleContext = u"✓ Double Grid"
 				else:
-					alignments = [
-								("Closest Pixel Edge", alignmentCallBack_Closest),
-								("Left/Bottom Edge", alignmentCallBack_Left),
-								("Right/Top Edge", alignmentCallBack_Right),
-								("Center of Pixel", alignmentCallBack_Center),
-								("Double Grid", alignmentCallBack_Double)
-								]
+					doNotAlignContext = u'✓Do Not Align to Grid'
 
-					items.append(("Align Destination Position", alignments))
+				alignments = [
+							(doNotAlignContext, self.dontAlignCallBack),
+							(closestContext, alignmentCallBack_Closest),
+							(leftContext, alignmentCallBack_Left),
+							(rightContext, alignmentCallBack_Right),
+							(centerContext, alignmentCallBack_Center),
+							(doubleContext, alignmentCallBack_Double)
+							]
+
+				items.append(("Align Destination Position", alignments))
 
 
 			if clickedCommand['code'] in ['alignh', 'alignv']:
 
+				closestContext = "Closest Pixel Edge"
+				leftContext = "Left/Bottom Edge"
+				rightContext = "Right/Top Edge"
+				centerContext = "Center of Pixel"
+				doubleContext = "Double Grid"
+				if 'align' in clickedCommand:
+					if clickedCommand['align'] == 'round':
+						closestContext = u"✓ Closest Pixel Edge"
+					elif clickedCommand['align'] == 'left':
+						leftContext = u"✓ Left/Bottom Edge"
+					elif clickedCommand['align'] == 'right':
+						rightContext = u"✓ Right/Top Edge"
+					elif clickedCommand['align'] == 'center':
+						centerContext = u"✓ Center of Pixel"
+					elif clickedCommand['align'] == 'double':
+						doubleContext = u"✓ Double Grid"
+
 				alignments = [
-							("Closest Pixel Edge", alignmentCallBack_Closest),
-							("Left/Bottom Edge", alignmentCallBack_Left),
-							("Right/Top Edge", alignmentCallBack_Right),
-							("Center of Pixel", alignmentCallBack_Center),
-							("Double Grid", alignmentCallBack_Double)
+							(closestContext, alignmentCallBack_Closest),
+							(leftContext, alignmentCallBack_Left),
+							(rightContext, alignmentCallBack_Right),
+							(centerContext, alignmentCallBack_Center),
+							(doubleContext, alignmentCallBack_Double)
 							]
 
 				items.append(("Alignment Type", alignments))
@@ -1167,13 +1202,13 @@ class TTHTool(BaseEventTool):
 				if 'round' not in clickedCommand:
 					items.append(('Round Distance', self.roundDistanceCallback))
 				else:
-					items.append(('Do Not Round Distance', self.dontRoundDistanceCallback))
+					items.append((u'✓ Round Distance', self.dontRoundDistanceCallback))
 
 
 				if 'stem' in clickedCommand:
 					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
 				else:
-					distances = []
+					distances = [(u'✓ Do Not Link to Stem', self.dontLinkToStemCallBack)]
 
 				stemsHorizontal = []
 				stemsVertical = []
@@ -1191,32 +1226,45 @@ class TTHTool(BaseEventTool):
 
 				for i in stems:
 					self.distanceCallback = callbackDistance(self, i)
-					distances.append((i, self.distanceCallback))
+					if 'stem' in clickedCommand:
+						if clickedCommand['stem'] == i:
+							stemContext = u'✓ ' + str(i)
+					else:
+						stemContext = str(i)
+					distances.append((stemContext, self.distanceCallback))
 
 				items.append(("Distance Alignment", distances))
 
+				doNotAlignContext = 'Do Not Align to Grid'
+				closestContext = "Closest Pixel Edge"
+				leftContext = "Left/Bottom Edge"
+				rightContext = "Right/Top Edge"
+				centerContext = "Center of Pixel"
+				doubleContext = "Double Grid"
 				if 'align' in clickedCommand:
-					alignments = [
-								('Do Not Align to Grid', self.dontAlignCallBack),
-								("Closest Pixel Edge", alignmentCallBack_Closest),
-								("Left/Bottom Edge", alignmentCallBack_Left),
-								("Right/Top Edge", alignmentCallBack_Right),
-								("Center of Pixel", alignmentCallBack_Center),
-								("Double Grid", alignmentCallBack_Double)
-								]
-
-					items.append(("Align Destination Position", alignments))
-
+					if clickedCommand['align'] == 'round':
+						closestContext = u"✓ Closest Pixel Edge"
+					elif clickedCommand['align'] == 'left':
+						leftContext = u"✓ Left/Bottom Edge"
+					elif clickedCommand['align'] == 'right':
+						rightContext = u"✓ Right/Top Edge"
+					elif clickedCommand['align'] == 'center':
+						centerContext = u"✓ Center of Pixel"
+					elif clickedCommand['align'] == 'double':
+						doubleContext = u"✓ Double Grid"
 				else:
-					alignments = [
-								("Closest Pixel Edge", alignmentCallBack_Closest),
-								("Left/Bottom Edge", alignmentCallBack_Left),
-								("Right/Top Edge", alignmentCallBack_Right),
-								("Center of Pixel", alignmentCallBack_Center),
-								("Double Grid", alignmentCallBack_Double)
-								]
+					doNotAlignContext = u'✓ Do Not Align to Grid'
 
-					items.append(("Align Destination Position", alignments))
+				alignments = [
+							(doNotAlignContext, self.dontAlignCallBack),
+							(closestContext, alignmentCallBack_Closest),
+							(leftContext, alignmentCallBack_Left),
+							(rightContext, alignmentCallBack_Right),
+							(centerContext, alignmentCallBack_Center),
+							(doubleContext, alignmentCallBack_Double)
+							]
+
+				items.append(("Align Destination Position", alignments))
 
 
 
@@ -1585,7 +1633,7 @@ class TTHTool(BaseEventTool):
 
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(size),
-			NSForegroundColorAttributeName : discColor,
+			NSForegroundColorAttributeName : axisColor,
 			}
 
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
@@ -1969,10 +2017,14 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g.unicode == None:
 			return
 
-		self.drawRawTextAtPoint(scale, self.tthtm.selectedAxis, -50, -50, 60)
+		if self.tthtm.selectedAxis == 'X':
+			text = u'⬌'
+		else:
+			text = u'⬍'
+		self.drawRawTextAtPoint(scale, text, -100, 120, 120)
 
 		curChar = unichr(self.tthtm.g.unicode)
-		
+
 		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
 		self.tthtm.textRenderer.set_pen((0, 0))
 		self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
