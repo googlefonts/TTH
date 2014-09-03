@@ -49,7 +49,7 @@ cursorFinalDelta = CreateCursor(cursorFinalDeltaPath, hotSpot=(2, 2))
 
 
 
-axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
+axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
@@ -64,6 +64,37 @@ deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
+
+class glyphHistory(object):
+	def __init__(self):
+		self.past_history = []
+		self.future_history = []
+		self.current_state = []
+
+	def takesnapshot(self, commands):
+		self.past_history.append(commands)
+
+	def undo(self):
+		print 'undo levels:', len(self.past_history)
+		if len(self.past_history) > 1:
+			self.future_history.append(self.past_history[len(self.past_history)-1])
+			self.past_history.pop()
+			self.current_state = self.past_history[len(self.past_history)-1]
+		return self.current_state
+
+	def redo(self):
+		print 'redo levels:', len(self.future_history)
+		if len(self.future_history) > 0:
+			self.current_state = self.future_history[len(self.future_history)-1]
+			self.past_history.append(self.future_history[len(self.future_history)-1])
+			self.future_history.pop()
+		return self.current_state
+
+	def getPastHistory(self):
+		return self.past_history
+
+	def getFutureHistory(self):
+		return self.future_history
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -174,6 +205,7 @@ class callbackAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		self.ttht.updateGlyphProgram()
+		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -186,6 +218,7 @@ class callbackZoneAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
+		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -198,6 +231,7 @@ class callbackDistance():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
+		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -210,6 +244,7 @@ class callbackSetDeltaValue():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
+		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -769,10 +804,31 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
-		elif event.characters() == 'h':
-			self.tthtm.setAxis('X')
-		elif event.characters() == 'v':
-			self.tthtm.setAxis('Y')
+		elif event.characters() in ['h', 'v']:
+			if self.tthtm.selectedAxis == 'Y':
+				self.tthtm.setAxis('X')
+			else:
+				self.tthtm.setAxis('Y')
+
+	def keyUp(self, event):
+		if self.getModifiers()['commandDown'] and event.characters() == 'y':
+			print 'redo'
+			print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
+			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].redo()
+			self.updateGlyphProgram()
+			print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
+			if self.tthtm.alwaysRefresh == 1:
+				self.refreshGlyph()
+		if self.getModifiers()['commandDown'] and event.characters() == 'z':
+			print 'undo'
+			print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
+			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].undo()
+			self.updateGlyphProgram()
+			print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
+			if self.tthtm.alwaysRefresh == 1:
+				self.refreshGlyph()
+				
+
 
 
 	def mouseDown(self, point, clickCount):
@@ -891,6 +947,7 @@ class TTHTool(BaseEventTool):
 		if newCommand != {}:
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
+			self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
 
@@ -998,6 +1055,7 @@ class TTHTool(BaseEventTool):
 		x.extend(ytb)
 		self.glyphTTHCommands = sum([topologicalSort(l, self.compareCommands) for l in [y,fdeltah,fdeltav]], x)
 
+
 	def deleteCommandCallback(self, item):
 		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
 		#print 'delete command:', self.commandRightClicked
@@ -1012,6 +1070,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
 		self.updateGlyphProgram()
+		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1021,6 +1080,7 @@ class TTHTool(BaseEventTool):
 		self.commandLabelPos = {}
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
 		self.updateGlyphProgram()
+		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1029,6 +1089,7 @@ class TTHTool(BaseEventTool):
 		cmdIndex = self.commandRightClicked
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
 		self.updateGlyphProgram()
+		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1036,6 +1097,7 @@ class TTHTool(BaseEventTool):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['round']
 		self.updateGlyphProgram()
+		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1043,6 +1105,7 @@ class TTHTool(BaseEventTool):
 		cmdIndex = self.commandRightClicked
 		del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
+		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1057,6 +1120,7 @@ class TTHTool(BaseEventTool):
 		self.prepareCommands()
 		self.writeGlyphFLTTProgram(self.tthtm.g)
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+		#self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 
 	def refreshGlyph(self):
 		self.updatePartialFont() # to update the newly modified current glyph
@@ -1280,6 +1344,7 @@ class TTHTool(BaseEventTool):
 		self.allFonts = loadFonts()
 		if not self.allFonts:
 			return
+		self.glyphsHistory = {}
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
 		self.unicodeToNameDict = self.buildUnicodeToNameDict(self.tthtm.f)
 		self.tthtm.resetPitch()
@@ -1297,9 +1362,11 @@ class TTHTool(BaseEventTool):
 
 		for g in self.tthtm.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
+			self.glyphsHistory[g.name] = glyphHistory()
 			if glyphTTHCommands != None:
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+				self.glyphsHistory[g.name].takesnapshot(glyphTTHCommands)
 
 		#self.generateFullTempFont()
 		self.resetglyph()
@@ -1632,9 +1699,12 @@ class TTHTool(BaseEventTool):
 	def drawRawTextAtPoint(self, scale, title, x, y, size):
 		currentTool = getActiveEventTool()
 		view = currentTool.getNSView()
-
+		if scale != 0:
+			scaledSize = size/scale
+		else:
+			scaledSize = size
 		attributes = {
-			NSFontAttributeName : NSFont.boldSystemFontOfSize_(size),
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(scaledSize),
 			NSForegroundColorAttributeName : axisColor,
 			}
 
