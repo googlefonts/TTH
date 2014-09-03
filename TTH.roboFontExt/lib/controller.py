@@ -207,9 +207,9 @@ class callbackAlignment():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -222,8 +222,8 @@ class callbackZoneAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -236,8 +236,8 @@ class callbackDistance():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -250,8 +250,8 @@ class callbackSetDeltaValue():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -819,19 +819,19 @@ class TTHTool(BaseEventTool):
 
 	def keyUp(self, event):
 		if self.getModifiers()['commandDown'] and event.characters() == 'Z':
-			print 'redo'
-			print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
+			#print 'redo'
+			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
 			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].redo()
 			self.updateGlyphProgram()
-			print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
+			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
 		if self.getModifiers()['commandDown'] and event.characters() == 'z':
-			print 'undo'
-			print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
+			#print 'undo'
+			#print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
 			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].undo()
 			self.updateGlyphProgram()
-			print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
+			#print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
 				
@@ -1170,9 +1170,15 @@ class TTHTool(BaseEventTool):
 			if clickedCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
 				deltaValues = []
 				for value in range(-8, 0):
-					deltaValues.append((str(value), callbackSetDeltaValue(self, value)))
+					valueContext = str(value)
+					if str(value) == str(clickedCommand['delta']):
+						valueContext = u"✓ " + str(value)
+					deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
 				for value in range(1, 9):
-					deltaValues.append((str(value), callbackSetDeltaValue(self, value)))
+					valueContext = str(value)
+					if str(value) == str(clickedCommand['delta']):
+						valueContext = u"✓ " + str(value)
+					deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
 				items.append(("Set Middle Delta Value", deltaValues))
 
 
@@ -1243,8 +1249,11 @@ class TTHTool(BaseEventTool):
 				zonesListItems = []
 
 				for zone in self.tthtm.zones:
+					zoneContext = zone
+					if zone == clickedCommand['zone']:
+						zoneContext = u'✓ ' + str(zone)
 					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
-					zonesListItems.append((zone, self.zoneAlignmentCallBack))
+					zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
 				items.append(("Attach to Zone", zonesListItems))
 
 			if clickedCommand['code'] in ['doubleh', 'doublev']:
@@ -1380,7 +1389,6 @@ class TTHTool(BaseEventTool):
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 				self.glyphsHistory[g.name].takesnapshot(glyphTTHCommands)
-				self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 
 		#self.generateFullTempFont()
 		self.resetglyph()
