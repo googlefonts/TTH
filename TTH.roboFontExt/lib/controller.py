@@ -478,6 +478,21 @@ class TTHTool(BaseEventTool):
 		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
 		self.toolsWindow.wTools.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
+	def increaseAlignmentTypeLink(self):
+		previousAlignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
+		if previousAlignmentTypeIndex < len(self.toolsWindow.alignmentTypeListLink)-1:
+			self.changeSelectedAlignmentTypeLink(self.toolsWindow.alignmentTypeListLink[previousAlignmentTypeIndex+1])
+		else:
+			self.changeSelectedAlignmentTypeLink(self.toolsWindow.alignmentTypeListLink[0])
+
+	def increaseAlignmentTypeAlign(self):
+		previousAlignmentTypeIndex = self.getAlignmentTypeAlignIndex(self.tthtm.selectedAlignmentTypeAlign)
+		if previousAlignmentTypeIndex < len(self.toolsWindow.alignmentTypeList)-1:
+			self.changeSelectedAlignmentTypeAlign(self.toolsWindow.alignmentTypeList[previousAlignmentTypeIndex+1])
+		else:
+			self.changeSelectedAlignmentTypeAlign(self.toolsWindow.alignmentTypeList[0])
+
+
 	def getStemIndex(self, stemName, axis):
 		stemIndex = 0
 		if axis == 'X':
@@ -499,6 +514,20 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setStemY(stemName)
 		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
 		self.toolsWindow.wTools.StemTypePopUpButton.set(stemIndex)
+
+	def increaseStemX(self):
+		previousStemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'X')
+		if previousStemIndex < len(self.tthtm.stemsListX)-1:
+			self.changeSelectedStemX(self.tthtm.stemsListX[previousStemIndex+1])
+		else:
+			self.changeSelectedStemX(self.tthtm.stemsListX[0])
+
+	def increaseStemY(self):
+		previousStemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
+		if previousStemIndex < len(self.tthtm.stemsListY)-1:
+			self.changeSelectedStemY(self.tthtm.stemsListY[previousStemIndex+1])
+		else:
+			self.changeSelectedStemY(self.tthtm.stemsListY[0])
 
 	def changeRoundBool(self, roundBool):
 		self.tthtm.setRoundBool(roundBool)
@@ -832,6 +861,24 @@ class TTHTool(BaseEventTool):
 				self.tthtm.showCenterPixel = 0
 			else:
 				self.tthtm.showCenterPixel = 1
+
+		elif event.characters() == 'S':
+			if self.tthtm.selectedAxis == 'Y':
+				self.increaseStemY()
+			elif self.tthtm.selectedAxis == 'X':
+				self.increaseStemX()
+
+		elif event.characters() == 'R':
+			if self.tthtm.roundBool == 0:
+				self.changeRoundBool(1)
+			else:
+				self.changeRoundBool(0)
+
+		elif event.characters() == 'A':
+			if self.tthtm.selectedHintingTool == 'Single Link':
+				self.increaseAlignmentTypeLink()
+			elif self.tthtm.selectedHintingTool == 'Align':
+				self.increaseAlignmentTypeAlign()
 
 		elif event.characters() in ['h', 'v']:
 			if self.tthtm.selectedAxis == 'Y':
