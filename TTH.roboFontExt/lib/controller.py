@@ -96,6 +96,9 @@ class glyphHistory(object):
 	def getFutureHistory(self):
 		return self.future_history
 
+	def clearFutureHistory(self):
+		self.future_history = []
+
 def topologicalSort(l, f):
 	n = len(l)
 	preds = [[] for i in l]
@@ -206,6 +209,7 @@ class callbackAlignment():
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -219,6 +223,7 @@ class callbackZoneAlignment():
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -232,6 +237,7 @@ class callbackDistance():
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -245,6 +251,7 @@ class callbackSetDeltaValue():
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.ttht.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
@@ -811,7 +818,7 @@ class TTHTool(BaseEventTool):
 				self.tthtm.setAxis('Y')
 
 	def keyUp(self, event):
-		if self.getModifiers()['commandDown'] and event.characters() == 'y':
+		if self.getModifiers()['commandDown'] and event.characters() == 'Z':
 			print 'redo'
 			print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
 			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].redo()
@@ -948,6 +955,7 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
 			self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+			self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
 
@@ -1071,6 +1079,7 @@ class TTHTool(BaseEventTool):
 
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1081,6 +1090,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1090,6 +1100,7 @@ class TTHTool(BaseEventTool):
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1098,6 +1109,7 @@ class TTHTool(BaseEventTool):
 		del self.glyphTTHCommands[cmdIndex]['round']
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1106,6 +1118,7 @@ class TTHTool(BaseEventTool):
 		del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
+		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1367,6 +1380,7 @@ class TTHTool(BaseEventTool):
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 				self.glyphsHistory[g.name].takesnapshot(glyphTTHCommands)
+				self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 
 		#self.generateFullTempFont()
 		self.resetglyph()
