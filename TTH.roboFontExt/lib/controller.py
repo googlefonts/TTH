@@ -261,6 +261,7 @@ class TTHTool(BaseEventTool):
 	def __init__(self, tthtm):
 		BaseEventTool.__init__(self)
 		self.ready = False
+		self.interpolationFirstStep = 0
 		self.doneGeneratingPartialFont = False
 		self.fontClosed = False
 		self.p_glyphList = []
@@ -921,6 +922,7 @@ class TTHTool(BaseEventTool):
 		#	print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
 
 	def mouseUp(self, point):
+		#self.interpolationFirstStep = 0
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		self.endPointOff = self.isOffPoint(self.p_cursor)
@@ -989,6 +991,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			self.point1 = self.startPoint
 			self.point = self.endPoint
+			self.interpolationFirstStep = 1
 		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint == self.endPoint and self.startPoint != None and self.point1 != None and self.point != None:
 			self.point2 = self.endPoint
 			if self.tthtm.selectedAxis == 'X':
@@ -1004,6 +1007,7 @@ class TTHTool(BaseEventTool):
 			self.point1 = None
 			self.point = None
 			self.point2 = None
+			self.interpolationFirstStep = 0
 
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta'] and (self.endPoint != None or self.endPointOff != None):
 			if self.tthtm.deltaOffset == 0:
@@ -2033,6 +2037,21 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = (((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 ), (width, height))
 
+	def drawInterpolateDragging(self, scale, startPoint, middlePoint):
+		start_middle_diff = difference(startPoint, middlePoint)
+		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
+		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
+		center1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
+
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_((startPoint[0], startPoint[1]))
+		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
+
+		interpolatecolor.set()
+		path.setLineWidth_(scale)
+		path.stroke()
+
+
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
 		start_middle_diff = difference(startPoint, middlePoint)
@@ -2047,7 +2066,7 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((startPoint[0], startPoint[1]))
-		#path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
+		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
 		interpolatecolor.set()
@@ -2224,8 +2243,11 @@ class TTHTool(BaseEventTool):
 			self.tthtm.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
 			self.drawSideBearings(scale, curChar)
 
+
 	def draw(self, scale):
 
+		self.scale = scale
+		self.myview = self.getNSView()
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
@@ -2242,6 +2264,8 @@ class TTHTool(BaseEventTool):
 					self.drawLinkArrow(scale, self.startPoint, self.endPoint)
 				elif self.tthtm.selectedHintingTool == 'Double Link':
 					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint)
+				elif self.tthtm.selectedHintingTool == 'Interpolation':
+					self.drawInterpolateDragging(scale, self.startPoint, self.endPoint)
 
 
 		for cmdIndex, c in enumerate(self.glyphTTHCommands):
