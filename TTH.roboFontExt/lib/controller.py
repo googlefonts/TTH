@@ -1461,7 +1461,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
 
 	def resetglyph(self):
-		self.tthtm.setGlyph(CurrentGlyph())
+		self.tthtm.setGlyph(self.getGlyph())
 		if self.tthtm.g == None:
 			return
 
