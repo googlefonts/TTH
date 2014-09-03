@@ -40,6 +40,10 @@ class TTHToolModel():
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
+		self.showOutline = 1
+		self.showBitmap = 1
+		self.showGrid = 1
+		self.showCenterPixel = 0
 
 	def setControlValues(self):
 		try:

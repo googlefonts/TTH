@@ -75,7 +75,7 @@ class glyphHistory(object):
 		self.past_history.append(commands)
 
 	def undo(self):
-		print 'undo levels:', len(self.past_history)
+		#print 'undo levels:', len(self.past_history)
 		if len(self.past_history) > 1:
 			self.future_history.append(self.past_history[len(self.past_history)-1])
 			self.past_history.pop()
@@ -83,7 +83,7 @@ class glyphHistory(object):
 		return self.current_state
 
 	def redo(self):
-		print 'redo levels:', len(self.future_history)
+		#print 'redo levels:', len(self.future_history)
 		if len(self.future_history) > 0:
 			self.current_state = self.future_history[len(self.future_history)-1]
 			self.past_history.append(self.future_history[len(self.future_history)-1])
@@ -811,11 +811,39 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
+
+		elif event.characters() == 'o':
+			if self.tthtm.showOutline == 1:
+				self.tthtm.showOutline = 0
+			else:
+				self.tthtm.showOutline = 1
+		elif event.characters() == 'b':
+			if self.tthtm.showBitmap == 1:
+				self.tthtm.showBitmap = 0
+			else:
+				self.tthtm.showBitmap = 1
+		elif event.characters() == 'G':
+			if self.tthtm.showGrid == 1:
+				self.tthtm.showGrid = 0
+			else:
+				self.tthtm.showGrid = 1
+		elif event.characters() == 'c':
+			if self.tthtm.showCenterPixel == 1:
+				self.tthtm.showCenterPixel = 0
+			else:
+				self.tthtm.showCenterPixel = 1
+
 		elif event.characters() in ['h', 'v']:
 			if self.tthtm.selectedAxis == 'Y':
-				self.tthtm.setAxis('X')
+				self.changeAxis('X')
+				self.makeStemsListsPopUpMenu()
+				self.toolsWindow.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+				self.changeSelectedStemX(self.tthtm.selectedStemX)
 			else:
-				self.tthtm.setAxis('Y')
+				self.changeAxis('Y')
+				self.makeStemsListsPopUpMenu()
+				self.toolsWindow.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+				self.changeSelectedStemY(self.tthtm.selectedStemY)
 
 	def keyUp(self, event):
 		if self.getModifiers()['commandDown'] and event.characters() == 'Z':
@@ -1644,6 +1672,12 @@ class TTHTool(BaseEventTool):
 			pathY.setLineWidth_(scale)
 			pathY.stroke()
 
+	def drawCenterPixel(self, scale, pitch):
+		for xPos in range(-5000, 5000, int(pitch)):
+			for yPos in range(-5000, 5000, int(pitch)):
+				self.drawDiscAtPoint(scale*3, xPos+(pitch/2)+scale*3, yPos+(pitch/2)+scale*3, gridColor)
+
+
 	def drawZones(self, scale):
 
 		for zone in self.tthtm.UITopZones:
@@ -1778,8 +1812,8 @@ class TTHTool(BaseEventTool):
 		outlineColor.set()
 		pathArrow.stroke()
 
-	def drawDiscAtPoint(self, r, x, y):
-		discColor.set()
+	def drawDiscAtPoint(self, r, x, y, color):
+		color.set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
 	def drawLozengeAtPoint(self, scale, r, x, y):
@@ -2117,21 +2151,28 @@ class TTHTool(BaseEventTool):
 			text = u'⬍'
 		self.drawRawTextAtPoint(scale, text, -100, 120, 120)
 
-		curChar = unichr(self.tthtm.g.unicode)
-
-		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-		self.tthtm.textRenderer.set_pen((0, 0))
-		self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
-
 		r = 5*scale
-		self.drawDiscAtPoint(r, 0, 0)
-		self.drawDiscAtPoint(r, self.tthtm.g.width, 0)
+		self.drawDiscAtPoint(r, 0, 0, discColor)
+		self.drawDiscAtPoint(r, self.tthtm.g.width, 0, discColor)
 
-		self.drawGrid(scale, self.tthtm.pitch)
 		self.drawZones(scale)
 
-		self.tthtm.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
-		self.drawSideBearings(scale, curChar)
+		curChar = unichr(self.tthtm.g.unicode)
+
+		if self.tthtm.showBitmap == 1:
+			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+			self.tthtm.textRenderer.set_pen((0, 0))
+			self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
+
+		if self.tthtm.showGrid == 1:
+			self.drawGrid(scale, self.tthtm.pitch)
+
+		if self.tthtm.showCenterPixel == 1:
+			self.drawCenterPixel(scale, self.tthtm.pitch)
+
+		if self.tthtm.showOutline == 1:
+			self.tthtm.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
+			self.drawSideBearings(scale, curChar)
 
 	def draw(self, scale):
 
