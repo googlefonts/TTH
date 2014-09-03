@@ -478,14 +478,14 @@ class TTHTool(BaseEventTool):
 		alignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
 		self.toolsWindow.wTools.AlignmentTypePopUpButton.set(alignmentTypeIndex)
 
-	def increaseAlignmentTypeLink(self):
+	def swapAlignmentTypeLink(self):
 		previousAlignmentTypeIndex = self.getAlignmentTypeLinkIndex(self.tthtm.selectedAlignmentTypeLink)
 		if previousAlignmentTypeIndex < len(self.toolsWindow.alignmentTypeListLink)-1:
 			self.changeSelectedAlignmentTypeLink(self.toolsWindow.alignmentTypeListLink[previousAlignmentTypeIndex+1])
 		else:
 			self.changeSelectedAlignmentTypeLink(self.toolsWindow.alignmentTypeListLink[0])
 
-	def increaseAlignmentTypeAlign(self):
+	def swapAlignmentTypeAlign(self):
 		previousAlignmentTypeIndex = self.getAlignmentTypeAlignIndex(self.tthtm.selectedAlignmentTypeAlign)
 		if previousAlignmentTypeIndex < len(self.toolsWindow.alignmentTypeList)-1:
 			self.changeSelectedAlignmentTypeAlign(self.toolsWindow.alignmentTypeList[previousAlignmentTypeIndex+1])
@@ -515,14 +515,14 @@ class TTHTool(BaseEventTool):
 		stemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
 		self.toolsWindow.wTools.StemTypePopUpButton.set(stemIndex)
 
-	def increaseStemX(self):
+	def swapStemX(self):
 		previousStemIndex = self.getStemIndex(self.tthtm.selectedStemX, 'X')
 		if previousStemIndex < len(self.tthtm.stemsListX)-1:
 			self.changeSelectedStemX(self.tthtm.stemsListX[previousStemIndex+1])
 		else:
 			self.changeSelectedStemX(self.tthtm.stemsListX[0])
 
-	def increaseStemY(self):
+	def swapStemY(self):
 		previousStemIndex = self.getStemIndex(self.tthtm.selectedStemY, 'Y')
 		if previousStemIndex < len(self.tthtm.stemsListY)-1:
 			self.changeSelectedStemY(self.tthtm.stemsListY[previousStemIndex+1])
@@ -864,9 +864,9 @@ class TTHTool(BaseEventTool):
 
 		elif event.characters() == 'S':
 			if self.tthtm.selectedAxis == 'Y':
-				self.increaseStemY()
+				self.swapStemY()
 			elif self.tthtm.selectedAxis == 'X':
-				self.increaseStemX()
+				self.swapStemX()
 
 		elif event.characters() == 'R':
 			if self.tthtm.roundBool == 0:
@@ -875,10 +875,10 @@ class TTHTool(BaseEventTool):
 				self.changeRoundBool(0)
 
 		elif event.characters() == 'A':
-			if self.tthtm.selectedHintingTool == 'Single Link':
-				self.increaseAlignmentTypeLink()
+			if self.tthtm.selectedHintingTool in ['Single Link', 'Interpolation']:
+				self.swapAlignmentTypeLink()
 			elif self.tthtm.selectedHintingTool == 'Align':
-				self.increaseAlignmentTypeAlign()
+				self.swapAlignmentTypeAlign()
 
 		elif event.characters() in ['h', 'v']:
 			if self.tthtm.selectedAxis == 'Y':
@@ -950,18 +950,21 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
-				if self.tthtm.selectedStemX != 'None':
+				if self.tthtm.selectedStemX != 'None' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemX
+				elif self.tthtm.roundBool == 1:
+					newCommand['round'] = 'true'
 			else:
 				newCommand['code'] = 'singlev'
-				if self.tthtm.selectedStemY != 'None':
+				if self.tthtm.selectedStemY != 'None' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemY
+				elif self.tthtm.roundBool == 1:
+					newCommand['round'] = 'true'
+
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 			if self.tthtm.selectedAlignmentTypeLink != 'None':
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
-
-			
 
 			if self.tthtm.roundBool != 0:
 				newCommand['round'] = 'true'
@@ -2044,7 +2047,7 @@ class TTHTool(BaseEventTool):
 
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((startPoint[0], startPoint[1]))
-		path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
+		#path.curveToPoint_controlPoint1_controlPoint2_((middlePoint[0], middlePoint[1]), (center1), (center1) )
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
 		interpolatecolor.set()
