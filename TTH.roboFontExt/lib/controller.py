@@ -59,7 +59,7 @@ discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
 linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
-interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .6, 0, 1)
+interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
@@ -406,6 +406,17 @@ class TTHTool(BaseEventTool):
 
 	def changeAxis(self, axis):
 		self.tthtm.setAxis(axis)
+		if self.tthtm.selectedAxis == 'X':
+			self.stemTypeList = self.tthtm.stemsListX
+			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
+			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
+		else:
+			self.stemTypeList = self.tthtm.stemsListY
+			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
+			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
+		self.toolsWindow.wTools.AlignmentTypePopUpButton.setItems(self.toolsWindow.alignmentTypeListLinkDisplay)
+		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		UpdateCurrentGlyphView()
 
 	def getPreviewListIndex(self, preview):
