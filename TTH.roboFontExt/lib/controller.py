@@ -463,15 +463,19 @@ class TTHTool(BaseEventTool):
 		if hintingToolIndex == 1:
 			self.toolsWindow.LinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-			self.changeSelectedStemX(self.tthtm.selectedStemX)
-			self.changeSelectedStemY(self.tthtm.selectedStemY)
+			if self.tthtm.selectedAxis == 'X':
+				self.changeSelectedStemX(self.tthtm.selectedStemX)
+			elif self.tthtm.selectedAxis == 'Y':
+				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 
 		if hintingToolIndex == 2:
 			self.toolsWindow.DoubleLinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-			self.changeSelectedStemX(self.tthtm.selectedStemX)
-			self.changeSelectedStemY(self.tthtm.selectedStemY)
+			if self.tthtm.selectedAxis == 'X':
+				self.changeSelectedStemX(self.tthtm.selectedStemX)
+			elif self.tthtm.selectedAxis == 'Y':
+				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 			
 		if hintingToolIndex == 3:
@@ -917,6 +921,20 @@ class TTHTool(BaseEventTool):
 				self.makeStemsListsPopUpMenu()
 				self.toolsWindow.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
+
+		elif event.characters() == '-':
+			if self.tthtm.PPM_Size > 9:
+				self.changeSize(self.tthtm.PPM_Size-1)
+		elif event.characters() == '=':
+			self.changeSize(self.tthtm.PPM_Size+1)
+
+		elif event.characters() == 'p':
+			bitmappreviewIndex = self.centralWindow.wCentral.BitmapPreviewPopUpButton.get()
+			if bitmappreviewIndex < 2:
+				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[bitmappreviewIndex+1]
+			else:
+				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[0]
+			self.changeBitmapPreview(bitmapPreviewSelection)
 
 	def keyUp(self, event):
 		if self.getModifiers()['commandDown'] and event.characters() == 'Z':
