@@ -414,9 +414,14 @@ class TTHTool(BaseEventTool):
 			self.stemTypeList = self.tthtm.stemsListY
 			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
 			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
-		self.toolsWindow.wTools.AlignmentTypePopUpButton.setItems(self.toolsWindow.alignmentTypeListLinkDisplay)
-		self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-		self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+		
+
+		if self.tthtm.selectedHintingTool == "Align":
+			self.toolsWindow.wTools.AlignmentTypePopUpButton.setItems(self.toolsWindow.alignmentTypeListDisplay)
+			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+		if self.tthtm.selectedHintingTool in ["Single Link", "Interpolation"]:
+			self.toolsWindow.wTools.AlignmentTypePopUpButton.setItems(self.toolsWindow.alignmentTypeListLinkDisplay)
+			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 		UpdateCurrentGlyphView()
 
 	def getPreviewListIndex(self, preview):
