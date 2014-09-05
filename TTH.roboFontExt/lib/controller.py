@@ -1678,7 +1678,8 @@ class TTHTool(BaseEventTool):
 			return
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
-		self.programWindow.updateProgramList(glyphTTHCommands)
+		if glyphTTHCommands != None:
+			self.programWindow.updateProgramList(glyphTTHCommands)
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
@@ -2433,6 +2434,7 @@ class TTHTool(BaseEventTool):
 	def draw(self, scale):
 		self.scale = scale
 		self.myview = self.getNSView()
+		
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
