@@ -230,7 +230,7 @@ class callbackZoneAlignment():
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignt'
 		else:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignb'
-			
+
 		if self.ttht.glyphTTHCommands[cmdIndex]['code'] == 'alignv':
 			del self.ttht.glyphTTHCommands[cmdIndex]['align']
 
@@ -655,8 +655,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.f.lib["com.fontlab.v2.tth"]["codeppm"] = value
 
 	def makeStemsListsPopUpMenu(self):
-		self.tthtm.stemsListX = ['None']
-		self.tthtm.stemsListY = ['None']
+		self.tthtm.stemsListX = ['None', 'Guess']
+		self.tthtm.stemsListY = ['None', 'Guess']
 
 		for name, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] == True:
@@ -998,6 +998,34 @@ class TTHTool(BaseEventTool):
 		#if self.startPoint in self.pointCoordinatesToUniqueID:
 		#	print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
 
+	def getDistance(self, point1, point2, axis):
+		x1 = point1[0]
+		x2 = point2[0]
+		y1 = point1[1]
+		y2 = point2[1]
+
+		if axis == 'X':
+			return abs(x2-x1)
+		elif axis == 'Y':
+			return abs(y2-y1)
+
+	def guessStem(self, point1, point2):
+		dist = self.getDistance(point1, point2, self.tthtm.selectedAxis)
+		widthsList = []
+		candidatesList = []
+		if self.tthtm.selectedAxis == 'Y':
+			stemsList = self.tthtm.UIHorizontalStems
+		elif self.tthtm.selectedAxis == 'X':
+			stemsList = self.tthtm.UIVerticalStems
+		for stem in stemsList:
+			widthsList.append((stem['Width'], stem['Name']))
+		for i in widthsList:
+			diff = abs(i[0]-dist)
+			candidatesList.append((diff,i[1]))
+			candidatesList.sort()
+		return candidatesList[0][1]
+
+
 	def mouseUp(self, point):
 		#self.interpolationFirstStep = 0
 		self.p_cursor = (int(point.x), int(point.y))
@@ -1029,14 +1057,18 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
-				if self.tthtm.selectedStemX != 'None' and self.tthtm.roundBool != 1:
+				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemX
+				elif self.tthtm.selectedStemX == 'Guess' and self.tthtm.roundBool != 1:
+					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
 				elif self.tthtm.roundBool == 1:
 					newCommand['round'] = 'true'
 			else:
 				newCommand['code'] = 'singlev'
-				if self.tthtm.selectedStemY != 'None' and self.tthtm.roundBool != 1:
+				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemY
+				elif self.tthtm.selectedStemY == 'Guess' and self.tthtm.roundBool != 1:
+					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
 				elif self.tthtm.roundBool == 1:
 					newCommand['round'] = 'true'
 
@@ -1051,14 +1083,18 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'doubleh'
-				if self.tthtm.selectedStemX != 'None':
+				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess':
 					newCommand['stem'] = self.tthtm.selectedStemX
+				elif self.tthtm.selectedStemX == 'Guess':
+					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
 				else:
 					newCommand['round'] = 'true'
 			else:
 				newCommand['code'] = 'doublev'
-				if self.tthtm.selectedStemY != 'None':
+				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess':
 					newCommand['stem'] = self.tthtm.selectedStemY
+				elif self.tthtm.selectedStemY == 'Guess':
+					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
 				else:
 					newCommand['round'] = 'true'
 
