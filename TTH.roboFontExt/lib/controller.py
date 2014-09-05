@@ -249,6 +249,8 @@ class callbackDistance():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
+		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
+			del self.ttht.glyphTTHCommands[cmdIndex]['round']
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
@@ -1302,6 +1304,8 @@ class TTHTool(BaseEventTool):
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
+		if 'stem' in self.glyphTTHCommands[cmdIndex]:
+			del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
