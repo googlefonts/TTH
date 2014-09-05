@@ -210,6 +210,7 @@ class callbackAlignment():
 		if self.ttht.glyphTTHCommands[cmdIndex]['code'] in ['alignt', 'alignb']:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignv'
 			del self.ttht.glyphTTHCommands[cmdIndex]['zone']
+
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		self.ttht.updateGlyphProgram()
@@ -228,11 +229,12 @@ class callbackZoneAlignment():
 			topZonesNamesList.append(zone['Name'])
 		if self.alignmentZone in topZonesNamesList:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignt'
+			if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
+				del self.ttht.glyphTTHCommands[cmdIndex]['align']
 		else:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignb'
-
-		if self.ttht.glyphTTHCommands[cmdIndex]['code'] == 'alignv':
-			del self.ttht.glyphTTHCommands[cmdIndex]['align']
+			if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
+				del self.ttht.glyphTTHCommands[cmdIndex]['align']
 
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
