@@ -501,4 +501,63 @@ class previewWindow(object):
 		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
 		self.view.setNeedsDisplay_(True)
 
+class programWindow(object):
+	def __init__(self, TTHToolInstance, tthtm):
+		self.TTHToolInstance = TTHToolInstance
+		self.tthtm = TTHToolInstance.tthtm
+
+		self.wProgram = FloatingWindow(self.tthtm.programWindowPosSize, "Program", minSize=(200, 200))
+		self.wProgram.bind("close", self.programWindowWillClose)
+		self.programList = []
+		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
+					columnDescriptions=[{"title": "code", "editable": True}, {"title": "point", "editable": True},
+				{"title": "point1", "editable": True}, {"title": "point2", "editable": True}, {"title": "align", "editable": True},
+				{"title": "round", "editable": True}, {"title": "stem", "editable": True}, {"title": "zone", "editable": True},
+				{"title": "delta", "editable": True}, {"title": "ppm1", "editable": True}, {"title": "ppm2", "editable": True}],
+					enableDelete=True, 
+					selectionCallback=self.selectionCallback,
+					editCallback = self.editCallback)
+
+		self.wProgram.open()
+
+	def closeProgram(self):
+		self.wProgram.close()
+
+	def programWindowWillClose(self, sender):
+		self.tthtm.programWindowVisible = 0
+
+	def selectionCallback(self, sender):
+		pass
+		# print sender.getSelection()
+
+	def editCallback(self, sender):
+		pass
+
+	def updateProgramList(self, commands):
+		self.commands =  [dict(c) for c in commands]
+		for command in self.commands:
+			if 'point' not in command:
+				command['point'] = ''
+			if 'point1' not in command:
+				command['point1'] = ''
+			if 'point2' not in command:
+				command['point2'] = ''
+			if 'align' not in command:
+				command['align'] = ''
+			if 'round' not in command:
+				command['round'] = ''
+			if 'stem' not in command:
+				command['stem'] = ''
+			if 'zone' not in command:
+				command['zone'] = ''
+			if 'delta' not in command:
+				command['delta'] = ''
+			if 'ppm1' not in command:
+				command['ppm1'] = ''
+			if 'ppm2' not in command:
+				command['ppm2'] = ''
+		self.wProgram.programList.set(self.commands)
+
+
+
 reload (CV)

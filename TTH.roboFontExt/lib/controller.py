@@ -352,6 +352,8 @@ class TTHTool(BaseEventTool):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
 		removeObserver(self, "glyphWindowDidOpen")
@@ -363,6 +365,8 @@ class TTHTool(BaseEventTool):
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		if self.tthtm.previewWindowVisible == 1:
+			self.programWindow.closeProgram()
+		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
 
@@ -371,6 +375,8 @@ class TTHTool(BaseEventTool):
 		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
 			self.toolsWindow.closeTools()
+			if self.tthtm.previewWindowVisible == 1:
+				self.programWindow.closeProgram()
 			if self.tthtm.previewWindowVisible == 1:
 				self.previewWindow.closePreview()
 		self.resetFonts(createWindows=True)
@@ -384,6 +390,8 @@ class TTHTool(BaseEventTool):
 			return
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
+		if self.tthtm.previewWindowVisible == 1:
+			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
 		self.fontClosed = True
@@ -1606,6 +1614,8 @@ class TTHTool(BaseEventTool):
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
 			self.toolsWindow = view.toolsWindow(self, self.tthtm)
+			self.programWindow = view.programWindow(self, self.tthtm)
+			self.tthtm.programWindowVisible = 1
 			# if self.tthtm.previewWindowVisible == 1:
 			# 	self.previewWindow = view.previewWindow(self, self.tthtm)
 
@@ -1668,6 +1678,7 @@ class TTHTool(BaseEventTool):
 			return
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
+		self.programWindow.updateProgramList(glyphTTHCommands)
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
