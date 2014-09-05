@@ -207,6 +207,9 @@ class callbackAlignment():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
+		if self.ttht.glyphTTHCommands[cmdIndex]['code'] in ['alignt', 'alignb']:
+			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignv'
+			del self.ttht.glyphTTHCommands[cmdIndex]['zone']
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		self.ttht.updateGlyphProgram()
@@ -220,6 +223,17 @@ class callbackZoneAlignment():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
+		topZonesNamesList = []
+		for zone in self.ttht.tthtm.UITopZones:
+			topZonesNamesList.append(zone['Name'])
+		if self.alignmentZone in topZonesNamesList:
+			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignt'
+		else:
+			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignb'
+			
+		if self.ttht.glyphTTHCommands[cmdIndex]['code'] == 'alignv':
+			del self.ttht.glyphTTHCommands[cmdIndex]['align']
+
 		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
@@ -1371,7 +1385,7 @@ class TTHTool(BaseEventTool):
 				items.append(("Align Destination Position", alignments))
 
 
-			if clickedCommand['code'] in ['alignh', 'alignv']:
+			if clickedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
 
 				closestContext = "Closest Pixel Edge"
 				leftContext = "Left/Bottom Edge"
@@ -1390,26 +1404,47 @@ class TTHTool(BaseEventTool):
 					elif clickedCommand['align'] == 'double':
 						doubleContext = u"✓ Double Grid"
 
+				zonesListItems = []
+
+				for zone in self.tthtm.zones:
+					zoneContext = zone
+					if 'zone' in clickedCommand:
+						if zone == clickedCommand['zone']:
+							zoneContext = u'✓ ' + str(zone)
+					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
+					zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
+				#items.append(("Attach to Zone", zonesListItems))
+
+
 				alignments = [
 							(closestContext, alignmentCallBack_Closest),
 							(leftContext, alignmentCallBack_Left),
 							(rightContext, alignmentCallBack_Right),
 							(centerContext, alignmentCallBack_Center),
-							(doubleContext, alignmentCallBack_Double)
+							(doubleContext, alignmentCallBack_Double),
+							("Attach to Zone", zonesListItems)
+							]
+				if clickedCommand['code'] == 'alignh':
+					alignments = [
+							(closestContext, alignmentCallBack_Closest),
+							(leftContext, alignmentCallBack_Left),
+							(rightContext, alignmentCallBack_Right),
+							(centerContext, alignmentCallBack_Center),
+							(doubleContext, alignmentCallBack_Double),
 							]
 
 				items.append(("Alignment Type", alignments))
 
-			if clickedCommand['code'] in ['alignt', 'alignb']:
-				zonesListItems = []
+			# if clickedCommand['code'] in ['alignt', 'alignb']:
+			# 	zonesListItems = []
 
-				for zone in self.tthtm.zones:
-					zoneContext = zone
-					if zone == clickedCommand['zone']:
-						zoneContext = u'✓ ' + str(zone)
-					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
-					zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
-				items.append(("Attach to Zone", zonesListItems))
+			# 	for zone in self.tthtm.zones:
+			# 		zoneContext = zone
+			# 		if zone == clickedCommand['zone']:
+			# 			zoneContext = u'✓ ' + str(zone)
+			# 		self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
+			# 		zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
+			# 	items.append(("Attach to Zone", zonesListItems))
 
 			if clickedCommand['code'] in ['doubleh', 'doublev']:
 				if 'stem' in clickedCommand:
