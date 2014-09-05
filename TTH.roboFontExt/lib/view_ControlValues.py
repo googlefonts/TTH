@@ -300,9 +300,8 @@ class SheetControlValues(object):
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.UIBottomZones)
 
 		w.stemBox = Box((505, 50, 485, 350))
-		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.UIHorizontalStems)
-		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.UIVerticalStems)
-
+		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
+		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.buildStemsUIList(False))
 
 		w.applyButton = Button((-130, -32, 120, 22), "Apply and Close", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.open()

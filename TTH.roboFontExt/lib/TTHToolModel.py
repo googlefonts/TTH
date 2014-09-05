@@ -60,8 +60,6 @@ class TTHToolModel():
 			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 48)
 			self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
 			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-			self.UIHorizontalStems = self.buildStemsUIList(horizontal=True)
-			self.UIVerticalStems = self.buildStemsUIList(horizontal=False)
 		except:
 			print "ERROR: can't set font's control values"
 			pass

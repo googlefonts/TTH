@@ -535,29 +535,13 @@ class programWindow(object):
 
 	def updateProgramList(self, commands):
 		self.commands =  [dict(c) for c in commands]
+                def putIfNotThere(c, key):
+                    if key not in c:
+			    c[key] = ''
 		for command in self.commands:
-			if 'point' not in command:
-				command['point'] = ''
-			if 'point1' not in command:
-				command['point1'] = ''
-			if 'point2' not in command:
-				command['point2'] = ''
-			if 'align' not in command:
-				command['align'] = ''
-			if 'round' not in command:
-				command['round'] = ''
-			if 'stem' not in command:
-				command['stem'] = ''
-			if 'zone' not in command:
-				command['zone'] = ''
-			if 'delta' not in command:
-				command['delta'] = ''
-			if 'ppm1' not in command:
-				command['ppm1'] = ''
-			if 'ppm2' not in command:
-				command['ppm2'] = ''
+			for key in ['point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']:
+				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
-
 
 
 reload (CV)

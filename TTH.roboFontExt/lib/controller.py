@@ -829,23 +829,12 @@ class TTHTool(BaseEventTool):
 
 		tth_lib = self.tthtm.getOrPutDefault(self.tthtm.f.lib, FL_tth_key, {})
 		self.tthtm.stems = self.tthtm.getOrPutDefault(tth_lib, "stems", {})
-		if stemView.isHorizontal:
-			self.tthtm.UIHorizontalStems = self.tthtm.buildStemsUIList(horizontal=True)
-			stemView.set(self.tthtm.UIHorizontalStems)
-		else:
-			self.tthtm.UIVerticalStems = self.tthtm.buildStemsUIList(horizontal=False)
-			stemView.set(self.tthtm.UIVerticalStems)
-		
+		stemView.set(self.tthtm.buildStemsUIList(stemView.isHorizontal))
 
 	def addStem(self, name, stemDict, stemView):
 		self.tthtm.stems[name] = stemDict
 		self.tthtm.f.lib[FL_tth_key]["stems"][name] = stemDict
-		if stemView.isHorizontal:
-			self.tthtm.UIHorizontalStems = self.tthtm.buildStemsUIList(horizontal=True)
-			stemView.box.stemsList.set(self.tthtm.UIHorizontalStems)
-		else:
-			self.tthtm.UIVerticalStems = self.tthtm.buildStemsUIList(horizontal=False)
-			stemView.box.stemsList.set(self.tthtm.UIVerticalStems)
+		stemView.set(self.tthtm.buildStemsUIList(stemView.isHorizontal))
 
 	# def showHidePreviewWindow(self, showHide):
 	# 	if showHide == 0:
@@ -1023,18 +1012,15 @@ class TTHTool(BaseEventTool):
 		dist = self.getDistance(point1, point2, self.tthtm.selectedAxis)
 		widthsList = []
 		candidatesList = []
-		if self.tthtm.selectedAxis == 'Y':
-			stemsList = self.tthtm.UIHorizontalStems
-		elif self.tthtm.selectedAxis == 'X':
-			stemsList = self.tthtm.UIVerticalStems
-		for stem in stemsList:
-			widthsList.append((stem['Width'], stem['Name']))
+		horizontal = (self.tthtm.selectedAxis == 'Y')
+		for stem in self.tthm.stems:
+			if stem['horizontal'] == horizontal:
+				widthsList.append((stem['Width'], stem['Name']))
 		for i in widthsList:
 			diff = abs(i[0]-dist)
 			candidatesList.append((diff,i[1]))
 			candidatesList.sort()
 		return candidatesList[0][1]
-
 
 	def mouseUp(self, point):
 		#self.interpolationFirstStep = 0
