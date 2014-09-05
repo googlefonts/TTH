@@ -255,6 +255,20 @@ class callbackSetDeltaValue():
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
+class ShowPreview(TextBox):
+	def __init__(self, *args, **kwargs):
+		super(ShowPreview, self).__init__(*args, **kwargs)
+		addObserver(self, "draw", "mouseUp")
+
+	def draw(self, info):
+		CurrentGlyph().update()
+				
+		text = u"Hello"
+		self.set(text)
+		
+		def windowCloseCallback(self, sender):
+			super(ShowPreview, self).windowCloseCallback(sender)
+			removeObserver(self, "draw")
 
 class TTHTool(BaseEventTool):
 
@@ -276,14 +290,18 @@ class TTHTool(BaseEventTool):
 
 		self.movingMouse = None
 
-	def giveMouseCoordinates(self, info):
-		self.movingMouse = info['point']
-		UpdateCurrentGlyphView()
 
-	def drawInterpolateMouseMoved(self, info): 
-		scale = info['scale']
-		self.drawInterpolateDragging(scale, self.endDraggingPoint, self.movingMouse)
-		#self.drawDiscAtPoint(3*scale, self.movingMouseX, self.movingMouseY, discColor)
+	def showPreviewInGlyphWindow(self, info):
+		print 'hello'
+		window = info["window"]
+		vanillaView = ShowPreview((10, 10, 100, 22), "", alignment="left", sizeStyle="mini")
+		superview = window.editGlyphView.enclosingScrollView().superview()
+		view = vanillaView.getNSTextField()
+		frame = superview.frame()
+		vanillaView._setFrame(frame)
+		superview.addSubview_(view)
+
+
 
 	### TTH Tool Icon and cursor ###
 	def getToolbarIcon(self):
@@ -312,6 +330,7 @@ class TTHTool(BaseEventTool):
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
+		addObserver(self, "showPreviewInGlyphWindow", "glyphWindowDidOpen")
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
@@ -319,6 +338,7 @@ class TTHTool(BaseEventTool):
 		self.toolsWindow.closeTools()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
+		removeObserver(self, "glyphWindowDidOpen")
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
@@ -1249,7 +1269,8 @@ class TTHTool(BaseEventTool):
 
 	def dontLinkToStemCallBack(self, item):
 		cmdIndex = self.commandRightClicked
-		del self.glyphTTHCommands[cmdIndex]['stem']
+		if 'stem' in self.glyphTTHCommands[cmdIndex]:
+			del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
@@ -1883,12 +1904,12 @@ class TTHTool(BaseEventTool):
 		return (width, height)
 
 
-	def drawPreviewSize(self, title, x, y):
+	def drawPreviewSize(self, title, x, y, color):
 		#currentview = self.previewWindow.view
 
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
-			NSForegroundColorAttributeName : NSColor.blackColor(),
+			NSForegroundColorAttributeName : color,
 			}
 
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
@@ -2105,6 +2126,14 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 
+	def giveMouseCoordinates(self, info):
+		self.movingMouse = info['point']
+		UpdateCurrentGlyphView()
+
+	def drawInterpolateMouseMoved(self, info): 
+		scale = info['scale']
+		self.drawInterpolateDragging(scale, self.endDraggingPoint, self.movingMouse)
+
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 
@@ -2240,24 +2269,41 @@ class TTHTool(BaseEventTool):
 		# render user string
 		if self.tthtm.textRenderer:
 			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-			self.tthtm.textRenderer.set_pen((20, 1850))
+
+			self.tthtm.textRenderer.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
 			self.tthtm.textRenderer.render_text(text)
-			y = 1800
-			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):	
-				self.drawPreviewSize(str(size), 10, y)
+
+			# render user string at various sizes
+			y = self.tthtm.previewWindowPosSize[3] - 310
+			x = 30
+			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+				displaysize = str(size)
+				if size == self.tthtm.PPM_Size and text != '':
+					self.drawPreviewSize(displaysize, x-20, y, NSColor.redColor())
+				elif text != '':
+					self.drawPreviewSize(displaysize, x-20, y, NSColor.blackColor())
+
 				self.tthtm.textRenderer.set_cur_size(size)
-				self.tthtm.textRenderer.set_pen((30, y))
+				self.tthtm.textRenderer.set_pen((x, y))
 				self.tthtm.textRenderer.render_text(text)
 				y -= size + 1
-
+				if y < 0:
+					width, height = self.tthtm.textRenderer.pen
+					x = width+40
+					y = self.tthtm.previewWindowPosSize[3] - 310
 
 			# render current glyph at various sizes
 			advance = 10
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+				displaysize = str(size)
+				if size == self.tthtm.PPM_Size:
+					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 180, NSColor.redColor())
+				else:
+					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 180, NSColor.blackColor())
+				
 				self.tthtm.textRenderer.set_cur_size(size)
-				self.tthtm.textRenderer.set_pen((advance, 1930))
+				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
-				self.drawPreviewSize(str(size), advance, 1905)
 				advance += delta_pos[0] + 5
 				
 				
@@ -2281,10 +2327,10 @@ class TTHTool(BaseEventTool):
 		self.drawZones(scale)
 
 		curChar = unichr(self.tthtm.g.unicode)
+		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+		self.tthtm.textRenderer.set_pen((0, 0))
 
 		if self.tthtm.showBitmap == 1:
-			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-			self.tthtm.textRenderer.set_pen((0, 0))
 			self.tthtm.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
 
 		if self.tthtm.showGrid == 1:

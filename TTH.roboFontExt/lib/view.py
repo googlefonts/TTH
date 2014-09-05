@@ -261,9 +261,9 @@ class toolsWindow(object):
 		self.wTools.DeltaOffsetEditText.show(False)
 
 		self.wTools.DeltaRangeText = TextBox((100, 32, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1EditText = EditText((150, 30, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaRange1EditText = EditText((-70, 30, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange1EditTextCallback)
-		self.wTools.DeltaRange2EditText = EditText((180, 30, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaRange2EditText = EditText((-40, 30, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange2EditTextCallback)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1EditText.show(False)
@@ -442,11 +442,13 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
+		self.viewSize = (self.tthtm.previewWindowPosSize[2]-40, self.tthtm.previewWindowPosSize[3]-110)
+
 		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(300, 200))
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
-		self.view.setFrame_(((0, 0), (2000, 2000)))
-		self.view.setFrameOrigin_((0, 20000))
+		self.view.setFrame_(((0, 0), self.viewSize))
+		self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
 		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
@@ -478,6 +480,11 @@ class previewWindow(object):
 
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
+
+		self.viewSize = (self.tthtm.previewWindowPosSize[2]-40, self.tthtm.previewWindowPosSize[3]-110)
+		self.view.setFrame_(((0, 0), self.viewSize))
+		self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
+		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())

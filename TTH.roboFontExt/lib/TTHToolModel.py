@@ -31,7 +31,7 @@ class TTHToolModel():
 		self.textRenderer = None
 
 		self.previewWindowVisible = 0
-		self.previewWindowPosSize = (10, 450, 500, 300)
+		self.previewWindowPosSize = (-510, 30, 500, -10)
 		self.toolsWindowPosSize = (170, 30, 215, 65)
 		self.centralWindowPosSize = (10, 30, 160, 115)
 		self.previewString = ''
