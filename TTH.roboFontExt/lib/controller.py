@@ -1013,9 +1013,9 @@ class TTHTool(BaseEventTool):
 		widthsList = []
 		candidatesList = []
 		horizontal = (self.tthtm.selectedAxis == 'Y')
-		for stem in self.tthm.stems:
+		for stemName, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] == horizontal:
-				widthsList.append((stem['Width'], stem['Name']))
+				widthsList.append((stem['width'], stemName))
 		for i in widthsList:
 			diff = abs(i[0]-dist)
 			candidatesList.append((diff,i[1]))
