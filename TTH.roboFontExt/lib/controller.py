@@ -1010,16 +1010,13 @@ class TTHTool(BaseEventTool):
 
 	def guessStem(self, point1, point2):
 		dist = self.getDistance(point1, point2, self.tthtm.selectedAxis)
-		widthsList = []
 		candidatesList = []
 		horizontal = (self.tthtm.selectedAxis == 'Y')
 		for stemName, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] == horizontal:
-				widthsList.append((stem['width'], stemName))
-		for i in widthsList:
-			diff = abs(i[0]-dist)
-			candidatesList.append((diff,i[1]))
-			candidatesList.sort()
+				w = stem['width']
+				candidatesList.append((abs(w - dist), stemName))
+		candidatesList.sort()
 		return candidatesList[0][1]
 
 	def mouseUp(self, point):
