@@ -510,11 +510,12 @@ class programWindow(object):
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
-					columnDescriptions=[{"title": "code", "editable": True}, {"title": "point", "editable": True},
-				{"title": "point1", "editable": True}, {"title": "point2", "editable": True}, {"title": "align", "editable": True},
-				{"title": "round", "editable": True}, {"title": "stem", "editable": True}, {"title": "zone", "editable": True},
-				{"title": "delta", "editable": True}, {"title": "ppm1", "editable": True}, {"title": "ppm2", "editable": True}],
-					enableDelete=True, 
+					columnDescriptions=[{"title": "index", "editable": False}, {"title": "code", "editable": False}, {"title": "point", "editable": False},
+				{"title": "point1", "editable": False}, {"title": "point2", "editable": False}, {"title": "align", "editable": False},
+				{"title": "round", "editable": False}, {"title": "stem", "editable": False}, {"title": "zone", "editable": False},
+				{"title": "delta", "editable": False}, {"title": "ppm1", "editable": False}, {"title": "ppm2", "editable": False}],
+					enableDelete=False, 
+					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
 
@@ -535,11 +536,15 @@ class programWindow(object):
 
 	def updateProgramList(self, commands):
 		self.commands =  [dict(c) for c in commands]
-                def putIfNotThere(c, key):
-                    if key not in c:
-			    c[key] = ''
+		def putIfNotThere(c, key):
+			if key not in c:
+				c[key] = ''
+			if key == 'index':
+				c[key] = self.i
+				self.i += 1
+		self.i = 0
 		for command in self.commands:
-			for key in ['point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']:
+			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']:
 				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
 

@@ -48,7 +48,8 @@ cursorFinalDeltaPath = ExtensionBundle("TTH").get("cursorFinalDelta")
 cursorFinalDelta = CreateCursor(cursorFinalDeltaPath, hotSpot=(2, 2))
 
 
-
+whiteColor = NSColor.whiteColor()
+blackColor = NSColor.blackColor()
 axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
@@ -58,6 +59,7 @@ outlineColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 lozengeColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 0, 0, 1)
 linkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
+stemColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
 doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
 interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
@@ -971,8 +973,7 @@ class TTHTool(BaseEventTool):
 				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[0]
 			self.changeBitmapPreview(bitmapPreviewSelection)
 
-	def keyUp(self, event):
-		if self.getModifiers()['commandDown'] and event.characters() == 'Z':
+		elif self.getModifiers()['commandDown'] and event.characters() == 'Z':
 			#print 'redo'
 			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
 			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].redo()
@@ -980,7 +981,7 @@ class TTHTool(BaseEventTool):
 			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
-		if self.getModifiers()['commandDown'] and event.characters() == 'z':
+		elif self.getModifiers()['commandDown'] and event.characters() == 'z':
 			#print 'undo'
 			#print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
 			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].undo()
@@ -1891,7 +1892,7 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start+y_end/2, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start+y_end/2, whiteColor, zonecolorLabel)
 
 		for zone in self.tthtm.UIBottomZones:
 			y_start = int(zone['Position'])
@@ -1905,16 +1906,16 @@ class TTHTool(BaseEventTool):
 			zonecolor.set()
 			pathZone.fill()	
 
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start-y_end/2, zonecolorLabel)
+			self.drawTextAtPoint(scale, zone['Name'], -100, y_start-y_end/2, whiteColor, zonecolorLabel)
 
 
-	def drawTextAtPoint(self, scale, title, x, y, backgroundColor):
+	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor):
 		currentTool = getActiveEventTool()
 		view = currentTool.getNSView()
 
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
-			NSForegroundColorAttributeName : NSColor.whiteColor(),
+			NSForegroundColorAttributeName : textColor,
 			}
 		backgroundStrokeColor = NSColor.whiteColor()
 
@@ -2062,9 +2063,9 @@ class TTHTool(BaseEventTool):
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
 		if self.glyphTTHCommands[cmdIndex]['code'] == 'alignt':
-			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y + 20*scale, arrowColor)
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y + 20*scale, whiteColor, arrowColor)
 		else:
-			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, arrowColor)
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, whiteColor, arrowColor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2073,7 +2074,7 @@ class TTHTool(BaseEventTool):
 			else:
 				self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
 
-	def drawLinkArrow(self, scale, startPoint, endPoint):
+	def drawLinkArrow(self, scale, startPoint, endPoint, color):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
@@ -2098,15 +2099,15 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_((startPoint[0], startPoint[1]))
 	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint_x, endPoint_y), (offcurve1), (offcurve1) )
 	 	
-		linkColor.set()
+		color.set()
 		path.setLineWidth_(scale)
 		pathArrow.fill()
 		path.stroke()
 
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
-	 	
-	 	self.drawLinkArrow(scale, startPoint, endPoint)
+	 	color = linkColor
+	 	textColor = whiteColor
 
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
@@ -2137,9 +2138,12 @@ class TTHTool(BaseEventTool):
 			if stemName == None and extension != '':
 				text += '_' + extension
 			elif stemName != None:
+				color = stemColor
+				textColor = blackColor
 				text += '_' + stemName
 
-		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], linkColor)
+		self.drawLinkArrow(scale, startPoint, endPoint, color)
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], textColor, color)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2176,7 +2180,7 @@ class TTHTool(BaseEventTool):
 		elif stemName != None:
 			text += '_' + stemName
 
-		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, doublinkColor)
+		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, whiteColor, doublinkColor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2243,7 +2247,7 @@ class TTHTool(BaseEventTool):
 					extension = 'closest'
 				text += '_' + extension
 
-		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, interpolatecolor)
+		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, whiteColor, interpolatecolor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2274,9 +2278,9 @@ class TTHTool(BaseEventTool):
 
 		
 		if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'v' and int(value) < 0:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, deltacolor)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, whiteColor, deltacolor)
 		else:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, deltacolor)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, whiteColor, deltacolor)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2433,7 +2437,7 @@ class TTHTool(BaseEventTool):
 				y_start = self.startPoint[1]
 				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start)
 				if self.tthtm.selectedHintingTool == 'Single Link':
-					self.drawLinkArrow(scale, self.startPoint, self.endPoint)
+					self.drawLinkArrow(scale, self.startPoint, self.endPoint, linkColor)
 				elif self.tthtm.selectedHintingTool == 'Double Link':
 					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint)
 				elif self.tthtm.selectedHintingTool == 'Interpolation':
