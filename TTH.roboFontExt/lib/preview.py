@@ -20,6 +20,9 @@ class PreviewInGlyphWindow(NSView):
 
 	def drawRect_(self, rect):
 		tr = self.TTHToolInstance.tthtm.textRenderer
-		tr.set_cur_size(self.TTHToolInstance.tthtm.PPM_Size)
-		tr.set_pen((20, 20))
-		tr.render_text('Hello')
+		advance = 20
+		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo, 1):
+			tr.set_cur_size(size)
+			tr.set_pen((advance, 40))
+			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
+			advance += delta_pos[0] + 5

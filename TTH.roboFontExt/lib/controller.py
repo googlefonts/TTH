@@ -330,7 +330,6 @@ class TTHTool(BaseEventTool):
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
 
-		self.textboxview.removeFromSuperview()
 		self.previewInGlyphWindow.removeFromSuperview()
 
 		self.centralWindow.closeCentral()

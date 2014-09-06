@@ -40,7 +40,7 @@ class TTHToolModel():
 		self.programWindowPosSize = (395, 30, 600, 150)
 		self.previewString = ''
 		self.previewFrom = 9
-		self.previewTo = 48
+		self.previewTo = 72
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
