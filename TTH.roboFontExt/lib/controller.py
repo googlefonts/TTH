@@ -275,21 +275,6 @@ class callbackSetDeltaValue():
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
 
-class ShowPreview(TextBox):
-	def __init__(self, *args, **kwargs):
-		super(ShowPreview, self).__init__(*args, **kwargs)
-		addObserver(self, "draw", "mouseUp")
-
-	def draw(self, info):
-		CurrentGlyph().update()
-				
-		text = u"Hello"
-		self.set(text)
-		
-		def windowCloseCallback(self, sender):
-			super(ShowPreview, self).windowCloseCallback(sender)
-			removeObserver(self, "draw")
-
 class TTHTool(BaseEventTool):
 
 	def __init__(self, tthtm):
@@ -307,20 +292,9 @@ class TTHTool(BaseEventTool):
 		temp.close()
 
 		self.previewText = ''
-
 		self.movingMouse = None
 
-
-	def showPreviewInGlyphWindow(self, info):
-		print 'hello'
-		window = info["window"]
-		vanillaView = ShowPreview((10, 10, 100, 22), "", alignment="left", sizeStyle="mini")
-		superview = window.editGlyphView.enclosingScrollView().superview()
-		view = vanillaView.getNSTextField()
-		frame = superview.frame()
-		vanillaView._setFrame(frame)
-		superview.addSubview_(view)
-
+		self.testTextBox = TextBox((10, 10, 200, 22), "Hello this is a test", alignment="left", sizeStyle="regular")
 
 
 	### TTH Tool Icon and cursor ###
@@ -350,7 +324,6 @@ class TTHTool(BaseEventTool):
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
-		addObserver(self, "showPreviewInGlyphWindow", "glyphWindowDidOpen")
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
@@ -360,7 +333,6 @@ class TTHTool(BaseEventTool):
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
-		removeObserver(self, "glyphWindowDidOpen")
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
@@ -2422,7 +2394,13 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		self.scale = scale
-		self.myview = self.getNSView()
+		self.glyphView = self.getNSView()
+
+		superview = self.glyphView.enclosingScrollView().superview()
+		view = self.testTextBox.getNSTextField()
+		frame = superview.frame()
+		self.testTextBox._setFrame(frame)
+		superview.addSubview_(view)
 		
 		if self.isDragging():
 			self.endPoint = self.currentPoint
