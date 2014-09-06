@@ -18,6 +18,7 @@ import tt_tables
 import TTHintAsm
 import view
 import TextRenderer as TR
+import preview
 
 import xml.etree.ElementTree as ET
 import math, os
@@ -324,11 +325,13 @@ class TTHTool(BaseEventTool):
 	def becomeActive(self):
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
+		self.previewInGlyphWindow = None
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
 
 		self.textboxview.removeFromSuperview()
+		self.previewInGlyphWindow.removeFromSuperview()
 
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -998,12 +1001,6 @@ class TTHTool(BaseEventTool):
 		return candidatesList[0][1]
 
 	def mouseUp(self, point):
-
-		self.superview = self.glyphView.enclosingScrollView().superview()
-		self.textboxview = self.testTextBox.getNSTextField()
-		frame = self.superview.frame()
-		self.testTextBox._setFrame(frame)
-		self.superview.addSubview_(self.textboxview)
 
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
@@ -2403,8 +2400,15 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		self.scale = scale
-		self.glyphView = self.getNSView()
-		
+
+		if self.previewInGlyphWindow == None:
+			self.glyphView = self.getNSView()
+			superview = self.glyphView.enclosingScrollView().superview()
+			frame = superview.frame()
+			self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+			self.previewInGlyphWindow.setFrame_(frame)
+			superview.addSubview_(self.previewInGlyphWindow)
+			
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
