@@ -1643,6 +1643,8 @@ class TTHTool(BaseEventTool):
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		if glyphTTHCommands != None:
 			self.programWindow.updateProgramList(glyphTTHCommands)
+		else:
+			self.programWindow.updateProgramList([])
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
@@ -2350,9 +2352,9 @@ class TTHTool(BaseEventTool):
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 				displaysize = str(size)
 				if size == self.tthtm.PPM_Size:
-					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 180, NSColor.redColor())
+					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.redColor())
 				else:
-					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 180, NSColor.blackColor())
+					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.blackColor())
 				
 				self.tthtm.textRenderer.set_cur_size(size)
 				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
