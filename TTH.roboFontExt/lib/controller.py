@@ -1070,7 +1070,7 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
-			if self.tthtm.selectedAlignmentTypeLink != 'None' and self.tthtm.roundBool == 0:
+			if self.tthtm.selectedAlignmentTypeLink != 'None' and self.tthtm.roundBool == 0 and 'stem' not in newCommand:
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
 			elif self.tthtm.roundBool == 1:
 				newCommand['round'] = 'true'
