@@ -327,6 +327,9 @@ class TTHTool(BaseEventTool):
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
+
+		self.textboxview.removeFromSuperview()
+
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		if self.tthtm.programWindowVisible == 1:
@@ -995,7 +998,13 @@ class TTHTool(BaseEventTool):
 		return candidatesList[0][1]
 
 	def mouseUp(self, point):
-		#self.interpolationFirstStep = 0
+
+		self.superview = self.glyphView.enclosingScrollView().superview()
+		self.textboxview = self.testTextBox.getNSTextField()
+		frame = self.superview.frame()
+		self.testTextBox._setFrame(frame)
+		self.superview.addSubview_(self.textboxview)
+
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		self.endPointOff = self.isOffPoint(self.p_cursor)
@@ -2395,12 +2404,6 @@ class TTHTool(BaseEventTool):
 	def draw(self, scale):
 		self.scale = scale
 		self.glyphView = self.getNSView()
-
-		superview = self.glyphView.enclosingScrollView().superview()
-		view = self.testTextBox.getNSTextField()
-		frame = superview.frame()
-		self.testTextBox._setFrame(frame)
-		superview.addSubview_(view)
 		
 		if self.isDragging():
 			self.endPoint = self.currentPoint
