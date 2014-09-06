@@ -2381,13 +2381,13 @@ class TTHTool(BaseEventTool):
 	def draw(self, scale):
 		self.scale = scale
 
+		superview = self.getNSView().enclosingScrollView().superview()
 		if self.previewInGlyphWindow == None:
-			self.glyphView = self.getNSView()
-			superview = self.glyphView.enclosingScrollView().superview()
-			frame = superview.frame()
 			self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-			self.previewInGlyphWindow.setFrame_(frame)
 			superview.addSubview_(self.previewInGlyphWindow)
+		frame = superview.frame()
+		frame.size.width -= 30
+		self.previewInGlyphWindow.setFrame_(frame)
 			
 		if self.isDragging():
 			self.endPoint = self.currentPoint
