@@ -210,6 +210,8 @@ class callbackAlignment():
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
+		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
+			del self.ttht.glyphTTHCommands[cmdIndex]['round']
 		if self.ttht.glyphTTHCommands[cmdIndex]['code'] in ['alignt', 'alignb']:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignv'
 			del self.ttht.glyphTTHCommands[cmdIndex]['zone']
@@ -1068,10 +1070,9 @@ class TTHTool(BaseEventTool):
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
-			if self.tthtm.selectedAlignmentTypeLink != 'None':
+			if self.tthtm.selectedAlignmentTypeLink != 'None' and self.tthtm.roundBool == 0:
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
-
-			if self.tthtm.roundBool != 0:
+			elif self.tthtm.roundBool == 1:
 				newCommand['round'] = 'true'
 
 		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
@@ -1298,6 +1299,8 @@ class TTHTool(BaseEventTool):
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
 		if 'stem' in self.glyphTTHCommands[cmdIndex]:
 			del self.glyphTTHCommands[cmdIndex]['stem']
+		if 'align' in self.glyphTTHCommands[cmdIndex]:
+			del self.glyphTTHCommands[cmdIndex]['align']
 		self.updateGlyphProgram()
 		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()

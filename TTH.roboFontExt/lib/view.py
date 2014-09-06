@@ -460,7 +460,7 @@ class previewWindow(object):
 
 		self.viewSize = (self.tthtm.previewWindowPosSize[2]-40, self.tthtm.previewWindowPosSize[3]-110)
 
-		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(300, 200))
+		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 
 		self.view.setFrame_(((0, 0), self.viewSize))
@@ -524,7 +524,7 @@ class programWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
-		self.wProgram = FloatingWindow(self.tthtm.programWindowPosSize, "Program", minSize=(200, 200))
+		self.wProgram = FloatingWindow(self.tthtm.programWindowPosSize, "Program", minSize=(600, 80))
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
@@ -579,7 +579,7 @@ class assemblyWindow(object):
 
 		self.assemblyList = []
 
-		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(100, 100))
+		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(150, 100))
 		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
 
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
