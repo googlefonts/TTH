@@ -75,6 +75,12 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
+		self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
+				callback=self.AssemblyShowButtonCallback)
+
+		self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
+				callback=self.ProgramShowButtonCallback)
+
 		self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview", sizeStyle = 'mini', 
 				callback=self.PreviewShowButtonCallback)
 
@@ -188,6 +194,16 @@ class centralWindow(object):
 
 	def ControlValuesButtonCallback(self, sender):
 		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
+
+	def ProgramShowButtonCallback(self, sender):
+		if self.tthtm.programWindowVisible == 0:
+			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.resetglyph()
+
+	def AssemblyShowButtonCallback(self, sender):
+		if self.tthtm.assemblyWindowVisible == 0:
+			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.resetglyph()
 
 class toolsWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
@@ -472,6 +488,8 @@ class previewWindow(object):
 		self.wPreview.bind("resize", self.previewWindowMovedorResized)
 		self.wPreview.open()
 
+		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
+
 	def closePreview(self):
 		self.wPreview.close()
 
@@ -518,7 +536,10 @@ class programWindow(object):
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
-
+		self.tthtm.programWindowVisible = 1
+		self.wProgram.bind("close", self.programWindowWillClose)
+		self.wProgram.bind("move", self.programWindowMovedorResized)
+		self.wProgram.bind("resize", self.programWindowMovedorResized)
 		self.wProgram.open()
 
 	def closeProgram(self):
@@ -526,6 +547,9 @@ class programWindow(object):
 
 	def programWindowWillClose(self, sender):
 		self.tthtm.programWindowVisible = 0
+
+	def programWindowMovedorResized(self, sender):
+		self.tthtm.programWindowPosSize = self.wProgram.getPosSize()
 
 	def selectionCallback(self, sender):
 		pass
@@ -547,6 +571,35 @@ class programWindow(object):
 			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']:
 				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
+
+class assemblyWindow(object):
+	def __init__(self, TTHToolInstance, tthtm):
+		self.TTHToolInstance = TTHToolInstance
+		self.tthtm = TTHToolInstance.tthtm
+
+		self.assemblyList = []
+
+		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(100, 100))
+		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
+
+		self.wAssembly.bind("close", self.assemblyWindowWillClose)
+		self.tthtm.assemblyWindowVisible = 1
+		self.wAssembly.bind("close", self.assemblyWindowWillClose)
+		self.wAssembly.bind("move", self.assemblyWindowMovedorResized)
+		self.wAssembly.bind("resize", self.assemblyWindowMovedorResized)
+		self.wAssembly.open()
+
+	def closeAssembly(self):
+		self.wAssembly.close()
+
+	def assemblyWindowWillClose(self, sender):
+		self.tthtm.assemblyWindowVisible = 0
+
+	def assemblyWindowMovedorResized(self, sender):
+		self.tthtm.assemblyWindowPosSize = self.wAssembly.getPosSize()
+
+	def updateAssemblyList(self, assembly):
+		self.wAssembly.assemblyList.set(assembly)
 
 
 reload (CV)

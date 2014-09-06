@@ -32,22 +32,25 @@ class TTHToolModel():
 
 		self.previewWindowVisible = 0
 		self.programWindowVisible = 0
+		self.assemblyWindowVisible = 0
 
 
-		self.previewWindowPosSize = (-510, 30, 500, -10)
+		self.previewWindowPosSize = (-510, 30, 500, 600)
 		self.toolsWindowPosSize = (170, 30, 215, 65)
-		self.centralWindowPosSize = (10, 30, 150, 115)
-		self.programWindowPosSize = (395, 30, 600, 150)
+		self.centralWindowPosSize = (10, 30, 150, 135)
+		self.programWindowPosSize = (395, 30, 700, 300)
+		self.assemblyWindowPosSize = (10, 190, 150, 100)
 		self.previewString = ''
 		self.previewFrom = 9
 		self.previewTo = 72
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
-		self.showOutline = 1
-		self.showBitmap = 1
-		self.showGrid = 1
+		self.showOutline = 0
+		self.showBitmap = 0
+		self.showGrid = 0
 		self.showCenterPixel = 0
+		self.showPreviewInGlyphWindow = 1
 
 	def setControlValues(self):
 		try:

@@ -1,4 +1,6 @@
 from AppKit import *
+from math import ceil
+
 
 class PreviewArea(NSView):
 
@@ -21,7 +23,7 @@ class PreviewInGlyphWindow(NSView):
 	def drawRect_(self, rect):
 		tr = self.TTHToolInstance.tthtm.textRenderer
 		advance = 20
-		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo, 1):
+		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 50))
 			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
@@ -34,4 +36,5 @@ class PreviewInGlyphWindow(NSView):
 
 		tr.set_cur_size(self.TTHToolInstance.tthtm.PPM_Size)
 		tr.set_pen((40, 110))
-		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.tthtm.g.unicode), 3, 1)
+		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
+		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.tthtm.g.unicode), scale, 1)

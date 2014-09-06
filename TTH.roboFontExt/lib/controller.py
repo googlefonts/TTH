@@ -328,8 +328,8 @@ class TTHTool(BaseEventTool):
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
-
-		self.previewInGlyphWindow.removeFromSuperview()
+		if self.tthtm.showPreviewInGlyphWindow == 1:
+			self.previewInGlyphWindow.removeFromSuperview()
 
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -337,6 +337,8 @@ class TTHTool(BaseEventTool):
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.closeAssembly()
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
@@ -348,6 +350,9 @@ class TTHTool(BaseEventTool):
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.closeAssembly()
+
 		self.resetFonts(createWindows=True)
 
 	def fontBecameCurrent(self, font):
@@ -359,6 +364,9 @@ class TTHTool(BaseEventTool):
 				self.programWindow.closeProgram()
 			if self.tthtm.previewWindowVisible == 1:
 				self.previewWindow.closePreview()
+			if self.tthtm.assemblyWindowVisible == 1:
+				self.assemblyWindow.closeAssembly()
+
 		self.resetFonts(createWindows=True)
 		self.resetglyph()
 		self.updatePartialFont()
@@ -374,6 +382,8 @@ class TTHTool(BaseEventTool):
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.closeAssembly()
 		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
@@ -767,6 +777,11 @@ class TTHTool(BaseEventTool):
 	def EditStem(self, oldStemName, newStemName, stemDict, horizontal):
 		self.storeStem(newStemName, stemDict, horizontal)
 		self.tthtm.f.lib[FL_tth_key]["stems"] = self.tthtm.stems
+		if self.tthtm.selectedStemX == oldStemName:
+			self.changeSelectedStemX(newStemName)
+		if self.tthtm.selectedStemY == oldStemName:
+			self.changeSelectedStemY(newStemName)
+
 		if oldStemName != newStemName:
 			for g in self.tthtm.f:
 				commands = self.readGlyphFLTTProgram(g)
@@ -799,9 +814,12 @@ class TTHTool(BaseEventTool):
 			self.writeGlyphFLTTProgram(g)
 		dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
 
+		self.changeSelectedStemX('None')
+		self.changeSelectedStemY('None')
 		tth_lib = self.tthtm.getOrPutDefault(self.tthtm.f.lib, FL_tth_key, {})
 		self.tthtm.stems = self.tthtm.getOrPutDefault(tth_lib, "stems", {})
 		stemView.set(self.tthtm.buildStemsUIList(stemView.isHorizontal))
+
 
 	def addStem(self, name, stemDict, stemView):
 		self.tthtm.stems[name] = stemDict
@@ -866,8 +884,8 @@ class TTHTool(BaseEventTool):
 		for name, zone in self.tthtm.zones.iteritems():
 			if zone['top']:
 				continue
-			y_max = int(zone['Position'])
-			y_min = int(zone['Position']) - int(zone['Width'])
+			y_max = int(zone['position'])
+			y_min = int(zone['position']) - int(zone['width'])
 			if self.isInZone(point, y_min, y_max):
 				return name
 		return None
@@ -942,6 +960,16 @@ class TTHTool(BaseEventTool):
 			else:
 				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[0]
 			self.changeBitmapPreview(bitmapPreviewSelection)
+
+		elif event.characters() == 'P':
+			if self.tthtm.showPreviewInGlyphWindow == 1:
+				self.tthtm.showPreviewInGlyphWindow = 0
+				self.previewInGlyphWindow.removeFromSuperview()
+				self.previewInGlyphWindow = None
+				UpdateCurrentGlyphView()
+			else:
+				self.tthtm.showPreviewInGlyphWindow = 1
+				UpdateCurrentGlyphView()
 
 		elif self.getModifiers()['commandDown'] and event.characters() == 'Z':
 			#print 'redo'
@@ -1570,8 +1598,6 @@ class TTHTool(BaseEventTool):
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			self.centralWindow = view.centralWindow(self, self.tthtm)
 			self.toolsWindow = view.toolsWindow(self, self.tthtm)
-			self.programWindow = view.programWindow(self, self.tthtm)
-			self.tthtm.programWindowVisible = 1
 			# if self.tthtm.previewWindowVisible == 1:
 			# 	self.previewWindow = view.previewWindow(self, self.tthtm)
 
@@ -1634,10 +1660,16 @@ class TTHTool(BaseEventTool):
 			return
 
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
-		if glyphTTHCommands != None:
+		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
-		else:
+		elif self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList([])
+
+		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib and self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.updateAssemblyList(self.tthtm.g.lib['com.robofont.robohint.assembly'])
+		elif self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.updateAssemblyList([])
+
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
@@ -1845,9 +1877,18 @@ class TTHTool(BaseEventTool):
 			pathY.stroke()
 
 	def drawCenterPixel(self, scale, pitch):
-		for xPos in range(-5000, 5000, int(pitch)):
-			for yPos in range(-5000, 5000, int(pitch)):
-				self.drawDiscAtPoint(scale*3, xPos+(pitch/2)+scale*3, yPos+(pitch/2)+scale*3, gridColor)
+		for xPos in range(int(pitch), 5000, int(pitch)):
+			for yPos in range(0, 5000, int(pitch)):
+				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+		for xPos in range(0, -5000, -int(pitch)):
+			for yPos in range(int(pitch), 5000, int(pitch)):
+				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+		for xPos in range(0, -5000, -int(pitch)):
+			for yPos in range(0, -5000, -int(pitch)):
+				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+		for xPos in range(int(pitch), 5000, int(pitch)):
+			for yPos in range(-int(pitch), -5000, -int(pitch)):
+				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
 
 
 	def drawZones(self, scale):
@@ -1855,7 +1896,7 @@ class TTHTool(BaseEventTool):
 		for zoneName, zone in self.tthtm.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
-			if zone['top']:
+			if not zone['top']:
 				y_end = - y_end
 			pathZone = NSBezierPath.bezierPath()
 			pathZone.moveToPoint_((-5000, y_start))
@@ -2380,14 +2421,6 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		self.scale = scale
-
-		superview = self.getNSView().enclosingScrollView().superview()
-		if self.previewInGlyphWindow == None:
-			self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-			superview.addSubview_(self.previewInGlyphWindow)
-		frame = superview.frame()
-		frame.size.width -= 30
-		self.previewInGlyphWindow.setFrame_(frame)
 			
 		if self.isDragging():
 			self.endPoint = self.currentPoint
@@ -2504,6 +2537,15 @@ class TTHTool(BaseEventTool):
 						self.drawDelta(scale, point, value, cmdIndex)
 					elif self.tthtm.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
 						self.drawDelta(scale, point, value, cmdIndex)
+
+		if self.tthtm.showPreviewInGlyphWindow == 1:
+			superview = self.getNSView().enclosingScrollView().superview()
+			if self.previewInGlyphWindow == None:
+				self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+				superview.addSubview_(self.previewInGlyphWindow)
+			frame = superview.frame()
+			frame.size.width -= 30
+			self.previewInGlyphWindow.setFrame_(frame)
 
 
 
