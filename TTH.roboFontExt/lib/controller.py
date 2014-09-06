@@ -227,19 +227,18 @@ class callbackZoneAlignment():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
-		topZonesNamesList = []
-		for zone in self.ttht.tthtm.UITopZones:
-			topZonesNamesList.append(zone['Name'])
-		if self.alignmentZone in topZonesNamesList:
-			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignt'
-			if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
-				del self.ttht.glyphTTHCommands[cmdIndex]['align']
-		else:
-			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignb'
-			if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
-				del self.ttht.glyphTTHCommands[cmdIndex]['align']
+		cmd = 'alignb'
+		try:
+			if self.tthtm.zones[self.alignmentZone]['top']:
+				cmd = 'alignt'
+		except:
+			pass
+		command = self.ttht.glyphTTHCommands[cmdIndex]
+		command['code'] = cmd
+		if 'align' in command:
+			del command['align']
 
-		self.ttht.glyphTTHCommands[cmdIndex]['zone'] = self.alignmentZone
+		command['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
@@ -675,12 +674,7 @@ class TTHTool(BaseEventTool):
 		# add the zone in the UI
 		uiZone = self.tthtm.buildUIZoneDict(newZone, name)
 		zoneView.box.zones_List.append(uiZone)
-		#zoneView.UIZones.append(uiZone)
-		if zoneView.ID == 'top':
-			self.tthtm.UITopZones.append(uiZone)
-		elif zoneView.ID == 'bottom':
-			self.tthtm.UIBottomZones.append(uiZone)
-
+		zoneView.UIZones.append(uiZone)
 
 	def deleteZones(self, selected, zoneView):
 		for zoneName in selected:
@@ -701,9 +695,6 @@ class TTHTool(BaseEventTool):
 						command['align'] = 'round'
 			self.writeGlyphFLTTProgram(g)
 		dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
-
-		self.tthtm.UITopZones = self.tthtm.buildUIZonesList(buildTop = True)
-		self.tthtm.UIBottomZones = self.tthtm.buildUIZonesList(buildTop = False)
 		zoneView.set(self.tthtm.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
 
 	def EditZone(self, oldZoneName, zoneName, zoneDict, isTop):
@@ -862,21 +853,23 @@ class TTHTool(BaseEventTool):
 			return False
 
 	def isInTopZone(self, point):
-		for zone in self.tthtm.UITopZones:
-			y_min = int(zone['Position'])
-			y_max = int(zone['Position']) + int(zone['Width'])
-
+		for name, zone in self.tthtm.zones.iteritems():
+			if not zone['top']:
+				continue
+			y_min = int(zone['position'])
+			y_max = int(zone['position']) + int(zone['width'])
 			if self.isInZone(point, y_min, y_max):
-				return zone['Name']
+				return name
 		return None
 
 	def isInBottomZone(self, point):
-		for zone in self.tthtm.UIBottomZones:
+		for name, zone in self.tthtm.zones.iteritems():
+			if zone['top']:
+				continue
 			y_max = int(zone['Position'])
 			y_min = int(zone['Position']) - int(zone['Width'])
-
 			if self.isInZone(point, y_min, y_max):
-				return zone['Name']
+				return name
 		return None
 
 	def keyDown(self, event):
@@ -1417,12 +1410,12 @@ class TTHTool(BaseEventTool):
 
 				zonesListItems = []
 
-				for zone in self.tthtm.zones:
-					zoneContext = zone
+				for zoneName in self.tthtm.zones:
+					zoneContext = zoneName
 					if 'zone' in clickedCommand:
-						if zone == clickedCommand['zone']:
-							zoneContext = u'✓ ' + str(zone)
-					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
+						if zoneName == clickedCommand['zone']:
+							zoneContext = u'✓ ' + str(zoneName) # FIXME: useless conversion from string to string
+					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zoneName)
 					zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
 				#items.append(("Attach to Zone", zonesListItems))
 
@@ -1449,11 +1442,11 @@ class TTHTool(BaseEventTool):
 			# if clickedCommand['code'] in ['alignt', 'alignb']:
 			# 	zonesListItems = []
 
-			# 	for zone in self.tthtm.zones:
-			# 		zoneContext = zone
-			# 		if zone == clickedCommand['zone']:
-			# 			zoneContext = u'✓ ' + str(zone)
-			# 		self.zoneAlignmentCallBack = callbackZoneAlignment(self, zone)
+			# 	for zoneName in self.tthtm.zones:
+			# 		zoneContext = zoneName
+			# 		if zoneName == clickedCommand['zone']:
+			# 			zoneContext = u'✓ ' + str(zoneName)
+			# 		self.zoneAlignmentCallBack = callbackZoneAlignment(self, zoneName)
 			# 		zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
 			# 	items.append(("Attach to Zone", zonesListItems))
 
@@ -1857,9 +1850,11 @@ class TTHTool(BaseEventTool):
 
 	def drawZones(self, scale):
 
-		for zone in self.tthtm.UITopZones:
-			y_start = int(zone['Position'])
-			y_end = int(zone['Width'])
+		for zoneName, zone in self.tthtm.zones.iteritems():
+			y_start = int(zone['position'])
+			y_end = int(zone['width'])
+			if zone['top']:
+				y_end = - y_end
 			pathZone = NSBezierPath.bezierPath()
 			pathZone.moveToPoint_((-5000, y_start))
 			pathZone.lineToPoint_((5000, y_start))
@@ -1868,23 +1863,7 @@ class TTHTool(BaseEventTool):
 			pathZone.closePath
 			zonecolor.set()
 			pathZone.fill()	
-
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start+y_end/2, whiteColor, zonecolorLabel)
-
-		for zone in self.tthtm.UIBottomZones:
-			y_start = int(zone['Position'])
-			y_end = int(zone['Width'])
-			pathZone = NSBezierPath.bezierPath()
-			pathZone.moveToPoint_((-5000, y_start))
-			pathZone.lineToPoint_((5000, y_start))
-			pathZone.lineToPoint_((5000, y_start-y_end))
-			pathZone.lineToPoint_((-5000, y_start-y_end))
-			pathZone.closePath
-			zonecolor.set()
-			pathZone.fill()	
-
-			self.drawTextAtPoint(scale, zone['Name'], -100, y_start-y_end/2, whiteColor, zonecolorLabel)
-
+			self.drawTextAtPoint(scale, zoneName, -100, y_start+y_end/2, whiteColor, zonecolorLabel)
 
 	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor):
 		currentTool = getActiveEventTool()

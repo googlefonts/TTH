@@ -53,8 +53,6 @@ class TTHToolModel():
 		try:
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
 			self.zones	= self.getOrPutDefault(tth_lib, "zones", {})
-			self.UITopZones = self.buildUIZonesList(buildTop=True)
-			self.UIBottomZones = self.buildUIZonesList(buildTop=False)
 			self.stems	= self.getOrPutDefault(tth_lib, "stems", {})
 			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 48)
 			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 48)

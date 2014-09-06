@@ -69,15 +69,8 @@ class ZoneView(object):
 				return
 			else:
 				del self.controller.tthtm.zones[oldZoneName]
+		self.UIZones[sel] = sender[sel]
 		self.controller.controller.EditZone(oldZoneName, newZoneName, zoneDict, self.ID == 'top')
-		self.controller.tthtm.UITopZones = self.controller.tthtm.buildUIZonesList(buildTop=True)
-		self.controller.tthtm.UIBottomZones = self.controller.tthtm.buildUIZonesList(buildTop=False)
-		if self.ID == 'top':
-			self.UIZones = self.controller.tthtm.UITopZones
-			self.box.zones_List.set(self.controller.tthtm.UITopZones)
-		elif self.ID == 'bottom':
-			self.UIZones = self.controller.tthtm.UIBottomZones
-			self.box.zones_List.set(self.controller.tthtm.UIBottomZones)
 		self.lock = False
 
 	def buttonRemoveZoneCallback(self, sender):
@@ -296,8 +289,8 @@ class SheetControlValues(object):
 		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
 
 		w.zoneBox = Box((10, 50, 485, 350))
-		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.UITopZones)
-		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.UIBottomZones)
+		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
+		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
 
 		w.stemBox = Box((505, 50, 485, 350))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))

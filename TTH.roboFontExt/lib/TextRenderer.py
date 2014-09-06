@@ -99,12 +99,12 @@ class TextRenderer(object):
 		if index not in self.cache.images:
 			self.face.set_pixel_sizes(0, int(self.curSize))
 			self.face.load_glyph(index, FT.FT_LOAD_DEFAULT)
-			result = self.slot.get_glyph()
+			result = self.slot.get_glyph() # this returns a copy
 			self.cache.images[index] = result
 			self.cache.advances[index] = (self.slot.advance.x, self.slot.advance.y)
-			pts = list(self.face.glyph.outline.points)
-			cts = list(self.face.glyph.outline.contours)
-			tgs = list(self.face.glyph.outline.tags)
+			pts = list(self.slot.outline.points) # copy
+			cts = list(self.slot.outline.contours) # copy
+			tgs = list(self.slot.outline.tags) # copy
 			self.cache.contours_points_and_tags[index] = (cts, pts, tgs)
 			return result
 		else:
