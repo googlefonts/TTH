@@ -450,10 +450,14 @@ class TTHTool(BaseEventTool):
 			self.stemTypeList = self.tthtm.stemsListX
 			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
 			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
+			self.toolsWindow.wTools.YButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.XButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
 		else:
 			self.stemTypeList = self.tthtm.stemsListY
 			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
 			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
+			self.toolsWindow.wTools.YButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.XButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
 		
 
 		if self.tthtm.selectedHintingTool == "Align":
@@ -462,6 +466,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool in ["Single Link", "Interpolation"]:
 			self.toolsWindow.wTools.AlignmentTypePopUpButton.setItems(self.toolsWindow.alignmentTypeListLinkDisplay)
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+
 		UpdateCurrentGlyphView()
 
 	def getPreviewListIndex(self, preview):
@@ -499,6 +504,13 @@ class TTHTool(BaseEventTool):
 		if hintingToolIndex == 0:
 			self.toolsWindow.AlignSettings()
 			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
 			
 		if hintingToolIndex == 1:
 			self.toolsWindow.LinkSettings()
@@ -509,6 +521,13 @@ class TTHTool(BaseEventTool):
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+
 		if hintingToolIndex == 2:
 			self.toolsWindow.DoubleLinkSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
@@ -517,12 +536,44 @@ class TTHTool(BaseEventTool):
 			elif self.tthtm.selectedAxis == 'Y':
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
+
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
 			
 		if hintingToolIndex == 3:
 			self.toolsWindow.InterpolationSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		if hintingToolIndex in [4, 5]:
+
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+
+		if hintingToolIndex == 4:
 			self.toolsWindow.DeltaSettings()
+
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+
+		if hintingToolIndex == 5:
+			self.toolsWindow.DeltaSettings()
+
+			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
 
 	def getAlignmentTypeAlignIndex(self, alignmentType):
 		alignmentTypeIndex = 0

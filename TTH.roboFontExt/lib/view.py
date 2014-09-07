@@ -229,21 +229,21 @@ class toolsWindow(object):
 
 		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "Tools", closable = False)
 
-		self.wTools.XButton = ImageButton((10, 10, 18, 18), imageObject = buttonXPath,
+		self.wTools.XButton = GradientButton((10, 10, 18, 18), imageObject = buttonXPath, 
                             callback=self.AxisXButtonCallback)
-		self.wTools.YButton = ImageButton((28, 10, 18, 18), imageObject = buttonYPath,
+		self.wTools.YButton = GradientButton((28, 10, 18, 18), imageObject = buttonYPath,
                             callback=self.AxisYButtonCallback)
-		self.wTools.AlignButton = ImageButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
+		self.wTools.AlignButton = GradientButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
                             callback=self.AlignButtonCallback)
-		self.wTools.SingleLinkButton = ImageButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
+		self.wTools.SingleLinkButton = GradientButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
                             callback=self.SingleLinkButtonCallback)
-		self.wTools.DoubleLinkButton = ImageButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
+		self.wTools.DoubleLinkButton = GradientButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
                             callback=self.DoubleLinkButtonCallback)
-		self.wTools.InterpolationButton = ImageButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
+		self.wTools.InterpolationButton = GradientButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
                             callback=self.InterpolationButtonCallback)		
-		self.wTools.MiddleDeltaButton = ImageButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
+		self.wTools.MiddleDeltaButton = GradientButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
                             callback=self.MiddleDeltaButtonCallback)
-		self.wTools.FinalDeltaButton = ImageButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
+		self.wTools.FinalDeltaButton = GradientButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
                             callback=self.FinalDeltaButtonCallback)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
@@ -409,6 +409,7 @@ class toolsWindow(object):
 		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 
 	def AxisYButtonCallback(self, sender):
+		sender.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
 		self.TTHToolInstance.changeAxis('Y')
 		self.TTHToolInstance.makeStemsListsPopUpMenu()
 		self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
