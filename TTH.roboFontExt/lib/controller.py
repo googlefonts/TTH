@@ -212,6 +212,8 @@ class callbackAlignment():
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
 			del self.ttht.glyphTTHCommands[cmdIndex]['round']
+		if 'stem' in self.ttht.glyphTTHCommands[cmdIndex]:
+			del self.ttht.glyphTTHCommands[cmdIndex]['stem']
 		if self.ttht.glyphTTHCommands[cmdIndex]['code'] in ['alignt', 'alignb']:
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignv'
 			del self.ttht.glyphTTHCommands[cmdIndex]['zone']
@@ -257,6 +259,8 @@ class callbackDistance():
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
 			del self.ttht.glyphTTHCommands[cmdIndex]['round']
+		if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
+			del self.ttht.glyphTTHCommands[cmdIndex]['align']
 		self.ttht.updateGlyphProgram()
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
 		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
