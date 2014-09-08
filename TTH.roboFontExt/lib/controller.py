@@ -1277,6 +1277,7 @@ class TTHTool(BaseEventTool):
 		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
 		#print 'delete command:', self.commandRightClicked
 		self.glyphTTHCommands.pop(self.commandRightClicked)
+		self.tthtm.g.prepareUndo('Delete Command')
 		self.commandLabelPos = {}
 		XMLGlyphTTProgram = ET.Element('ttProgram')
 		for child in self.glyphTTHCommands:
@@ -1285,6 +1286,7 @@ class TTHTool(BaseEventTool):
 				ttc.set(k, v)
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+		self.tthtm.g.performUndo()
 
 		self.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
@@ -2182,15 +2184,15 @@ class TTHTool(BaseEventTool):
 	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
 		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
 		extension = ''
-		text = ''
+		text = 'D'
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
 			if self.glyphTTHCommands[cmdIndex]['round'] == 'true':
 				if stemName != None:
-					text += 'D_' + stemName
+					text += '_' + stemName
 				else:
 					text = 'R'
 		elif stemName != None:
-			text += 'D_' + stemName
+			text += '_' + stemName
 
 		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, whiteColor, doublinkColor)
 
