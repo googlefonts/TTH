@@ -1822,6 +1822,7 @@ class TTHTool(BaseEventTool):
 						result[name] = index
 					else:
 						result[uniqueID] = index
+						point.name = uniqueID
 				else:
 					result[uniqueID] = index
 				index += 1
@@ -1838,6 +1839,7 @@ class TTHTool(BaseEventTool):
 						pointNameToUniqueID[name] = uniqueID
 					else:
 						pointNameToUniqueID[uniqueID] = uniqueID
+						point.name = uniqueID
 				else:
 					pointNameToUniqueID[uniqueID] = uniqueID
 		return pointNameToUniqueID
@@ -2229,13 +2231,15 @@ class TTHTool(BaseEventTool):
 	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
 		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
 		extension = ''
-		text = 'R'
+		text = ''
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
 			if self.glyphTTHCommands[cmdIndex]['round'] == 'true':
 				if stemName != None:
-					text += '_' + stemName
+					text += 'D_' + stemName
+				else:
+					text = 'R'
 		elif stemName != None:
-			text += '_' + stemName
+			text += 'D_' + stemName
 
 		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, whiteColor, doublinkColor)
 
@@ -2377,7 +2381,7 @@ class TTHTool(BaseEventTool):
 
 		# replace @ by current glyph
 		#text = self.previewWindow.previewString.replace('@', curGlyphString)
-		text = self.tthtm.previewString.replace('@', curGlyphString)
+		text = self.tthtm.previewString.replace('/?', curGlyphString)
 
 		# replace /name pattern
 		sp = text.split('/')
@@ -2603,6 +2607,7 @@ class TTHTool(BaseEventTool):
 				superview.addSubview_(self.previewInGlyphWindow)
 			frame = superview.frame()
 			frame.size.width -= 30
+			frame.origin.x = 0
 			self.previewInGlyphWindow.setFrame_(frame)
 
 

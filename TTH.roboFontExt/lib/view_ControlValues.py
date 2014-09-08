@@ -60,7 +60,7 @@ class ZoneView(object):
 			sender[sel]['Name'] = newZoneName
 
 		if oldZoneName != newZoneName:
-			print "Original zone name = ", oldZoneName, ", new zone name = ", newZoneName
+			#print "Original zone name = ", oldZoneName, ", new zone name = ", newZoneName
 			if newZoneName in self.controller.tthtm.zones:
 				print "ERROR: Can't use an already existing name."
 				newZoneName = oldZoneName
@@ -181,7 +181,7 @@ class StemView(object):
 			sender[sel]['Name'] = newStemName
 
 		if oldStemName != newStemName:
-			print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
+			#print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
 			if newStemName in self.controller.controller.tthtm.stems:
 				print "ERROR: Can't use an already existing name."
 				newStemName = oldStemName

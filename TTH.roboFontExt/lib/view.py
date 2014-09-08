@@ -1,6 +1,12 @@
+#coding=utf-8
+
 from vanilla import *
 from mojo.UI import *
 from mojo.extensions import *
+from lib.doodleMenus import BaseMenu
+
+import string
+
 import preview
 import view_ControlValues as CV
 
@@ -75,14 +81,17 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
-		self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
-				callback=self.AssemblyShowButtonCallback)
+		self.wCentral.PanelsShowButton = Button((10, -45, -10, 15), u"Panels…", sizeStyle = 'mini', 
+				callback=self.PanelsShowButtonCallback)
 
-		self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
-				callback=self.ProgramShowButtonCallback)
+		# self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
+		# 		callback=self.AssemblyShowButtonCallback)
 
-		self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview", sizeStyle = 'mini', 
-				callback=self.PreviewShowButtonCallback)
+		# self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
+		# 		callback=self.ProgramShowButtonCallback)
+
+		# self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
+		# 		callback=self.PreviewShowButtonCallback)
 
 		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
@@ -190,6 +199,14 @@ class centralWindow(object):
 
 	def PreviewShowButtonCallback(self, sender):
 		if self.tthtm.previewWindowVisible == 0:
+			for i in string.lowercase:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+			for i in string.uppercase:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+			for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+
+			self.TTHToolInstance.updatePartialFont()
 			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
 
 	def ControlValuesButtonCallback(self, sender):
@@ -204,6 +221,16 @@ class centralWindow(object):
 		if self.tthtm.assemblyWindowVisible == 0:
 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
 			self.TTHToolInstance.resetglyph()
+
+	def PanelsShowButtonCallback(self, sender):
+		self.menuAction = NSMenu.alloc().init()
+		items = []
+		items.append(('Preview', self.PreviewShowButtonCallback))
+		items.append(('Program', self.ProgramShowButtonCallback))
+		items.append(('Assembly', self.AssemblyShowButtonCallback))
+		menuController = BaseMenu()
+		menuController.buildAdditionContectualMenuItems(self.menuAction, items)
+		NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.TTHToolInstance.getCurrentEvent(), self.TTHToolInstance.getNSView())
 
 class toolsWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
