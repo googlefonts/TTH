@@ -138,7 +138,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 						'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
 					'CALL[ ]'
 						]
-			elif 'round' in TTHCommand:
+			else:
 				double = [
 						'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
 					'CALL[ ]'

@@ -68,39 +68,6 @@ sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 
-class glyphHistory(object):
-	def __init__(self):
-		self.past_history = []
-		self.future_history = []
-		self.current_state = []
-
-	def takesnapshot(self, commands):
-		self.past_history.append(commands)
-
-	def undo(self):
-		#print 'undo levels:', len(self.past_history)
-		if len(self.past_history) > 1:
-			self.future_history.append(self.past_history[len(self.past_history)-1])
-			self.past_history.pop()
-			self.current_state = self.past_history[len(self.past_history)-1]
-		return self.current_state
-
-	def redo(self):
-		#print 'redo levels:', len(self.future_history)
-		if len(self.future_history) > 0:
-			self.current_state = self.future_history[len(self.future_history)-1]
-			self.past_history.append(self.future_history[len(self.future_history)-1])
-			self.future_history.pop()
-		return self.current_state
-
-	def getPastHistory(self):
-		return self.past_history
-
-	def getFutureHistory(self):
-		return self.future_history
-
-	def clearFutureHistory(self):
-		self.future_history = []
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -209,6 +176,7 @@ class callbackAlignment():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Alignment')
 		self.ttht.glyphTTHCommands[cmdIndex]['align'] = self.alignmentType
 		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
 			del self.ttht.glyphTTHCommands[cmdIndex]['round']
@@ -218,11 +186,10 @@ class callbackAlignment():
 			self.ttht.glyphTTHCommands[cmdIndex]['code'] = 'alignv'
 			del self.ttht.glyphTTHCommands[cmdIndex]['zone']
 
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		self.ttht.updateGlyphProgram()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
 
 class callbackZoneAlignment():
 	def __init__(self, TTHtoolInstance, alignmentZone):
@@ -231,6 +198,7 @@ class callbackZoneAlignment():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Zone Alignment')
 		cmd = 'alignb'
 		try:
 			if self.tthtm.zones[self.alignmentZone]['top']:
@@ -244,10 +212,9 @@ class callbackZoneAlignment():
 
 		command['zone'] = self.alignmentZone
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
 
 class callbackDistance():
 	def __init__(self, TTHtoolInstance, stemName):
@@ -256,16 +223,16 @@ class callbackDistance():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Distance Alignment')
 		self.ttht.glyphTTHCommands[cmdIndex]['stem'] = self.stemName
 		if 'round' in self.ttht.glyphTTHCommands[cmdIndex]:
 			del self.ttht.glyphTTHCommands[cmdIndex]['round']
 		if 'align' in self.ttht.glyphTTHCommands[cmdIndex]:
 			del self.ttht.glyphTTHCommands[cmdIndex]['align']
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
 
 class callbackSetDeltaValue():
 	def __init__(self, TTHtoolInstance, value):
@@ -274,12 +241,12 @@ class callbackSetDeltaValue():
 
 	def __call__(self, item):
 		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Delta Value')
 		self.ttht.glyphTTHCommands[cmdIndex]['delta'] = self.value
 		self.ttht.updateGlyphProgram()
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].takesnapshot(self.ttht.glyphTTHCommands)
-		self.ttht.glyphsHistory[self.ttht.tthtm.g.name].clearFutureHistory()
 		if self.ttht.tthtm.alwaysRefresh == 1:
 			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
 
 class TTHTool(BaseEventTool):
 
@@ -1028,24 +995,6 @@ class TTHTool(BaseEventTool):
 				self.tthtm.showPreviewInGlyphWindow = 1
 				UpdateCurrentGlyphView()
 
-		elif self.getModifiers()['commandDown'] and event.characters() == 'Z':
-			#print 'redo'
-			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
-			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].redo()
-			self.updateGlyphProgram()
-			#print self.glyphsHistory[self.tthtm.g.name].getFutureHistory()
-			if self.tthtm.alwaysRefresh == 1:
-				self.refreshGlyph()
-		elif self.getModifiers()['commandDown'] and event.characters() == 'z':
-			#print 'undo'
-			#print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
-			self.glyphTTHCommands = self.glyphsHistory[self.tthtm.g.name].undo()
-			self.updateGlyphProgram()
-			#print self.glyphsHistory[self.tthtm.g.name].getPastHistory()
-			if self.tthtm.alwaysRefresh == 1:
-				self.refreshGlyph()
-				
-
 
 
 	def mouseDown(self, point, clickCount):
@@ -1076,6 +1025,12 @@ class TTHTool(BaseEventTool):
 				candidatesList.append((abs(w - dist), stemName))
 		candidatesList.sort()
 		return candidatesList[0][1]
+
+	def didUndo(self, font):
+		self.readGlyphFLTTProgram(self.tthtm.g)
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+		 	self.refreshGlyph()
 
 	def mouseUp(self, point):
 
@@ -1206,12 +1161,12 @@ class TTHTool(BaseEventTool):
 		self.startPoint = None
 		self.endPointOff = None
 		if newCommand != {}:
+			self.tthtm.g.prepareUndo("New Command")
 			self.glyphTTHCommands.append(newCommand)	
 			self.updateGlyphProgram()
-			self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-			self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
+			self.tthtm.g.performUndo()
 
 	def compareCommands(self, A, B):
 		order = None
@@ -1332,8 +1287,6 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
 
 		self.updateGlyphProgram()
-		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
 
@@ -1341,58 +1294,59 @@ class TTHTool(BaseEventTool):
 		emptyProgram = ''
 		self.glyphTTHCommands = {}
 		self.commandLabelPos = {}
+		self.tthtm.g.prepareUndo('Clear Program')
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
 		self.updateGlyphProgram()
-		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Round Distance')
 		self.glyphTTHCommands[cmdIndex]['round'] = 'true'
 		if 'stem' in self.glyphTTHCommands[cmdIndex]:
 			del self.glyphTTHCommands[cmdIndex]['stem']
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
 			del self.glyphTTHCommands[cmdIndex]['align']
 		self.updateGlyphProgram()
-		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def dontRoundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Do Not Round Distance')
 		del self.glyphTTHCommands[cmdIndex]['round']
 		self.updateGlyphProgram()
-		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def dontLinkToStemCallBack(self, item):
 		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Do Not Link to Stem')
 		if 'stem' in self.glyphTTHCommands[cmdIndex]:
 			del self.glyphTTHCommands[cmdIndex]['stem']
 		self.updateGlyphProgram()
-		self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
-		self.glyphsHistory[self.tthtm.g.name].clearFutureHistory()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def dontAlignCallBack(self, item):
 		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Do Not Align')
 		del self.glyphTTHCommands[cmdIndex]['align']
 		self.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def updateGlyphProgram(self):
 		self.prepareCommands()
 		self.writeGlyphFLTTProgram(self.tthtm.g)
 		TTHintAsm.writeAssembly(self.tthtm.g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
-		#self.glyphsHistory[self.tthtm.g.name].takesnapshot(self.glyphTTHCommands)
 
 	def refreshGlyph(self):
 		self.updatePartialFont() # to update the newly modified current glyph
@@ -1646,7 +1600,6 @@ class TTHTool(BaseEventTool):
 		self.allFonts = loadFonts()
 		if not self.allFonts:
 			return
-		self.glyphsHistory = {}
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
 		self.unicodeToNameDict = self.buildUnicodeToNameDict(self.tthtm.f)
 		self.tthtm.resetPitch()
@@ -1664,11 +1617,9 @@ class TTHTool(BaseEventTool):
 
 		for g in self.tthtm.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
-			self.glyphsHistory[g.name] = glyphHistory()
 			if glyphTTHCommands != None:
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
-				self.glyphsHistory[g.name].takesnapshot(glyphTTHCommands)
 
 		#self.generateFullTempFont()
 		self.resetglyph()
