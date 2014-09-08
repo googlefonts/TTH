@@ -4,6 +4,7 @@ from vanilla import *
 from mojo.UI import *
 from mojo.extensions import *
 from lib.doodleMenus import BaseMenu
+from AppKit import *
 
 import string
 
@@ -21,6 +22,13 @@ buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 
 class centralWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
+		#self.screenArea = preview.ScreenArea.alloc().init()
+		# print screenArea.frame()
+		# screenArea.setFrameOrigin_((800, 800))
+		# screenArea.setFrameSize_((800, 800))
+		# screenArea.setNeedsDisplay_(True)
+		# print screenArea.frame().origin
+
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 		self.wCentral = FloatingWindow(self.tthtm.centralWindowPosSize, "Central", closable = False)

@@ -38,3 +38,10 @@ class PreviewInGlyphWindow(NSView):
 		tr.set_pen((40, 110))
 		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
 		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.tthtm.g.unicode), scale, 1)
+
+# class ScreenArea(NSView):
+# 	def __init__(self):
+# 		NSView.__init__(self)
+		
+# 	def drawRect_(self, rect):
+# 		pass

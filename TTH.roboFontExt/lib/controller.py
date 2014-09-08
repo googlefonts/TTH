@@ -996,7 +996,6 @@ class TTHTool(BaseEventTool):
 				UpdateCurrentGlyphView()
 
 
-
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
