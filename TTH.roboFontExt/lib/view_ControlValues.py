@@ -3,6 +3,7 @@ from mojo.UI import *
 from mojo.events import *
 from vanilla import *
 from AppKit import *
+import string
 
 import tt_tables
 import TTHintAsm
@@ -247,26 +248,29 @@ class StemView(object):
 		self.lock = False
 
 	def sanitizeStem(self, name, width, px1, px2, px3, px4, px5, px6):
-		result = True
 		try:
 			width = int(width)
 		except:
 			print 'enter a width before adding stem'
-			result = False
+			return False
 		
 		if name == '':
 			print 'enter a name before adding stem'
-			result = False
+			return False
 
+		allowed = list(string.letters)
+		allowed.extend(list(string.digits))
+		allowed.extend(['_', '-', ':', ' '])
 		for c in name:
-			if c in ["'", "@"]:
-				result = False
+			if c not in allowed:
+				print 'stem name can only contain characters:', allowed
+				return False
 
 		if (px1 > px2) or (px2 > px3) or (px3 > px4) or (px4 > px5) or (px5 > px6):
 			print 'pixel jumps must be in ascending order'
-			result = False
+			return False
 
-		return result
+		return True
 
 	def buttonAddCallback(self, sender):
 		name = self.box.editTextStemName.get()
