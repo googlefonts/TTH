@@ -180,6 +180,16 @@ class StemView(object):
 			newStemName = self.ID + '_' + str(sel)
 			sender[sel]['Name'] = newStemName
 
+		if self.sanitizeStem(newStemName, int(sender[sel]['Width']), int(sender[sel]['1 px']), int(sender[sel]['2 px']), int(sender[sel]['3 px']), int(sender[sel]['4 px']), int(sender[sel]['5 px']), int(sender[sel]['6 px'])) == False:
+			sender[sel]['Name'] = oldStemName
+			sender[sel]['1 px'] = self.UIStems[sel]['1 px']
+			sender[sel]['2 px'] = self.UIStems[sel]['2 px']
+			sender[sel]['3 px'] = self.UIStems[sel]['3 px']
+			sender[sel]['4 px'] = self.UIStems[sel]['4 px']
+			sender[sel]['5 px'] = self.UIStems[sel]['5 px']
+			sender[sel]['6 px'] = self.UIStems[sel]['6 px']
+			return
+
 		if oldStemName != newStemName:
 			#print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
 			if newStemName in self.controller.controller.tthtm.stems:
@@ -191,6 +201,7 @@ class StemView(object):
 			else:
 				del self.controller.controller.tthtm.stems[oldStemName]
 		self.UIStems[sel] = sender[sel]
+
 		self.controller.controller.EditStem(oldStemName, newStemName, stemDict, self.isHorizontal)
 		if self.isHorizontal:
 			self.box.stemsList.set(self.controller.tthtm.buildStemsUIList(horizontal=True))
@@ -235,17 +246,32 @@ class StemView(object):
 		self.controller.controller.deleteStems(selected, self)
 		self.lock = False
 
-	def buttonAddCallback(self, sender):
-		name = self.box.editTextStemName.get()
-		if name == '':
-			print 'enter a name before adding stem'
-			return
-		horizontal = self.isHorizontal
+	def sanitizeStem(self, name, width, px1, px2, px3, px4, px5, px6):
+		result = True
 		try:
-			width = int(self.box.editTextStemWidth.get())
+			width = int(width)
 		except:
 			print 'enter a width before adding stem'
-			return
+			result = False
+		
+		if name == '':
+			print 'enter a name before adding stem'
+			result = False
+
+		for c in name:
+			if c in ["'", "@"]:
+				result = False
+
+		if (px1 > px2) or (px2 > px3) or (px3 > px4) or (px4 > px5) or (px5 > px6):
+			print 'pixel jumps must be in ascending order'
+			result = False
+
+		return result
+
+	def buttonAddCallback(self, sender):
+		name = self.box.editTextStemName.get()
+		horizontal = self.isHorizontal
+		width = self.box.editTextStemWidth.get()
 
 		px1 = str(self.box.editTextStem1px.get())
 		px2 = str(self.box.editTextStem2px.get())
@@ -253,6 +279,8 @@ class StemView(object):
 		px4 = str(self.box.editTextStem4px.get())
 		px5 = str(self.box.editTextStem5px.get())
 		px6 = str(self.box.editTextStem6px.get())
+		if self.sanitizeStem(name, width, px1, px2, px3, px4, px5, px6) == False:
+			return
 
 		stemDict = {'horizontal': self.isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		self.lock = True
