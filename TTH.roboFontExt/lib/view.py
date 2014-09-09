@@ -231,7 +231,6 @@ class centralWindow(object):
 			self.TTHToolInstance.resetglyph()
 
 	def PanelsShowButtonCallback(self, sender):
-
 		self.menuAction = NSMenu.alloc().init()
 		items = []
 		items.append(('Preview', self.PreviewShowButtonCallback))
