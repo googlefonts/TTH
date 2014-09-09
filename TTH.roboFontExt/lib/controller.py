@@ -115,6 +115,19 @@ def pointInCommand(commandPos, p_cursor):
 	height = commandPos[1][1]
 	return (p_cursor[0] >= (x-width/2) and p_cursor[0] <= (x+width/2) and p_cursor[1] >= (y-height/2) and p_cursor[1] <= (y+height/2))
 
+
+def find_closest(l, p, point):
+	if l == []:
+		return None
+	candidate = (l[-1], 100)
+	for e in l:
+		if p(e):
+			if distance(e, point) < distance(candidate[0], point):
+				candidate = (e, distance(e, point))
+	if candidate[1] < 10:
+		return candidate[0]
+	return None
+
 def find_in_list(l, p):
 	for e in l:
 		if p(e):
@@ -145,24 +158,15 @@ def loadCurrentFont(allFonts):
 		if f.fileName == cf.fileName:
 			return cf
 
-# def createUnicodeToNameDict():
-# 	glyphList = open('../resources/GlyphList.txt', 'r')
-# 	unicodeToNameDict ={}
-# 	for i in glyphList:
-# 		if i[:1] != '#':
-# 			name = i.split(';')[0]
-# 			unicodeGlyph = '0x' + i.split(';')[1][:-1]
-# 			unicodeGlyph = unicodeGlyph.split(' ')[0]
-# 			if int(unicodeGlyph, 16) not in unicodeToNameDict:
-# 				unicodeToNameDict[int(unicodeGlyph, 16)] = name
-# 	return unicodeToNameDict
-
 
 def getGlyphNameByUnicode(unicodeToNameDict, unicodeChar):
 	return unicodeToNameDict[unicodeChar]
 
 def difference(point1, point2):
 	return ((point1[0] - point2[0]), (point1[1] - point2[1]))
+
+def distance(point1, point2):
+	return math.sqrt((point2[0]-point1[0])*(point2[0]-point1[0]) + (point2[1]-point1[1])*(point2[1]-point1[1]))
 
 def getAngle((x1, y1), (x2, y2)):
 	xDiff = x2-x1
@@ -856,18 +860,18 @@ class TTHTool(BaseEventTool):
 	# 	elif showHide == 1:
 	# 		self.previewWindow.showPreview()
 
-
 	def isOnPoint(self, p_cursor):
 		def pred0(p_glyph):
 			return pointsApproxEqual(p_glyph, p_cursor)
-		touched_p_glyph = find_in_list(self.p_glyphList, pred0)
+		touched_p_glyph = find_closest(self.p_glyphList, pred0, p_cursor)
 
 		return touched_p_glyph
 
 	def isOffPoint(self, p_cursor):
 		def pred0(p_glyph):
 			return pointsApproxEqual(p_glyph, p_cursor)
-		touched_p_glyph = find_in_list(self.pOff_glyphList, pred0)
+		touched_p_glyph = find_closest(self.pOff_glyphList, pred0, p_cursor)
+		
 
 		return touched_p_glyph
 
@@ -2089,7 +2093,7 @@ class TTHTool(BaseEventTool):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10*scale, startPoint[1] - dy + math.sin(angle)*10*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/10)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/10)*scale)
 
 		r = 10
 	 	arrowAngle = math.radians(20)
@@ -2123,7 +2127,7 @@ class TTHTool(BaseEventTool):
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*10*scale, startPoint[1] - dy + math.sin(angle)*10*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/15)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/15)*scale)
 
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -2444,7 +2448,7 @@ class TTHTool(BaseEventTool):
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
 				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
-			if self.startPoint != None:
+			if self.startPoint != None and self.tthtm.selectedHintingTool != 'Align':
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
 				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start)
@@ -2481,7 +2485,7 @@ class TTHTool(BaseEventTool):
 				if cmd_pt1 == 'lsb':
 					startPoint = (0, 0)
 				elif cmd_pt1== 'rsb':
-					startPoint = (0, self.tthtm.g.width)
+					startPoint = (self.tthtm.g.width, 0)
 				else:
 					startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
 
