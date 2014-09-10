@@ -89,17 +89,18 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
-		self.wCentral.PanelsShowButton = Button((10, -45, -10, 15), u"Panels…", sizeStyle = 'mini', 
-				callback=self.PanelsShowButtonCallback)
+		
+		# self.wCentral.PanelsShowButton = Button((10, -45, -10, 15), u"Panels…", sizeStyle = 'mini', 
+		# 		callback=self.PanelsShowButtonCallback)
 
-		# self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
-		# 		callback=self.AssemblyShowButtonCallback)
+		self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
+				callback=self.AssemblyShowButtonCallback)
 
-		# self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
-		# 		callback=self.ProgramShowButtonCallback)
+		self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
+				callback=self.ProgramShowButtonCallback)
 
-		# self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
-		# 		callback=self.PreviewShowButtonCallback)
+		self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
+				callback=self.PreviewShowButtonCallback)
 
 		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
