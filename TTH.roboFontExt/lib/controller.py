@@ -119,7 +119,7 @@ def pointInCommand(commandPos, p_cursor):
 def find_closest(l, p, point):
 	if l == []:
 		return None
-	candidate = (l[-1], 100)
+	candidate = (l[0], distance(l[0], point))
 	for e in l:
 		if p(e):
 			if distance(e, point) < distance(candidate[0], point):
@@ -1044,13 +1044,13 @@ class TTHTool(BaseEventTool):
 		 	self.refreshGlyph()
 
 	def mouseUp(self, point):
-
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		self.endPointOff = self.isOffPoint(self.p_cursor)
 		#print 'glyph end point:', self.endPoint
 		if self.endPoint == None and self.endPointOff == None:
-				return
+			self.startPoint = None
+			return
 
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
@@ -1168,9 +1168,6 @@ class TTHTool(BaseEventTool):
 				else:
 					newCommand['code'] = 'fdeltav'
 
-		self.endPoint = None
-		self.startPoint = None
-		self.endPointOff = None
 		if newCommand != {}:
 			self.tthtm.g.prepareUndo("New Command")
 			self.glyphTTHCommands.append(newCommand)	
@@ -1178,6 +1175,10 @@ class TTHTool(BaseEventTool):
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph()
 			self.tthtm.g.performUndo()
+
+		self.endPoint = None
+		self.startPoint = None
+		self.endPointOff = None
 
 	def compareCommands(self, A, B):
 		order = None
