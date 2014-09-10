@@ -2236,6 +2236,14 @@ class TTHTool(BaseEventTool):
 
 	def drawInterpolateMouseMoved(self, info): 
 		scale = info['scale']
+		touchedEnd = self.isOnPoint(self.movingMouse)
+		if touchedEnd != None:
+			self.endPoint = touchedEnd
+			self.movingMouse = touchedEnd
+			x_end = touchedEnd[0]
+			y_end = touchedEnd[1]
+			self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
+
 		self.drawInterpolateDragging(scale, self.endDraggingPoint, self.movingMouse)
 
 
