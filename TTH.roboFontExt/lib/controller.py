@@ -870,10 +870,18 @@ class TTHTool(BaseEventTool):
 	def isOffPoint(self, p_cursor):
 		def pred0(p_glyph):
 			return pointsApproxEqual(p_glyph, p_cursor)
-		touched_p_glyph = find_closest(self.pOff_glyphList, pred0, p_cursor)
+		touched_p_glyph = find_closest(self.pOff_glyphList, pred0, p_cursor)	
+
+		return touched_p_glyph
+
+	def isOffOnPoint(self, p_cursor):
+		def pred0(p_glyph):
+			return pointsApproxEqual(p_glyph, p_cursor)
+		touched_p_glyph = find_closest(self.pOffOn_glyphList, pred0, p_cursor)
 		
 
 		return touched_p_glyph
+
 
 	def isOnCommand(self, p_cursor):
 		if self.tthtm.selectedAxis == 'X':
@@ -1703,6 +1711,9 @@ class TTHTool(BaseEventTool):
 				else:
 					self.pOff_glyphList.append((p.x, p.y))
 
+		self.pOffOn_glyphList = list(self.p_glyphList)
+		self.pOffOn_glyphList.extend(self.pOff_glyphList)
+
 	def buildUnicodeToNameDict(self, f):
 		unicodeToNameDict = {}
 		for g in f:
@@ -2443,6 +2454,8 @@ class TTHTool(BaseEventTool):
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
+			if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+				touchedEnd = self.isOffOnPoint(self.currentPoint)
 			if touchedEnd != None:
 				self.endPoint = touchedEnd
 				x_end = touchedEnd[0]
