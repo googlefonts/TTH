@@ -122,9 +122,9 @@ def find_closest(l, p, point):
 	candidate = (l[0], distance(l[0], point))
 	for e in l:
 		if p(e):
-			if distance(e, point) < distance(candidate[0], point):
+			if distance(e, point) < candidate[1]:
 				candidate = (e, distance(e, point))
-	if candidate[1] < 10:
+	if p(candidate[0]):
 		return candidate[0]
 	return None
 
@@ -204,11 +204,11 @@ class callbackZoneAlignment():
 		cmdIndex = self.ttht.commandRightClicked
 		self.ttht.tthtm.g.prepareUndo('Zone Alignment')
 		cmd = 'alignb'
-		try:
-			if self.tthtm.zones[self.alignmentZone]['top']:
+		if 'top' in self.ttht.tthtm.zones[self.alignmentZone]:
+			if self.ttht.tthtm.zones[self.alignmentZone]['top']:
 				cmd = 'alignt'
-		except:
-			pass
+			else:
+				cmd = 'alignb'
 		command = self.ttht.glyphTTHCommands[cmdIndex]
 		command['code'] = cmd
 		if 'align' in command:
@@ -323,7 +323,7 @@ class TTHTool(BaseEventTool):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.programWindowVisible == 1:
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
@@ -337,7 +337,7 @@ class TTHTool(BaseEventTool):
 		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
 			self.toolsWindow.closeTools()
-			if self.tthtm.previewWindowVisible == 1:
+			if self.tthtm.programWindowVisible == 1:
 				self.programWindow.closeProgram()
 			if self.tthtm.previewWindowVisible == 1:
 				self.previewWindow.closePreview()
@@ -355,7 +355,7 @@ class TTHTool(BaseEventTool):
 			return
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.programWindowVisible == 1:
 			self.programWindow.closeProgram()
 		if self.tthtm.previewWindowVisible == 1:
 			self.previewWindow.closePreview()
@@ -937,22 +937,25 @@ class TTHTool(BaseEventTool):
 				self.tthtm.showOutline = 0
 			else:
 				self.tthtm.showOutline = 1
+			UpdateCurrentGlyphView()
 		elif event.characters() == 'b':
 			if self.tthtm.showBitmap == 1:
 				self.tthtm.showBitmap = 0
 			else:
 				self.tthtm.showBitmap = 1
+			UpdateCurrentGlyphView()
 		elif event.characters() == 'G':
 			if self.tthtm.showGrid == 1:
 				self.tthtm.showGrid = 0
 			else:
 				self.tthtm.showGrid = 1
+			UpdateCurrentGlyphView()
 		elif event.characters() == 'c':
 			if self.tthtm.showCenterPixel == 1:
 				self.tthtm.showCenterPixel = 0
 			else:
 				self.tthtm.showCenterPixel = 1
-
+			UpdateCurrentGlyphView()
 		elif event.characters() == 'S':
 			if self.tthtm.selectedAxis == 'Y':
 				self.swapStemY()
@@ -1002,11 +1005,9 @@ class TTHTool(BaseEventTool):
 				self.tthtm.showPreviewInGlyphWindow = 0
 				self.previewInGlyphWindow.removeFromSuperview()
 				self.previewInGlyphWindow = None
-				UpdateCurrentGlyphView()
 			else:
 				self.tthtm.showPreviewInGlyphWindow = 1
 				UpdateCurrentGlyphView()
-
 
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
@@ -1123,6 +1124,8 @@ class TTHTool(BaseEventTool):
 
 			self.endDraggingPoint = self.point
 			self.movingMouse = self.point
+			self.endPointInterpolate1 = self.endPoint
+			self.startPointInterpolate1 = self.startPoint
 			addObserver(self, "giveMouseCoordinates", 'mouseMoved')
 			addObserver(self, "drawInterpolateMouseMoved", "draw")
 
@@ -2105,7 +2108,7 @@ class TTHTool(BaseEventTool):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/10)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/10)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/20)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/20)*scale)
 
 		r = 10
 	 	arrowAngle = math.radians(20)
@@ -2139,7 +2142,7 @@ class TTHTool(BaseEventTool):
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/15)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/15)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
 
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -2245,6 +2248,7 @@ class TTHTool(BaseEventTool):
 			y_end = touchedEnd[1]
 			self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
 
+		self.drawInterpolateDragging(scale, self.startPointInterpolate1, self.endPointInterpolate1)
 		self.drawInterpolateDragging(scale, self.endDraggingPoint, self.movingMouse)
 
 
@@ -2404,7 +2408,8 @@ class TTHTool(BaseEventTool):
 					width, height = self.tthtm.textRenderer.pen
 					x = width+40
 					y = self.tthtm.previewWindowPosSize[3] - 310
-
+			if x > self.tthtm.previewWindowViewSize[0]:
+				self.tthtm.previewWindowViewSize = (x, self.tthtm.previewWindowViewSize[1])
 			# render current glyph at various sizes
 			advance = 10
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
@@ -2418,7 +2423,8 @@ class TTHTool(BaseEventTool):
 				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
 				advance += delta_pos[0] + 5
-				
+			if advance > self.tthtm.previewWindowPosSize[2]:
+				self.tthtm.previewWindowViewSize = (advance, self.tthtm.previewWindowViewSize[1])
 				
 
 	def drawBackground(self, scale):
@@ -2587,7 +2593,8 @@ class TTHTool(BaseEventTool):
 			frame.size.width -= 30
 			frame.origin.x = 0
 			self.previewInGlyphWindow.setFrame_(frame)
-
+			self.previewInGlyphWindow.setNeedsDisplay_(True)
+			UpdateCurrentGlyphView()
 
 
 reload(TR)

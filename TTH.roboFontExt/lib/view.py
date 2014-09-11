@@ -89,7 +89,7 @@ class centralWindow(object):
 		# elif self.tthtm.previewWindowVisible == 1:
 		# 	self.wCentral.PreviewHideButton.show(True)
 		# 	self.wCentral.PreviewShowButton.show(False)
-		
+
 		# self.wCentral.PanelsShowButton = Button((10, -45, -10, 15), u"Panels…", sizeStyle = 'mini', 
 		# 		callback=self.PanelsShowButtonCallback)
 
@@ -208,6 +208,7 @@ class centralWindow(object):
 
 	def PreviewShowButtonCallback(self, sender):
 		if self.tthtm.previewWindowVisible == 0:
+
 			for i in string.lowercase:
 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
 			for i in string.uppercase:
@@ -217,6 +218,8 @@ class centralWindow(object):
 
 			self.TTHToolInstance.updatePartialFont()
 			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
+			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
 
 	def ControlValuesButtonCallback(self, sender):
 		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
@@ -495,7 +498,7 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.viewSize = (self.tthtm.previewWindowPosSize[2]-40, self.tthtm.previewWindowPosSize[3]-110)
+		self.viewSize = self.tthtm.previewWindowViewSize
 
 		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
 		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
@@ -524,7 +527,6 @@ class previewWindow(object):
 		self.wPreview.bind("move", self.previewWindowMovedorResized)
 		self.wPreview.bind("resize", self.previewWindowMovedorResized)
 		self.wPreview.open()
-
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 
 	def closePreview(self):
@@ -536,7 +538,7 @@ class previewWindow(object):
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
 
-		self.viewSize = (self.tthtm.previewWindowPosSize[2]-40, self.tthtm.previewWindowPosSize[3]-110)
+		self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		self.view.setFrame_(((0, 0), self.viewSize))
 		self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
 		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)

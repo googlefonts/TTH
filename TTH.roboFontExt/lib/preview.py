@@ -24,7 +24,7 @@ class PreviewInGlyphWindow(NSView):
 		if self.TTHToolInstance.tthtm.g.unicode == None:
 			return
 		tr = self.TTHToolInstance.tthtm.textRenderer
-		advance = 20
+		advance = 30
 		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 50))
