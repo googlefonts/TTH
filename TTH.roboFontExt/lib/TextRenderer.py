@@ -55,6 +55,9 @@ class TextRenderer(object):
 	def set_pen(self, p):
 		self.pen = p
 
+	def get_pen(self):
+		return self.pen
+
 	def set_cur_size(self, size):
 		if size < 4:
 			self.curSize = 4

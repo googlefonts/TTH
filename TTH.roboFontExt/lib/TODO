@@ -5,7 +5,6 @@ For v0.5 :
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
-des fleches au bout des DoubleLinks et des Interpolates
 le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
 j'aimerai bien ajoute rla possibilité de double-cliquer sur un bitmap de glyph pour changer de taille de ppEm
 dans la fenetre preview ?
@@ -22,7 +21,13 @@ ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
 aussi il faudrait que la label du doublelink soit _sur_ la courbe
 et pas au dessus comme c'est maintenant
 mais je sais pas comment calculer ca
+------------------------------
+il faut aussi optimiser le code assembly pour qu'il soit plus leger
+------------------------------
+il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
 
 ==============================
 Done:
 ==============================
+
+des fleches au bout des DoubleLinks et des Interpolates

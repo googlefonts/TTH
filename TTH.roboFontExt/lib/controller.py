@@ -989,7 +989,7 @@ class TTHTool(BaseEventTool):
 		elif event.characters() == '-':
 			if self.tthtm.PPM_Size > 9:
 				self.changeSize(self.tthtm.PPM_Size-1)
-		elif event.characters() == '=':
+		elif event.characters() == '=' or event.characters() == '+':
 			self.changeSize(self.tthtm.PPM_Size+1)
 
 		elif event.characters() == 'p':
@@ -2108,7 +2108,7 @@ class TTHTool(BaseEventTool):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/20)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/20)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
 
 		r = 10
 	 	arrowAngle = math.radians(20)
@@ -2185,12 +2185,45 @@ class TTHTool(BaseEventTool):
 	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
 		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
 
+		r = 10
+	 	arrowAngle = math.radians(20)
+
+	 	initAngleEnd = getAngle((endPoint[0], endPoint[1]), (offcurve2[0], offcurve2[1]))
+	 	arrowEndPoint1_x = endPoint[0] + math.cos(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint1_y = endPoint[1] + math.sin(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint2_x = endPoint[0] + math.cos(initAngleEnd-arrowAngle)*r*scale
+		arrowEndPoint2_y = endPoint[1] + math.sin(initAngleEnd-arrowAngle)*r*scale
+		endPointEnd_x = (arrowEndPoint1_x + arrowEndPoint2_x) / 2
+		endPointEnd_y = (arrowEndPoint1_y + arrowEndPoint2_y) / 2
+
+		pathArrowEnd = NSBezierPath.bezierPath()
+	 	pathArrowEnd.moveToPoint_((endPoint[0], endPoint[1]))
+		pathArrowEnd.lineToPoint_((arrowEndPoint1_x, arrowEndPoint1_y))
+		pathArrowEnd.lineToPoint_((arrowEndPoint2_x, arrowEndPoint2_y))
+
+
+		initAngleStart = getAngle((startPoint[0], startPoint[1]), (offcurve1[0], offcurve1[1]))
+	 	arrowStartPoint1_x = startPoint[0] + math.cos(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint1_y = startPoint[1] + math.sin(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint2_x = startPoint[0] + math.cos(initAngleStart-arrowAngle)*r*scale
+		arrowStartPoint2_y = startPoint[1] + math.sin(initAngleStart-arrowAngle)*r*scale
+		startPoint_x = (arrowStartPoint1_x + arrowStartPoint2_x) / 2
+		startPoint_y = (arrowStartPoint1_y + arrowStartPoint2_y) / 2
+
+		pathArrowStart = NSBezierPath.bezierPath()
+	 	pathArrowStart.moveToPoint_((startPoint[0], startPoint[1]))
+		pathArrowStart.lineToPoint_((arrowStartPoint1_x, arrowStartPoint1_y))
+		pathArrowStart.lineToPoint_((arrowStartPoint2_x, arrowStartPoint2_y))
+
+
 		path = NSBezierPath.bezierPath()
-	 	path.moveToPoint_((startPoint[0], startPoint[1]))
-	 	path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (offcurve1), (offcurve2) )
+	 	path.moveToPoint_((startPoint_x, startPoint_y))
+	 	path.curveToPoint_controlPoint1_controlPoint2_((endPointEnd_x, endPointEnd_y), (offcurve1), (offcurve2) )
 
 		doublinkColor.set()
 		path.setLineWidth_(scale)
+		pathArrowEnd.fill()
+		pathArrowStart.fill()
 		path.stroke()
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
@@ -2224,7 +2257,38 @@ class TTHTool(BaseEventTool):
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
 		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
-		center1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
+		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale)
+
+		r = 10
+	 	arrowAngle = math.radians(20)
+
+	 	initAngleEnd = getAngle((middlePoint[0], middlePoint[1]), center1)
+	 	arrowEndPoint1_x = middlePoint[0] + math.cos(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint1_y = middlePoint[1] + math.sin(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint2_x = middlePoint[0] + math.cos(initAngleEnd-arrowAngle)*r*scale
+		arrowEndPoint2_y = middlePoint[1] + math.sin(initAngleEnd-arrowAngle)*r*scale
+		endPointEnd_x = (arrowEndPoint1_x + arrowEndPoint2_x) / 2
+		endPointEnd_y = (arrowEndPoint1_y + arrowEndPoint2_y) / 2
+
+		pathArrowEnd = NSBezierPath.bezierPath()
+	 	pathArrowEnd.moveToPoint_((middlePoint[0], middlePoint[1]))
+		pathArrowEnd.lineToPoint_((arrowEndPoint1_x, arrowEndPoint1_y))
+		pathArrowEnd.lineToPoint_((arrowEndPoint2_x, arrowEndPoint2_y))
+
+
+		initAngleStart = getAngle((startPoint[0], startPoint[1]), center1)
+	 	arrowStartPoint1_x = startPoint[0] + math.cos(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint1_y = startPoint[1] + math.sin(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint2_x = startPoint[0] + math.cos(initAngleStart-arrowAngle)*r*scale
+		arrowStartPoint2_y = startPoint[1] + math.sin(initAngleStart-arrowAngle)*r*scale
+		startPoint_x = (arrowStartPoint1_x + arrowStartPoint2_x) / 2
+		startPoint_y = (arrowStartPoint1_y + arrowStartPoint2_y) / 2
+
+		pathArrowStart = NSBezierPath.bezierPath()
+	 	pathArrowStart.moveToPoint_((startPoint[0], startPoint[1]))
+		pathArrowStart.lineToPoint_((arrowStartPoint1_x, arrowStartPoint1_y))
+		pathArrowStart.lineToPoint_((arrowStartPoint2_x, arrowStartPoint2_y))
+
 
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((startPoint[0], startPoint[1]))
@@ -2232,6 +2296,8 @@ class TTHTool(BaseEventTool):
 
 		interpolatecolor.set()
 		path.setLineWidth_(scale)
+		pathArrowEnd.fill()
+		pathArrowStart.fill()
 		path.stroke()
 
 	def giveMouseCoordinates(self, info):
@@ -2257,12 +2323,73 @@ class TTHTool(BaseEventTool):
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
 		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
-		center1 = (startPoint[0] - dx + math.cos(angle)*10, startPoint[1] - dy + math.sin(angle)*10)
+		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale)
+
+		r = 10
+	 	arrowAngle = math.radians(20)
+
+	 	initAngleEnd = getAngle((middlePoint[0], middlePoint[1]), center1)
+	 	arrowEndPoint1_x = middlePoint[0] + math.cos(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint1_y = middlePoint[1] + math.sin(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint2_x = middlePoint[0] + math.cos(initAngleEnd-arrowAngle)*r*scale
+		arrowEndPoint2_y = middlePoint[1] + math.sin(initAngleEnd-arrowAngle)*r*scale
+		endPointEnd_x = (arrowEndPoint1_x + arrowEndPoint2_x) / 2
+		endPointEnd_y = (arrowEndPoint1_y + arrowEndPoint2_y) / 2
+
+		pathArrowEnd = NSBezierPath.bezierPath()
+	 	pathArrowEnd.moveToPoint_((middlePoint[0], middlePoint[1]))
+		pathArrowEnd.lineToPoint_((arrowEndPoint1_x, arrowEndPoint1_y))
+		pathArrowEnd.lineToPoint_((arrowEndPoint2_x, arrowEndPoint2_y))
+
+
+		initAngleStart = getAngle((startPoint[0], startPoint[1]), center1)
+	 	arrowStartPoint1_x = startPoint[0] + math.cos(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint1_y = startPoint[1] + math.sin(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint2_x = startPoint[0] + math.cos(initAngleStart-arrowAngle)*r*scale
+		arrowStartPoint2_y = startPoint[1] + math.sin(initAngleStart-arrowAngle)*r*scale
+		startPoint_x = (arrowStartPoint1_x + arrowStartPoint2_x) / 2
+		startPoint_y = (arrowStartPoint1_y + arrowStartPoint2_y) / 2
+
+		pathArrowStart = NSBezierPath.bezierPath()
+	 	pathArrowStart.moveToPoint_((startPoint[0], startPoint[1]))
+		pathArrowStart.lineToPoint_((arrowStartPoint1_x, arrowStartPoint1_y))
+		pathArrowStart.lineToPoint_((arrowStartPoint2_x, arrowStartPoint2_y))
+
 
 		middle_end_diff = difference(middlePoint, endPoint)
 		dx, dy = middle_end_diff[0]/2, middle_end_diff[1]/2
 		angle = getAngle((middlePoint[0], middlePoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-		center2 = (middlePoint[0] - dx + math.cos(angle)*10, middlePoint[1] - dy + math.sin(angle)*10)
+		center2 = (middlePoint[0] - dx + math.cos(angle)*(distance(middlePoint, endPoint)/25)*scale, middlePoint[1] - dy + math.sin(angle)*(distance(middlePoint, endPoint)/25)*scale)
+
+		r = 10
+	 	arrowAngle = math.radians(20)
+
+	 	initAngleEnd = getAngle((middlePoint[0], middlePoint[1]), center2)
+	 	arrowEndPoint1_x = middlePoint[0] + math.cos(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint1_y = middlePoint[1] + math.sin(initAngleEnd+arrowAngle)*r*scale
+		arrowEndPoint2_x = middlePoint[0] + math.cos(initAngleEnd-arrowAngle)*r*scale
+		arrowEndPoint2_y = middlePoint[1] + math.sin(initAngleEnd-arrowAngle)*r*scale
+		endPointEnd_x = (arrowEndPoint1_x + arrowEndPoint2_x) / 2
+		endPointEnd_y = (arrowEndPoint1_y + arrowEndPoint2_y) / 2
+
+		pathArrowEnd2 = NSBezierPath.bezierPath()
+	 	pathArrowEnd2.moveToPoint_((middlePoint[0], middlePoint[1]))
+		pathArrowEnd2.lineToPoint_((arrowEndPoint1_x, arrowEndPoint1_y))
+		pathArrowEnd2.lineToPoint_((arrowEndPoint2_x, arrowEndPoint2_y))
+
+
+		initAngleStart = getAngle((endPoint[0], endPoint[1]), center2)
+	 	arrowStartPoint1_x = endPoint[0] + math.cos(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint1_y = endPoint[1] + math.sin(initAngleStart+arrowAngle)*r*scale
+		arrowStartPoint2_x = endPoint[0] + math.cos(initAngleStart-arrowAngle)*r*scale
+		arrowStartPoint2_y = endPoint[1] + math.sin(initAngleStart-arrowAngle)*r*scale
+		startPoint_x = (arrowStartPoint1_x + arrowStartPoint2_x) / 2
+		startPoint_y = (arrowStartPoint1_y + arrowStartPoint2_y) / 2
+
+		pathArrowStart2 = NSBezierPath.bezierPath()
+	 	pathArrowStart2.moveToPoint_((endPoint[0], endPoint[1]))
+		pathArrowStart2.lineToPoint_((arrowStartPoint1_x, arrowStartPoint1_y))
+		pathArrowStart2.lineToPoint_((arrowStartPoint2_x, arrowStartPoint2_y))
 
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((startPoint[0], startPoint[1]))
@@ -2270,7 +2397,11 @@ class TTHTool(BaseEventTool):
 		path.curveToPoint_controlPoint1_controlPoint2_((endPoint[0], endPoint[1]), (center2), (center2) )
 
 		interpolatecolor.set()
-		path.setLineWidth_(scale)
+		path.setLineWidth_(scale*1.3)
+		pathArrowEnd.fill()
+		pathArrowStart.fill()
+		pathArrowEnd2.fill()
+		pathArrowStart2.fill()
 		path.stroke()
 
 		extension = ''
@@ -2382,6 +2513,9 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 
+		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
+		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
+
 		(text, curGlyphString) = self.prepareText()
 		# render user string
 		if self.tthtm.textRenderer:
@@ -2408,8 +2542,10 @@ class TTHTool(BaseEventTool):
 					width, height = self.tthtm.textRenderer.pen
 					x = width+40
 					y = self.tthtm.previewWindowPosSize[3] - 310
-			if x > self.tthtm.previewWindowViewSize[0]:
-				self.tthtm.previewWindowViewSize = (x, self.tthtm.previewWindowViewSize[1])
+					advanceWidthUserString = self.tthtm.textRenderer.get_pen()[0]
+
+			if advanceWidthUserString > advanceWidthCurrentGlyph:
+				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
 			# render current glyph at various sizes
 			advance = 10
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
@@ -2423,8 +2559,9 @@ class TTHTool(BaseEventTool):
 				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
 				advance += delta_pos[0] + 5
-			if advance > self.tthtm.previewWindowPosSize[2]:
-				self.tthtm.previewWindowViewSize = (advance, self.tthtm.previewWindowViewSize[1])
+				advanceWidthCurrentGlyph = self.tthtm.textRenderer.get_pen()[0]
+			if advanceWidthCurrentGlyph > advanceWidthUserString:
+				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
 				
 
 	def drawBackground(self, scale):
