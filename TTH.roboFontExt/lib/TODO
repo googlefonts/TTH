@@ -1,0 +1,28 @@
+==============================
+For v0.5 :
+==============================
+
+------------------------------
+La rapidité de la grille de center of pixels
+------------------------------
+des fleches au bout des DoubleLinks et des Interpolates
+le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
+j'aimerai bien ajoute rla possibilité de double-cliquer sur un bitmap de glyph pour changer de taille de ppEm
+dans la fenetre preview ?
+oui
+voire aussi dans le preview en bas dans la fenetre glyph
+mais là, ça pourrait géner l'édition des commandes de hinting
+exact
+sauf si c'est juste les petit chiffres tout en bas qui sont cliquable
+------------------------------
+y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
+au dessus de 700 % environ
+ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
+------------------------------
+aussi il faudrait que la label du doublelink soit _sur_ la courbe
+et pas au dessus comme c'est maintenant
+mais je sais pas comment calculer ca
+
+==============================
+Done:
+==============================
