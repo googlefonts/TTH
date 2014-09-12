@@ -40,6 +40,7 @@ class centralWindow(object):
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
+		self.panelsList = [u'…', 'Preview', 'Program', 'Assembly']
 
 		self.wCentral.PPEMSizeText= TextBox((10, 12, 50, 15), "ppEm:", sizeStyle = "mini")
 		
@@ -57,50 +58,20 @@ class centralWindow(object):
 				self.BitmapPreviewList, sizeStyle = "mini",
 				callback=self.BitmapPreviewPopUpButtonCallback)
 
-		# self.wCentral.AxisText= TextBox((10, 50, 70, 14), "Axis:", sizeStyle = "small")
-		# self.wCentral.AxisPopUpButton = PopUpButton((150, 50, 40, 14),
-		# 		self.axisList, sizeStyle = "small",
-		# 		callback=self.AxisPopUpButtonCallback)
-
-		# self.wCentral.HintingToolText= TextBox((10, 70, 70, 14), "Tool:", sizeStyle = "small")
-		# self.wCentral.HintingToolPopUpButton = PopUpButton((90, 70, 100, 14),
-		# 		self.hintingToolsList, sizeStyle = "small",
-		# 		callback=self.HintingToolPopUpButtonCallback)
-
-		# self.wCentral.PrintTTProgramButton = Button((10, 180, -10, 22), "Print Glyph's Program", sizeStyle = 'small', 
-		# 		callback=self.PrintTTProgramButtonCallback)
-		# self.wCentral.PrintAssemblyButton = Button((10, 202, -10, 22), "Print Glyph's Assembly", sizeStyle = 'small', 
-		# 		callback=self.PrintAssemblyButtonCallback)
-		# self.wCentral.RefreshGlyphButton = Button((10, 241, -10, 22), "Apply Program & Refresh", sizeStyle = 'small', 
-		# 		callback=self.RefreshGlyphButtonCallback)
-		# self.wCentral.AlwaysRefreshText = TextBox((10, 266, 180, 14), "Always Apply & Refresh:", sizeStyle = "small")
-		# self.wCentral.AlwaysRefreshCheckBox = CheckBox((-22, 261, -10, 22), "", sizeStyle = "small",
-		# 		callback=self.AlwaysRefreshCheckBoxCallback)
-		# self.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
-	
 		
-		
-		#self.wCentral.PreviewHideButton = Button((10, -98, -10, 22), "Hide Preview Window", sizeStyle = 'small', 
-		#		callback=self.PreviewHideButtonCallback)
+		self.wCentral.PanelsText= TextBox((10, -45, 50, 15), "Panels:", sizeStyle = "mini")
+		self.wCentral.PanelsPopButton = PopUpButton((60, -45, -10, 15), self.panelsList, sizeStyle = 'mini', 
+				callback=self.PanelsPopButtonCallback)
 
-		# if self.tthtm.previewWindowVisible == 0:
-		# 	self.wCentral.PreviewHideButton.show(False)
-		# 	self.wCentral.PreviewShowButton.show(True)
-		# elif self.tthtm.previewWindowVisible == 1:
-		# 	self.wCentral.PreviewHideButton.show(True)
-		# 	self.wCentral.PreviewShowButton.show(False)
 
-		# self.wCentral.PanelsShowButton = Button((10, -45, -10, 15), u"Panels…", sizeStyle = 'mini', 
-		# 		callback=self.PanelsShowButtonCallback)
+		# self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
+		# 		callback=self.AssemblyShowButtonCallback)
 
-		self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
-				callback=self.AssemblyShowButtonCallback)
+		# self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
+		# 		callback=self.ProgramShowButtonCallback)
 
-		self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
-				callback=self.ProgramShowButtonCallback)
-
-		self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
-				callback=self.PreviewShowButtonCallback)
+		# self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
+		# 		callback=self.PreviewShowButtonCallback)
 
 		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
 				callback=self.ControlValuesButtonCallback)
@@ -126,61 +97,6 @@ class centralWindow(object):
 	def BitmapPreviewPopUpButtonCallback(self, sender):
 		self.TTHToolInstance.changeBitmapPreview(self.BitmapPreviewList[sender.get()])
 
-	# def AxisPopUpButtonCallback(self, sender):
-	# 	self.TTHToolInstance.changeAxis(self.axisList[sender.get()])
-	# 	self.TTHToolInstance.makeStemsListsPopUpMenu()
-
-	# 	if self.tthtm.selectedAxis == 'X':
-	# 		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
-	# 		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-	# 	else:
-	# 		self.wCentral.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
-	# 		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-
-	# 	UpdateCurrentGlyphView()
-
-
-
-	# def HintingToolPopUpButtonCallback(self, sender):
-	# 	self.TTHToolInstance.changeSelectedHintingTool(self.hintingToolsList[sender.get()])
-	# 	#self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-	# 	#self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-
-	# 	if self.tthtm.selectedHintingTool == 'Single Link':
-	# 		self.centralWindowLinkSettings()
-	# 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-	# 		if self.tthtm.selectedAxis == 'X':
-	# 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-	# 		else:
-	# 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-	# 	elif self.tthtm.selectedHintingTool == 'Double Link':
-	# 		self.centralWindowDoubleLinkSettings()
-	# 		if self.tthtm.selectedAxis == 'X':
-	# 			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-	# 		else:
-	# 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-	# 	elif self.tthtm.selectedHintingTool == 'Align':
-	# 		self.centralWindowAlignSettings()
-	# 		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-	# 	elif self.tthtm.selectedHintingTool == 'Interpolation':
-	# 		self.centralWindowInterpolationSettings()
-	# 		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-	# 	elif self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
-	# 		self.centralWindowDeltaSettings()
-	# 	else:
-	# 		self.wCentral.AlignmentTypeText.show(False)
-	# 		self.wCentral.AlignmentTypePopUpButton.show(False)
-	# 		self.wCentral.StemTypeText.show(False)
-	# 		self.wCentral.StemTypePopUpButton.show(False)
-	# 		self.wCentral.RoundDistanceText.show(False)
-	# 		self.wCentral.RoundDistanceCheckBox.show(False)
-	# 		self.wCentral.DeltaOffsetText.show(False)
-	# 		self.wCentral.DeltaOffsetSlider.show(False)
-	# 		self.wCentral.DeltaRangeText.show(False)
-	# 		self.wCentral.DeltaRange1EditText.show(False)
-	# 		self.wCentral.DeltaRange2EditText.show(False)
-
-
 	def PrintTTProgramButtonCallback(self, sender):
 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
 		if not FLTTProgram:
@@ -205,6 +121,17 @@ class centralWindow(object):
 
 	def AlwaysRefreshCheckBoxCallback(self, sender):
 		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
+
+	def PanelsPopButtonCallback(self, sender):
+		selection = sender.get()
+		if selection == 1:
+			self.PreviewShowButtonCallback(sender)
+		if selection == 2:
+			self.ProgramShowButtonCallback(sender)
+		if selection == 3:
+			self.AssemblyShowButtonCallback(sender)
+		sender.set(0)
+
 
 	def PreviewShowButtonCallback(self, sender):
 		if self.tthtm.previewWindowVisible == 0:

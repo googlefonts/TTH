@@ -38,9 +38,9 @@ class TTHToolModel():
 		self.previewWindowPosSize = (-510, 30, 500, 600)
 		self.previewWindowViewSize = (self.previewWindowPosSize[2]-40, self.previewWindowPosSize[3]-110)
 		self.toolsWindowPosSize = (170, 30, 215, 65)
-		self.centralWindowPosSize = (10, 30, 150, 135)
+		self.centralWindowPosSize = (10, 30, 150, 95)
 		self.programWindowPosSize = (395, 30, 700, 300)
-		self.assemblyWindowPosSize = (10, 190, 150, 100)
+		self.assemblyWindowPosSize = (10, 150, 150, 140)
 		self.previewString = 'HH/?HH'
 		self.previewFrom = 9
 		self.previewTo = 72
