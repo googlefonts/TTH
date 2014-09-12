@@ -425,7 +425,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					arg = ((relativeSize -16) << 4 ) + tt_tables.stepToSelector[step]
 					deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
 				
-				deltaPString += ' ' + str(len(deltasP1))
+				deltaPString += ' ' + str(len(deltasP2))
 				middleDeltas.append(deltaPString)
 				middleDeltas.append('DELTAP2[ ]')
 
@@ -435,7 +435,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					arg = ((relativeSize -32) << 4 ) + tt_tables.stepToSelector[step]
 					deltaPString += ' ' + str(arg) + ' ' + str(pointIndex)
 				
-				deltaPString += ' ' + str(len(deltasP1))
+				deltaPString += ' ' + str(len(deltasP3))
 				middleDeltas.append(deltaPString)
 				middleDeltas.append('DELTAP3[ ]')
 
