@@ -22,9 +22,15 @@ aussi il faudrait que la label du doublelink soit _sur_ la courbe
 et pas au dessus comme c'est maintenant
 mais je sais pas comment calculer ca
 ------------------------------
+
+il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
+
+==============================
+For v0.6 :
+==============================
+
 il faut aussi optimiser le code assembly pour qu'il soit plus leger
 ------------------------------
-il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
 
 ==============================
 Done:
