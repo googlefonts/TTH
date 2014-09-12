@@ -1287,13 +1287,7 @@ class TTHTool(BaseEventTool):
 		x.extend(ytb)
 		self.glyphTTHCommands = sum([topologicalSort(l, self.compareCommands) for l in [y,fdeltah,fdeltav]], x)
 
-
-	def deleteCommandCallback(self, item):
-		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
-		#print 'delete command:', self.commandRightClicked
-		self.glyphTTHCommands.pop(self.commandRightClicked)
-		self.tthtm.g.prepareUndo('Delete Command')
-		self.commandLabelPos = {}
+	def rewriteGlyphXML(self):
 		XMLGlyphTTProgram = ET.Element('ttProgram')
 		for child in self.glyphTTHCommands:
 			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
@@ -1301,6 +1295,13 @@ class TTHTool(BaseEventTool):
 				ttc.set(k, v)
 		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+	def deleteCommandCallback(self, item):
+		ttprogram = self.tthtm.g.lib['com.fontlab.ttprogram']
+		self.tthtm.g.prepareUndo('Delete Command')
+		self.glyphTTHCommands.pop(self.commandRightClicked)
+		self.commandLabelPos = {}
+		self.rewriteGlyphXML()
 		self.tthtm.g.performUndo()
 
 		self.updateGlyphProgram()
@@ -1325,14 +1326,9 @@ class TTHTool(BaseEventTool):
 			if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'h':
 				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
 		for cmd in commandsToDelete:
-			self.glyphTTHCommands.pop(cmd)
-		XMLGlyphTTProgram = ET.Element('ttProgram')
-		for child in self.glyphTTHCommands:
-			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
-			for k, v in child.iteritems():
-				ttc.set(k, v)
-		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
-		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+			self.glyphTTHCommands.remove(cmd)
+
+		self.rewriteGlyphXML()
 
 		self.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
@@ -1347,13 +1343,8 @@ class TTHTool(BaseEventTool):
 				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
 		for cmd in commandsToDelete:
 			self.glyphTTHCommands.remove(cmd)
-		XMLGlyphTTProgram = ET.Element('ttProgram')
-		for child in self.glyphTTHCommands:
-			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
-			for k, v in child.iteritems():
-				ttc.set(k, v)
-		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
-		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+		self.rewriteGlyphXML()
 
 		self.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
@@ -1368,13 +1359,8 @@ class TTHTool(BaseEventTool):
 				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
 		for cmd in commandsToDelete:
 			self.glyphTTHCommands.remove(cmd)
-		XMLGlyphTTProgram = ET.Element('ttProgram')
-		for child in self.glyphTTHCommands:
-			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
-			for k, v in child.iteritems():
-				ttc.set(k, v)
-		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
-		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+		
+		self.rewriteGlyphXML()
 
 		self.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:

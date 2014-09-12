@@ -5,7 +5,7 @@ For v0.5 :
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
-le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
+
 j'aimerai bien ajoute rla possibilité de double-cliquer sur un bitmap de glyph pour changer de taille de ppEm
 dans la fenetre preview ?
 oui
@@ -31,3 +31,5 @@ Done:
 ==============================
 
 des fleches au bout des DoubleLinks et des Interpolates
+
+le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
