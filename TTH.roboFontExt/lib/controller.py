@@ -1320,11 +1320,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.performUndo()
 
 	def deleteXCommandsCallback(self, item):
-		commandsToDelete = []
 		self.tthtm.g.prepareUndo('Clear X Commands')
-		for cmdIndex in range(len(self.glyphTTHCommands)):
-			if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'h':
-				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		commandsToDelete = [cmd for cmd in self.glyphTTHCommands if cmd['code'][-1:] == 'h']
 		for cmd in commandsToDelete:
 			self.glyphTTHCommands.remove(cmd)
 
@@ -1336,11 +1333,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.performUndo()
 
 	def deleteYCommandsCallback(self, item):
-		commandsToDelete = []
 		self.tthtm.g.prepareUndo('Clear Y Commands')
-		for cmdIndex in range(len(self.glyphTTHCommands)):
-			if self.glyphTTHCommands[cmdIndex]['code'][-1:] in ['v', 't', 'b']:
-				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		commandsToDelete = [cmd for cmd in self.glyphTTHCommands if cmd['code'][-1:] in ['v', 't', 'b']]
 		for cmd in commandsToDelete:
 			self.glyphTTHCommands.remove(cmd)
 
@@ -1352,11 +1346,8 @@ class TTHTool(BaseEventTool):
 		self.tthtm.g.performUndo()
 
 	def deleteAllDeltasCallback(self, item):
-		commandsToDelete = []
 		self.tthtm.g.prepareUndo('Clear All Deltas')
-		for cmdIndex in range(len(self.glyphTTHCommands)):
-			if self.glyphTTHCommands[cmdIndex]['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		commandsToDelete = [cmd for cmd in self.glyphTTHCommands if cmd['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']]
 		for cmd in commandsToDelete:
 			self.glyphTTHCommands.remove(cmd)
 		
