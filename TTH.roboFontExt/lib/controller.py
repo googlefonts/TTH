@@ -1318,6 +1318,70 @@ class TTHTool(BaseEventTool):
 			self.refreshGlyph()
 		self.tthtm.g.performUndo()
 
+	def deleteXCommandsCallback(self, item):
+		commandsToDelete = []
+		self.tthtm.g.prepareUndo('Clear X Commands')
+		for cmdIndex in range(len(self.glyphTTHCommands)):
+			if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'h':
+				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		for cmd in commandsToDelete:
+			self.glyphTTHCommands.pop(cmd)
+		XMLGlyphTTProgram = ET.Element('ttProgram')
+		for child in self.glyphTTHCommands:
+			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
+			for k, v in child.iteritems():
+				ttc.set(k, v)
+		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
+		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+	def deleteYCommandsCallback(self, item):
+		commandsToDelete = []
+		self.tthtm.g.prepareUndo('Clear Y Commands')
+		for cmdIndex in range(len(self.glyphTTHCommands)):
+			if self.glyphTTHCommands[cmdIndex]['code'][-1:] in ['v', 't', 'b']:
+				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		for cmd in commandsToDelete:
+			self.glyphTTHCommands.remove(cmd)
+		XMLGlyphTTProgram = ET.Element('ttProgram')
+		for child in self.glyphTTHCommands:
+			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
+			for k, v in child.iteritems():
+				ttc.set(k, v)
+		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
+		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+	def deleteAllDeltasCallback(self, item):
+		commandsToDelete = []
+		self.tthtm.g.prepareUndo('Clear All Deltas')
+		for cmdIndex in range(len(self.glyphTTHCommands)):
+			if self.glyphTTHCommands[cmdIndex]['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+				commandsToDelete.append(self.glyphTTHCommands[cmdIndex])
+		for cmd in commandsToDelete:
+			self.glyphTTHCommands.remove(cmd)
+		XMLGlyphTTProgram = ET.Element('ttProgram')
+		for child in self.glyphTTHCommands:
+			ttc = ET.SubElement(XMLGlyphTTProgram, 'ttc')
+			for k, v in child.iteritems():
+				ttc.set(k, v)
+		strGlyphTTProgram = ET.tostring(XMLGlyphTTProgram)
+		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(strGlyphTTProgram)
+
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+
+		self.tthtm.g.performUndo()
+
 
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
@@ -1378,6 +1442,9 @@ class TTHTool(BaseEventTool):
 			self.menuAction = NSMenu.alloc().init()
 			items = []
 			items.append(('Clear All Program', self.deleteAllCommandsCallback))
+			items.append(('Clear X Commands', self.deleteXCommandsCallback))
+			items.append(('Clear Y Commands', self.deleteYCommandsCallback))
+			items.append(('Clear All Deltas', self.deleteAllDeltasCallback))
 			menuController = BaseMenu()
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())

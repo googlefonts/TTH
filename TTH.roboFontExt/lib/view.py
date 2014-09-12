@@ -549,13 +549,23 @@ class previewWindow(object):
 		self.view.setNeedsDisplay_(True)
 
 	def DisplayFromEditTextCallback(self, sender):
-		self.FromSize = self.TTHToolInstance.setPreviewSize(sender.get())
+		try:
+			size = int(sender.get())
+		except:
+			size = self.tthtm.previewFrom
+		self.FromSize = self.TTHToolInstance.setPreviewSize(size)
 
 	def DisplayToEditTextCallback(self, sender):
-		self.ToSize = self.TTHToolInstance.setPreviewSize(sender.get())
+		try:
+			size = int(sender.get())
+		except:
+			size = self.tthtm.previewTo
+		self.ToSize = self.TTHToolInstance.setPreviewSize(size)
 
 	def ApplyButtonCallback(self, sender):
 		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
+		self.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
+		self.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
 		self.view.setNeedsDisplay_(True)
 
 class programWindow(object):
