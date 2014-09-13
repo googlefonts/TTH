@@ -5,14 +5,6 @@ For v0.5 :
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
-
-j'aimerai bien ajoute rla possibilité de double-cliquer sur un bitmap de glyph pour changer de taille de ppEm
-dans la fenetre preview ?
-oui
-voire aussi dans le preview en bas dans la fenetre glyph
-mais là, ça pourrait géner l'édition des commandes de hinting
-exact
-sauf si c'est juste les petit chiffres tout en bas qui sont cliquable
 ------------------------------
 y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
 au dessus de 700 % environ
@@ -32,6 +24,13 @@ aussi il faudrait que la label du doublelink soit _sur_ la courbe
 et pas au dessus comme c'est maintenant
 mais je sais pas comment calculer ca
 ------------------------------
+j'aimerai bien ajoute rla possibilité de double-cliquer sur un bitmap de glyph pour changer de taille de ppEm
+dans la fenetre preview ?
+oui
+voire aussi dans le preview en bas dans la fenetre glyph
+mais là, ça pourrait géner l'édition des commandes de hinting
+exact
+sauf si c'est juste les petit chiffres tout en bas qui sont cliquable
 
 
 ==============================
