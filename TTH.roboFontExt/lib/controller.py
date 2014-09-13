@@ -414,6 +414,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes['centers'] = None
 		self.cachedPathes['grid'] = None
+		self.cachedScale = None
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
 		if self.tthtm.previewWindowVisible == 1:
@@ -1944,7 +1945,7 @@ class TTHTool(BaseEventTool):
 		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch):
-		if self.cachedPathes['centers'] == None:
+		if self.cachedPathes['centers'] == None or self.cachedScale != scale:
 			path = NSBezierPath.bezierPath()
 			r = scale * 3
 			for xPos in range(int(pitch), 5000, int(pitch)):
@@ -1967,6 +1968,7 @@ class TTHTool(BaseEventTool):
 					x = xPos + pitch/2
 					y = yPos + pitch/2
 					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			self.cachedScale = scale
 			self.cachedPathes['centers'] = path
 		path = self.cachedPathes['centers']
 		gridColor.set()
