@@ -22,11 +22,16 @@ class PreviewInGlyphWindow(NSView):
 		return self
 
 	def drawRect_(self, rect):
+		self.clickableSizesGlyphWindow = {}
+
 		if self.TTHToolInstance.tthtm.g.unicode == None:
 			return
 		tr = self.TTHToolInstance.tthtm.textRenderer
 		advance = 30
 		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
+
+			self.clickableSizesGlyphWindow[(advance, 20)] = size
+
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 50))
 			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
@@ -41,3 +46,10 @@ class PreviewInGlyphWindow(NSView):
 		tr.set_pen((40, 110))
 		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
 		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.tthtm.g.unicode), scale, 1)
+
+	def mouseUp_(self, event):
+		x = event.locationInWindow().x
+		y = event.locationInWindow().y
+		for i in self.clickableSizesGlyphWindow:
+			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+				self.TTHToolInstance.changeSize(self.clickableSizesGlyphWindow[i])

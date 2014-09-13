@@ -466,7 +466,6 @@ class previewWindow(object):
 
 		x = event.locationInWindow().x -10 + scroll_x
 		y = event.locationInWindow().y -50 + scroll_y
-		pointClicked = (x, y)
 
 		for i in self.TTHToolInstance.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
