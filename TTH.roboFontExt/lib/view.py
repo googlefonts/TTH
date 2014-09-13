@@ -460,7 +460,17 @@ class previewWindow(object):
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 
 	def mouseUp(self, event):
-		print "hello"
+
+		scroll_x = self.wPreview.view.getNSView().superview().documentVisibleRect()[0].x
+		scroll_y = self.wPreview.view.getNSView().superview().documentVisibleRect()[0].y
+
+		x = event.locationInWindow().x -10 + scroll_x
+		y = event.locationInWindow().y -50 + scroll_y
+		pointClicked = (x, y)
+
+		for i in self.TTHToolInstance.clickableSizes:
+			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+				self.TTHToolInstance.changeSize(self.TTHToolInstance.clickableSizes[i])
 
 	def draw(self):
 		self.TTHToolInstance.drawPreviewWindow()
@@ -473,8 +483,7 @@ class previewWindow(object):
 
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
-		self.wPreview.view.canvasSize = self.tthtm.previewWindowPosSize
-		self.wPreview.view.getNSView().setNeedsDisplay_(True)
+		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
 		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
@@ -483,7 +492,9 @@ class previewWindow(object):
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())
 		self.TTHToolInstance.updatePartialFontIfNeeded()
-		self.view.setNeedsDisplay_(True)
+		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
+		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
+		self.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 	def DisplayFromEditTextCallback(self, sender):
 		try:
@@ -503,7 +514,7 @@ class previewWindow(object):
 		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
-		self.view.setNeedsDisplay_(True)
+		self.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 class programWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):

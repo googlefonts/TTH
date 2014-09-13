@@ -4,6 +4,7 @@ from mojo.events import *
 from mojo.UI import *
 from mojo.extensions import *
 from mojo.drawingTools import *
+from mojo.canvas import Canvas
 from lib.doodleMenus import BaseMenu
 from robofab.plistlib import Data
 from robofab.world import *
@@ -418,7 +419,7 @@ class TTHTool(BaseEventTool):
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
 		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.view.setNeedsDisplay_(True)
+			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
 	def changeAxis(self, axis):
@@ -464,7 +465,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.view.setNeedsDisplay_(True)
+			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
 	def getHintingToolIndex(self, hintingTool):
@@ -1051,6 +1052,7 @@ class TTHTool(BaseEventTool):
 		 	self.refreshGlyph()
 
 	def mouseUp(self, point):
+
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		self.endPointOff = self.isOffPoint(self.p_cursor)
@@ -2465,6 +2467,7 @@ class TTHTool(BaseEventTool):
 
 		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
 		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
+		self.clickableSizes= {}
 
 		(text, curGlyphString) = self.prepareText()
 		# render user string
@@ -2478,6 +2481,9 @@ class TTHTool(BaseEventTool):
 			y = self.tthtm.previewWindowPosSize[3] - 310
 			x = 30
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+
+				self.clickableSizes[(x-20, y)] = size
+
 				displaysize = str(size)
 				if size == self.tthtm.PPM_Size and text != '':
 					self.drawPreviewSize(displaysize, x-20, y, NSColor.redColor())
@@ -2494,11 +2500,15 @@ class TTHTool(BaseEventTool):
 					y = self.tthtm.previewWindowPosSize[3] - 310
 					advanceWidthUserString = self.tthtm.textRenderer.get_pen()[0]
 
-			if advanceWidthUserString > advanceWidthCurrentGlyph:
+			if advanceWidthUserString > advanceWidthCurrentGlyph and advanceWidthUserString > self.tthtm.previewWindowViewSize[0]:
 				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
 			# render current glyph at various sizes
 			advance = 10
+			
 			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+
+				self.clickableSizes[(advance, self.tthtm.previewWindowPosSize[3] - 200)] = size
+
 				displaysize = str(size)
 				if size == self.tthtm.PPM_Size:
 					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.redColor())
@@ -2510,7 +2520,7 @@ class TTHTool(BaseEventTool):
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
 				advance += delta_pos[0] + 5
 				advanceWidthCurrentGlyph = self.tthtm.textRenderer.get_pen()[0]
-			if advanceWidthCurrentGlyph > advanceWidthUserString:
+			if advanceWidthCurrentGlyph > advanceWidthUserString and advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0]:
 				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
 				
 

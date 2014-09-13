@@ -13,16 +13,6 @@ from mojo.canvas import Canvas
 # 	def drawRect_(self, rect):
 # 		self.TTHToolInstance.drawPreviewWindow()
 
-class PreviewArea(Canvas):
-
-	def init_withTTHToolInstance(self, TTHToolInstance):
-		self.init()
-		self.TTHToolInstance = TTHToolInstance
-		return self
-
-	def draw(self):
-		self.TTHToolInstance.drawPreviewWindow()
-
 
 class PreviewInGlyphWindow(NSView):
 
