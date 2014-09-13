@@ -1753,7 +1753,7 @@ class TTHTool(BaseEventTool):
 		#print 'full temp font loaded'
 		self.ready = True
 		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.view.setNeedsDisplay_(True)
+			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 		self.p_glyphList = ([(0, 0), (self.tthtm.g.width, 0)])
 		self.pOff_glyphList = []
@@ -2220,7 +2220,6 @@ class TTHTool(BaseEventTool):
 					text += '_' + extension
 				elif stemName != None:
 					text += '_' + stemName
-				#self.drawTextAtPoint(text, offcurve1[0], offcurve1[1], NSColor.blackColor())
 		else:
 			text = 'S'
 			if stemName == None and extension != '':
@@ -2238,19 +2237,19 @@ class TTHTool(BaseEventTool):
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0], offcurve1[1]), (width, height))
 
 	def drawDoubleLinkDragging(self, scale, startPoint, endPoint):
-		start_end_diff = difference(endPoint, startPoint)
-	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
-	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
-		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
+		start_end_diff = difference(startPoint, endPoint)
+	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
+	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
 
 
 		pathArrowStart, junction_pathArrowStart = self.drawArrowAtPoint_FromPoint_WithScale(startPoint, offcurve1, scale)
-		pathArrowEnd, junction_pathArrowEnd = self.drawArrowAtPoint_FromPoint_WithScale(endPoint, offcurve2, scale)
+		pathArrowEnd, junction_pathArrowEnd = self.drawArrowAtPoint_FromPoint_WithScale(endPoint, offcurve1, scale)
 
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_(junction_pathArrowStart)
-	 	path.curveToPoint_controlPoint1_controlPoint2_(junction_pathArrowEnd, (offcurve1), (offcurve2) )
+	 	path.curveToPoint_controlPoint1_controlPoint2_(junction_pathArrowEnd, (offcurve1), (offcurve1) )
 
 		doublinkColor.set()
 		path.setLineWidth_(scale)
@@ -2262,10 +2261,11 @@ class TTHTool(BaseEventTool):
 
 	 	self.drawDoubleLinkDragging(scale, startPoint, endPoint)
 
-	 	start_end_diff = difference(endPoint, startPoint)
-	 	dx, dy = -start_end_diff[1]/5, start_end_diff[0]/5
-	 	offcurve1 = (startPoint[0] + dx, startPoint[1] + dy)
-		offcurve2 = (endPoint[0] + dx, endPoint[1] + dy)
+	 	start_end_diff = difference(startPoint, endPoint)
+	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
+	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
+
 		extension = ''
 		text = 'D'
 		if 'round' in self.glyphTTHCommands[cmdIndex]:
@@ -2277,11 +2277,11 @@ class TTHTool(BaseEventTool):
 		elif stemName != None:
 			text += '_' + stemName
 
-		(width, height) = self.drawTextAtPoint(scale, text, (offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2, whiteColor, doublinkColor)
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], whiteColor, doublinkColor)
 
 		# compute x, y
 		if cmdIndex != None:
-			self.commandLabelPos[cmdIndex] = (((offcurve1[0] + offcurve2[0])/2, (offcurve1[1] + offcurve2[1])/2 ), (width, height))
+			self.commandLabelPos[cmdIndex] = ( (offcurve1), (width, height) )
 
 	def drawInterpolateDragging(self, scale, startPoint, middlePoint):
 		if middlePoint == None or startPoint == None:

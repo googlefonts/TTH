@@ -1,15 +1,26 @@
 from AppKit import *
 from math import ceil
 
+from mojo.canvas import Canvas
 
-class PreviewArea(NSView):
+# class PreviewArea(NSView):
+
+# 	def init_withTTHToolInstance(self, TTHToolInstance):
+# 		self.init()
+# 		self.TTHToolInstance = TTHToolInstance
+# 		return self
+
+# 	def drawRect_(self, rect):
+# 		self.TTHToolInstance.drawPreviewWindow()
+
+class PreviewArea(Canvas):
 
 	def init_withTTHToolInstance(self, TTHToolInstance):
 		self.init()
 		self.TTHToolInstance = TTHToolInstance
 		return self
 
-	def drawRect_(self, rect):
+	def draw(self):
 		self.TTHToolInstance.drawPreviewWindow()
 
 

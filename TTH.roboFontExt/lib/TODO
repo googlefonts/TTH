@@ -17,21 +17,21 @@ sauf si c'est juste les petit chiffres tout en bas qui sont cliquable
 y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
 au dessus de 700 % environ
 ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
-------------------------------
-aussi il faudrait que la label du doublelink soit _sur_ la courbe
-et pas au dessus comme c'est maintenant
-mais je sais pas comment calculer ca
-------------------------------
 
 ==============================
 Done:
 ==============================
 
 des fleches au bout des DoubleLinks et des Interpolates
-
+------------------------------
 le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
-
+------------------------------
 il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
+------------------------------
+aussi il faudrait que la label du doublelink soit _sur_ la courbe
+et pas au dessus comme c'est maintenant
+mais je sais pas comment calculer ca
+------------------------------
 
 
 ==============================
@@ -45,3 +45,4 @@ Auto Zones et Auto Stems, import Blues. Auto-Harmonize Stems.
 AutoHinting, ou Educated Guessing
 ------------------------------
 Import/Export Glyphs Commands, Zones, Stems.
+

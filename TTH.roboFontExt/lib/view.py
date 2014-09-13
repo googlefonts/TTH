@@ -3,6 +3,7 @@
 from vanilla import *
 from mojo.UI import *
 from mojo.extensions import *
+from mojo.canvas import Canvas
 from lib.doodleMenus import BaseMenu
 from AppKit import *
 
@@ -428,16 +429,18 @@ class previewWindow(object):
 		self.viewSize = self.tthtm.previewWindowViewSize
 
 		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
-		self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
-
-		self.view.setFrame_(((0, 0), self.viewSize))
-		self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
-		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
+		# self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
+		# self.view.setFrame_(((0, 0), self.viewSize))
+		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
+		# self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
-		self.wPreview.previewScrollview = ScrollView((10, 50, -10, -40),
-				self.view)
+
+		# self.wPreview.previewScrollview = ScrollView((10, 50, -10, -40),
+		# 		self.view)
+		self.wPreview.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize= self.tthtm.previewWindowViewSize)
+
 		self.wPreview.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
 		self.wPreview.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
 				callback=self.DisplayFromEditTextCallback)
@@ -456,6 +459,12 @@ class previewWindow(object):
 		self.wPreview.open()
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 
+	def mouseUp(self, event):
+		print "hello"
+
+	def draw(self):
+		self.TTHToolInstance.drawPreviewWindow()
+
 	def closePreview(self):
 		self.wPreview.close()
 
@@ -464,11 +473,12 @@ class previewWindow(object):
 
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
-
-		self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
-		self.view.setFrame_(((0, 0), self.viewSize))
-		self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
-		self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
+		self.wPreview.view.canvasSize = self.tthtm.previewWindowPosSize
+		self.wPreview.view.getNSView().setNeedsDisplay_(True)
+		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
+		# self.view.setFrame_(((0, 0), self.viewSize))
+		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
+		# self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
 
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())
@@ -578,4 +588,4 @@ class assemblyWindow(object):
 		self.wAssembly.assemblyList.set(assembly)
 
 
-reload (CV)
+reload(CV)
