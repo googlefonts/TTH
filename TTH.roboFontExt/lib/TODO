@@ -23,15 +23,6 @@ et pas au dessus comme c'est maintenant
 mais je sais pas comment calculer ca
 ------------------------------
 
-il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
-
-==============================
-For v0.6 :
-==============================
-
-il faut aussi optimiser le code assembly pour qu'il soit plus leger
-------------------------------
-
 ==============================
 Done:
 ==============================
@@ -39,3 +30,18 @@ Done:
 des fleches au bout des DoubleLinks et des Interpolates
 
 le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
+
+il y a aussi des bug de delta qui n'ont aucun effet à partir d'une certaine taille (25ppem?)
+
+
+==============================
+For v0.6 :
+==============================
+
+il faut aussi optimiser le code assembly pour qu'il soit plus leger (utiliser les Reference Points)
+------------------------------
+Auto Zones et Auto Stems, import Blues. Auto-Harmonize Stems.
+------------------------------
+AutoHinting, ou Educated Guessing
+------------------------------
+Import/Export Glyphs Commands, Zones, Stems.
