@@ -2502,6 +2502,9 @@ class TTHTool(BaseEventTool):
 
 			if advanceWidthUserString > advanceWidthCurrentGlyph and advanceWidthUserString > self.tthtm.previewWindowViewSize[0]:
 				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+			elif advanceWidthUserString <= self.tthtm.previewWindowViewSize[0]:
+				self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+
 			# render current glyph at various sizes
 			advance = 10
 			
@@ -2522,6 +2525,9 @@ class TTHTool(BaseEventTool):
 				advanceWidthCurrentGlyph = self.tthtm.textRenderer.get_pen()[0]
 			if advanceWidthCurrentGlyph > advanceWidthUserString and advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0]:
 				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
+			elif advanceWidthCurrentGlyph <= self.tthtm.previewWindowViewSize[0]:
+				self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+
 				
 
 	def drawBackground(self, scale):
