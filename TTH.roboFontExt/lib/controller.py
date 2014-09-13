@@ -1921,50 +1921,45 @@ class TTHTool(BaseEventTool):
 	# 		return None
 
 	def drawGrid(self, scale, pitch):
-
-		for xPos in range(0, 5000, int(pitch)):
-			pathX = NSBezierPath.bezierPath()
-			pathX.moveToPoint_((xPos, -5000))
-			pathX.lineToPoint_((xPos, 5000))
-			gridColor.set()
-			pathX.setLineWidth_(scale)
-			pathX.stroke()
-		for xPos in range(0, -5000, -int(pitch)):
-			pathX = NSBezierPath.bezierPath()
-			pathX.moveToPoint_((xPos, -5000))
-			pathX.lineToPoint_((xPos, 5000))
-			gridColor.set()
-			pathX.setLineWidth_(scale)
-			pathX.stroke()
-		for yPos in range(0, 5000, int(pitch)):
-			pathY = NSBezierPath.bezierPath()
-			pathY.moveToPoint_((-5000, yPos))
-			pathY.lineToPoint_((5000, yPos))
-			gridColor.set()
-			pathY.setLineWidth_(scale)
-			pathY.stroke()
-		for yPos in range(0, -5000, -int(pitch)):
-			pathY = NSBezierPath.bezierPath()
-			pathY.moveToPoint_((-5000, yPos))
-			pathY.lineToPoint_((5000, yPos))
-			gridColor.set()
-			pathY.setLineWidth_(scale)
-			pathY.stroke()
+		path = NSBezierPath.bezierPath()
+		for pos in range(0, 5000, int(pitch)):
+			path.moveToPoint_((pos, -5000))
+			path.lineToPoint_((pos, 5000))
+			path.moveToPoint_((-pos-pitch, -5000))
+			path.lineToPoint_((-pos-pitch, 5000))
+			path.moveToPoint_((-5000, pos))
+			path.lineToPoint_((5000, pos))
+			path.moveToPoint_((-5000, -pos-pitch))
+			path.lineToPoint_((5000, -pos-pitch))
+		gridColor.set()
+		path.setLineWidth_(scale)
+		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch):
+		path = NSBezierPath.bezierPath()
+		r = scale * 3
 		for xPos in range(int(pitch), 5000, int(pitch)):
 			for yPos in range(0, 5000, int(pitch)):
-				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+				x = xPos + pitch/2
+				y = yPos + pitch/2
+				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
 		for xPos in range(0, -5000, -int(pitch)):
 			for yPos in range(int(pitch), 5000, int(pitch)):
-				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+				x = xPos + pitch/2
+				y = yPos + pitch/2
+				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
 		for xPos in range(0, -5000, -int(pitch)):
 			for yPos in range(0, -5000, -int(pitch)):
-				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
+				x = xPos + pitch/2
+				y = yPos + pitch/2
+				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
 		for xPos in range(int(pitch), 5000, int(pitch)):
 			for yPos in range(-int(pitch), -5000, -int(pitch)):
-				self.drawDiscAtPoint(scale*3, xPos+(pitch/2), yPos+(pitch/2), gridColor)
-
+				x = xPos + pitch/2
+				y = yPos + pitch/2
+				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+		gridColor.set()
+		path.fill()
 
 	def drawZones(self, scale):
 
