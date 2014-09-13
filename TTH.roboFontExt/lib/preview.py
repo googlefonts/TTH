@@ -47,9 +47,3 @@ class PreviewInGlyphWindow(NSView):
 		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
 		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.tthtm.g.unicode), scale, 1)
 
-	def mouseUp_(self, event):
-		x = event.locationInWindow().x
-		y = event.locationInWindow().y
-		for i in self.clickableSizesGlyphWindow:
-			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-				self.TTHToolInstance.changeSize(self.clickableSizesGlyphWindow[i])
