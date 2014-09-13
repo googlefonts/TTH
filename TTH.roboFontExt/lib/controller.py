@@ -273,6 +273,8 @@ class TTHTool(BaseEventTool):
 
 		self.testTextBox = TextBox((10, 10, 200, 22), "Hello this is a test", alignment="left", sizeStyle="regular")
 
+		self.cachedPathes = {'grid':None, 'centers':None}
+
 
 	### TTH Tool Icon and cursor ###
 	def getToolbarIcon(self):
@@ -409,6 +411,9 @@ class TTHTool(BaseEventTool):
 		self.centralWindow.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.tthtm.resetPitch()
+
+		self.cachedPathes['centers'] = None
+		self.cachedPathes['grid'] = None
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
 		if self.tthtm.previewWindowVisible == 1:
@@ -1921,43 +1926,49 @@ class TTHTool(BaseEventTool):
 	# 		return None
 
 	def drawGrid(self, scale, pitch):
-		path = NSBezierPath.bezierPath()
-		for pos in range(0, 5000, int(pitch)):
-			path.moveToPoint_((pos, -5000))
-			path.lineToPoint_((pos, 5000))
-			path.moveToPoint_((-pos-pitch, -5000))
-			path.lineToPoint_((-pos-pitch, 5000))
-			path.moveToPoint_((-5000, pos))
-			path.lineToPoint_((5000, pos))
-			path.moveToPoint_((-5000, -pos-pitch))
-			path.lineToPoint_((5000, -pos-pitch))
+		if self.cachedPathes['grid'] == None:
+			path = NSBezierPath.bezierPath()
+			for pos in range(0, 5000, int(pitch)):
+				path.moveToPoint_((pos, -5000))
+				path.lineToPoint_((pos, 5000))
+				path.moveToPoint_((-pos-pitch, -5000))
+				path.lineToPoint_((-pos-pitch, 5000))
+				path.moveToPoint_((-5000, pos))
+				path.lineToPoint_((5000, pos))
+				path.moveToPoint_((-5000, -pos-pitch))
+				path.lineToPoint_((5000, -pos-pitch))
+			self.cachedPathes['grid'] = path
+		path = self.cachedPathes['grid']
 		gridColor.set()
 		path.setLineWidth_(scale)
 		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch):
-		path = NSBezierPath.bezierPath()
-		r = scale * 3
-		for xPos in range(int(pitch), 5000, int(pitch)):
-			for yPos in range(0, 5000, int(pitch)):
-				x = xPos + pitch/2
-				y = yPos + pitch/2
-				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-		for xPos in range(0, -5000, -int(pitch)):
-			for yPos in range(int(pitch), 5000, int(pitch)):
-				x = xPos + pitch/2
-				y = yPos + pitch/2
-				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-		for xPos in range(0, -5000, -int(pitch)):
-			for yPos in range(0, -5000, -int(pitch)):
-				x = xPos + pitch/2
-				y = yPos + pitch/2
-				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-		for xPos in range(int(pitch), 5000, int(pitch)):
-			for yPos in range(-int(pitch), -5000, -int(pitch)):
-				x = xPos + pitch/2
-				y = yPos + pitch/2
-				path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+		if self.cachedPathes['centers'] == None:
+			path = NSBezierPath.bezierPath()
+			r = scale * 3
+			for xPos in range(int(pitch), 5000, int(pitch)):
+				for yPos in range(0, 5000, int(pitch)):
+					x = xPos + pitch/2
+					y = yPos + pitch/2
+					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			for xPos in range(0, -5000, -int(pitch)):
+				for yPos in range(int(pitch), 5000, int(pitch)):
+					x = xPos + pitch/2
+					y = yPos + pitch/2
+					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			for xPos in range(0, -5000, -int(pitch)):
+				for yPos in range(0, -5000, -int(pitch)):
+					x = xPos + pitch/2
+					y = yPos + pitch/2
+					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			for xPos in range(int(pitch), 5000, int(pitch)):
+				for yPos in range(-int(pitch), -5000, -int(pitch)):
+					x = xPos + pitch/2
+					y = yPos + pitch/2
+					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			self.cachedPathes['centers'] = path
+		path = self.cachedPathes['centers']
 		gridColor.set()
 		path.fill()
 
