@@ -1938,15 +1938,14 @@ class TTHTool(BaseEventTool):
 	def drawGrid(self, scale, pitch):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
-			for pos in range(0, 5000, int(pitch)):
-				path.moveToPoint_((pos, -5000))
-				path.lineToPoint_((pos, 5000))
-				path.moveToPoint_((-pos-pitch, -5000))
-				path.lineToPoint_((-pos-pitch, 5000))
-				path.moveToPoint_((-5000, pos))
-				path.lineToPoint_((5000, pos))
-				path.moveToPoint_((-5000, -pos-pitch))
-				path.lineToPoint_((5000, -pos-pitch))
+			pos = - int(1000/pitch) * pitch
+			maxi = -2 * pos
+			while pos < maxi:
+				path.moveToPoint_((pos, -1000))
+				path.lineToPoint_((pos, 2000))
+				path.moveToPoint_((-1000, pos))
+				path.lineToPoint_((2000, pos))
+				pos += pitch
 			self.cachedPathes['grid'] = path
 		path = self.cachedPathes['grid']
 		gridColor.set()
@@ -1954,29 +1953,36 @@ class TTHTool(BaseEventTool):
 		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch):
+		#nsView = self.getNSView()
+		#super = nsView.superview()
+		#print "NSView frame", nsView.frame()
+		#print "NSView bounds", nsView.bounds()
+		#print "super frame", nsView.superview().frame()
+		#print "super bounds", nsView.superview().bounds()
+		#lower_left_corner = nsView.convertPoint_fromView_(super.bounds().origin, super)
+		#import Quartz
+		#port = NSGraphicsContext.currentContext().graphicsPort()
+		#m = Quartz.CGContextGetCTM(port)
+		#print "Lower-left is ", lower_left_corner
+		#print "Translation is ", (m.tx, m.ty)
+		#m = (m.tx + lower_left_corner.x / scale, m.ty + lower_left_corner.y / scale)
+		#print "Glyph origin in canvas lies at", m
+		#m = Quartz.CGContextConvertPointToDeviceSpace(port, (0.0, 0.0))
+		#print super.convertPoint_fromView_(m, nsView)
+		#return
 		if self.cachedPathes['centers'] == None or self.cachedScale != scale:
 			path = NSBezierPath.bezierPath()
-			r = scale * 3
-			for xPos in range(int(pitch), 5000, int(pitch)):
-				for yPos in range(0, 5000, int(pitch)):
-					x = xPos + pitch/2
-					y = yPos + pitch/2
-					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-			for xPos in range(0, -5000, -int(pitch)):
-				for yPos in range(int(pitch), 5000, int(pitch)):
-					x = xPos + pitch/2
-					y = yPos + pitch/2
-					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-			for xPos in range(0, -5000, -int(pitch)):
-				for yPos in range(0, -5000, -int(pitch)):
-					x = xPos + pitch/2
-					y = yPos + pitch/2
-					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-			for xPos in range(int(pitch), 5000, int(pitch)):
-				for yPos in range(-int(pitch), -5000, -int(pitch)):
-					x = xPos + pitch/2
-					y = yPos + pitch/2
-					path.appendBezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+			r = scale * 6
+			r = (r,r)
+			x = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
+			yinit = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
+			maxi = -2 * x
+			while x < maxi:
+				y = yinit
+				while y < maxi:
+					path.appendBezierPathWithOvalInRect_(((x, y), r))
+					y += pitch
+				x += pitch
 			self.cachedScale = scale
 			self.cachedPathes['centers'] = path
 		path = self.cachedPathes['centers']
