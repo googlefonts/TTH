@@ -53,6 +53,7 @@ whiteColor = NSColor.whiteColor()
 blackColor = NSColor.blackColor()
 axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
+centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
 zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
 arrowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
@@ -1972,7 +1973,7 @@ class TTHTool(BaseEventTool):
 		#return
 		if self.cachedPathes['centers'] == None or self.cachedScale != scale:
 			path = NSBezierPath.bezierPath()
-			r = scale * 6
+			r = scale * 3
 			r = (r,r)
 			x = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
 			yinit = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
@@ -1986,7 +1987,7 @@ class TTHTool(BaseEventTool):
 			self.cachedScale = scale
 			self.cachedPathes['centers'] = path
 		path = self.cachedPathes['centers']
-		gridColor.set()
+		centerpixelsColor.set()
 		path.fill()
 
 	def drawZones(self, scale):
