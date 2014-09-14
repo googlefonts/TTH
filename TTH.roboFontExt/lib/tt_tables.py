@@ -19,7 +19,7 @@ def writeMAXPandGASP(f, codeppm):
 	try:
 		stopgridfit = str(codeppm)
 	except:
-		stopgridfit = "48"
+		stopgridfit = "72"
 
 	gasp_ranges = {
 		lower:				GASP_DOGRAY +                          GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
