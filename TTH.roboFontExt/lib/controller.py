@@ -312,12 +312,12 @@ class TTHTool(BaseEventTool):
 
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.closeProgram()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.closePreview()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.closeAssembly()
+		# if self.tthtm.programWindowVisible == 1:
+		# 	self.programWindow.closeProgram()
+		# if self.tthtm.previewWindowVisible == 1:
+		# 	self.previewWindow.closePreview()
+		# if self.tthtm.assemblyWindowVisible == 1:
+		# 	self.assemblyWindow.closeAssembly()
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
@@ -325,12 +325,12 @@ class TTHTool(BaseEventTool):
 	#	self.FL_Windows.closeAll()
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.closeProgram()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.closePreview()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.closeAssembly()
+		# if self.tthtm.programWindowVisible == 1:
+		# 	self.programWindow.closeProgram()
+		# if self.tthtm.previewWindowVisible == 1:
+		# 	self.previewWindow.closePreview()
+		# if self.tthtm.assemblyWindowVisible == 1:
+		# 	self.assemblyWindow.closeAssembly()
 
 		self.resetFonts(createWindows=True)
 
@@ -339,15 +339,15 @@ class TTHTool(BaseEventTool):
 		#	self.FL_Windows.closeAll()
 			self.centralWindow.closeCentral()
 			self.toolsWindow.closeTools()
-			if self.tthtm.programWindowVisible == 1:
-				self.programWindow.closeProgram()
-			if self.tthtm.previewWindowVisible == 1:
-				self.previewWindow.closePreview()
-			if self.tthtm.assemblyWindowVisible == 1:
-				self.assemblyWindow.closeAssembly()
+			# if self.tthtm.programWindowVisible == 1:
+			# 	self.programWindow.closeProgram()
+			# if self.tthtm.previewWindowVisible == 1:
+			# 	self.previewWindow.closePreview()
+			# if self.tthtm.assemblyWindowVisible == 1:
+			# 	self.assemblyWindow.closeAssembly()
 
 		self.resetFonts(createWindows=True)
-		self.resetglyph()
+		#self.resetglyph()
 		self.updatePartialFont()
 		self.fontClosed = False
 
