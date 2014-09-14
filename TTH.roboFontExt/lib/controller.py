@@ -1689,6 +1689,7 @@ class TTHTool(BaseEventTool):
 
 		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.tthtm.alignppm, self.tthtm.stems, self.tthtm.zones, self.tthtm.codeppm)
 		tt_tables.writeFPGM(self.tthtm.f)
+		tt_tables.writeMAXPandGASP(self.tthtm.f, self.tthtm.codeppm)
 
 		for g in self.tthtm.f:
 			glyphTTHCommands = self.readGlyphFLTTProgram(g)
