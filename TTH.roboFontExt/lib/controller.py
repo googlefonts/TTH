@@ -1976,7 +1976,7 @@ class TTHTool(BaseEventTool):
 			r = scale * 3
 			r = (r,r)
 			x = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
-			yinit = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
+			yinit = x
 			maxi = -2 * x
 			while x < maxi:
 				y = yinit
