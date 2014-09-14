@@ -14,7 +14,6 @@ from defconAppKit.windows.baseWindow import BaseWindowController
 import tempfile
 import time
 
-#import fl_tth
 import tt_tables
 import TTHintAsm
 import view
@@ -2710,7 +2709,6 @@ class TTHTool(BaseEventTool):
 
 reload(TR)
 reload(TTHintAsm)
-#reload(fl_tth)
 reload(tt_tables)
 reload(view)
 
