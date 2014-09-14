@@ -1052,12 +1052,13 @@ class TTHTool(BaseEventTool):
 		 	self.refreshGlyph()
 
 	def mouseUp(self, point):
-		x = self.getCurrentEvent().locationInWindow().x
-		y = self.getCurrentEvent().locationInWindow().y
+		if self.tthtm.showPreviewInGlyphWindow = 1:
+			x = self.getCurrentEvent().locationInWindow().x
+			y = self.getCurrentEvent().locationInWindow().y
 
-		for i in self.previewInGlyphWindow.clickableSizesGlyphWindow:
-			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-				self.changeSize(self.previewInGlyphWindow.clickableSizesGlyphWindow[i])
+			for i in self.previewInGlyphWindow.clickableSizesGlyphWindow:
+				if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+					self.changeSize(self.previewInGlyphWindow.clickableSizesGlyphWindow[i])
 
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
@@ -2570,7 +2571,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.showOutline == 1:
 			self.tthtm.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
 			self.drawSideBearings(scale, curChar)
-			
+
 
 	def draw(self, scale):
 		self.scale = scale
