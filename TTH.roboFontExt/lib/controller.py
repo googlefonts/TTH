@@ -1052,7 +1052,7 @@ class TTHTool(BaseEventTool):
 		 	self.refreshGlyph()
 
 	def mouseUp(self, point):
-		if self.tthtm.showPreviewInGlyphWindow = 1:
+		if self.tthtm.showPreviewInGlyphWindow == 1:
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
 
