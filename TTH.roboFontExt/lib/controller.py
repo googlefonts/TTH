@@ -6,6 +6,7 @@ from mojo.extensions import *
 from mojo.drawingTools import *
 from mojo.canvas import Canvas
 from lib.doodleMenus import BaseMenu
+from lib.tools.defaults import getDefault, setDefault
 from robofab.plistlib import Data
 from robofab.world import *
 from mojo.roboFont import *
@@ -174,6 +175,14 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
+def checkDrawingPreferences():
+	 if getDefault('drawingSegmentType') != 'qcurve':
+	 	print "WARNING: Preferences are set to 'Draw with Cubic (PostScript) curves'"
+	 	return False
+	 else:
+	 	return True
+
+
 class callbackAlignment():
 	def __init__(self, TTHtoolInstance, alignmentType):
 		self.ttht = TTHtoolInstance
@@ -301,10 +310,14 @@ class TTHTool(BaseEventTool):
 		return cursorDefault
 	###############
 
-	def becomeActive(self):
+	def becomeActive(self): 	
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
 		self.previewInGlyphWindow = None
+
+		if checkDrawingPreferences() == False:
+			setDefault('drawingSegmentType', 'qcurve')
+		 	print "Preferences changed to 'Draw with Cubic (TrueType) curves'"
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
@@ -354,7 +367,10 @@ class TTHTool(BaseEventTool):
 
 	def fontWillClose(self, font):
 		#self.FL_Windows.closeAll()
-		if len(loadFonts()) > 1:
+		af = loadFonts()
+		if af == None:
+			return
+		elif len(af) > 1:
 			return
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
