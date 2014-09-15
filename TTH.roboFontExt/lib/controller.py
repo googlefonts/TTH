@@ -444,14 +444,12 @@ class TTHTool(BaseEventTool):
 			self.stemTypeList = self.tthtm.stemsListX
 			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
 			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
-			self.toolsWindow.wTools.YButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.XButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.axisSegmentedButton.set(0)
 		else:
 			self.stemTypeList = self.tthtm.stemsListY
 			self.toolsWindow.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
 			self.toolsWindow.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
-			self.toolsWindow.wTools.YButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.XButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.axisSegmentedButton.set(1)
 		
 
 		if self.tthtm.selectedHintingTool == "Align":

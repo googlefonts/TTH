@@ -196,10 +196,13 @@ class toolsWindow(object):
 
 		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "Tools", closable = False)
 
-		self.wTools.XButton = GradientButton((10, 10, 18, 18), imageObject = buttonXPath, 
-                            callback=self.AxisXButtonCallback)
-		self.wTools.YButton = GradientButton((28, 10, 18, 18), imageObject = buttonYPath,
-                            callback=self.AxisYButtonCallback)
+		segmentDescriptions = [
+			dict(width=18, imageObject=buttonXPath, toolTip="Horizontal Axis"),
+			dict(width=18, imageObject=buttonYPath, toolTip="Vertical Axis")
+		]
+
+
+		
 		self.wTools.AlignButton = GradientButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
                             callback=self.AlignButtonCallback)
 		self.wTools.SingleLinkButton = GradientButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
@@ -212,6 +215,10 @@ class toolsWindow(object):
                             callback=self.MiddleDeltaButtonCallback)
 		self.wTools.FinalDeltaButton = GradientButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
                             callback=self.FinalDeltaButtonCallback)
+
+
+		self.wTools.axisSegmentedButton = SegmentedButton((10, 8, 70, 18), segmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.axisSegmentedButton.set(0)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 30, 65, 15),
@@ -264,7 +271,6 @@ class toolsWindow(object):
 
 	def toolsWindowMovedorResized(self, sender):
 		self.tthtm.toolsWindowPosSize = self.wTools.getPosSize()
-
 
 	def LinkSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -369,18 +375,18 @@ class toolsWindow(object):
 	def DeltaRange2EditTextCallback(self, sender):
 		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
 
-	def AxisXButtonCallback(self, sender):
-		self.TTHToolInstance.changeAxis('X')
-		self.TTHToolInstance.makeStemsListsPopUpMenu()
-		self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
-		self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
 
-	def AxisYButtonCallback(self, sender):
-		sender.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-		self.TTHToolInstance.changeAxis('Y')
-		self.TTHToolInstance.makeStemsListsPopUpMenu()
-		self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
-		self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+	def axisSegmentedButtonCallback(self, sender):
+		if sender.get() == 0:
+			self.TTHToolInstance.changeAxis('X')
+			self.TTHToolInstance.makeStemsListsPopUpMenu()
+			self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListX)
+			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+		else:
+			self.TTHToolInstance.changeAxis('Y')
+			self.TTHToolInstance.makeStemsListsPopUpMenu()
+			self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
+			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 	
 	def AlignButtonCallback(self, sender):
 		self.AlignSettings()
