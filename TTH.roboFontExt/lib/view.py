@@ -210,46 +210,46 @@ class toolsWindow(object):
 			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool")
 		]
 
-		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 8, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 12, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(0)
 
-		self.wTools.axisSegmentedButton = SegmentedButton((10, 8, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.axisSegmentedButton = SegmentedButton((10, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.axisSegmentedButton.set(0)
 
-		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
-		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 30, 65, 15),
+		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
+		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 65, 15),
 				self.alignmentTypeListDisplay, sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
 		self.wTools.AlignmentTypeText.show(True)
 		self.wTools.AlignmentTypePopUpButton.show(True)
 
-		self.wTools.StemTypeText = TextBox((110, 32, 30, 15), "Stem:", sizeStyle = "mini")
-		self.wTools.StemTypePopUpButton = PopUpButton((140, 30, 65, 15),
+		self.wTools.StemTypeText = TextBox((110, 42, 30, 15), "Stem:", sizeStyle = "mini")
+		self.wTools.StemTypePopUpButton = PopUpButton((140, 40, 65, 15),
 				self.stemTypeList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wTools.StemTypeText.show(False)
 		self.wTools.StemTypePopUpButton.show(False)
 
-		self.wTools.RoundDistanceText = TextBox((10, 47, 80, 15), "Round Distance:", sizeStyle = "mini")
-		self.wTools.RoundDistanceCheckBox = CheckBox((90, 45, 15, 15), "", sizeStyle = "mini",
+		self.wTools.RoundDistanceText = TextBox((10, 57, 80, 15), "Round Distance:", sizeStyle = "mini")
+		self.wTools.RoundDistanceCheckBox = CheckBox((90, 55, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
 
-		self.wTools.DeltaOffsetText = TextBox((10, 32, 50, 15), "Offset:", sizeStyle = "mini")
-		self.wTools.DeltaOffsetSlider = Slider((10, 45, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+		self.wTools.DeltaOffsetText = TextBox((10, 42, 50, 15), "Offset:", sizeStyle = "mini")
+		self.wTools.DeltaOffsetSlider = Slider((10, 55, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
-		self.wTools.DeltaOffsetEditText = EditText((60, 30, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaOffsetEditText = EditText((60, 40, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
-		self.wTools.DeltaRangeText = TextBox((100, 32, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1EditText = EditText((-70, 30, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaRangeText = TextBox((100, 42, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1EditText = EditText((-70, 40, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange1EditTextCallback)
-		self.wTools.DeltaRange2EditText = EditText((-40, 30, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaRange2EditText = EditText((-40, 40, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaRange2EditTextCallback)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1EditText.show(False)
