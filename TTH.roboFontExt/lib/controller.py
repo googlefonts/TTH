@@ -497,12 +497,7 @@ class TTHTool(BaseEventTool):
 			self.toolsWindow.AlignSettings()
 			self.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(0)
 			
 		if hintingToolIndex == 1:
 			self.toolsWindow.LinkSettings()
@@ -513,12 +508,7 @@ class TTHTool(BaseEventTool):
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(1)
 
 		if hintingToolIndex == 2:
 			self.toolsWindow.DoubleLinkSettings()
@@ -529,43 +519,24 @@ class TTHTool(BaseEventTool):
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(2)
 			
 		if hintingToolIndex == 3:
 			self.toolsWindow.InterpolationSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(3)
 
 		if hintingToolIndex == 4:
 			self.toolsWindow.DeltaSettings()
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(4)
 
 		if hintingToolIndex == 5:
 			self.toolsWindow.DeltaSettings()
 
-			self.toolsWindow.wTools.AlignButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.SingleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.DoubleLinkButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.InterpolationButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.MiddleDeltaButton.getNSButton().setBezelStyle_(NSShadowlessSquareBezelStyle)
-			self.toolsWindow.wTools.FinalDeltaButton.getNSButton().setBezelStyle_(NSSmallSquareBezelStyle)
+			self.toolsWindow.wTools.toolsSegmentedButton.set(5)
+
 
 	def getAlignmentTypeAlignIndex(self, alignmentType):
 		alignmentTypeIndex = 0

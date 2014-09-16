@@ -196,28 +196,45 @@ class toolsWindow(object):
 
 		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "Tools", closable = False)
 
-		segmentDescriptions = [
-			dict(width=18, imageObject=buttonXPath, toolTip="Horizontal Axis"),
-			dict(width=18, imageObject=buttonYPath, toolTip="Vertical Axis")
+		axisSegmentDescriptions = [
+			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
+			dict(width=19, imageObject=buttonYPath, toolTip="Vertical Axis")
+		]
+
+		toolsSegmentDescriptions = [
+			dict(width=19, imageObject=buttonAlignPath, toolTip="Align Tool"),
+			dict(width=19, imageObject=buttonSingleLinkPath, toolTip="Single Link Tool"),
+			dict(width=19, imageObject=buttonDoubleLinkPath, toolTip="Double Link Tool"),
+			dict(width=19, imageObject=buttonInterpolationPath, toolTip="Interpolation Tool"),
+			dict(width=19, imageObject=buttonMiddleDeltaPath, toolTip="Middle Delta Tool"),
+			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool")
 		]
 
 
-		
-		self.wTools.AlignButton = GradientButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
-                            callback=self.AlignButtonCallback)
-		self.wTools.SingleLinkButton = GradientButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
-                            callback=self.SingleLinkButtonCallback)
-		self.wTools.DoubleLinkButton = GradientButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
-                            callback=self.DoubleLinkButtonCallback)
-		self.wTools.InterpolationButton = GradientButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
-                            callback=self.InterpolationButtonCallback)		
-		self.wTools.MiddleDeltaButton = GradientButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
-                            callback=self.MiddleDeltaButtonCallback)
-		self.wTools.FinalDeltaButton = GradientButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
-                            callback=self.FinalDeltaButtonCallback)
+		# self.wTools.AlignButton = GradientButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
+  #                           callback=self.AlignButtonCallback)
+		# self.wTools.SingleLinkButton = GradientButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
+  #                           callback=self.SingleLinkButtonCallback)
+		# self.wTools.DoubleLinkButton = GradientButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
+  #                           callback=self.DoubleLinkButtonCallback)
+		# self.wTools.InterpolationButton = GradientButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
+  #                           callback=self.InterpolationButtonCallback)		
+		# self.wTools.MiddleDeltaButton = GradientButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
+  #                           callback=self.MiddleDeltaButtonCallback)
+		# self.wTools.FinalDeltaButton = GradientButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
+  #                           callback=self.FinalDeltaButtonCallback)
 
+		# self.wTools.AlignButton.show(0)
+		# self.wTools.SingleLinkButton.show(0)
+		# self.wTools.DoubleLinkButton.show(0)
+		# self.wTools.InterpolationButton.show(0)
+		# self.wTools.MiddleDeltaButton.show(0)
+		# self.wTools.FinalDeltaButton.show(0)
 
-		self.wTools.axisSegmentedButton = SegmentedButton((10, 8, 70, 18), segmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 8, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton.set(0)
+
+		self.wTools.axisSegmentedButton = SegmentedButton((10, 8, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.axisSegmentedButton.set(0)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 32, 30, 15), "Align:", sizeStyle = "mini")
@@ -388,40 +405,36 @@ class toolsWindow(object):
 			self.wTools.StemTypePopUpButton.setItems(self.tthtm.stemsListY)
 			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
 	
-	def AlignButtonCallback(self, sender):
-		self.AlignSettings()
-		self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
-		self.TTHToolInstance.changeSelectedHintingTool('Align')
-
-	def SingleLinkButtonCallback(self, sender):
-		self.LinkSettings()
-		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		if self.tthtm.selectedAxis == 'X':
-			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-		else:
-			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-		self.TTHToolInstance.changeSelectedHintingTool('Single Link')
-
-	def DoubleLinkButtonCallback(self, sender):
-		self.DoubleLinkSettings()
-		if self.tthtm.selectedAxis == 'X':
-			self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
-		else:
-			self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
-		self.TTHToolInstance.changeSelectedHintingTool('Double Link')
-			
-	def InterpolationButtonCallback(self, sender):
-		self.InterpolationSettings()
-		self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-		self.TTHToolInstance.changeSelectedHintingTool('Interpolation')
-
-	def MiddleDeltaButtonCallback(self, sender):
-		self.DeltaSettings()
-		self.TTHToolInstance.changeSelectedHintingTool('Middle Delta')
-
-	def FinalDeltaButtonCallback(self, sender):
-		self.DeltaSettings()
-		self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
+	def toolsSegmentedButtonCallback(self, sender):
+		if sender.get() == 0:
+			self.AlignSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeAlign(self.tthtm.selectedAlignmentTypeAlign)
+			self.TTHToolInstance.changeSelectedHintingTool('Align')
+		if sender.get() == 1:
+			self.LinkSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+			if self.tthtm.selectedAxis == 'X':
+				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+			else:
+				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+			self.TTHToolInstance.changeSelectedHintingTool('Single Link')
+		if sender.get() == 2:
+			self.DoubleLinkSettings()
+			if self.tthtm.selectedAxis == 'X':
+				self.TTHToolInstance.changeSelectedStemX(self.tthtm.selectedStemX)
+			else:
+				self.TTHToolInstance.changeSelectedStemY(self.tthtm.selectedStemY)
+			self.TTHToolInstance.changeSelectedHintingTool('Double Link')
+		if sender.get() == 3:
+			self.InterpolationSettings()
+			self.TTHToolInstance.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
+			self.TTHToolInstance.changeSelectedHintingTool('Interpolation')
+		if sender.get() == 4:
+			self.DeltaSettings()
+			self.TTHToolInstance.changeSelectedHintingTool('Middle Delta')
+		if sender.get() == 5:
+			self.DeltaSettings()
+			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
 
 class previewWindow(object):
