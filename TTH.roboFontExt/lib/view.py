@@ -210,27 +210,6 @@ class toolsWindow(object):
 			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool")
 		]
 
-
-		# self.wTools.AlignButton = GradientButton((-118, 10, 18, 18), imageObject = buttonAlignPath,
-  #                           callback=self.AlignButtonCallback)
-		# self.wTools.SingleLinkButton = GradientButton((-100, 10, 18, 18), imageObject = buttonSingleLinkPath,
-  #                           callback=self.SingleLinkButtonCallback)
-		# self.wTools.DoubleLinkButton = GradientButton((-82, 10, 18, 18), imageObject = buttonDoubleLinkPath,
-  #                           callback=self.DoubleLinkButtonCallback)
-		# self.wTools.InterpolationButton = GradientButton((-64, 10, 18, 18), imageObject = buttonInterpolationPath,
-  #                           callback=self.InterpolationButtonCallback)		
-		# self.wTools.MiddleDeltaButton = GradientButton((-46, 10, 18, 18), imageObject = buttonMiddleDeltaPath,
-  #                           callback=self.MiddleDeltaButtonCallback)
-		# self.wTools.FinalDeltaButton = GradientButton((-28, 10, 18, 18), imageObject = buttonFinalDeltaPath,
-  #                           callback=self.FinalDeltaButtonCallback)
-
-		# self.wTools.AlignButton.show(0)
-		# self.wTools.SingleLinkButton.show(0)
-		# self.wTools.DoubleLinkButton.show(0)
-		# self.wTools.InterpolationButton.show(0)
-		# self.wTools.MiddleDeltaButton.show(0)
-		# self.wTools.FinalDeltaButton.show(0)
-
 		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 8, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(0)
 
