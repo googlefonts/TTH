@@ -9,6 +9,7 @@ from lib.doodleMenus import BaseMenu
 from lib.tools.defaults import getDefault, setDefault
 from robofab.plistlib import Data
 from robofab.world import *
+import robofab.interface.all.dialogs as Dialogs
 from mojo.roboFont import *
 from vanilla import *
 from defconAppKit.windows.baseWindow import BaseWindowController
@@ -177,7 +178,6 @@ def getAngle((x1, y1), (x2, y2)):
 
 def checkDrawingPreferences():
 	 if getDefault('drawingSegmentType') != 'qcurve':
-	 	print "WARNING: Preferences are set to 'Draw with Cubic (PostScript) curves'"
 	 	return False
 	 else:
 	 	return True
@@ -270,6 +270,7 @@ class TTHTool(BaseEventTool):
 		self.doneGeneratingPartialFont = False
 		self.fontClosed = False
 		self.p_glyphList = []
+		self.glyphTTHCommands = []
 		self.commandLabelPos = {}
 		self.tthtm = tthtm
 		self.startPoint = None
@@ -284,6 +285,8 @@ class TTHTool(BaseEventTool):
 		self.testTextBox = TextBox((10, 10, 200, 22), "Hello this is a test", alignment="left", sizeStyle="regular")
 
 		self.cachedPathes = {'grid':None, 'centers':None}
+
+		self.messageInFront = False
 
 
 	### TTH Tool Icon and cursor ###
@@ -310,14 +313,15 @@ class TTHTool(BaseEventTool):
 		return cursorDefault
 	###############
 
-	def becomeActive(self): 	
+	def becomeActive(self):
+		if checkDrawingPreferences() == False:
+			setDefault('drawingSegmentType', 'qcurve')
+			self.messageInFront = True
+		 	Dialogs.Message("WARNING:\nPreferences are set to 'Draw with Cubic (PostScript) curves'\nPreferences changed to 'Draw with Quadratic (TrueType) curves'")
+			self.messageInFront = False
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
 		self.previewInGlyphWindow = None
-
-		if checkDrawingPreferences() == False:
-			setDefault('drawingSegmentType', 'qcurve')
-		 	print "Preferences changed to 'Draw with Cubic (TrueType) curves'"
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
@@ -1310,7 +1314,7 @@ class TTHTool(BaseEventTool):
 
 	def deleteAllCommandsCallback(self, item):
 		emptyProgram = ''
-		self.glyphTTHCommands = {}
+		self.glyphTTHCommands = []
 		self.commandLabelPos = {}
 		self.tthtm.g.prepareUndo('Clear Program')
 		self.tthtm.g.lib['com.fontlab.ttprogram'] = Data(emptyProgram)
@@ -2687,7 +2691,7 @@ class TTHTool(BaseEventTool):
 						self.drawDelta(scale, point, value, cmdIndex)
 
 
-		if self.tthtm.showPreviewInGlyphWindow == 1:
+		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
 			superview = self.getNSView().enclosingScrollView().superview()
 			if self.previewInGlyphWindow == None:
 				self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
