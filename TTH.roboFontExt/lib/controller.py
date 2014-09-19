@@ -288,6 +288,7 @@ class TTHTool(BaseEventTool):
 
 		self.previewInGlyphWindow = None
 		self.messageInFront = False
+		self.drawingPreferencesChanged = False
 
 
 	### TTH Tool Icon and cursor ###
@@ -318,8 +319,9 @@ class TTHTool(BaseEventTool):
 		self.previewInGlyphWindow = None
 		if checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
+			self.drawingPreferencesChanged = True
 			self.messageInFront = True
-		 	Dialogs.Message("WARNING:\nPreferences are set to 'Draw with Cubic (PostScript) curves'\nPreferences changed to 'Draw with Quadratic (TrueType) curves'")
+		 	Dialogs.Message("INFO:\nPreferences changed to 'Draw with Quadratic (TrueType) curves'")
 			self.messageInFront = False
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
@@ -337,6 +339,12 @@ class TTHTool(BaseEventTool):
 			self.previewWindow.closePreview()
 		if self.tthtm.assemblyWindowVisible == 1:
 			self.assemblyWindow.closeAssembly()
+
+		if self.drawingPreferencesChanged == True:
+			setDefault('drawingSegmentType', 'curve')
+			self.messageInFront = True
+		 	Dialogs.Message("INFO:\nPreferences changed back to 'Draw with Cubic (PostScript) curves'")
+			self.messageInFront = False
 
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
