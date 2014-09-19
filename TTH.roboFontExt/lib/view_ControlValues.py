@@ -266,7 +266,7 @@ class StemView(object):
 				print 'stem name can only contain characters:', allowed
 				return False
 
-		if (px1 > px2) or (px2 > px3) or (px3 > px4) or (px4 > px5) or (px5 > px6):
+		if (int(px1) > int(px2)) or (int(px2) > int(px3)) or (int(px3) > int(px4)) or (int(px4) > int(px5)) or (int(px5) > int(px6)):
 			print 'pixel jumps must be in ascending order'
 			return False
 

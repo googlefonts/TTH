@@ -286,6 +286,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
+		self.previewInGlyphWindow = None
 		self.messageInFront = False
 
 
@@ -314,6 +315,7 @@ class TTHTool(BaseEventTool):
 	###############
 
 	def becomeActive(self):
+		self.previewInGlyphWindow = None
 		if checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
 			self.messageInFront = True
@@ -321,11 +323,10 @@ class TTHTool(BaseEventTool):
 			self.messageInFront = False
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
-		self.previewInGlyphWindow = None
 
 	def becomeInactive(self):
 	#	self.FL_Windows.closeAll()
-		if self.tthtm.showPreviewInGlyphWindow == 1:
+		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow != None:
 			self.previewInGlyphWindow.removeFromSuperview()
 
 		self.centralWindow.closeCentral()
@@ -1032,6 +1033,8 @@ class TTHTool(BaseEventTool):
 				w = stem['width']
 				candidatesList.append((abs(w - dist), stemName))
 		candidatesList.sort()
+		if len(candidatesList) == 0:
+			return None
 		return candidatesList[0][1]
 
 	def didUndo(self, font):
@@ -1082,7 +1085,9 @@ class TTHTool(BaseEventTool):
 				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemX
 				elif self.tthtm.selectedStemX == 'Guess' and self.tthtm.roundBool != 1:
-					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
+					stem = self.guessStem(self.startPoint, self.endPoint)
+					if stem != None:
+						newCommand['stem'] = stem
 				elif self.tthtm.roundBool == 1:
 					newCommand['round'] = 'true'
 			else:
@@ -1090,7 +1095,9 @@ class TTHTool(BaseEventTool):
 				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess' and self.tthtm.roundBool != 1:
 					newCommand['stem'] = self.tthtm.selectedStemY
 				elif self.tthtm.selectedStemY == 'Guess' and self.tthtm.roundBool != 1:
-					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
+					stem = self.guessStem(self.startPoint, self.endPoint)
+					if stem != None:
+						newCommand['stem'] = stem
 				elif self.tthtm.roundBool == 1:
 					newCommand['round'] = 'true'
 
@@ -1107,7 +1114,9 @@ class TTHTool(BaseEventTool):
 				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess':
 					newCommand['stem'] = self.tthtm.selectedStemX
 				elif self.tthtm.selectedStemX == 'Guess':
-					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
+					stem = self.guessStem(self.startPoint, self.endPoint)
+					if stem != None:
+						newCommand['stem'] = stem
 				else:
 					newCommand['round'] = 'true'
 			else:
@@ -1115,7 +1124,9 @@ class TTHTool(BaseEventTool):
 				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess':
 					newCommand['stem'] = self.tthtm.selectedStemY
 				elif self.tthtm.selectedStemY == 'Guess':
-					newCommand['stem'] = self.guessStem(self.startPoint, self.endPoint)
+					stem = self.guessStem(self.startPoint, self.endPoint)
+					if stem != None:
+						newCommand['stem'] = stem
 				else:
 					newCommand['round'] = 'true'
 
