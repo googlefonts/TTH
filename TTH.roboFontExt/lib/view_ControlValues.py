@@ -7,6 +7,7 @@ import string
 
 import tt_tables
 import TTHintAsm
+import Automation
 
 FL_tth_key = "com.fontlab.v2.tth"
 
@@ -307,6 +308,7 @@ class SheetControlValues(object):
 		self.tthtm = model
 		self.controller = controller
 		self.w = Sheet((1000, 450), parentWindow=parent)
+		self.automation = Automation.Automation(self, self.controller)
 		w = self.w
 		w.generalBox = Box((10, 10, -10, 30))
 		w.generalBox.StemSnapTitle= TextBox((10, 2, 250, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "small")
@@ -323,6 +325,7 @@ class SheetControlValues(object):
 		w.zoneBox = Box((10, 50, 485, 350))
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
+		w.zoneBox.autoZoneButton = Button((-50, 10, 40, 20), "Auto", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		w.stemBox = Box((505, 50, 485, 350))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
@@ -330,6 +333,10 @@ class SheetControlValues(object):
 
 		w.applyButton = Button((-130, -32, 120, 22), "Apply and Close", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.open()
+
+	def autoZoneButtonCallback(self, sender):
+		self.automation.autoZones(self.tthtm.f)
+
 
 	def applyButtonCallback(self, sender):
 		self.controller.changeStemSnap(self.w.generalBox.editTextStemSnap.get())
@@ -369,3 +376,7 @@ class SheetControlValues(object):
 
 		self.tthtm.f.lib[FL_tth_key]["codeppm"] = value
 		self.tthtm.codeppm = value
+
+reload(tt_tables)
+reload(TTHintAsm)
+reload(Automation)
