@@ -13,6 +13,7 @@ import robofab.interface.all.dialogs as Dialogs
 from mojo.roboFont import *
 from vanilla import *
 from defconAppKit.windows.baseWindow import BaseWindowController
+from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 import tempfile
 import time
 
@@ -496,7 +497,7 @@ class TTHTool(BaseEventTool):
 		if self.doneGeneratingPartialFont == False:
 			return
 		self.tthtm.setBitmapPreview(preview)
-		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, preview)
+		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, preview, self)
 		previewIndex = self.getPreviewListIndex(preview)
 		self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
@@ -1761,7 +1762,7 @@ class TTHTool(BaseEventTool):
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
 		self.generatePartialTempFont()
-		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection)
+		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection, self)
 
 	def resetglyph(self):
 		self.tthtm.setGlyph(self.getGlyph())
@@ -2513,6 +2514,14 @@ class TTHTool(BaseEventTool):
 
 			self.tthtm.textRenderer.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
 			self.tthtm.textRenderer.render_text(text)
+
+			self.clickableGlyphs = {}
+			pen = (20, self.tthtm.previewWindowPosSize[3] - 250)
+			for c in text:
+				index = self.tthtm.textRenderer.face.get_char_index(c)
+				self.clickableGlyphs[(pen[0], pen[1], pen[0] + int( self.tthtm.textRenderer.get_advance(index)[0] / 64 ), pen[1] + self.tthtm.PPM_Size)] = splitText(c, self.tthtm.f.naked().unicodeData)
+				pen = (pen[0] + int( self.tthtm.textRenderer.get_advance(index)[0] / 64 ), pen[1])
+				
 
 			# render user string at various sizes
 			y = self.tthtm.previewWindowPosSize[3] - 310
