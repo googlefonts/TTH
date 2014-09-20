@@ -1768,7 +1768,6 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setGlyph(self.getGlyph())
 		if self.tthtm.g == None:
 			return
-		self.tthtm.setFont(self.getGlyph().getParent())
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)

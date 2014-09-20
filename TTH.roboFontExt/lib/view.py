@@ -471,11 +471,7 @@ class previewWindow(object):
 
 		for coords, glyphName in self.TTHToolInstance.clickableGlyphs.items():
 			if x >= coords[0] and x <= coords[2] and y >= coords[1] and y <= coords[3]:
-				pass
-				# LOOKING FOR A _SETGLYPH METHOD, DOES IT EXIST ?
-				# self.tthtm.setGlyph(self.tthtm.f[glyphName[0]])
-				# self.TTHToolInstance.glyph(glyphName[0])
-				# print coords, self.tthtm.g.name
+				SetCurrentGlyphByName(glyphName[0])
 
 	def draw(self):
 		self.TTHToolInstance.drawPreviewWindow()
