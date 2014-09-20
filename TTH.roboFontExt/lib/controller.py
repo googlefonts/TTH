@@ -188,10 +188,10 @@ def checkSegmentType(font):
 	except:
 		segmentType = font.preferedSegmentType
 
-	if segmentType != 'qCurve':
-		return False
-	else:
+	if segmentType == 'qcurve' or segmentType == 'qCurve':
 		return True
+	else:
+		return False
 
 
 class callbackAlignment():
@@ -332,7 +332,7 @@ class TTHTool(BaseEventTool):
 			setDefault('drawingSegmentType', 'qcurve')
 			self.drawingPreferencesChanged = True
 			self.messageInFront = True
-		 	Dialogs.Message("INFO:\nPreferences changed to 'Draw with Quadratic (TrueType) curves'")
+		 	Dialogs.Message("INFO:\nPreferences changed to\n'Draw with Quadratic (TrueType) curves'")
 			self.messageInFront = False
 		self.resetFonts(createWindows=True)
 		self.updatePartialFont()
@@ -354,7 +354,7 @@ class TTHTool(BaseEventTool):
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
 			self.messageInFront = True
-		 	Dialogs.Message("INFO:\nPreferences changed back to 'Draw with Cubic (PostScript) curves'")
+		 	Dialogs.Message("INFO:\nPreferences changed back to\n'Draw with Cubic (PostScript) curves'")
 			self.messageInFront = False
 
 	def fontResignCurrent(self, font):
