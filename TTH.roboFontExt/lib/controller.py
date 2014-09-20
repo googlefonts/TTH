@@ -182,6 +182,17 @@ def checkDrawingPreferences():
 	 else:
 	 	return True
 
+def checkSegmentType(font):
+	try:
+		segmentType = font.preferredSegmentType
+	except:
+		segmentType = font.preferedSegmentType
+
+	if segmentType != 'qCurve':
+		return False
+	else:
+		return True
+
 
 class callbackAlignment():
 	def __init__(self, TTHtoolInstance, alignmentType):
@@ -1685,6 +1696,10 @@ class TTHTool(BaseEventTool):
 		if not self.allFonts:
 			return
 		self.tthtm.setFont(loadCurrentFont(self.allFonts))
+		if checkSegmentType(self.tthtm.f) == False:
+			self.messageInFront = True
+		 	Dialogs.Message("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
+			self.messageInFront = False
 		self.unicodeToNameDict = self.buildUnicodeToNameDict(self.tthtm.f)
 		self.tthtm.resetPitch()
 		self.tthtm.setControlValues()
@@ -1752,7 +1767,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setGlyph(self.getGlyph())
 		if self.tthtm.g == None:
 			return
-
+		self.tthtm.setFont(self.getGlyph().getParent())
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
 		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
