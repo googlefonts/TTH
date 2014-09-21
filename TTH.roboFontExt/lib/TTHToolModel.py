@@ -177,13 +177,13 @@ class TTHToolModel():
 		c_zoneDict['Width'] = zone['width']
 		deltaString = ''
 		if 'delta' in zone:
-			count = 0
+	
 			for ppEmSize in zone['delta']:
 				delta= str(zone['delta'][str(ppEmSize)]) + '@' + str(ppEmSize)
 				deltaString += delta
-				if count > 0:
-					deltaString += ','
-				count += 1
+			
+				deltaString += ','
+			
 			c_zoneDict['Delta'] = deltaString
 		else:
 			c_zoneDict['Delta'] = '0@0'

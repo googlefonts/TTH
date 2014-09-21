@@ -6,6 +6,7 @@ from mojo.extensions import *
 from mojo.canvas import Canvas
 from lib.doodleMenus import BaseMenu
 from AppKit import *
+from defconAppKit.windows.baseWindow import BaseWindowController
 
 import string
 
@@ -150,7 +151,7 @@ class centralWindow(object):
 			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
 
 	def ControlValuesButtonCallback(self, sender):
-		sheet = CV.SheetControlValues(self.wCentral, self.tthtm, self.TTHToolInstance)
+		sheet = CV.SheetControlValues(self, self.wCentral, self.tthtm, self.TTHToolInstance)
 
 	def ProgramShowButtonCallback(self, sender):
 		if self.tthtm.programWindowVisible == 0:

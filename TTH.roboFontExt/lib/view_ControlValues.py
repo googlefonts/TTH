@@ -304,9 +304,10 @@ class StemView(object):
 
 class SheetControlValues(object):
 
-	def __init__(self, parent, model, controller):
+	def __init__(self, baseWindow, parent, model, controller):
 		self.tthtm = model
 		self.controller = controller
+		self.baseWindow = baseWindow
 		self.w = Sheet((1000, 450), parentWindow=parent)
 		self.automation = Automation.Automation(self, self.controller)
 		w = self.w
@@ -330,13 +331,20 @@ class SheetControlValues(object):
 		w.stemBox = Box((505, 50, 485, 350))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
 		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.buildStemsUIList(False))
+		w.stemBox.autoStemButton = Button((-50, 10, 40, 20), "Auto", sizeStyle = "small", callback=self.autoStemButtonCallback)
 
-		w.applyButton = Button((-130, -32, 120, 22), "Apply and Close", sizeStyle = "small", callback=self.applyButtonCallback)
+		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
+		w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		w.open()
 
 	def autoZoneButtonCallback(self, sender):
 		self.automation.autoZones(self.tthtm.f)
 
+	def autoStemButtonCallback(self, sender):
+		self.automation.autoStems(self.tthtm.f)
+
+	def closeButtonCallback(self, sender):
+		self.w.close()
 
 	def applyButtonCallback(self, sender):
 		self.controller.changeStemSnap(self.w.generalBox.editTextStemSnap.get())
@@ -345,7 +353,6 @@ class SheetControlValues(object):
 		self.controller.resetFonts()
 		self.controller.updateGlyphProgram()
 		self.controller.refreshGlyph()
-		self.w.close()
 
 	def editTextStemSnapCallback(self, sender):
 		try:
