@@ -1,6 +1,11 @@
 import math
 import string
 
+try:
+	import freetype as FT
+except:
+	print 'ERROR: freetype not installed'
+
 def direction(point1, point2):
 	direction_x = 4
 	direction_y = 4
@@ -140,7 +145,7 @@ def make_hPointsList(g):
 				hPointsList.append(hPoint)
 	return hPointsList
 	
-def getColor(point1, point2, g):
+def getColor(point1, point2, g, maxStemX, maxStemY):
 	hasSomeBlack = False
 	hasSomeWhite = False
 	color = ''
@@ -164,12 +169,36 @@ def getColor(point1, point2, g):
 		color = 'White'
 	return color
 
+def getColor_fromBitmap(poit1, point2, g, maxStemX, maxStemY, bitmap):
+	hasSomeBlack = False
+	hasSomeWhite = False
+	color = ''
+	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
+		hypothLength = int(hypothenuse(point1, point2))
+		for j in range(1, hypothLength-1):
+			cp_x = point1.x + ((j)/hypothLength)*(point2.x - point1.x)
+			cp_y = point1.y + ((j)/hypothLength)*(point2.y - point1.y) 
 
-def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
+
+def makeStemsList(TTHToolInstance, f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	stemsListX = []
-	stemsListY = []	
+	stemsListY = []
+
+	# if g.unicode == None:
+	# 	return
+
+	# face = FT.Face(TTHToolInstance.partialtempfontpath)
+	# face.set_pixel_sizes(1000, 1000)
+	# face.load_char(g.name, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_MONO )
+
+	# bitmap_buffer = face.glyph.bitmap.buffer
+	# bitmap_rows = face.glyph.bitmap.rows
+
+	# print bitmap_rows
+
+
 	for source_hPoint in range(len(g_hPoints)):
 		for target_hPoint in range(len(g_hPoints)):
 			sourcePoint = g_hPoints[source_hPoint][0]
@@ -182,27 +211,27 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 			angleOut_source = g_hPoints[source_hPoint][6]
 			angleIn_target =  g_hPoints[target_hPoint][5]
 			angleOut_target = g_hPoints[target_hPoint][6]
-			color = getColor(sourcePoint, targetPoint, g)
-			if color == 'Black':
-				c_distance = distance(sourcePoint, targetPoint)
-				stem = (sourcePoint, targetPoint, c_distance)
-				hypoth = hypothenuse(sourcePoint, targetPoint)
-				## if Source and Target are almost aligned
-				# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
-				if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
-					## if Source and Target have opposite direction
-					if opposite(directionIn_source, directionIn_target) or opposite(directionIn_source, directionOut_target) or opposite(directionOut_source, directionIn_target):
-						
-						## if they are horizontal, treat the stem on the Y axis
-						if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
-							if (minStemY - 20*(minStemY/100) < c_distance[1] < maxStemY + 20*(maxStemY/100)) and (minStemY - 20*(minStemY/100) <= hypoth <= maxStemY + 20*(maxStemY/100)):
-								stemsListY_temp.append(stem)
-								
-						## if they are vertical, treat the stem on the X axis		
-						if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
+			#color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
+			#if color == 'Black':
+			c_distance = distance(sourcePoint, targetPoint)
+			stem = (sourcePoint, targetPoint, c_distance)
+			hypoth = hypothenuse(sourcePoint, targetPoint)
+			## if Source and Target are almost aligned
+			# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
+			if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
+				## if Source and Target have opposite direction
+				if opposite(directionIn_source, directionIn_target) or opposite(directionIn_source, directionOut_target) or opposite(directionOut_source, directionIn_target):
+					
+					## if they are horizontal, treat the stem on the Y axis
+					if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
+						if (minStemY - 20*(minStemY/100) < c_distance[1] < maxStemY + 20*(maxStemY/100)) and (minStemY - 20*(minStemY/100) <= hypoth <= maxStemY + 20*(maxStemY/100)):
+							stemsListY_temp.append(stem)
 							
-							if (minStemX - 20*(minStemX/100) <= c_distance[0] <= maxStemX + 20*(maxStemX/100)) and (minStemX - 20*(minStemX/100)<= hypoth <= maxStemX + 20*(maxStemX/100)):
-								stemsListX_temp.append(stem)
+					## if they are vertical, treat the stem on the X axis		
+					if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
+						
+						if (minStemX - 20*(minStemX/100) <= c_distance[0] <= maxStemX + 20*(maxStemX/100)) and (minStemX - 20*(minStemX/100)<= hypoth <= maxStemX + 20*(maxStemX/100)):
+							stemsListX_temp.append(stem)
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
@@ -265,13 +294,13 @@ class Automation():
 		if not g:
 			print "WARNING: glyph 'o' missing"
 		o_hPoints = make_hPointsList(g)
-		(o_stemsListX, o_stemsListY) = makeStemsList(font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		(o_stemsListX, o_stemsListY) = makeStemsList(self.TTHToolInstance, font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		g = font['O']
 		if not g:
 			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		(O_stemsListX, O_stemsListY) = makeStemsList(self.TTHToolInstance, font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		Xs = []
 		for i in O_stemsListX:
@@ -286,16 +315,15 @@ class Automation():
 		minStemX = min(Ys)
 
 		for g in font:
-			if g.selected:
-				g_hPoints = make_hPointsList(g)
-				(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
-				for stem in self.stemsListX:
-					originalStemsXList.append(roundbase(stem[2][0], 16))
-				for stem in self.stemsListY:
-					originalStemsYList.append(roundbase(stem[2][1], 16))
-				
-				stemsValuesXList = originalStemsXList
-				stemsValuesYList = originalStemsYList
+			g_hPoints = make_hPointsList(g)
+			(self.stemsListX, self.stemsListY) = makeStemsList(self.TTHToolInstance, font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+			for stem in self.stemsListX:
+				originalStemsXList.append(roundbase(stem[2][0], 16))
+			for stem in self.stemsListY:
+				originalStemsYList.append(roundbase(stem[2][1], 16))
+			
+			stemsValuesXList = originalStemsXList
+			stemsValuesYList = originalStemsYList
 			
 		valuesXDict = {}
 		for StemXValue in stemsValuesXList:
@@ -327,9 +355,38 @@ class Automation():
 		for keyValue in keyValueYList:
 			stemSnapVList.append(keyValue[0])
 
-		print stemSnapHList
-		print stemSnapVList
+		for width in stemSnapHList:
+			name = 'Y_' + str(width)
+			stemPitch = float(self.tthtm.UPM)/width
+			px1 = str(0)
+			px2 = str(int(2*stemPitch))
+			px3 = str(int(3*stemPitch))
+			px4 = str(int(4*stemPitch))
+			px5 = str(int(5*stemPitch))
+			px6 = str(int(6*stemPitch))
+
+			self.addStem(True, name, width, px1, px2, px3, px4, px5, px6)
+
+		for width in stemSnapVList:
+			name = 'X_' + str(width)
+			stemPitch = float(self.tthtm.UPM)/width
+			px1 = str(0)
+			px2 = str(int(2*stemPitch))
+			px3 = str(int(3*stemPitch))
+			px4 = str(int(4*stemPitch))
+			px5 = str(int(5*stemPitch))
+			px6 = str(int(6*stemPitch))
+
+			self.addStem(False, name, width, px1, px2, px3, px4, px5, px6)
 					
+	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
+		if stemName in self.tthtm.stems:
+			return
+		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		if isHorizontal:
+			self.TTHToolInstance.addStem(stemName, stemDict, self.controller.horizontalStemView)
+		else:
+			self.TTHToolInstance.addStem(stemName, stemDict, self.controller.verticalStemView)
 
 
 	def autoZones(self, font):
