@@ -1,11 +1,6 @@
 import math
 import string
 
-minStemX = 10
-minStemY = 10
-maxStemX = 400
-maxStemY = 400
-
 def direction(point1, point2):
 	direction_x = 4
 	direction_y = 4
@@ -170,7 +165,7 @@ def getColor(point1, point2, g):
 	return color
 
 
-def makeStemsList(f, g_hPoints, g, italicAngle):
+def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	stemsListX = []
@@ -247,6 +242,10 @@ class Automation():
 
 
 	def autoStems(self, font):
+		minStemX = 10
+		minStemY = 10
+		maxStemX = 400
+		maxStemY = 400
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -266,32 +265,34 @@ class Automation():
 		if not g:
 			print "WARNING: glyph 'o' missing"
 		o_hPoints = make_hPointsList(g)
-		(o_stemsListX, o_stemsListY) = makeStemsList(font, o_hPoints, g, ital)
+		(o_stemsListX, o_stemsListY) = makeStemsList(font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		g = font['O']
 		if not g:
 			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital)
+		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		Xs = []
 		for i in O_stemsListX:
 			Xs.append(i[2][0])
 		maxStemX = max(Xs)
+		maxStemY = max(Xs)
 
 		Ys = []
 		for i in o_stemsListY:
 			Ys.append(i[2][1])
 		minStemY = min(Ys)
+		minStemX = min(Ys)
 
 		for g in font:
 			if g.selected:
 				g_hPoints = make_hPointsList(g)
-				(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital)
+				(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 				for stem in self.stemsListX:
-					originalStemsXList.append(stem[2][0])
+					originalStemsXList.append(roundbase(stem[2][0], 16))
 				for stem in self.stemsListY:
-					originalStemsYList.append(stem[2][1])
+					originalStemsYList.append(roundbase(stem[2][1], 16))
 				
 				stemsValuesXList = originalStemsXList
 				stemsValuesYList = originalStemsYList
