@@ -497,7 +497,7 @@ class previewWindow(object):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
 		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
 		self.wPreview.view.getNSView().setNeedsDisplay_(True)
-
+		
 	def DisplayFromEditTextCallback(self, sender):
 		try:
 			size = int(sender.get())

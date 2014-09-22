@@ -955,7 +955,7 @@ class TTHTool(BaseEventTool):
 			else:
 				self.tthtm.showOutline = 1
 			UpdateCurrentGlyphView()
-		elif event.characters() == 'b':
+		elif event.characters() == 'B':
 			if self.tthtm.showBitmap == 1:
 				self.tthtm.showBitmap = 0
 			else:
@@ -2545,10 +2545,6 @@ class TTHTool(BaseEventTool):
 					y = self.tthtm.previewWindowPosSize[3] - 310
 					advanceWidthUserString = self.tthtm.textRenderer.get_pen()[0]
 
-			if advanceWidthUserString > advanceWidthCurrentGlyph and advanceWidthUserString > self.tthtm.previewWindowViewSize[0]:
-				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
-			elif advanceWidthUserString <= self.tthtm.previewWindowViewSize[0]:
-				self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
 
 			# render current glyph at various sizes
 			advance = 10
@@ -2567,12 +2563,15 @@ class TTHTool(BaseEventTool):
 				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
 				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
 				advance += delta_pos[0] + 5
-				advanceWidthCurrentGlyph = self.tthtm.textRenderer.get_pen()[0]
-			if advanceWidthCurrentGlyph > advanceWidthUserString and advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0]:
-				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
-			elif advanceWidthCurrentGlyph <= self.tthtm.previewWindowViewSize[0]:
-				self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+				advanceWidthCurrentGlyph = advance
 
+
+			self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+
+			if advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0] and advanceWidthUserString > advanceWidthCurrentGlyph:
+				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+			else:
+				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
 				
 
 	def drawBackground(self, scale):
