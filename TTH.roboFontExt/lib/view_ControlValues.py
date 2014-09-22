@@ -223,7 +223,7 @@ class StemView(object):
 		except ValueError:
 			value = 1
 		sender.set(value)
-		stemPitch = float(self.controller.controller.tthtm.UPM)/value
+		stemPitch = float(self.controller.controller.tthtm.UPM)/roundbase(value, 20)
 		self.box.editTextStem1px.set(str(0))
 		self.box.editTextStem2px.set(str(int(2*stemPitch)))
 		self.box.editTextStem3px.set(str(int(3*stemPitch)))

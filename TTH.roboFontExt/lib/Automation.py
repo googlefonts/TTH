@@ -65,8 +65,8 @@ def closeAngle(angle1, angle2):
 	return (abs(diff)<5)
 
 def approxEqual(a1, a2):
-	#return abs(a1 - a2) < 10*(abs(a1)/100)
-	return ( abs(a1 - a2) <= 10*(abs(a1)/100) )
+	a_max = max(a1, a2)
+	return ( abs(a1 - a2) <= 10*(a_max/100) )
 
 def opposite(direction1, direction2):
 	isOpposite = False
@@ -82,7 +82,7 @@ def opposite(direction1, direction2):
 	
 def isVertical(vector):
 	vector = abs(vector)
-	if ((45 < vector) and (vector < 135)):
+	if ((65 < vector) and (vector < 115)):
 		return True
 	else:
 		return False
@@ -152,15 +152,15 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
 		hypothLength = int(hypothenuse(point1, point2))
 		for j in range(1, hypothLength-1):
-			cp_x = point1.x + ((j)/hypothLength)*(point2.x - point1.x)
-			cp_y = point1.y + ((j)/hypothLength)*(point2.y - point1.y) 
+			cp_x = point1.x + ((j*1.0)/hypothLength)*(point2.x - point1.x)
+			cp_y = point1.y + ((j*1.0)/hypothLength)*(point2.y - point1.y) 
 			if g.pointInside((cp_x, cp_y)):
 				hasSomeBlack = True
 			else:
 				hasSomeWhite = True
 			if hasSomeBlack and hasSomeWhite:
 				break
-			
+
 	if hasSomeBlack and hasSomeWhite:	
 		color = 'Gray'
 	elif hasSomeBlack:
@@ -169,35 +169,12 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 		color = 'White'
 	return color
 
-def getColor_fromBitmap(poit1, point2, g, maxStemX, maxStemY, bitmap):
-	hasSomeBlack = False
-	hasSomeWhite = False
-	color = ''
-	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
-		hypothLength = int(hypothenuse(point1, point2))
-		for j in range(1, hypothLength-1):
-			cp_x = point1.x + ((j)/hypothLength)*(point2.x - point1.x)
-			cp_y = point1.y + ((j)/hypothLength)*(point2.y - point1.y) 
 
-
-def makeStemsList(TTHToolInstance, f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
+def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	stemsListX = []
 	stemsListY = []
-
-	# if g.unicode == None:
-	# 	return
-
-	# face = FT.Face(TTHToolInstance.partialtempfontpath)
-	# face.set_pixel_sizes(1000, 1000)
-	# face.load_char(g.name, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_MONO )
-
-	# bitmap_buffer = face.glyph.bitmap.buffer
-	# bitmap_rows = face.glyph.bitmap.rows
-
-	# print bitmap_rows
-
 
 	for source_hPoint in range(len(g_hPoints)):
 		for target_hPoint in range(len(g_hPoints)):
@@ -211,27 +188,30 @@ def makeStemsList(TTHToolInstance, f, g_hPoints, g, italicAngle, minStemX, minSt
 			angleOut_source = g_hPoints[source_hPoint][6]
 			angleIn_target =  g_hPoints[target_hPoint][5]
 			angleOut_target = g_hPoints[target_hPoint][6]
-			#color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
-			#if color == 'Black':
-			c_distance = distance(sourcePoint, targetPoint)
-			stem = (sourcePoint, targetPoint, c_distance)
-			hypoth = hypothenuse(sourcePoint, targetPoint)
-			## if Source and Target are almost aligned
-			# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
-			if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
-				## if Source and Target have opposite direction
-				if opposite(directionIn_source, directionIn_target) or opposite(directionIn_source, directionOut_target) or opposite(directionOut_source, directionIn_target):
-					
-					## if they are horizontal, treat the stem on the Y axis
-					if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
-						if (minStemY - 20*(minStemY/100) < c_distance[1] < maxStemY + 20*(maxStemY/100)) and (minStemY - 20*(minStemY/100) <= hypoth <= maxStemY + 20*(maxStemY/100)):
-							stemsListY_temp.append(stem)
+			if source_hPoint == target_hPoint:
+				continue
+			if ( (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)) ) or ( (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)) ):
+				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
+				if color == 'Black':
+					c_distance = distance(sourcePoint, targetPoint)
+					stem = (sourcePoint, targetPoint, c_distance)
+					hypoth = hypothenuse(sourcePoint, targetPoint)
+					## if Source and Target are almost aligned
+					# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
+					if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
+						## if Source and Target have opposite direction
+						if opposite(directionIn_source, directionIn_target) or opposite(directionIn_source, directionOut_target) or opposite(directionOut_source, directionIn_target):
 							
-					## if they are vertical, treat the stem on the X axis		
-					if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
-						
-						if (minStemX - 20*(minStemX/100) <= c_distance[0] <= maxStemX + 20*(maxStemX/100)) and (minStemX - 20*(minStemX/100)<= hypoth <= maxStemX + 20*(maxStemX/100)):
-							stemsListX_temp.append(stem)
+							## if they are horizontal, treat the stem on the Y axis
+							if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
+								if (minStemY - 20*(minStemY/100) < c_distance[1] < maxStemY + 20*(maxStemY/100)) and (minStemY - 20*(minStemY/100) <= hypoth <= maxStemY + 20*(maxStemY/100)):
+									stemsListY_temp.append(stem)
+									
+							## if they are vertical, treat the stem on the X axis		
+							if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
+								
+								if (minStemX - 20*(minStemX/100) <= c_distance[0] <= maxStemX + 20*(maxStemX/100)) and (minStemX - 20*(minStemX/100)<= hypoth <= maxStemX + 20*(maxStemX/100)):
+									stemsListX_temp.append(stem)
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
@@ -271,8 +251,8 @@ class Automation():
 
 
 	def autoStems(self, font):
-		minStemX = 10
-		minStemY = 10
+		minStemX = 20
+		minStemY = 20
 		maxStemX = 400
 		maxStemY = 400
 
@@ -290,17 +270,17 @@ class Automation():
 		else:
 			ital = 0
 
-		g = font['o']
-		if not g:
-			print "WARNING: glyph 'o' missing"
-		o_hPoints = make_hPointsList(g)
-		(o_stemsListX, o_stemsListY) = makeStemsList(self.TTHToolInstance, font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		# g = font['o']
+		# if not g:
+		# 	print "WARNING: glyph 'o' missing"
+		# o_hPoints = make_hPointsList(g)
+		# (o_stemsListX, o_stemsListY) = makeStemsList(font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		g = font['O']
 		if not g:
 			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g)
-		(O_stemsListX, O_stemsListY) = makeStemsList(self.TTHToolInstance, font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
 
 		Xs = []
 		for i in O_stemsListX:
@@ -308,56 +288,59 @@ class Automation():
 		maxStemX = max(Xs)
 		maxStemY = max(Xs)
 
-		Ys = []
-		for i in o_stemsListY:
-			Ys.append(i[2][1])
-		minStemY = min(Ys)
-		minStemX = min(Ys)
+		# Ys = []
+		# for i in o_stemsListY:
+		# 	Ys.append(i[2][1])
+		# minStemY = min(Ys)
+		# minStemX = min(Ys)
+		stemsValuesXList = []
+		stemsValuesYList = []
 
 		for g in font:
-			g_hPoints = make_hPointsList(g)
-			(self.stemsListX, self.stemsListY) = makeStemsList(self.TTHToolInstance, font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
-			for stem in self.stemsListX:
-				originalStemsXList.append(roundbase(stem[2][0], 16))
-			for stem in self.stemsListY:
-				originalStemsYList.append(roundbase(stem[2][1], 16))
-			
-			stemsValuesXList = originalStemsXList
-			stemsValuesYList = originalStemsYList
-			
-		valuesXDict = {}
-		for StemXValue in stemsValuesXList:
+			if g.name in string.ascii_letters:
+				( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, 1)
+				stemsValuesXList.extend(originalStemsXList)
+				stemsValuesYList.extend(originalStemsYList)
+
+		self.sortAndStoreValues(stemsValuesXList, False, '')
+		self.sortAndStoreValues(stemsValuesYList, True, '')
+
+	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor):
+		originalStemsXList = []
+		originalStemsYList = []
+		g_hPoints = make_hPointsList(g)
+		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		for stem in self.stemsListX:
+			originalStemsXList.append(roundbase(stem[2][0], roundFactor))
+		for stem in self.stemsListY:
+			originalStemsYList.append(roundbase(stem[2][1], roundFactor))
+
+		return (originalStemsXList, originalStemsYList)
+	
+
+	def sortAndStoreValues(self, stemsValuesList, isHorizontal, tag):
+		valuesDict = {}
+		stemSnapList = []
+		for StemValue in stemsValuesList:
 			try:
-				valuesXDict[StemXValue] += 1
+				valuesDict[StemValue] += 1
 			except KeyError:
-				valuesXDict[StemXValue] = 1
+				valuesDict[StemValue] = 1
 		
-		valuesYDict = {}
-		for StemYValue in stemsValuesYList:
-			try:
-				valuesYDict[StemYValue] += 1
-			except KeyError:
-				valuesYDict[StemYValue] = 1
 		
-		keyValueXList = valuesXDict.items()
-		keyValueXList.sort(compare)
-		keyValueXList = keyValueXList[:12]
+		keyValueList = valuesDict.items()
+		keyValueList.sort(compare)
+		keyValueList = keyValueList[:6]
 
-		keyValueYList = valuesYDict.items()
-		keyValueYList.sort(compare)
-		keyValueYList = keyValueYList[:12]
-		
-		
-		for keyValue in keyValueXList:
-			stemSnapHList.append(keyValue[0])
-		
+		for keyValue in keyValueList:
+			stemSnapList.append(keyValue[0])
 
-		for keyValue in keyValueYList:
-			stemSnapVList.append(keyValue[0])
-
-		for width in stemSnapHList:
-			name = 'Y_' + str(width)
-			stemPitch = float(self.tthtm.UPM)/width
+		for width in stemSnapList:
+			if isHorizontal == False:
+				name = tag + '_X_' + str(width)
+			else:
+				name = tag + '_Y_' + str(width)
+			stemPitch = float(self.tthtm.UPM)/roundbase(width, 20)
 			px1 = str(0)
 			px2 = str(int(2*stemPitch))
 			px3 = str(int(3*stemPitch))
@@ -365,19 +348,8 @@ class Automation():
 			px5 = str(int(5*stemPitch))
 			px6 = str(int(6*stemPitch))
 
-			self.addStem(True, name, width, px1, px2, px3, px4, px5, px6)
+			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
-		for width in stemSnapVList:
-			name = 'X_' + str(width)
-			stemPitch = float(self.tthtm.UPM)/width
-			px1 = str(0)
-			px2 = str(int(2*stemPitch))
-			px3 = str(int(3*stemPitch))
-			px4 = str(int(4*stemPitch))
-			px5 = str(int(5*stemPitch))
-			px6 = str(int(6*stemPitch))
-
-			self.addStem(False, name, width, px1, px2, px3, px4, px5, px6)
 					
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
 		if stemName in self.tthtm.stems:
@@ -394,7 +366,7 @@ class Automation():
 		capHeightZone = None
 		xHeightZone = None
 		ascenderstZone = None
-		decenderstZone = None
+		descenderstZone = None
 
 		if "O" in font and "H" in font:
 			baselineZone = (0, -font["O"].box[1])
@@ -406,7 +378,7 @@ class Automation():
 				ascenderstZone = (font["l"].box[3], font["f"].box[3] - font["l"].box[3])
 		if "g" in font and "p" in font:
 			if font["p"].box[1] > font["g"].box[1]:
-				decenderstZone = (font["p"].box[1], - (font["g"].box[1] - font["p"].box[1]) )
+				descenderstZone = (font["p"].box[1], - (font["g"].box[1] - font["p"].box[1]) )
 
 		if baselineZone != None:
 			self.addZone('baseline', 'bottom', baselineZone[0], baselineZone[1])
@@ -416,8 +388,8 @@ class Automation():
 			self.addZone('x-height', 'top', xHeightZone[0], xHeightZone[1])
 		if ascenderstZone != None:
 			self.addZone('ascenders', 'top', ascenderstZone[0], ascenderstZone[1])
-		if decenderstZone != None:
-			self.addZone('decenders', 'bottom', decenderstZone[0], decenderstZone[1])
+		if descenderstZone != None:
+			self.addZone('descenders', 'bottom', descenderstZone[0], descenderstZone[1])
 
 
 	def addZone(self, zoneName, ID, position, width, delta='0@0'):

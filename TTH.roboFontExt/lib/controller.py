@@ -848,16 +848,16 @@ class TTHTool(BaseEventTool):
 			except:
 				pass
 
-		for g in self.tthtm.f:
-			commands = self.readGlyphFLTTProgram(g)
-			if commands == None:
-				continue
-			for command in commands:
-				if 'stem' in command:
-					if command['stem'] == name:
-						del command['stem']
-			self.writeGlyphFLTTProgram(g)
-		dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+			for g in self.tthtm.f:
+				commands = self.readGlyphFLTTProgram(g)
+				if commands == None:
+					continue
+				for command in commands:
+					if 'stem' in command:
+						if command['stem'] == name:
+							del command['stem']
+				self.writeGlyphFLTTProgram(g)
+			dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
 
 		self.changeSelectedStemX('None')
 		self.changeSelectedStemY('None')
