@@ -1050,7 +1050,7 @@ class TTHTool(BaseEventTool):
 		horizontal = (self.tthtm.selectedAxis == 'Y')
 		for stemName, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] == horizontal:
-				w = stem['width']
+				w = int(stem['width'])
 				candidatesList.append((abs(w - dist), stemName))
 		candidatesList.sort()
 		if len(candidatesList) == 0:

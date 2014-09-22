@@ -466,6 +466,8 @@ class previewWindow(object):
 		x = event.locationInWindow().x -10 + scroll_x
 		y = event.locationInWindow().y -50 + scroll_y
 
+		print x, y
+
 		for i in self.TTHToolInstance.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
 				self.TTHToolInstance.changeSize(self.TTHToolInstance.clickableSizes[i])
@@ -497,7 +499,7 @@ class previewWindow(object):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
 		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
 		self.wPreview.view.getNSView().setNeedsDisplay_(True)
-		
+
 	def DisplayFromEditTextCallback(self, sender):
 		try:
 			size = int(sender.get())
