@@ -54,8 +54,9 @@ def distance(point1, point2):
 	return (abs(point1.x - point2.x), abs(point1.y - point2.y))
 	
 def hypothenuse(point1, point2):
-	return math.sqrt(distance(point1, point2)[0]*distance(point1, point2)[0] + distance(point1, point2)[1]*distance(point1, point2)[1])
-
+	dx, dy = distance(point1, point2)
+	return math.sqrt(dx*dx+dy*dy)
+	
 def closeAngle(angle1, angle2):
 	diff = angle1 - angle2
 	while diff >= 90:
