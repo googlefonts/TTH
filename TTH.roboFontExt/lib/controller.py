@@ -178,22 +178,14 @@ def getAngle((x1, y1), (x2, y2)):
 	return math.atan2(yDiff, xDiff)
 
 def checkDrawingPreferences():
-	 if getDefault('drawingSegmentType') != 'qcurve':
-	 	return False
-	 else:
-	 	return True
+	return (getDefault('drawingSegmentType') == 'qcurve')
 
 def checkSegmentType(font):
 	try:
 		segmentType = font.preferredSegmentType
 	except:
 		segmentType = font.preferedSegmentType
-
-	if segmentType == 'qcurve' or segmentType == 'qCurve':
-		return True
-	else:
-		return False
-
+	return (segmentType == 'qcurve' or segmentType == 'qCurve')
 
 class callbackAlignment():
 	def __init__(self, TTHtoolInstance, alignmentType):
