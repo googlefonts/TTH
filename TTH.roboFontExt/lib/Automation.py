@@ -170,7 +170,7 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	return color
 
 
-def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem):
+def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	stemsListX = []
@@ -194,7 +194,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
 				if color == 'Black':
 					c_distance = distance(sourcePoint, targetPoint)
-					c_distance = ( roundbase(c_distance[0], roundFactor_Stem), roundbase(c_distance[1], roundFactor_Stem) )
+					c_distance = ( roundbase(c_distance[0], roundFactor_Stems), roundbase(c_distance[1], roundFactor_Stems) )
 					stem = (sourcePoint, targetPoint, c_distance)
 					hypoth = hypothenuse(sourcePoint, targetPoint)
 					## if Source and Target are almost aligned
@@ -256,13 +256,13 @@ class Automation():
 		minStemY = 20
 		maxStemX = 400
 		maxStemY = 400
-		roundFactor_Stem = 5
-		roundFactor_Jumps = 20
+		roundFactor_Stems = self.tthtm.roundFactor_Stems
+		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
-		minStemX = roundbase(minStemX, roundFactor_Stem)
-		minStemY = roundbase(minStemY, roundFactor_Stem)
-		maxStemX = roundbase(maxStemX, roundFactor_Stem)
-		maxStemY = roundbase(maxStemY, roundFactor_Stem)
+		minStemX = roundbase(minStemX, roundFactor_Stems)
+		minStemY = roundbase(minStemY, roundFactor_Stems)
+		maxStemX = roundbase(maxStemX, roundFactor_Stems)
+		maxStemY = roundbase(maxStemY, roundFactor_Stems)
 
 
 		stemsValuesXList = []
@@ -289,7 +289,7 @@ class Automation():
 		if not g:
 			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
+		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 
 		Xs = []
 		for i in O_stemsListX:
@@ -309,7 +309,7 @@ class Automation():
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
-			( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
+			( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 			stemsValuesXList.extend(originalStemsXList)
 			stemsValuesYList.extend(originalStemsYList)
 			progressBar.increment(tick)
@@ -317,11 +317,11 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesXList, False, roundFactor_Jumps)
 		self.sortAndStoreValues(stemsValuesYList, True, roundFactor_Jumps)
 
-	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem):
+	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
 		originalStemsXList = []
 		originalStemsYList = []
 		g_hPoints = make_hPointsList(g)
-		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
+		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 		for stem in self.stemsListX:
 			originalStemsXList.append(stem[2][0])
 		for stem in self.stemsListY:
@@ -352,8 +352,12 @@ class Automation():
 				name = 'X_' + str(width)
 			else:
 				name = 'Y_' + str(width)
-			stemPitch = float(self.tthtm.UPM)/width
-			stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps)
+			#stemPitch = float(self.tthtm.UPM)/width
+			roundedStem = roundbase(width, roundFactor_Jumps)
+			if roundedStem !=0:
+				stemPitch = float(self.tthtm.UPM)/roundedStem
+			else:
+				stemPitch = float(self.tthtm.UPM)/width
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
 			px2 = str(int(2*stemPitch))

@@ -54,6 +54,9 @@ class TTHToolModel():
 		self.showCenterPixel = 0
 		self.showPreviewInGlyphWindow = 1
 
+		self.roundFactor_Stems = 5
+		self.roundFactor_Jumps = 20
+
 	def setControlValues(self):
 		try:
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})

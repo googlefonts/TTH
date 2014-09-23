@@ -11,6 +11,9 @@ import Automation
 
 FL_tth_key = "com.fontlab.v2.tth"
 
+def roundbase(x, base):
+	return int(base * round(float(x)/base))
+
 class ZoneView(object):
 	def __init__(self, controller, height, title, ID, UIZones):
 		self.lock = False
@@ -223,7 +226,11 @@ class StemView(object):
 		except ValueError:
 			value = 1
 		sender.set(value)
-		stemPitch = float(self.controller.controller.tthtm.UPM)/roundbase(value, 20)
+		roundedStem = roundbase(value, 20)
+		if roundedStem != 0:
+			stemPitch = float(self.controller.controller.tthtm.UPM)/roundedStem
+		else:
+			stemPitch = float(self.controller.controller.tthtm.UPM)/value
 		self.box.editTextStem1px.set(str(0))
 		self.box.editTextStem2px.set(str(int(2*stemPitch)))
 		self.box.editTextStem3px.set(str(int(3*stemPitch)))
