@@ -68,6 +68,7 @@ stemColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
 doublinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
 interpolatecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 deltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
+finaldeltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
@@ -1713,6 +1714,7 @@ class TTHTool(BaseEventTool):
 			if glyphTTHCommands != None:
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+				g.mark = (0, 0, 0, .1)
 
 		#self.generateFullTempFont()
 		self.resetglyph()
@@ -1761,6 +1763,8 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
+		if glyphTTHCommands != None:
+			self.tthtm.g.mark = (0, 0, 0, .1)
 		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
 		elif self.tthtm.programWindowVisible == 1:
@@ -2129,8 +2133,8 @@ class TTHTool(BaseEventTool):
 		color.set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
-	def drawLozengeAtPoint(self, scale, r, x, y):
-		lozengeColor.set()
+	def drawLozengeAtPoint(self, scale, r, x, y, color):
+		color.set()
 		path = NSBezierPath.bezierPath()
 		path.moveToPoint_((x+r*5, y))
 		path.lineToPoint_((x, y+r*5))
@@ -2347,7 +2351,7 @@ class TTHTool(BaseEventTool):
 			self.movingMouse = touchedEnd
 			x_end = touchedEnd[0]
 			y_end = touchedEnd[1]
-			self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
+			self.drawLozengeAtPoint(5*scale, scale, x_end, y_end, lozengeColor)
 
 		self.drawInterpolateDragging(scale, self.startPointInterpolate1, self.endPointInterpolate1)
 		self.drawInterpolateDragging(scale, self.endDraggingPoint, self.movingMouse)
@@ -2406,7 +2410,7 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((middlePoint[0] + 10*scale, middlePoint[1] - 10*scale), (width, height))
 
-	def drawDelta(self, scale, point, value, cmdIndex):
+	def drawDelta(self, scale, point, value, cmdIndex, color):
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
@@ -2414,11 +2418,12 @@ class TTHTool(BaseEventTool):
 	 	end_y = point[1] + (value[1]/8.0)*self.tthtm.pitch
 	 	path.lineToPoint_((end_x, end_y))
 
-	 	deltacolor.set()
+	 	color.set()
 		path.setLineWidth_(scale)
 		path.stroke()
-		r = 3
-		NSBezierPath.bezierPathWithOvalInRect_(((end_x-r*scale, end_y-r*scale), (r*2*scale, r*2*scale))).fill()
+		r = 4
+		#NSBezierPath.bezierPathWithOvalInRect_(((end_x-r*scale, end_y-r*scale), (r*2*scale, r*2*scale))).fill()
+		self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, color)
 		
 		extension = ''
 		text = 'delta'
@@ -2431,9 +2436,9 @@ class TTHTool(BaseEventTool):
 
 		
 		if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'v' and int(value) < 0:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, whiteColor, deltacolor)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, whiteColor, color)
 		else:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, whiteColor, deltacolor)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, whiteColor, color)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2614,11 +2619,11 @@ class TTHTool(BaseEventTool):
 				self.endPoint = touchedEnd
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
-				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end)
+				self.drawLozengeAtPoint(5*scale, scale, x_end, y_end, lozengeColor)
 			if self.startPoint != None and self.tthtm.selectedHintingTool != 'Align':
 				x_start = self.startPoint[0]
 				y_start = self.startPoint[1]
-				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start)
+				self.drawLozengeAtPoint(5*scale, scale, x_start, y_start, lozengeColor)
 				if self.tthtm.selectedHintingTool == 'Single Link':
 					self.drawLinkArrow(scale, self.startPoint, self.endPoint, linkColor)
 				elif self.tthtm.selectedHintingTool == 'Double Link':
@@ -2702,7 +2707,10 @@ class TTHTool(BaseEventTool):
 					self.drawInterpolate(scale, startPoint, endPoint, middlePoint, cmdIndex)
 
 			if cmd_code in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
-
+				if cmd_code in ['mdeltah', 'mdeltav']:
+					color = deltacolor
+				else:
+					color = finaldeltacolor
 				if cmd_pt == 'lsb':
 					point = (0, 0)
 				elif cmd_pt== 'rsb':
@@ -2719,9 +2727,9 @@ class TTHTool(BaseEventTool):
 
 				if int(self.tthtm.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
 					if self.tthtm.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
-						self.drawDelta(scale, point, value, cmdIndex)
+						self.drawDelta(scale, point, value, cmdIndex, color)
 					elif self.tthtm.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
-						self.drawDelta(scale, point, value, cmdIndex)
+						self.drawDelta(scale, point, value, cmdIndex, color)
 
 
 		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
