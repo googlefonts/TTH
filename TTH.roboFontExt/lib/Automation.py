@@ -46,11 +46,11 @@ def shearFactor(angle):
 	r = math.tan(math.radians(angle))
 	return r
 
-def distance(point1, point2):
+def absoluteDiff(point1, point2):
 	return (abs(point1.x - point2.x), abs(point1.y - point2.y))
 	
-def hypothenuse(point1, point2):
-	dx, dy = distance(point1, point2)
+def distance(point1, point2):
+	dx, dy = absoluteDiff(point1, point2)
 	return math.sqrt(dx*dx+dy*dy)
 	
 def closeAngle(angle1, angle2):
@@ -147,8 +147,8 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	hasSomeWhite = False
 	color = ''
 	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
-		hypothLength = int(hypothenuse(point1, point2))
-		for j in range(1, hypothLength-1):
+		hypothLength = distance(point1, point2)
+		for j in range(1, int(hypothLength)):
 			cp_x = point1.x + ((j*1.0)/hypothLength)*(point2.x - point1.x)
 			cp_y = point1.y + ((j*1.0)/hypothLength)*(point2.y - point1.y) 
 			if g.pointInside((cp_x, cp_y)):
@@ -190,10 +190,10 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 			if ( (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)) ) or ( (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)) ):
 				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
 				if color == 'Black':
-					c_distance = distance(sourcePoint, targetPoint)
+					c_distance = absoluteDiff(sourcePoint, targetPoint)
 					c_distance = ( roundbase(c_distance[0], roundFactor_Stems), roundbase(c_distance[1], roundFactor_Stems) )
 					stem = (sourcePoint, targetPoint, c_distance)
-					hypoth = hypothenuse(sourcePoint, targetPoint)
+					hypoth = distance(sourcePoint, targetPoint)
 					## if Source and Target are almost aligned
 					# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
 					if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
@@ -202,13 +202,15 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 							
 							## if they are horizontal, treat the stem on the Y axis
 							if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
-								if (minStemY - 20*(minStemY/100) < c_distance[1] < maxStemY + 20*(maxStemY/100)) and (minStemY - 20*(minStemY/100) <= hypoth <= maxStemY + 20*(maxStemY/100)):
+								yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
+								if (yBound[0] < c_distance[1] < yBound[1]) and (yBound[0] <= hypoth <= yBound[1]):
 									stemsListY_temp.append(stem)
 									
 							## if they are vertical, treat the stem on the X axis		
 							if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
 								
-								if (minStemX - 20*(minStemX/100) <= c_distance[0] <= maxStemX + 20*(maxStemX/100)) and (minStemX - 20*(minStemX/100)<= hypoth <= maxStemX + 20*(maxStemX/100)):
+								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+								if (xBound[0] <= c_distance[0] <= xBound[1]) and xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
 	# avoid duplicates, filters temporary stems
 	yList = []
