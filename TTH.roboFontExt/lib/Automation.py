@@ -1,10 +1,6 @@
 import math
 import string
 
-try:
-	import freetype as FT
-except:
-	print 'ERROR: freetype not installed'
 
 def direction(point1, point2):
 	direction_x = 4
@@ -66,8 +62,8 @@ def closeAngle(angle1, angle2):
 	return (abs(diff)<5)
 
 def approxEqual(a1, a2):
-	a_max = max(a1, a2)
-	return ( abs(a1 - a2) <= 10*(a_max/100) )
+	a_max = max(abs(a1), abs(a2))
+	return ( abs(a1 - a2) <= .10*a_max )
 
 def opposite(direction1, direction2):
 	isOpposite = False
