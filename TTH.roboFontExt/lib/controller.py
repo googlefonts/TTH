@@ -404,6 +404,36 @@ class TTHTool(BaseEventTool):
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
 
+		self.centralWindow.wCentral.show()
+		self.toolsWindow.wTools.show()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.show()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.show()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.show()
+
+	def viewWillChangeGlyph(self):
+		self.centralWindow.wCentral.hide()
+		self.toolsWindow.wTools.hide()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.hide()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.hide()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.hide()
+
+	def glyphWindowWillClose(self, window):
+		self.centralWindow.wCentral.hide()
+		self.toolsWindow.wTools.hide()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.hide()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.hide()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.hide()
+
+
 	def currentGlyphChanged(self):
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
