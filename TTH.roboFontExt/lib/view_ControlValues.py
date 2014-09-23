@@ -4,6 +4,7 @@ from mojo.events import *
 from vanilla import *
 from AppKit import *
 import string
+from HelperFunc import roundbase
 
 import tt_tables
 import TTHintAsm
@@ -11,8 +12,6 @@ import Automation
 
 FL_tth_key = "com.fontlab.v2.tth"
 
-def roundbase(x, base):
-	return int(base * round(float(x)/base))
 
 class ZoneView(object):
 	def __init__(self, controller, height, title, ID, UIZones):
