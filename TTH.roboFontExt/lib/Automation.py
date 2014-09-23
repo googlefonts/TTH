@@ -99,9 +99,8 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 									
 							## if they are vertical, treat the stem on the X axis		
 							if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
-								
 								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
-								if (xBound[0] <= c_distance[0] <= xBound[1]) and xBound[0] <= hypoth <= xBound[1]):
+								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
 	# avoid duplicates, filters temporary stems
 	yList = []
