@@ -170,7 +170,7 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	return color
 
 
-def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY):
+def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	stemsListX = []
@@ -194,6 +194,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
 				if color == 'Black':
 					c_distance = distance(sourcePoint, targetPoint)
+					c_distance = ( roundbase(c_distance[0], roundFactor_Stem), roundbase(c_distance[1], roundFactor_Stem) )
 					stem = (sourcePoint, targetPoint, c_distance)
 					hypoth = hypothenuse(sourcePoint, targetPoint)
 					## if Source and Target are almost aligned
@@ -255,6 +256,14 @@ class Automation():
 		minStemY = 20
 		maxStemX = 400
 		maxStemY = 400
+		roundFactor_Stem = 5
+		roundFactor_Jumps = 20
+
+		minStemX = roundbase(minStemX, roundFactor_Stem)
+		minStemY = roundbase(minStemY, roundFactor_Stem)
+		maxStemX = roundbase(maxStemX, roundFactor_Stem)
+		maxStemY = roundbase(maxStemY, roundFactor_Stem)
+
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -280,7 +289,7 @@ class Automation():
 		if not g:
 			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
 
 		Xs = []
 		for i in O_stemsListX:
@@ -298,27 +307,27 @@ class Automation():
 
 		for g in font:
 			if g.name in string.ascii_letters:
-				( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, 1)
+				( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
 				stemsValuesXList.extend(originalStemsXList)
 				stemsValuesYList.extend(originalStemsYList)
 
-		self.sortAndStoreValues(stemsValuesXList, False, '')
-		self.sortAndStoreValues(stemsValuesYList, True, '')
+		self.sortAndStoreValues(stemsValuesXList, False, '', roundFactor_Jumps)
+		self.sortAndStoreValues(stemsValuesYList, True, '', roundFactor_Jumps)
 
-	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor):
+	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem):
 		originalStemsXList = []
 		originalStemsYList = []
 		g_hPoints = make_hPointsList(g)
-		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
+		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
 		for stem in self.stemsListX:
-			originalStemsXList.append(roundbase(stem[2][0], roundFactor))
+			originalStemsXList.append(stem[2][0])
 		for stem in self.stemsListY:
-			originalStemsYList.append(roundbase(stem[2][1], roundFactor))
+			originalStemsYList.append(stem[2][1])
 
 		return (originalStemsXList, originalStemsYList)
 	
 
-	def sortAndStoreValues(self, stemsValuesList, isHorizontal, tag):
+	def sortAndStoreValues(self, stemsValuesList, isHorizontal, tag, roundFactor_Jumps):
 		valuesDict = {}
 		stemSnapList = []
 		for StemValue in stemsValuesList:
@@ -340,12 +349,18 @@ class Automation():
 				name = tag + '_X_' + str(width)
 			else:
 				name = tag + '_Y_' + str(width)
-			stemPitch = float(self.tthtm.UPM)/roundbase(width, 20)
+			stemPitch = float(self.tthtm.UPM)/width
+			stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps)
+			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
 			px2 = str(int(2*stemPitch))
+			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 1*int(roundFactor_Jumps/5))
 			px3 = str(int(3*stemPitch))
+			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 2*int(roundFactor_Jumps/5))
 			px4 = str(int(4*stemPitch))
+			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 3*int(roundFactor_Jumps/5))
 			px5 = str(int(5*stemPitch))
+			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 4*int(roundFactor_Jumps/5))
 			px6 = str(int(6*stemPitch))
 
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)

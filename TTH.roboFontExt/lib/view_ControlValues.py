@@ -344,6 +344,7 @@ class SheetControlValues(object):
 		self.automation.autoStems(self.tthtm.f)
 
 	def closeButtonCallback(self, sender):
+		self.applyButtonCallback(sender)
 		self.w.close()
 
 	def applyButtonCallback(self, sender):
