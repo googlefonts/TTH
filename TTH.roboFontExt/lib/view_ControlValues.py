@@ -287,7 +287,7 @@ class StemView(object):
 		if self.sanitizeStem(name, width, px1, px2, px3, px4, px5, px6) == False:
 			return
 
-		stemDict = {'horizontal': self.isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		stemDict = {'horizontal': self.isHorizontal, 'width': str(width), 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		self.lock = True
 		self.controller.controller.addStem(name, stemDict, self)
 		self.box.editTextStemName.set("")
@@ -308,7 +308,7 @@ class SheetControlValues(object):
 		self.tthtm = model
 		self.controller = controller
 		self.baseWindow = baseWindow
-		self.w = Sheet((1000, 450), parentWindow=parent)
+		self.w = Sheet((1000, 480), parentWindow=parent)
 		self.automation = Automation.Automation(self, self.controller)
 		w = self.w
 		w.generalBox = Box((10, 10, -10, 30))
@@ -323,15 +323,17 @@ class SheetControlValues(object):
 		w.generalBox.editTextInstructions = EditText((940, 0, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
 		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
 
-		w.zoneBox = Box((10, 50, 485, 350))
+		w.zoneBox = Box((10, 50, 485, 380))
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
-		w.zoneBox.autoZoneButton = Button((-50, 10, 40, 20), "Auto", sizeStyle = "small", callback=self.autoZoneButtonCallback)
+		w.zoneBox.autoZoneButton = Button((-60, 342, 50, 20), "Auto", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
-		w.stemBox = Box((505, 50, 485, 350))
+		w.stemBox = Box((505, 50, 485, 380))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
 		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.buildStemsUIList(False))
-		w.stemBox.autoStemButton = Button((-50, 10, 40, 20), "Auto", sizeStyle = "small", callback=self.autoStemButtonCallback)
+		w.stemBox.autoStemButton = Button((-60, 342, 50, 20), "Auto", sizeStyle = "small", callback=self.autoStemButtonCallback)
+		w.stemBox.AutoStemProgressBar = ProgressBar((10, 344, -70, 16), sizeStyle = "small",  maxValue=100)
+		w.stemBox.AutoStemProgressBar.show(0)
 
 		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
@@ -341,7 +343,9 @@ class SheetControlValues(object):
 		self.automation.autoZones(self.tthtm.f)
 
 	def autoStemButtonCallback(self, sender):
-		self.automation.autoStems(self.tthtm.f)
+		self.w.stemBox.AutoStemProgressBar.show(1)
+		self.automation.autoStems(self.tthtm.f, self.w.stemBox.AutoStemProgressBar)
+		self.w.stemBox.AutoStemProgressBar.show(0)
 
 	def closeButtonCallback(self, sender):
 		self.applyButtonCallback(sender)

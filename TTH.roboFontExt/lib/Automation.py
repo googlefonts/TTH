@@ -251,7 +251,7 @@ class Automation():
 		self.controller = controller
 
 
-	def autoStems(self, font):
+	def autoStems(self, font, progressBar):
 		minStemX = 20
 		minStemY = 20
 		maxStemX = 400
@@ -305,14 +305,17 @@ class Automation():
 		stemsValuesXList = []
 		stemsValuesYList = []
 
-		for g in font:
-			if g.name in string.ascii_letters:
-				( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
-				stemsValuesXList.extend(originalStemsXList)
-				stemsValuesYList.extend(originalStemsYList)
+		progressBar.set(0)
+		tick = 100.0/len(string.ascii_letters)
+		for name in string.ascii_letters:
+			g = font[name]
+			( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem)
+			stemsValuesXList.extend(originalStemsXList)
+			stemsValuesYList.extend(originalStemsYList)
+			progressBar.increment(tick)
 
-		self.sortAndStoreValues(stemsValuesXList, False, '', roundFactor_Jumps)
-		self.sortAndStoreValues(stemsValuesYList, True, '', roundFactor_Jumps)
+		self.sortAndStoreValues(stemsValuesXList, False, roundFactor_Jumps)
+		self.sortAndStoreValues(stemsValuesYList, True, roundFactor_Jumps)
 
 	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stem):
 		originalStemsXList = []
@@ -327,7 +330,7 @@ class Automation():
 		return (originalStemsXList, originalStemsYList)
 	
 
-	def sortAndStoreValues(self, stemsValuesList, isHorizontal, tag, roundFactor_Jumps):
+	def sortAndStoreValues(self, stemsValuesList, isHorizontal, roundFactor_Jumps):
 		valuesDict = {}
 		stemSnapList = []
 		for StemValue in stemsValuesList:
@@ -346,9 +349,9 @@ class Automation():
 
 		for width in stemSnapList:
 			if isHorizontal == False:
-				name = tag + '_X_' + str(width)
+				name = 'X_' + str(width)
 			else:
-				name = tag + '_Y_' + str(width)
+				name = 'Y_' + str(width)
 			stemPitch = float(self.tthtm.UPM)/width
 			stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps)
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
