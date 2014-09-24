@@ -332,7 +332,6 @@ class TTHTool(BaseEventTool):
 		self.updatePartialFont()
 
 	def becomeInactive(self):
-	#	self.FL_Windows.closeAll()
 		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow != None:
 			self.previewInGlyphWindow.removeFromSuperview()
 
@@ -355,33 +354,32 @@ class TTHTool(BaseEventTool):
 		if self.fontClosed:
 			return
 
-		self.centralWindow.wCentral.hide()
-		self.toolsWindow.wTools.hide()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.wProgram.hide()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.wPreview.hide()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.wAssembly.hide()
-
-	#	self.FL_Windows.closeAll()
-
-		# self.centralWindow.closeCentral()
-		# self.toolsWindow.closeTools()
-
-		# if self.tthtm.programWindowVisible == 1:
-		# 	self.programWindow.closeProgram()
-		# if self.tthtm.previewWindowVisible == 1:
-		# 	self.previewWindow.closePreview()
-		# if self.tthtm.assemblyWindowVisible == 1:
-		# 	self.assemblyWindow.closeAssembly()
-
 		self.resetFonts(createWindows=False)
 
 	def fontBecameCurrent(self, font):
 		if self.fontClosed:
 			return
 
+		self.resetFonts(createWindows=False)
+		self.updatePartialFont()
+		self.fontClosed = False
+
+	def fontWillClose(self, font):
+		# 	return
+		if len(AllFonts()) > 1:
+			return
+
+		self.centralWindow.wCentral.hide()
+		self.toolsWindow.wTools.hide()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.hide()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.hide()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.hide()
+		self.fontClosed = True
+
+	def fontDidOpen(self, font):
 		self.centralWindow.wCentral.show()
 		self.toolsWindow.wTools.show()
 		if self.tthtm.programWindowVisible == 1:
@@ -390,85 +388,15 @@ class TTHTool(BaseEventTool):
 			self.previewWindow.wPreview.show()
 		if self.tthtm.assemblyWindowVisible == 1:
 			self.assemblyWindow.wAssembly.show()
-			
-	#	self.FL_Windows.closeAll()
-
-		# self.centralWindow.closeCentral()
-		# self.toolsWindow.closeTools()
-
-		# if self.tthtm.programWindowVisible == 1:
-		# 	self.programWindow.closeProgram()
-		# if self.tthtm.previewWindowVisible == 1:
-		# 	self.previewWindow.closePreview()
-		# if self.tthtm.assemblyWindowVisible == 1:
-		# 	self.assemblyWindow.closeAssembly()
 
 		self.resetFonts(createWindows=False)
-
-		#self.resetglyph()
 		self.updatePartialFont()
-		self.fontClosed = False
-
-	def fontWillClose(self, font):
-		#self.FL_Windows.closeAll()
-		af = loadFonts()
-		if af == None:
-			return
-		elif len(af) > 1:
-			return
-		if self.fontClosed:
-			return
-
-		# print 'closing TTH windows'
-		# self.centralWindow.closeCentral()
-		# self.toolsWindow.closeTools()
-		# if self.tthtm.programWindowVisible == 1:
-		# 	self.programWindow.closeProgram()
-		# if self.tthtm.previewWindowVisible == 1:
-		# 	self.previewWindow.closePreview()
-		# if self.tthtm.assemblyWindowVisible == 1:
-		# 	self.assemblyWindow.closeAssembly()
-		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
 		if self.fontClosed:
 			return
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
-
-		self.centralWindow.wCentral.show()
-		self.toolsWindow.wTools.show()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.wProgram.show()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.wPreview.show()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.wAssembly.show()
-
-	def viewWillChangeGlyph(self):
-		if self.fontClosed:
-			return
-		self.centralWindow.wCentral.hide()
-		self.toolsWindow.wTools.hide()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.wProgram.hide()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.wPreview.hide()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.wAssembly.hide()
-
-	def glyphWindowWillClose(self, window):
-		if self.fontClosed:
-			return
-		self.centralWindow.wCentral.hide()
-		self.toolsWindow.wTools.hide()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.wProgram.hide()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.wPreview.hide()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.wAssembly.hide()
-
 
 	def currentGlyphChanged(self):
 		self.resetglyph()
@@ -1752,10 +1680,10 @@ class TTHTool(BaseEventTool):
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
 
 	def resetFonts(self, createWindows=False):
-		self.allFonts = loadFonts()
-		if not self.allFonts:
+		if CurrentFont() == None:
 			return
-		self.tthtm.setFont(loadCurrentFont(self.allFonts))
+		print CurrentFont()
+		self.tthtm.setFont(CurrentFont())
 		if checkSegmentType(self.tthtm.f) == False:
 			self.messageInFront = True
 		 	Dialogs.Message("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
@@ -2675,6 +2603,8 @@ class TTHTool(BaseEventTool):
 
 	def draw(self, scale):
 		self.scale = scale
+		if self.tthtm.g == None:
+			return
 			
 		if self.isDragging():
 			self.endPoint = self.currentPoint
