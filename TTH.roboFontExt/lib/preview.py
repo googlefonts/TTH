@@ -23,7 +23,8 @@ class PreviewInGlyphWindow(NSView):
 
 	def drawRect_(self, rect):
 		self.clickableSizesGlyphWindow = {}
-
+		if self.TTHToolInstance.tthtm.g == None:
+			return
 		if self.TTHToolInstance.tthtm.g.unicode == None:
 			return
 		tr = self.TTHToolInstance.tthtm.textRenderer

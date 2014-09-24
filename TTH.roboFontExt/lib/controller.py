@@ -354,9 +354,21 @@ class TTHTool(BaseEventTool):
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
 			return
+
+		self.centralWindow.wCentral.hide()
+		self.toolsWindow.wTools.hide()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.hide()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.hide()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.hide()
+
 	#	self.FL_Windows.closeAll()
-		self.centralWindow.closeCentral()
-		self.toolsWindow.closeTools()
+
+		# self.centralWindow.closeCentral()
+		# self.toolsWindow.closeTools()
+
 		# if self.tthtm.programWindowVisible == 1:
 		# 	self.programWindow.closeProgram()
 		# if self.tthtm.previewWindowVisible == 1:
@@ -364,21 +376,35 @@ class TTHTool(BaseEventTool):
 		# if self.tthtm.assemblyWindowVisible == 1:
 		# 	self.assemblyWindow.closeAssembly()
 
-		self.resetFonts(createWindows=True)
+		self.resetFonts(createWindows=False)
 
 	def fontBecameCurrent(self, font):
-		if not self.fontClosed:
-		#	self.FL_Windows.closeAll()
-			self.centralWindow.closeCentral()
-			self.toolsWindow.closeTools()
-			# if self.tthtm.programWindowVisible == 1:
-			# 	self.programWindow.closeProgram()
-			# if self.tthtm.previewWindowVisible == 1:
-			# 	self.previewWindow.closePreview()
-			# if self.tthtm.assemblyWindowVisible == 1:
-			# 	self.assemblyWindow.closeAssembly()
+		if self.fontClosed:
+			return
 
-		self.resetFonts(createWindows=True)
+		self.centralWindow.wCentral.show()
+		self.toolsWindow.wTools.show()
+		if self.tthtm.programWindowVisible == 1:
+			self.programWindow.wProgram.show()
+		if self.tthtm.previewWindowVisible == 1:
+			self.previewWindow.wPreview.show()
+		if self.tthtm.assemblyWindowVisible == 1:
+			self.assemblyWindow.wAssembly.show()
+			
+	#	self.FL_Windows.closeAll()
+
+		# self.centralWindow.closeCentral()
+		# self.toolsWindow.closeTools()
+
+		# if self.tthtm.programWindowVisible == 1:
+		# 	self.programWindow.closeProgram()
+		# if self.tthtm.previewWindowVisible == 1:
+		# 	self.previewWindow.closePreview()
+		# if self.tthtm.assemblyWindowVisible == 1:
+		# 	self.assemblyWindow.closeAssembly()
+
+		self.resetFonts(createWindows=False)
+
 		#self.resetglyph()
 		self.updatePartialFont()
 		self.fontClosed = False
@@ -390,17 +416,23 @@ class TTHTool(BaseEventTool):
 			return
 		elif len(af) > 1:
 			return
-		self.centralWindow.closeCentral()
-		self.toolsWindow.closeTools()
-		if self.tthtm.programWindowVisible == 1:
-			self.programWindow.closeProgram()
-		if self.tthtm.previewWindowVisible == 1:
-			self.previewWindow.closePreview()
-		if self.tthtm.assemblyWindowVisible == 1:
-			self.assemblyWindow.closeAssembly()
+		if self.fontClosed:
+			return
+
+		# print 'closing TTH windows'
+		# self.centralWindow.closeCentral()
+		# self.toolsWindow.closeTools()
+		# if self.tthtm.programWindowVisible == 1:
+		# 	self.programWindow.closeProgram()
+		# if self.tthtm.previewWindowVisible == 1:
+		# 	self.previewWindow.closePreview()
+		# if self.tthtm.assemblyWindowVisible == 1:
+		# 	self.assemblyWindow.closeAssembly()
 		self.fontClosed = True
 
 	def viewDidChangeGlyph(self):
+		if self.fontClosed:
+			return
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
 
@@ -414,6 +446,8 @@ class TTHTool(BaseEventTool):
 			self.assemblyWindow.wAssembly.show()
 
 	def viewWillChangeGlyph(self):
+		if self.fontClosed:
+			return
 		self.centralWindow.wCentral.hide()
 		self.toolsWindow.wTools.hide()
 		if self.tthtm.programWindowVisible == 1:
@@ -424,6 +458,8 @@ class TTHTool(BaseEventTool):
 			self.assemblyWindow.wAssembly.hide()
 
 	def glyphWindowWillClose(self, window):
+		if self.fontClosed:
+			return
 		self.centralWindow.wCentral.hide()
 		self.toolsWindow.wTools.hide()
 		if self.tthtm.programWindowVisible == 1:
