@@ -1,14 +1,25 @@
 ==============================
-For v0.5 :
+For v0.6 :
 ==============================
 
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
-------------------------------
 y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
 au dessus de 700 % environ
 ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
+------------------------------
+il faut aussi optimiser le code assembly pour qu'il soit plus leger (utiliser les Reference Points)
+------------------------------
+Auto Zones et Auto Stems, import Blues. Auto-Harmonize Stems.
+------------------------------
+AutoHinting, ou Educated Guessing
+------------------------------
+Import/Export Glyphs Commands, Zones, Stems.
+------------------------------
+Escape mode for Interpolation
+------------------------------
+GASP table etitable
 
 ==============================
 Done:
@@ -33,15 +44,4 @@ exact
 sauf si c'est juste les petit chiffres tout en bas qui sont cliquable
 
 
-==============================
-For v0.6 :
-==============================
-
-il faut aussi optimiser le code assembly pour qu'il soit plus leger (utiliser les Reference Points)
-------------------------------
-Auto Zones et Auto Stems, import Blues. Auto-Harmonize Stems.
-------------------------------
-AutoHinting, ou Educated Guessing
-------------------------------
-Import/Export Glyphs Commands, Zones, Stems.
 
