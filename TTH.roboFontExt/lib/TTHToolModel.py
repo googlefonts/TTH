@@ -38,8 +38,8 @@ class TTHToolModel():
 		self.previewWindowPosSize = (-510, 30, 500, 600)
 		#self.previewWindowViewSize = (self.previewWindowPosSize[2]-35, self.previewWindowPosSize[3]-105)
 		self.previewWindowViewSize = (465, 495)
-		self.toolsWindowPosSize = (170, 30, 215, 80)
-		self.centralWindowPosSize = (10, 30, 150, 95)
+		self.toolsWindowPosSize = (170, 30, 215, 100)
+		self.centralWindowPosSize = (10, 30, 150, 100)
 		self.programWindowPosSize = (170, 120, 700, 300)
 		self.assemblyWindowPosSize = (10, 150, 150, 140)
 		self.previewString = 'HH/?HH'
@@ -60,8 +60,8 @@ class TTHToolModel():
 	def setControlValues(self):
 		try:
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
-			self.zones	= self.getOrPutDefault(tth_lib, "zones", {})
-			self.stems	= self.getOrPutDefault(tth_lib, "stems", {})
+			self.zones = self.getOrPutDefault(tth_lib, "zones", {})
+			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
 			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 48)
 			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 48)
 			self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)

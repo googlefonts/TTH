@@ -1693,8 +1693,8 @@ class TTHTool(BaseEventTool):
 
 		if createWindows:
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
-			self.centralWindow = view.centralWindow(self, self.tthtm)
-			self.toolsWindow = view.toolsWindow(self, self.tthtm)
+			self.centralWindow = view.centralWindow(self)
+			self.toolsWindow = view.toolsWindow(self)
 			# if self.tthtm.previewWindowVisible == 1:
 			# 	self.previewWindow = view.previewWindow(self, self.tthtm)
 

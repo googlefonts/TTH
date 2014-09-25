@@ -60,9 +60,9 @@ def closeAngle(angle1, angle2):
 		diff += 180
 	return (abs(diff)<5)
 
-def approxEqual(a1, a2):
+def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
-	return ( abs(a1 - a2) <= .10*a_max )
+	return ( abs(a1 - a2) <= factor*a_max )
 
 def opposite(direction1, direction2):
 	isOpposite = False

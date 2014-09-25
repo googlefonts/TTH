@@ -12,6 +12,7 @@ import string
 
 import preview
 import view_ControlValues as CV
+import Automation
 
 buttonXPath = ExtensionBundle("TTH").get("buttonX")
 buttonYPath = ExtensionBundle("TTH").get("buttonY")
@@ -23,7 +24,7 @@ buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 
 class centralWindow(object):
-	def __init__(self, TTHToolInstance, tthtm):
+	def __init__(self, TTHToolInstance):
 		#self.screenArea = preview.ScreenArea.alloc().init()
 		# print screenArea.frame()
 		# screenArea.setFrameOrigin_((800, 800))
@@ -174,9 +175,11 @@ class centralWindow(object):
 		NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.TTHToolInstance.getCurrentEvent(), self.TTHToolInstance.getNSView())
 
 class toolsWindow(object):
-	def __init__(self, TTHToolInstance, tthtm):
+	def __init__(self, TTHToolInstance):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
+
+		self.autohinting = Automation.AutoHinting(self.TTHToolInstance)
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
@@ -257,6 +260,9 @@ class toolsWindow(object):
 		self.wTools.DeltaRange2EditText.show(False)
 		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
+
+		self.wTools.AutoHintButton = Button((10, -25, -10, 15), "Auto-Hinting", sizeStyle = 'mini', 
+				callback=self.AutoHintButtonCallback)
 
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
 
@@ -416,6 +422,8 @@ class toolsWindow(object):
 			self.DeltaSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
+	def AutoHintButtonCallback(self, sender):
+		self.autohinting.autohint(self.tthtm.g)
 
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):

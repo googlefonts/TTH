@@ -2,6 +2,7 @@ import math
 import string
 from HelperFunc import *
 
+
 def make_hPointsList(g):
 	contoursList = []
 	hPointsList = []
@@ -106,9 +107,9 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 	yList = []
 	for stem in stemsListY_temp:
 		def pred0(y):
-			return approxEqual(stem[0].y, y)
+			return approxEqual(stem[0].y, y, .10)
 		def pred1(y):
-			return approxEqual(stem[1].y, y)
+			return approxEqual(stem[1].y, y, .10)
 		if not exists(yList, pred0) or not exists(yList, pred1):
 			stemsListY.append(stem)
 			yList.append(stem[0].y)
@@ -120,10 +121,10 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		(preRot1x, preRot1y) = rotated(stem[1], italicAngle)
 		def pred0(x):
 			#print preRot0x, x
-			return approxEqual(preRot0x, x)
+			return approxEqual(preRot0x, x, .10)
 		def pred1(x):
 			#print preRot1x, x
-			return approxEqual(preRot1x, x)
+			return approxEqual(preRot1x, x, .10)
 		if not exists(xList,pred0) or not exists(xList,pred1):
 			stemsListX.append(stem)
 			xList.append(preRot0x)
@@ -313,3 +314,40 @@ class Automation():
 			self.TTHToolInstance.AddZone(zoneName, newZone, self.controller.topZoneView)
 		else:
 			self.TTHToolInstance.AddZone(zoneName, newZone, self.controller.bottomZoneView)
+
+class AutoHinting():
+	def __init__(self, TTHToolInstance):
+		self.TTHToolInstance = TTHToolInstance
+		self.tthtm = TTHToolInstance.tthtm
+
+	def autoAlignToZones(self, g):
+		for zoneName, zone in self.tthtm.zones.items():
+			if not zone['top']:
+				y_start = int(zone['position'])
+				y_end = int(zone['position']) - int(zone['width'])
+				for c in g:
+					for p in c.points:
+						exists = False
+						redundant = False
+						if y_start >= p.y  and p.y >= y_end and p.type != 'offCurve':
+							for command in self.TTHToolInstance.glyphTTHCommands:
+								if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
+									exists = True
+								(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
+								if approxEqual(y, p.y, .10):
+									redundant = True
+							if not exists and not redundant:
+								newCommand = {}
+								newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]
+								newCommand['code'] = 'alignb'
+								newCommand['zone'] = zoneName
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+
+	def autohint(self, g):
+		self.tthtm.g.prepareUndo("AutoHint")
+		self.autoAlignToZones(g)
+		self.TTHToolInstance.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.TTHToolInstance.refreshGlyph()
+		self.tthtm.g.performUndo()
