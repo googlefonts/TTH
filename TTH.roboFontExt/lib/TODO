@@ -19,7 +19,9 @@ Import/Export Glyphs Commands, Zones, Stems.
 ------------------------------
 Escape mode for Interpolation
 ------------------------------
-GASP table etitable
+GASP table editable
+------------------------------
+A preferences pannel
 
 ==============================
 Done:

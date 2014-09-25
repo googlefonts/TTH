@@ -1682,7 +1682,6 @@ class TTHTool(BaseEventTool):
 	def resetFonts(self, createWindows=False):
 		if CurrentFont() == None:
 			return
-		print CurrentFont()
 		self.tthtm.setFont(CurrentFont())
 		if checkSegmentType(self.tthtm.f) == False:
 			self.messageInFront = True
@@ -1709,6 +1708,8 @@ class TTHTool(BaseEventTool):
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 				g.mark = (0, 0, 0, .1)
+			else:
+				g.mark = None
 
 		#self.generateFullTempFont()
 		self.resetglyph()
