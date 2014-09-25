@@ -323,25 +323,39 @@ class AutoHinting():
 	def autoAlignToZones(self, g):
 		for zoneName, zone in self.tthtm.zones.items():
 			if not zone['top']:
+				y_start = int(zone['position']) - int(zone['width'])
+				y_end = int(zone['position'])
+				self.processZone(g, zoneName, False, y_start, y_end)
+			else:
 				y_start = int(zone['position'])
-				y_end = int(zone['position']) - int(zone['width'])
-				for c in g:
-					for p in c.points:
-						exists = False
-						redundant = False
-						if y_start >= p.y  and p.y >= y_end and p.type != 'offCurve':
-							for command in self.TTHToolInstance.glyphTTHCommands:
-								if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
-									exists = True
-								(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
-								if approxEqual(y, p.y, .10):
-									redundant = True
-							if not exists and not redundant:
-								newCommand = {}
-								newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]
-								newCommand['code'] = 'alignb'
-								newCommand['zone'] = zoneName
-								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+				y_end = int(zone['position']) + int(zone['width'])
+				self.processZone(g, zoneName, True , y_start, y_end)
+
+
+	def processZone(self, g, zoneName, isTop, y_start, y_end):
+		for c in g:
+			for p in c.points:
+				if y_start <= p.y  and p.y <= y_end and p.type != 'offCurve':
+					exists = False
+					redundant = False
+					for command in self.TTHToolInstance.glyphTTHCommands:
+						if command['code'][:5] != 'align':
+							continue
+						if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
+							exists = True
+
+						(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
+						if approxEqual(y, p.y, .20):
+							redundant = True
+					if not exists and not redundant:
+						newCommand = {}
+						newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]
+						newCommand['zone'] = zoneName
+						if isTop:
+							newCommand['code'] = 'alignt'
+						else:
+							newCommand['code'] = 'alignb'
+						self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 
 	def autohint(self, g):
