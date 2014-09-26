@@ -2491,76 +2491,79 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 
-		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
-		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
 		self.clickableSizes= {}
 
+		if not self.tthtm.textRenderer:
+			return
+
+		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
+		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
 		(text, curGlyphString) = self.prepareText()
 		# render user string
-		if self.tthtm.textRenderer:
-			self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+		self.tthtm.textRenderer.set_cur_size(self.tthtm.PPM_Size)
 
-			self.tthtm.textRenderer.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
+		self.tthtm.textRenderer.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
+		self.tthtm.textRenderer.render_text(text)
+
+		self.clickableGlyphs = {}
+		pen = (20, self.tthtm.previewWindowPosSize[3] - 250)
+		for c in text:
+			adv = self.tthtm.textRenderer.get_char_advance(c)
+			newpen = pen[0]+int(adv[0]/64), pen[1]+int(adv[1]/64)
+			rect = (pen[0], pen[1], newpen[0], pen[1]+self.tthtm.PPM_Size)
+			self.clickableGlyphs[rect] = splitText(c, self.tthtm.f.naked().unicodeData)
+			pen = newpen
+
+		# render user string at various sizes
+		y = self.tthtm.previewWindowPosSize[3] - 310
+		x = 30
+		for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+
+			self.clickableSizes[(x-20, y)] = size
+
+			displaysize = str(size)
+			if size == self.tthtm.PPM_Size and text != '':
+				self.drawPreviewSize(displaysize, x-20, y, NSColor.redColor())
+			elif text != '':
+				self.drawPreviewSize(displaysize, x-20, y, NSColor.blackColor())
+
+			self.tthtm.textRenderer.set_cur_size(size)
+			self.tthtm.textRenderer.set_pen((x, y))
 			self.tthtm.textRenderer.render_text(text)
-
-			self.clickableGlyphs = {}
-			pen = (20, self.tthtm.previewWindowPosSize[3] - 250)
-			for c in text:
-				index = self.tthtm.textRenderer.face.get_char_index(c)
-				self.clickableGlyphs[(pen[0], pen[1], pen[0] + int( self.tthtm.textRenderer.get_advance(index)[0] / 64 ), pen[1] + self.tthtm.PPM_Size)] = splitText(c, self.tthtm.f.naked().unicodeData)
-				pen = (pen[0] + int( self.tthtm.textRenderer.get_advance(index)[0] / 64 ), pen[1])
-				
-
-			# render user string at various sizes
-			y = self.tthtm.previewWindowPosSize[3] - 310
-			x = 30
-			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
-
-				self.clickableSizes[(x-20, y)] = size
-
-				displaysize = str(size)
-				if size == self.tthtm.PPM_Size and text != '':
-					self.drawPreviewSize(displaysize, x-20, y, NSColor.redColor())
-				elif text != '':
-					self.drawPreviewSize(displaysize, x-20, y, NSColor.blackColor())
-
-				self.tthtm.textRenderer.set_cur_size(size)
-				self.tthtm.textRenderer.set_pen((x, y))
-				self.tthtm.textRenderer.render_text(text)
-				y -= size + 1
-				if y < 0:
-					width, height = self.tthtm.textRenderer.pen
-					x = width+40
-					y = self.tthtm.previewWindowPosSize[3] - 310
-					advanceWidthUserString = self.tthtm.textRenderer.get_pen()[0]
+			y -= size + 1
+			if y < 0:
+				width, height = self.tthtm.textRenderer.pen
+				x = width+40
+				y = self.tthtm.previewWindowPosSize[3] - 310
+				advanceWidthUserString = self.tthtm.textRenderer.get_pen()[0]
 
 
-			# render current glyph at various sizes
-			advance = 10
-			
-			for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
+		# render current glyph at various sizes
+		advance = 10
+		
+		for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 
-				self.clickableSizes[(advance, self.tthtm.previewWindowPosSize[3] - 200)] = size
+			self.clickableSizes[(advance, self.tthtm.previewWindowPosSize[3] - 200)] = size
 
-				displaysize = str(size)
-				if size == self.tthtm.PPM_Size:
-					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.redColor())
-				else:
-					self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.blackColor())
-				
-				self.tthtm.textRenderer.set_cur_size(size)
-				self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
-				delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
-				advance += delta_pos[0] + 5
-				advanceWidthCurrentGlyph = advance
-
-
-			self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
-
-			if advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0] and advanceWidthUserString > advanceWidthCurrentGlyph:
-				self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+			displaysize = str(size)
+			if size == self.tthtm.PPM_Size:
+				self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.redColor())
 			else:
-				self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
+				self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.blackColor())
+			
+			self.tthtm.textRenderer.set_cur_size(size)
+			self.tthtm.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
+			delta_pos = self.tthtm.textRenderer.render_text(curGlyphString)
+			advance += delta_pos[0] + 5
+			advanceWidthCurrentGlyph = advance
+
+
+		self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+
+		if advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0] and advanceWidthUserString > advanceWidthCurrentGlyph:
+			self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+		else:
+			self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
 				
 
 	def drawBackground(self, scale):
