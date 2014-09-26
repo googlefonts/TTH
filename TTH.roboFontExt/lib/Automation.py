@@ -389,7 +389,7 @@ class AutoHinting():
 					p2_y = p2.y
 					(p_x, p_y) = HF.rotated(p[0], self.ital)
 					if isHorizontal:
-						if abs(p_x - p2_x) <= 1 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+						if abs(p_x - p2_x) <= 5 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
 							newCommand = {}
 							newCommand['code'] = 'singleh'
 							newCommand['align'] = 'round'
@@ -398,7 +398,7 @@ class AutoHinting():
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_x - p1_x) <= 1 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+						if abs(p_x - p1_x) <= 5 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
 							newCommand = {}
 							newCommand['code'] = 'singleh'
 							newCommand['align'] = 'round'
@@ -408,7 +408,7 @@ class AutoHinting():
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 					else:
-						if abs(p_y - p2_y) <= 1 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
+						if abs(p_y - p2_y) <= 5 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['align'] = 'round'
@@ -417,7 +417,7 @@ class AutoHinting():
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_y - p1_y) <= 1 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
+						if abs(p_y - p1_y) <= 5 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['align'] = 'round'
@@ -492,12 +492,13 @@ class AutoHinting():
 
 
 	def autohint(self, g):
-		self.tthtm.g.prepareUndo("AutoHint")
 		self.h_pointList = make_hPointsList(g)
 		if self.tthtm.f.info.italicAngle != None:
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
 			self.ital = 0
+
+		self.tthtm.g.prepareUndo("AutoHint")
 		self.autoAlignToZones(g)
 		self.hintWidth(g)
 		self.detectStems(g)

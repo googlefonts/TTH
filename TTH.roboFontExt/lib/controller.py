@@ -1707,9 +1707,6 @@ class TTHTool(BaseEventTool):
 			if glyphTTHCommands != None:
 				self.prepareCommands()
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
-				g.mark = (0, 0, 0, .1)
-			else:
-				g.mark = None
 
 		#self.generateFullTempFont()
 		self.resetglyph()
