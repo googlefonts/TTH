@@ -82,13 +82,14 @@ def isVertical(vector):
 		return True
 	else:
 		return False
-	
+
 def isHorizontal(vector):
 	vector = abs(vector)
 	if ((0 <= vector) and (vector <= 10)) or ((170 <= vector) and (vector <= 180)):
 		return True
 	else:
 		return False
+
 
 #True si il existe un element de la liste l pour lequel la fonction p renvoi True (on dit que le predicat p est vrai sur cet element)
 def exists(l, p):

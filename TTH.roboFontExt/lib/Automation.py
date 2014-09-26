@@ -1,7 +1,7 @@
 import math
 import string
-from HelperFunc import *
-
+import HelperFunc as HF
+reload(HF)
 
 def make_hPointsList(g):
 	contoursList = []
@@ -25,10 +25,10 @@ def make_hPointsList(g):
 				nextPoint = contoursList[contour_index][point_index+1]
 			
 			if currentPoint.type != 'offCurve':
-				directionIN = direction(prevPoint, currentPoint)
-				directionOUT = direction(currentPoint, nextPoint)
-				vectorIN = angle(prevPoint, currentPoint)
-				vectorOUT = angle(currentPoint, nextPoint)
+				directionIN = HF.direction(prevPoint, currentPoint)
+				directionOUT = HF.direction(currentPoint, nextPoint)
+				vectorIN = HF.angle(prevPoint, currentPoint)
+				vectorOUT = HF.angle(currentPoint, nextPoint)
 				
 				hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, vectorIN, vectorOUT)
 				hPointsList.append(hPoint)
@@ -39,7 +39,7 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	hasSomeWhite = False
 	color = ''
 	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
-		hypothLength = distance(point1, point2)
+		hypothLength = HF.distance(point1, point2)
 		for j in range(1, int(hypothLength)):
 			cp_x = point1.x + ((j*1.0)/hypothLength)*(point2.x - point1.x)
 			cp_y = point1.y + ((j*1.0)/hypothLength)*(point2.y - point1.y) 
@@ -79,55 +79,53 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 			angleOut_target = g_hPoints[target_hPoint][6]
 			if source_hPoint == target_hPoint:
 				continue
-			if ( (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)) ) or ( (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)) ):
+			if ( (HF.isHorizontal(angleIn_source) or HF.isHorizontal(angleOut_source)) and (HF.isHorizontal(angleIn_target) or HF.isHorizontal(angleOut_target)) ) or ( (HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)) ):
 				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
 				if color == 'Black':
-					c_distance = absoluteDiff(sourcePoint, targetPoint)
-					c_distance = ( roundbase(c_distance[0], roundFactor_Stems), roundbase(c_distance[1], roundFactor_Stems) )
+					c_distance = HF.absoluteDiff(sourcePoint, targetPoint)
+					c_distance = ( HF.roundbase(c_distance[0], roundFactor_Stems), HF.roundbase(c_distance[1], roundFactor_Stems) )
 					stem = (sourcePoint, targetPoint, c_distance)
-					hypoth = distance(sourcePoint, targetPoint)
+					hypoth = HF.distance(sourcePoint, targetPoint)
 					## if Source and Target are almost aligned
 					# closeAngle(angleIn_source, angleIn_target) or closeAngle(angleOut_source, angleOut_target) or 
-					if closeAngle(angleIn_source, angleOut_target) or closeAngle(angleOut_source, angleIn_target):
+					if HF.closeAngle(angleIn_source, angleOut_target) or HF.closeAngle(angleOut_source, angleIn_target):
 						## if Source and Target have opposite direction
-						if opposite(directionIn_source, directionIn_target) or opposite(directionIn_source, directionOut_target) or opposite(directionOut_source, directionIn_target):
+						if HF.opposite(directionIn_source, directionIn_target) or HF.opposite(directionIn_source, directionOut_target) or HF.opposite(directionOut_source, directionIn_target):
 							
 							## if they are horizontal, treat the stem on the Y axis
-							if (isHorizontal(angleIn_source) or isHorizontal(angleOut_source)) and (isHorizontal(angleIn_target) or isHorizontal(angleOut_target)):
+							if (HF.isHorizontal(angleIn_source) or HF.isHorizontal(angleOut_source)) and (HF.isHorizontal(angleIn_target) or HF.isHorizontal(angleOut_target)):
 								yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 								if (yBound[0] < c_distance[1] < yBound[1]) and (yBound[0] <= hypoth <= yBound[1]):
 									stemsListY_temp.append(stem)
 									
 							## if they are vertical, treat the stem on the X axis		
-							if (isVertical(angleIn_source) or isVertical(angleOut_source)) and (isVertical(angleIn_target) or isVertical(angleOut_target)):
+							if (HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)):
 								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
-		print stem[2][1]
-		print "--------"
 		def pred0(y):
-			return approxEqual(stem[0].y, y, .025)
+			return HF.approxEqual(stem[0].y, y, .025)
 		def pred1(y):
-			return approxEqual(stem[1].y, y, .025)
-		if not exists(yList, pred0) or not exists(yList, pred1):
+			return HF.approxEqual(stem[1].y, y, .025)
+		if not HF.exists(yList, pred0) or not HF.exists(yList, pred1):
 			stemsListY.append(stem)
 			yList.append(stem[0].y)
 			yList.append(stem[1].y)
 
 	xList = []
 	for stem in stemsListX_temp:
-		(preRot0x, preRot0y) = rotated(stem[0], italicAngle)
-		(preRot1x, preRot1y) = rotated(stem[1], italicAngle)
+		(preRot0x, preRot0y) = HF.rotated(stem[0], italicAngle)
+		(preRot1x, preRot1y) = HF.rotated(stem[1], italicAngle)
 		def pred0(x):
 			#print preRot0x, x
-			return approxEqual(preRot0x, x, .10)
+			return HF.approxEqual(preRot0x, x, 0.25)
 		def pred1(x):
 			#print preRot1x, x
-			return approxEqual(preRot1x, x, .10)
-		if not exists(xList,pred0) or not exists(xList,pred1):
+			return HF.approxEqual(preRot1x, x, 0.25)
+		if not HF.exists(xList,pred0) or not HF.exists(xList,pred1):
 			stemsListX.append(stem)
 			xList.append(preRot0x)
 			xList.append(preRot1x)
@@ -151,10 +149,10 @@ class Automation():
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
-		minStemX = roundbase(minStemX, roundFactor_Stems)
-		minStemY = roundbase(minStemY, roundFactor_Stems)
-		maxStemX = roundbase(maxStemX, roundFactor_Stems)
-		maxStemY = roundbase(maxStemY, roundFactor_Stems)
+		minStemX = HF.roundbase(minStemX, roundFactor_Stems)
+		minStemY = HF.roundbase(minStemY, roundFactor_Stems)
+		maxStemX = HF.roundbase(maxStemX, roundFactor_Stems)
+		maxStemY = HF.roundbase(maxStemY, roundFactor_Stems)
 
 
 		stemsValuesXList = []
@@ -171,12 +169,6 @@ class Automation():
 		else:
 			ital = 0
 
-		# g = font['o']
-		# if not g:
-		# 	print "WARNING: glyph 'o' missing"
-		# o_hPoints = make_hPointsList(g)
-		# (o_stemsListX, o_stemsListY) = makeStemsList(font, o_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY)
-
 		g = font['O']
 		if not g:
 			print "WARNING: glyph 'O' missing"
@@ -189,11 +181,6 @@ class Automation():
 		maxStemX = max(Xs)
 		maxStemY = max(Xs)
 
-		# Ys = []
-		# for i in o_stemsListY:
-		# 	Ys.append(i[2][1])
-		# minStemY = min(Ys)
-		# minStemX = min(Ys)
 		stemsValuesXList = []
 		stemsValuesYList = []
 
@@ -233,7 +220,7 @@ class Automation():
 		
 		
 		keyValueList = valuesDict.items()
-		keyValueList.sort(compare)
+		keyValueList.sort(HF.compare)
 		keyValueList = keyValueList[:6]
 
 		for keyValue in keyValueList:
@@ -245,7 +232,7 @@ class Automation():
 			else:
 				name = 'Y_' + str(width)
 			#stemPitch = float(self.tthtm.UPM)/width
-			roundedStem = roundbase(width, roundFactor_Jumps)
+			roundedStem = HF.roundbase(width, roundFactor_Jumps)
 			if roundedStem !=0:
 				stemPitch = float(self.tthtm.UPM)/roundedStem
 			else:
@@ -330,26 +317,20 @@ class AutoHinting():
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
-		minStemX = roundbase(minStemX, roundFactor_Stems)
-		minStemY = roundbase(minStemY, roundFactor_Stems)
-		maxStemX = roundbase(maxStemX, roundFactor_Stems)
-		maxStemY = roundbase(maxStemY, roundFactor_Stems)
+		minStemX = HF.roundbase(minStemX, roundFactor_Stems)
+		minStemY = HF.roundbase(minStemY, roundFactor_Stems)
+		maxStemX = HF.roundbase(maxStemX, roundFactor_Stems)
+		maxStemY = HF.roundbase(maxStemY, roundFactor_Stems)
 
 		font = g.getParent()
-		if font.info.italicAngle != None:
-			ital = - font.info.italicAngle
-		else:
-			ital = 0
 
-		g_hPoints = make_hPointsList(g)
-		(g_stemsListX, g_stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, 10)
+		(g_stemsListX, g_stemsListY) = makeStemsList(font, self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10)
 
 		for stem in  g_stemsListY:
-			print stem
-			detectedWidth = absoluteDiff(stem[0], stem[1])[1]
+			detectedWidth = HF.absoluteDiff(stem[0], stem[1])[1]
 			self.addStem(stem[0], stem[1], detectedWidth, False)
 		for stem in  g_stemsListX:
-			detectedWidth = absoluteDiff(stem[0], stem[1])[0]
+			detectedWidth = HF.absoluteDiff(stem[0], stem[1])[0]
 			self.addStem(stem[0], stem[1], detectedWidth, True)
 			
 
@@ -359,7 +340,7 @@ class AutoHinting():
 		for stemName, stem in self.tthtm.stems.items():
 			if stem['horizontal'] != isHorizontal:
 				w = int(stem['width'])
-				if approxEqual(w, width, .20):
+				if HF.approxEqual(w, width, .20):
 					candidatesList.append((abs(w - width), stemName))
 
 		if candidatesList != []:
@@ -372,8 +353,48 @@ class AutoHinting():
 				newCommand['code'] = 'singlev'
 			newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 			newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+			for command in self.TTHToolInstance.glyphTTHCommands:
+				if command['code'][:5] == 'align':
+					if command['point'] == newCommand['point2']:
+						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+						newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+
 			newCommand['stem'] = stemName
-			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+			exists = False
+			for command in self.TTHToolInstance.glyphTTHCommands:
+				if command['code'][:6] == 'single':
+					if (command['point1'] == newCommand['point1'] or command['point1'] == newCommand['point2']) and (command['point2'] == newCommand['point1'] or command['point2'] == newCommand['point2']):
+						exists = True
+			if not exists:
+				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+				for p in self.h_pointList:
+					p_x = p[0].x
+					p_y = p[0].y
+					p2_x = p2.x
+					p2_y = p2.y
+					(p_x, p_y) = HF.rotated(p[0], self.ital)
+					if isHorizontal and abs(p_y - p2_y) <= 5 and p[0] != p2:
+							newCommand = {}
+							newCommand['code'] = 'singlev'
+							newCommand['align'] = 'round'
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+					elif abs(p_x - p2_x) <= 5 and p[0] != p2:
+							newCommand = {}
+							newCommand['code'] = 'singleh'
+							newCommand['align'] = 'round'
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+					
+
+
+	def hintWidth(self, g):
+		pass
+
 
 
 	def autoAlignToZones(self, g):
@@ -389,36 +410,54 @@ class AutoHinting():
 
 
 	def processZone(self, g, zoneName, isTop, y_start, y_end):
-		for c in g:
-			for p in c.points:
-				if y_start <= p.y  and p.y <= y_end and p.type != 'offCurve':
-					exists = False
-					redundant = False
-					for command in self.TTHToolInstance.glyphTTHCommands:
-						if command['code'][:5] != 'align':
-							continue
-						else:
-							if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
-								exists = True
+		#hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, vectorIN, vectorOUT)
 
-							(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
-							if approxEqual(y, p.y, .20):
-								redundant = True
+		for p in self.h_pointList:
+			if y_start <= p[0].y  and p[0].y <= y_end and p[0].type != 'offCurve':
+				exists = False
+				redundant = False
+				for command in self.TTHToolInstance.glyphTTHCommands:
+					if command['code'][:5] != 'align':
+						continue
+					else:
+						if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]:
+							exists = True
 
-					if not exists and not redundant:
-						newCommand = {}
-						newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]
-						newCommand['zone'] = zoneName
-						if isTop:
-							newCommand['code'] = 'alignt'
-						else:
-							newCommand['code'] = 'alignb'
-						self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+						(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
+						if abs(y - p[0].y) <= .1*abs(y_end-y_start):
+							redundant = True
+				if not exists and not redundant and ( (HF.isHorizontal(p[5]) or HF.isHorizontal(p[6])) ):
+
+					newCommand = {}
+					newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+					newCommand['zone'] = zoneName
+					if isTop:
+						newCommand['code'] = 'alignt'
+					else:
+						newCommand['code'] = 'alignb'
+					self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+					for p2 in self.h_pointList:
+						if abs(p[0].y - p2[0].y) <= 5 and p != p2:
+							newCommand = {}
+							newCommand['code'] = 'singlev'
+							newCommand['align'] = 'round'
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
+							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
 
 
 	def autohint(self, g):
 		self.tthtm.g.prepareUndo("AutoHint")
+		self.h_pointList = make_hPointsList(g)
+		if self.tthtm.f.info.italicAngle != None:
+			self.ital = - self.tthtm.f.info.italicAngle
+		else:
+			self.ital = 0
 		self.autoAlignToZones(g)
+		self.hintWidth(g)
 		self.detectStems(g)
 		self.TTHToolInstance.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
