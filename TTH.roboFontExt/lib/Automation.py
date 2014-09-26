@@ -106,10 +106,12 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
+		print stem[2][1]
+		print "--------"
 		def pred0(y):
-			return approxEqual(stem[0].y, y, .10)
+			return approxEqual(stem[0].y, y, .025)
 		def pred1(y):
-			return approxEqual(stem[1].y, y, .10)
+			return approxEqual(stem[1].y, y, .025)
 		if not exists(yList, pred0) or not exists(yList, pred1):
 			stemsListY.append(stem)
 			yList.append(stem[0].y)
@@ -142,10 +144,10 @@ class Automation():
 
 
 	def autoStems(self, font, progressBar):
-		minStemX = 20
-		minStemY = 20
-		maxStemX = 400
-		maxStemY = 400
+		minStemX = self.tthtm.minStemX
+		minStemY = self.tthtm.minStemY
+		maxStemX = self.tthtm.maxStemX
+		maxStemY = self.tthtm.maxStemY
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
@@ -182,8 +184,8 @@ class Automation():
 		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 
 		Xs = []
-		for i in O_stemsListX:
-			Xs.append(i[2][0])
+		for stem in O_stemsListX:
+			Xs.append(stem[2][0])
 		maxStemX = max(Xs)
 		maxStemY = max(Xs)
 
@@ -320,6 +322,60 @@ class AutoHinting():
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
+	def detectStems(self, g):
+		minStemX = self.tthtm.minStemX
+		minStemY = self.tthtm.minStemY
+		maxStemX = self.tthtm.maxStemX
+		maxStemY = self.tthtm.maxStemY
+		roundFactor_Stems = self.tthtm.roundFactor_Stems
+		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
+
+		minStemX = roundbase(minStemX, roundFactor_Stems)
+		minStemY = roundbase(minStemY, roundFactor_Stems)
+		maxStemX = roundbase(maxStemX, roundFactor_Stems)
+		maxStemY = roundbase(maxStemY, roundFactor_Stems)
+
+		font = g.getParent()
+		if font.info.italicAngle != None:
+			ital = - font.info.italicAngle
+		else:
+			ital = 0
+
+		g_hPoints = make_hPointsList(g)
+		(g_stemsListX, g_stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, 10)
+
+		for stem in  g_stemsListY:
+			print stem
+			detectedWidth = absoluteDiff(stem[0], stem[1])[1]
+			self.addStem(stem[0], stem[1], detectedWidth, False)
+		for stem in  g_stemsListX:
+			detectedWidth = absoluteDiff(stem[0], stem[1])[0]
+			self.addStem(stem[0], stem[1], detectedWidth, True)
+			
+
+	def addStem(self, p1, p2, width, isHorizontal):
+		
+		candidatesList = []
+		for stemName, stem in self.tthtm.stems.items():
+			if stem['horizontal'] != isHorizontal:
+				w = int(stem['width'])
+				if approxEqual(w, width, .20):
+					candidatesList.append((abs(w - width), stemName))
+
+		if candidatesList != []:
+			candidatesList.sort()
+			stemName = candidatesList[0][1]
+			newCommand = {}
+			if isHorizontal:
+				newCommand['code'] = 'singleh'
+			else:
+				newCommand['code'] = 'singlev'
+			newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+			newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+			newCommand['stem'] = stemName
+			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+
 	def autoAlignToZones(self, g):
 		for zoneName, zone in self.tthtm.zones.items():
 			if not zone['top']:
@@ -341,12 +397,14 @@ class AutoHinting():
 					for command in self.TTHToolInstance.glyphTTHCommands:
 						if command['code'][:5] != 'align':
 							continue
-						if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
-							exists = True
+						else:
+							if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]:
+								exists = True
 
-						(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
-						if approxEqual(y, p.y, .20):
-							redundant = True
+							(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
+							if approxEqual(y, p.y, .20):
+								redundant = True
+
 					if not exists and not redundant:
 						newCommand = {}
 						newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p.x, p.y)]
@@ -361,6 +419,7 @@ class AutoHinting():
 	def autohint(self, g):
 		self.tthtm.g.prepareUndo("AutoHint")
 		self.autoAlignToZones(g)
+		self.detectStems(g)
 		self.TTHToolInstance.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
 			self.TTHToolInstance.refreshGlyph()

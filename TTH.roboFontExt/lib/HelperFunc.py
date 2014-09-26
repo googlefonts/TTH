@@ -85,7 +85,7 @@ def isVertical(vector):
 	
 def isHorizontal(vector):
 	vector = abs(vector)
-	if ((0 <= vector) and (vector <= 45)) or ((135 <= vector) and (vector <= 180)):
+	if ((0 <= vector) and (vector <= 10)) or ((170 <= vector) and (vector <= 180)):
 		return True
 	else:
 		return False

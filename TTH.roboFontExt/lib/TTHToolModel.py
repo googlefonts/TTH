@@ -57,6 +57,11 @@ class TTHToolModel():
 		self.roundFactor_Stems = 5
 		self.roundFactor_Jumps = 20
 
+		self.minStemX = 20
+		self.minStemY = 20
+		self.maxStemX = 300
+		self.maxStemY = 200
+
 	def setControlValues(self):
 		try:
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
