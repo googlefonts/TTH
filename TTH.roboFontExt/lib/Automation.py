@@ -347,33 +347,68 @@ class AutoHinting():
 			candidatesList.sort()
 			stemName = candidatesList[0][1]
 			newCommand = {}
+			newAlign = {}
 			if isHorizontal:
 				newCommand['code'] = 'singleh'
+				newAlign['code'] = 'alignh'
 			else:
 				newCommand['code'] = 'singlev'
+				newAlign['code'] = 'alignv'
 			newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 			newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+			newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+			newAlign['align'] = 'round'
 			for command in self.TTHToolInstance.glyphTTHCommands:
 				if command['code'][:5] == 'align':
 					if command['point'] == newCommand['point2']:
 						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 						newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+						newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 
 			newCommand['stem'] = stemName
-			exists = False
+			commandExists = False
+			alignExists = False
 			for command in self.TTHToolInstance.glyphTTHCommands:
 				if command['code'][:6] == 'single':
 					if (command['point1'] == newCommand['point1'] or command['point1'] == newCommand['point2']) and (command['point2'] == newCommand['point1'] or command['point2'] == newCommand['point2']):
-						exists = True
-			if not exists:
+						commandExists = True
+				if command['code'][:5] == 'align':
+					if command['point'] == newAlign['point']:
+						alignExists = True
+			if not alignExists:
+				self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+			if not commandExists:
 				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+				
 				for p in self.h_pointList:
 					p_x = p[0].x
 					p_y = p[0].y
+					p1_x = p1.x
+					p1_y = p1.y
 					p2_x = p2.x
 					p2_y = p2.y
 					(p_x, p_y) = HF.rotated(p[0], self.ital)
-					if isHorizontal and abs(p_y - p2_y) <= 5 and p[0] != p2:
+					if isHorizontal:
+						if abs(p_x - p2_x) <= 1 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+							newCommand = {}
+							newCommand['code'] = 'singleh'
+							newCommand['align'] = 'round'
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+						if abs(p_x - p1_x) <= 1 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+							newCommand = {}
+							newCommand['code'] = 'singleh'
+							newCommand['align'] = 'round'
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+					else:
+						if abs(p_y - p2_y) <= 1 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['align'] = 'round'
@@ -381,11 +416,12 @@ class AutoHinting():
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
-					elif abs(p_x - p2_x) <= 5 and p[0] != p2:
+
+						if abs(p_y - p1_y) <= 1 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
 							newCommand = {}
-							newCommand['code'] = 'singleh'
+							newCommand['code'] = 'singlev'
 							newCommand['align'] = 'round'
-							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
@@ -438,13 +474,19 @@ class AutoHinting():
 					self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 					for p2 in self.h_pointList:
-						if abs(p[0].y - p2[0].y) <= 5 and p != p2:
+						if abs(p[0].y - p2[0].y) <= 2 and p != p2:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
-							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+							dontLink = False
+							for command2 in self.TTHToolInstance.glyphTTHCommands:
+								if command2['code'] == 'alignv':
+									if command['point'] == newCommand['point2']:
+										dontLink = True
+										break
+							if not dontLink:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 
