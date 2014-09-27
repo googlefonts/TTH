@@ -1755,8 +1755,6 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
-		if glyphTTHCommands != None:
-			self.tthtm.g.mark = (0, 0, 0, .1)
 		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
 		elif self.tthtm.programWindowVisible == 1:

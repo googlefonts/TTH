@@ -375,12 +375,23 @@ class AutoHinting():
 				if command['code'][:5] == 'align':
 					if command['point'] == newAlign['point']:
 						alignExists = True
+
 			if not alignExists:
 				self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 			if not commandExists:
 				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 				
-				for p in self.h_pointList:
+				for i in range(len(self.h_pointList)):
+					p = self.h_pointList[i]
+					if i > 0:
+						p_prev = self.h_pointList[i-1][0]
+					else:
+						p_prev = self.h_pointList[len(self.h_pointList)-1][0]
+					if i <len(self.h_pointList)-1:
+						p_next = self.h_pointList[i+1][0]
+					else:
+						p_next = self.h_pointList[0][0]
+
 					p_x = p[0].x
 					p_y = p[0].y
 					p1_x = p1.x
@@ -389,38 +400,34 @@ class AutoHinting():
 					p2_y = p2.y
 					(p_x, p_y) = HF.rotated(p[0], self.ital)
 					if isHorizontal:
-						if abs(p_x - p2_x) <= 5 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+						if abs(p_x - p2_x) <= 5 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ) and p2 != p_prev and p2 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singleh'
-							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_x - p1_x) <= 5 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ):
+						if abs(p_x - p1_x) <= 5 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ) and p1 != p_prev and p1 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singleh'
-							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 					else:
-						if abs(p_y - p2_y) <= 5 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
+						if abs(p_y - p2_y) <= 5 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ) and p2 != p_prev and p2 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
-							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_y - p1_y) <= 5 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ):
+						if abs(p_y - p1_y) <= 5 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ) and p1 != p_prev and p1 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
-							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
@@ -473,11 +480,19 @@ class AutoHinting():
 						newCommand['code'] = 'alignb'
 					self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-					for p2 in self.h_pointList:
-						if abs(p[0].y - p2[0].y) <= 2 and p != p2:
+					for i in range(len(self.h_pointList)):
+						p2 = self.h_pointList[i]
+						if i > 0:
+							p2_prev = self.h_pointList[i-1][0]
+						else:
+							p2_prev = self.h_pointList[len(self.h_pointList)-1][0]
+						if i <len(self.h_pointList)-1:
+							p2_next = self.h_pointList[i+1][0]
+						else:
+							p2_next = self.h_pointList[0][0]
+						if abs(p[0].y - p2[0].y) <= 2 and p != p2 and p[0] != p2_prev and p[0] != p2_next:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
-							newCommand['align'] = 'round'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
 							dontLink = False
