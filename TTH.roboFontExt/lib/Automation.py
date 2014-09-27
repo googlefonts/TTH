@@ -103,6 +103,8 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
+
+	print stemsListX_temp
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
@@ -121,10 +123,10 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		(preRot1x, preRot1y) = HF.rotated(stem[1], italicAngle)
 		def pred0(x):
 			#print preRot0x, x
-			return HF.approxEqual(preRot0x, x, 0.25)
+			return HF.approxEqual(preRot0x, x, 0.025)
 		def pred1(x):
 			#print preRot1x, x
-			return HF.approxEqual(preRot1x, x, 0.25)
+			return HF.approxEqual(preRot1x, x, 0.025)
 		if not HF.exists(xList,pred0) or not HF.exists(xList,pred1):
 			stemsListX.append(stem)
 			xList.append(preRot0x)
