@@ -468,11 +468,10 @@ class previewWindow(object):
 
 	def mouseUp(self, event):
 
-		scroll_x = self.wPreview.view.getNSView().superview().documentVisibleRect()[0].x
-		scroll_y = self.wPreview.view.getNSView().superview().documentVisibleRect()[0].y
+		scrollOrg = self.wPreview.view.getNSView().superview().documentVisibleRect().origin
 
-		x = event.locationInWindow().x -10 + scroll_x
-		y = event.locationInWindow().y -50 + scroll_y
+		x = event.locationInWindow().x - 10 + scrollOrg.x
+		y = event.locationInWindow().y - 50 + scrollOrg.y
 
 		for i in self.TTHToolInstance.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:

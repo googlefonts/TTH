@@ -1,18 +1,5 @@
-from AppKit import *
+from AppKit import NSView
 from math import ceil
-
-from mojo.canvas import Canvas
-
-# class PreviewArea(NSView):
-
-# 	def init_withTTHToolInstance(self, TTHToolInstance):
-# 		self.init()
-# 		self.TTHToolInstance = TTHToolInstance
-# 		return self
-
-# 	def drawRect_(self, rect):
-# 		self.TTHToolInstance.drawPreviewWindow()
-
 
 class PreviewInGlyphWindow(NSView):
 

@@ -1,6 +1,6 @@
 import controller
 import TTHToolModel
-from mojo.events import *
+from mojo.events import installTool
 
 reload(controller)
 reload(TTHToolModel)
