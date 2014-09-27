@@ -104,7 +104,6 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
 
-	print stemsListX_temp
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
