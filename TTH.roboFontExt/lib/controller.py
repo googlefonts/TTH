@@ -1177,7 +1177,7 @@ class TTHTool(BaseEventTool):
 				return
 			if self.endPoint != None:
 				newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
-			if self.endPointOff != None:
+			elif self.endPointOff != None:
 				newCommand['point'] = self.pointCoordinatesToName[self.endPointOff]
 			newCommand['ppm1'] = str(self.tthtm.deltaRange1)
 			newCommand['ppm2'] = str(self.tthtm.deltaRange2)
@@ -1381,6 +1381,17 @@ class TTHTool(BaseEventTool):
 
 		self.tthtm.g.performUndo()
 
+	def reverseSingleCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Reverse Single Link')
+		point1 = self.glyphTTHCommands[cmdIndex]['point1']
+		point2 = self.glyphTTHCommands[cmdIndex]['point2']
+		self.glyphTTHCommands[cmdIndex]['point1'] = point2
+		self.glyphTTHCommands[cmdIndex]['point2'] = point1
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
@@ -1602,6 +1613,7 @@ class TTHTool(BaseEventTool):
 
 
 			if clickedCommand['code'] in ['singleh', 'singlev']:
+				items.append(('Reverse', self.reverseSingleCallback))
 				if 'round' not in clickedCommand:
 					items.append(('Round Distance', self.roundDistanceCallback))
 				else:
