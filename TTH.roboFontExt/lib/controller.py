@@ -267,6 +267,35 @@ class callbackSetDeltaValue():
 			self.ttht.refreshGlyph()
 		self.ttht.tthtm.g.performUndo()
 
+class callbackSetDeltaPPM1():
+	def __init__(self, TTHtoolInstance, value):
+		self.ttht = TTHtoolInstance
+		self.value = str(value)
+
+	def __call__(self, item):
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Delta PPM1')
+		self.ttht.glyphTTHCommands[cmdIndex]['ppm1'] = self.value
+		self.ttht.updateGlyphProgram()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
+
+class callbackSetDeltaPPM2():
+	def __init__(self, TTHtoolInstance, value):
+		self.ttht = TTHtoolInstance
+		self.value = str(value)
+
+	def __call__(self, item):
+		cmdIndex = self.ttht.commandRightClicked
+		self.ttht.tthtm.g.prepareUndo('Delta PPM2')
+		self.ttht.glyphTTHCommands[cmdIndex]['ppm2'] = self.value
+		self.ttht.updateGlyphProgram()
+		if self.ttht.tthtm.alwaysRefresh == 1:
+			self.ttht.refreshGlyph()
+		self.ttht.tthtm.g.performUndo()
+
+
 class TTHTool(BaseEventTool):
 
 	def __init__(self, tthtm):
@@ -1483,7 +1512,23 @@ class TTHTool(BaseEventTool):
 					if str(value) == str(clickedCommand['delta']):
 						valueContext = u"✓ " + str(value)
 					deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
-				items.append(("Set Middle Delta Value", deltaValues))
+				items.append(("Delta Offset", deltaValues))
+
+				deltaPPM1 = []
+				for value in range(9, int(clickedCommand['ppm2'])+1):
+					valueContext = str(value)
+					if str(value) == str(clickedCommand['ppm1']):
+						valueContext = u"✓ " + str(value)
+					deltaPPM1.append((valueContext, callbackSetDeltaPPM1(self, value)))
+				items.append(("Delta PPM1", deltaPPM1))
+
+				deltaPPM2 = []
+				for value in range(int(clickedCommand['ppm1']), 72):
+					valueContext = str(value)
+					if str(value) == str(clickedCommand['ppm2']):
+						valueContext = u"✓ " + str(value)
+					deltaPPM2.append((valueContext, callbackSetDeltaPPM2(self, value)))
+				items.append(("Delta PPM2", deltaPPM2))
 
 
 			if clickedCommand['code'] in ['interpolateh', 'interpolatev']:
