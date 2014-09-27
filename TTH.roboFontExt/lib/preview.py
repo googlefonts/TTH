@@ -1,4 +1,4 @@
-from AppKit import NSView
+from AppKit import NSView, NSColor
 from math import ceil
 
 class PreviewInGlyphWindow(NSView):

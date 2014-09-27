@@ -79,7 +79,8 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 			angleOut_target = g_hPoints[target_hPoint][6]
 			if source_hPoint == target_hPoint:
 				continue
-			if ( (HF.isHorizontal(angleIn_source) or HF.isHorizontal(angleOut_source)) and (HF.isHorizontal(angleIn_target) or HF.isHorizontal(angleOut_target)) ) or ( (HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)) ):
+			if ( ( ( (HF.isHorizontal(angleIn_source) or HF.isHorizontal(angleOut_source)) and (HF.isHorizontal(angleIn_target) or HF.isHorizontal(angleOut_target)) ) or ( (HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)) ) )
+			or ( ( (HF.isHorizontal(HF.rotatedVector(angleIn_source, italicAngle)) or HF.isHorizontal(HF.rotatedVector(angleOut_source, italicAngle))) and (HF.isHorizontal(HF.rotatedVector(angleIn_target, italicAngle)) or HF.isHorizontal(HF.rotatedVector(angleOut_target, italicAngle))) ) or ( (HF.isVertical(HF.rotatedVector(angleIn_source, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_source, italicAngle))) and (HF.isVertical(HF.rotatedVector(angleIn_target, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_target, italicAngle))) ) ) ):
 				color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
 				if color == 'Black':
 					c_distance = HF.absoluteDiff(sourcePoint, targetPoint)
@@ -99,11 +100,11 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 									stemsListY_temp.append(stem)
 									
 							## if they are vertical, treat the stem on the X axis		
-							if (HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)):
+							if ( ((HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)))
+							or ((HF.isVertical(HF.rotatedVector(angleIn_source, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_source, italicAngle))) and (HF.isVertical(HF.rotatedVector(angleIn_target, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_target, italicAngle)))) ):
 								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
 									stemsListX_temp.append(stem)
-
 	# avoid duplicates, filters temporary stems
 	yList = []
 	for stem in stemsListY_temp:
@@ -401,7 +402,7 @@ class AutoHinting():
 					p2_y = p2.y
 					(p_x, p_y) = HF.rotated(p[0], self.ital)
 					if isHorizontal:
-						if abs(p_x - p2_x) <= 5 and p[0] != p2 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ) and p2 != p_prev and p2 != p_next:
+						if abs(p_x - p2_x) <= 5 and p[0] != p2 and ( HF.isVertical(HF.rotatedVector(p[5], self.ital)) or HF.isVertical(HF.rotatedVector(p[6], self.ital) ) ) and p2 != p_prev and p2 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singleh'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
@@ -409,7 +410,7 @@ class AutoHinting():
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_x - p1_x) <= 5 and p[0] != p1 and ( HF.isVertical(p[5]) or HF.isVertical(p[6]) ) and p1 != p_prev and p1 != p_next:
+						if abs(p_x - p1_x) <= 5 and p[0] != p1 and ( HF.isVertical(HF.rotatedVector(p[5], self.ital)) or HF.isVertical(HF.rotatedVector(p[6], self.ital)) ) and p1 != p_prev and p1 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singleh'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
@@ -418,7 +419,7 @@ class AutoHinting():
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 					else:
-						if abs(p_y - p2_y) <= 5 and p[0] != p2 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ) and p2 != p_prev and p2 != p_next:
+						if abs(p_y - p2_y) <= 5 and p[0] != p2 and ( HF.isHorizontal(HF.rotatedVector(p[5], self.ital)) or HF.isHorizontal(HF.rotatedVector(p[6], self.ital)) ) and p2 != p_prev and p2 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
@@ -426,7 +427,7 @@ class AutoHinting():
 							if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-						if abs(p_y - p1_y) <= 5 and p[0] != p1 and ( HF.isHorizontal(p[5]) or HF.isHorizontal(p[6]) ) and p1 != p_prev and p1 != p_next:
+						if abs(p_y - p1_y) <= 5 and p[0] != p1 and ( HF.isHorizontal(HF.rotatedVector(p[5], self.ital)) or HF.isHorizontal(HF.rotatedVector(p[6], self.ital)) ) and p1 != p_prev and p1 != p_next:
 							newCommand = {}
 							newCommand['code'] = 'singlev'
 							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]

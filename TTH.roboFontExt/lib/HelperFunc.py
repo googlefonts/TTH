@@ -35,6 +35,10 @@ def rotated(point, angle):
 	rotatedPoint_x = int(cosa*x - sina*y)
 	rotatedPoint_y = int(sina*x + cosa*y)
 	return (rotatedPoint_x, rotatedPoint_y)
+
+def rotatedVector(vector, angle):
+	rotatedVector = -vector - angle
+	return rotatedVector
 	
 	
 def angle(point1, point2):
@@ -78,14 +82,14 @@ def opposite(direction1, direction2):
 	
 def isVertical(vector):
 	vector = abs(vector)
-	if ((65 < vector) and (vector < 115)):
+	if ((85 < vector) and (vector < 95)):
 		return True
 	else:
 		return False
 
 def isHorizontal(vector):
 	vector = abs(vector)
-	if ((0 <= vector) and (vector <= 10)) or ((170 <= vector) and (vector <= 180)):
+	if ((0 <= vector) and (vector <= 5)) or ((175 <= vector) and (vector <= 180)):
 		return True
 	else:
 		return False
