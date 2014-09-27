@@ -1016,9 +1016,8 @@ class TTHTool(BaseEventTool):
 	def mouseDown(self, point, clickCount):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
-		#print 'glyph start point:', self.startPoint
-		#if self.startPoint in self.pointCoordinatesToUniqueID:
-		#	print 'point UniqueID:', self.pointCoordinatesToUniqueID[self.startPoint]
+		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+			self.startPoint = self.isOffOnPoint(self.p_cursor)
 
 	def getDistance(self, point1, point2, axis):
 		x1 = point1[0]
@@ -1063,7 +1062,7 @@ class TTHTool(BaseEventTool):
 		self.endPoint = self.isOnPoint(self.p_cursor)
 		self.endPointOff = self.isOffPoint(self.p_cursor)
 		#print 'glyph end point:', self.endPoint
-		if self.endPoint == None and self.endPointOff == None:
+		if self.endPoint == None and self.endPointOff == None and self.tthtm.selectedHintingTool not in ['Middle Delta', 'Final Delta']:
 			self.startPoint = None
 			return
 
@@ -1172,26 +1171,24 @@ class TTHTool(BaseEventTool):
 			removeObserver(self, "mouseMoved")
 			removeObserver(self, "draw")
 
-		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta'] and (self.endPoint != None or self.endPointOff != None):
+		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
 			if self.tthtm.deltaOffset == 0:
 				return
-			if self.endPoint != None:
-				newCommand['point'] = self.pointCoordinatesToName[self.endPoint]
-			elif self.endPointOff != None:
-				newCommand['point'] = self.pointCoordinatesToName[self.endPointOff]
-			newCommand['ppm1'] = str(self.tthtm.deltaRange1)
-			newCommand['ppm2'] = str(self.tthtm.deltaRange2)
-			newCommand['delta'] = str(self.tthtm.deltaOffset)
-			if self.tthtm.selectedHintingTool == 'Middle Delta':
-				if self.tthtm.selectedAxis == 'X':
-					newCommand['code'] = 'mdeltah'
-				else:
-					newCommand['code'] = 'mdeltav'
-			if self.tthtm.selectedHintingTool == 'Final Delta':
-				if self.tthtm.selectedAxis == 'X':
-					newCommand['code'] = 'fdeltah'
-				else:
-					newCommand['code'] = 'fdeltav'
+			if self.startPoint != None:
+				newCommand['point'] = self.pointCoordinatesToName[self.startPoint]
+				newCommand['ppm1'] = str(self.tthtm.deltaRange1)
+				newCommand['ppm2'] = str(self.tthtm.deltaRange2)
+				newCommand['delta'] = str(self.tthtm.deltaOffset)
+				if self.tthtm.selectedHintingTool == 'Middle Delta':
+					if self.tthtm.selectedAxis == 'X':
+						newCommand['code'] = 'mdeltah'
+					else:
+						newCommand['code'] = 'mdeltav'
+				if self.tthtm.selectedHintingTool == 'Final Delta':
+					if self.tthtm.selectedAxis == 'X':
+						newCommand['code'] = 'fdeltah'
+					else:
+						newCommand['code'] = 'fdeltav'
 
 		if newCommand != {}:
 			self.tthtm.g.prepareUndo("New Command")
@@ -2412,6 +2409,48 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((middlePoint[0] + 10*scale, middlePoint[1] - 10*scale), (width, height))
 
+
+	def drawDeltaDragging(self, scale, point, cursorPoint, color):
+		path = NSBezierPath.bezierPath()
+	 	path.moveToPoint_((point[0], point[1]))
+
+	 	if cursorPoint[0]-point[0] >= self.tthtm.pitch:
+	 		value_x = 8
+	 	elif cursorPoint[0]-point[0] <= -self.tthtm.pitch:
+	 		value_x = -8
+	 	else:
+	 		value_x = int((cursorPoint[0]-point[0])/self.tthtm.pitch*8)
+
+	 	if cursorPoint[1]-point[1] >= self.tthtm.pitch:
+	 		value_y = 8
+	 	elif cursorPoint[1]-point[1] <= -self.tthtm.pitch:
+	 		value_y = -8
+	 	else:
+	 		value_y = int((cursorPoint[1]-point[1])/self.tthtm.pitch*8)
+
+
+	 	if self.tthtm.selectedAxis == 'X':
+		 	end_x = point[0] + (value_x/8.0)*self.tthtm.pitch
+		 	end_y = point[1]
+		 	if value_x != 0:
+				self.changeDeltaOffset(value_x)
+		else:
+		 	end_x = point[0]
+		 	end_y = point[1] + (value_y/8.0)*self.tthtm.pitch
+		 	if value_y != 0:
+			 	self.changeDeltaOffset(value_y)
+
+	 	path.lineToPoint_((end_x, end_y))
+
+	 	color.set()
+		path.setLineWidth_(scale)
+		path.stroke()
+		r = 4
+		self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, color)
+
+		
+
+
 	def drawDelta(self, scale, point, value, cmdIndex, color):
 
 		path = NSBezierPath.bezierPath()
@@ -2620,8 +2659,14 @@ class TTHTool(BaseEventTool):
 		if self.isDragging():
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
-			if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+			if self.startPoint != None and self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
+				if self.tthtm.selectedHintingTool == 'Middle Delta':
+					color = deltacolor
+				else:
+					color = finaldeltacolor
+
 				touchedEnd = self.isOffOnPoint(self.currentPoint)
+				self.drawDeltaDragging(scale, self.startPoint, self.endPoint, color)
 			if touchedEnd != None:
 				self.endPoint = touchedEnd
 				x_end = touchedEnd[0]

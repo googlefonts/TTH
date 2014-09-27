@@ -40,7 +40,7 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 	color = ''
 	if abs(point2.x - point1.x) < maxStemX or abs(point2.y - point1.y) < maxStemY:
 		hypothLength = HF.distance(point1, point2)
-		for j in range(1, int(hypothLength)):
+		for j in range(1, int(hypothLength), 5):
 			cp_x = point1.x + ((j*1.0)/hypothLength)*(point2.x - point1.x)
 			cp_y = point1.y + ((j*1.0)/hypothLength)*(point2.y - point1.y) 
 			if g.pointInside((cp_x, cp_y)):
