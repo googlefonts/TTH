@@ -964,6 +964,12 @@ class TTHTool(BaseEventTool):
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
+			if event.characters() != 'i':
+				if self.isInterpolating == True:
+					removeObserver(self, "mouseMoved")
+					removeObserver(self, "draw")
+
+				self.isInterpolating = False
 
 		elif event.characters() == 'o':
 			if self.tthtm.showOutline == 1:
@@ -1093,6 +1099,12 @@ class TTHTool(BaseEventTool):
 		#print 'glyph end point:', self.endPoint
 		if self.endPoint == None and self.endPointOff == None and self.tthtm.selectedHintingTool not in ['Middle Delta', 'Final Delta']:
 			self.startPoint = None
+			if self.isInterpolating == True:
+				removeObserver(self, "mouseMoved")
+				removeObserver(self, "draw")
+
+			self.isInterpolating = False
+
 			return
 
 		cmdIndex = len(self.glyphTTHCommands)
@@ -1178,6 +1190,7 @@ class TTHTool(BaseEventTool):
 			self.startPointInterpolate1 = self.startPoint
 			addObserver(self, "giveMouseCoordinates", 'mouseMoved')
 			addObserver(self, "drawInterpolateMouseMoved", "draw")
+			self.isInterpolating = True
 
 		if self.tthtm.selectedHintingTool == 'Interpolation' and self.startPoint == self.endPoint and self.startPoint != None and self.point1 != None and self.point != None:
 			self.point2 = self.endPoint
@@ -1199,6 +1212,8 @@ class TTHTool(BaseEventTool):
 
 			removeObserver(self, "mouseMoved")
 			removeObserver(self, "draw")
+
+			self.isInterpolating = False
 
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
 			if self.tthtm.deltaOffset == 0:
