@@ -62,8 +62,8 @@ class centralWindow(object):
 				callback=self.BitmapPreviewPopUpButtonCallback)
 
 		
-		self.wCentral.PanelsText= TextBox((10, -45, 50, 15), "Panels:", sizeStyle = "mini")
-		self.wCentral.PanelsPopButton = PopUpButton((60, -45, -10, 15), self.panelsList, sizeStyle = 'mini', 
+		self.wCentral.PanelsText= TextBox((10, 52, 50, 15), "Panels:", sizeStyle = "mini")
+		self.wCentral.PanelsPopButton = PopUpButton((60, 50, -10, 15), self.panelsList, sizeStyle = 'mini', 
 				callback=self.PanelsPopButtonCallback)
 
 
