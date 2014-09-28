@@ -470,7 +470,7 @@ class AutoHinting():
 						try:
 							(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
 						except:
-							(x, y) = self.TTHToolInstance.pointNameToUniqueID[command['point']]
+							(x, y) = self.TTHToolInstance.pointNameToCoordinates[command['point']]
 						if abs(y - p[0].y) <= .1*abs(y_end-y_start):
 							redundant = True
 				if not exists and not redundant and ( (HF.isHorizontal_byAngle(p[5], 45) or HF.isHorizontal_byAngle(p[6], 45)) ):

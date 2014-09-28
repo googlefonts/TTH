@@ -1821,6 +1821,7 @@ class TTHTool(BaseEventTool):
 
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
+		self.pointNameToCoordinates = self.makePointNameToCoordinatesDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.tthtm.g)
 		#print 'full temp font loaded'
@@ -1943,6 +1944,13 @@ class TTHTool(BaseEventTool):
 		for contour in g:
 			for point in contour.points:
 				pointUniqueIDToCoordinates[point.naked().uniqueID] = ((point.x, point.y))
+		return pointUniqueIDToCoordinates
+
+	def makePointNameToCoordinatesDict(self, g):
+		pointUniqueIDToCoordinates = {}
+		for contour in g:
+			for point in contour.points:
+				pointUniqueIDToCoordinates[point.name.split(',')[0]] = ((point.x, point.y))
 		return pointUniqueIDToCoordinates
 
 	def makePointCoordinatesToUniqueIDDict(self, g):
