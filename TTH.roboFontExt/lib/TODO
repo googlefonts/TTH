@@ -17,8 +17,6 @@ AutoHinting, ou Educated Guessing
 ------------------------------
 Import/Export Glyphs Commands, Zones, Stems.
 ------------------------------
-Escape mode for Interpolation
-------------------------------
 GASP table editable
 ------------------------------
 A preferences pannel
@@ -27,6 +25,8 @@ A preferences pannel
 Done:
 ==============================
 
+Escape mode for Interpolation
+------------------------------
 des fleches au bout des DoubleLinks et des Interpolates
 ------------------------------
 le menu déroulant au clic-droit 'clear horizontal program' et 'clear vertical program'
