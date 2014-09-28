@@ -324,6 +324,8 @@ class TTHTool(BaseEventTool):
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
 
+		self.isInterpolating = False
+
 
 	### TTH Tool Icon and cursor ###
 	def getToolbarIcon(self):
