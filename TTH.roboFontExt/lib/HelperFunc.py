@@ -89,11 +89,17 @@ def isVertical(vector):
 
 def isHorizontal(vector):
 	vector = abs(vector)
-	if ((0 <= vector) and (vector <= 5)) or ((175 <= vector) and (vector <= 180)):
+	if ((0 <= vector) and (vector <= 10)) or ((170 <= vector) and (vector <= 180)):
 		return True
 	else:
 		return False
 
+def isHorizontal_byAngle(vector, angle):
+	vector = abs(vector)
+	if ((0 <= vector) and (vector <= angle)) or ((180-angle <= vector) and (vector <= 180)):
+		return True
+	else:
+		return False
 
 #True si il existe un element de la liste l pour lequel la fonction p renvoi True (on dit que le predicat p est vrai sur cet element)
 def exists(l, p):
