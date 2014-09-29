@@ -97,17 +97,19 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 							if (HF.isHorizontal(angleIn_source) or HF.isHorizontal(angleOut_source)) and (HF.isHorizontal(angleIn_target) or HF.isHorizontal(angleOut_target)):
 								yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 								if (yBound[0] < c_distance[1] < yBound[1]) and (yBound[0] <= hypoth <= yBound[1]):
-									stemsListY_temp.append(stem)
+									stemsListY_temp.append((hypoth, stem))
 									
 							## if they are vertical, treat the stem on the X axis		
 							if ( ((HF.isVertical(angleIn_source) or HF.isVertical(angleOut_source)) and (HF.isVertical(angleIn_target) or HF.isVertical(angleOut_target)))
 							or ((HF.isVertical(HF.rotatedVector(angleIn_source, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_source, italicAngle))) and (HF.isVertical(HF.rotatedVector(angleIn_target, italicAngle)) or HF.isVertical(HF.rotatedVector(angleOut_target, italicAngle)))) ):
 								xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 								if (xBound[0] <= c_distance[0] <= xBound[1]) and (xBound[0] <= hypoth <= xBound[1]):
-									stemsListX_temp.append(stem)
+									stemsListX_temp.append((hypoth, stem))
 	# avoid duplicates, filters temporary stems
+	stemsListY_temp.sort()
+	stemsListX_temp.sort()
 	yList = []
-	for stem in stemsListY_temp:
+	for (hypoth, stem) in stemsListY_temp:
 		def pred0(y):
 			return HF.approxEqual(stem[0].y, y, .025)
 		def pred1(y):
@@ -118,7 +120,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 			yList.append(stem[1].y)
 
 	xList = []
-	for stem in stemsListX_temp:
+	for (hypoth, stem) in stemsListX_temp:
 		(preRot0x, preRot0y) = HF.rotated(stem[0], italicAngle)
 		(preRot1x, preRot1y) = HF.rotated(stem[1], italicAngle)
 		def pred0(x):
@@ -349,29 +351,66 @@ class AutoHinting():
 			candidatesList.sort()
 			stemName = candidatesList[0][1]
 			newCommand = {}
-			#newAlign = {}
 			if isHorizontal:
-				newCommand['code'] = 'singleh'
-				#newAlign['code'] = 'alignh'
+				newCommand['code'] = 'doubleh'
 			else:
-				newCommand['code'] = 'singlev'
-				#newAlign['code'] = 'alignv'
+				newCommand['code'] = 'doublev'
 			newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 			newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-			#newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-			#newAlign['align'] = 'round'
+			zonePoint1 = self.isInZone(p1)
+			zonePoint2 = self.isInZone(p2)
+
+			if zonePoint1 != None or zonePoint2 != None:
+				if newCommand['code'] == 'doubleh':
+					newCommand['code'] = 'singleh'
+				elif newCommand['code'] == 'doublev':
+					newCommand['code'] = 'singlev'
+
+				if zonePoint1 != None:
+					newAlign = {}
+					if zonePoint1[1]:
+						newAlign['code'] = 'alignt'
+					else:
+						newAlign['code'] = 'alignb'
+					newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+					newAlign['zone'] = zonePoint1[0]
+					if newAlign not in self.TTHToolInstance.glyphTTHCommands:
+						self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+
+				if zonePoint2 != None:
+					newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+					newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+					newAlign = {}
+					if zonePoint2[1]:
+						newAlign['code'] = 'alignt'
+					else:
+						newAlign['code'] = 'alignb'
+					newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+					newAlign['zone'] = zonePoint2[0]
+					if newAlign not in self.TTHToolInstance.glyphTTHCommands:
+						self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+
+
 			for command in self.TTHToolInstance.glyphTTHCommands:
-				if command['code'][:5] == 'align':
+				if (isHorizontal and command['code'] == 'alignv') or ( not isHorizontal and command['code'] in ['alignh', 'alignt', 'alignb']):
 					if command['point'] == newCommand['point2']:
+						if newCommand['code'] == 'doubleh':
+							newCommand['code'] = 'singleh'
+						elif newCommand['code'] == 'doublev':
+							newCommand['code'] = 'singlev'
 						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 						newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-						#newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+					elif command['point'] == newCommand['point1']:
+						if newCommand['code'] == 'doubleh':
+							newCommand['code'] = 'singleh'
+						elif newCommand['code'] == 'doublev':
+							newCommand['code'] = 'singlev'
 
 			newCommand['stem'] = stemName
 			commandExists = False
 			alignExists = False
 			for command in self.TTHToolInstance.glyphTTHCommands:
-				if command['code'][:6] == 'single':
+				if (isHorizontal and command['code'] in ['singleh', 'doubleh']) or ( not isHorizontal and command['code'] in ['singlev', 'doublev']) :
 					if (command['point1'] == newCommand['point1'] or command['point1'] == newCommand['point2']) and (command['point2'] == newCommand['point1'] or command['point2'] == newCommand['point2']):
 						commandExists = True
 
@@ -463,6 +502,18 @@ class AutoHinting():
 	def hintWidth(self, g):
 		pass
 
+	def isInZone(self, point):
+		for zoneName, zone in self.tthtm.zones.items():
+			if not zone['top']:
+				y_start = int(zone['position']) - int(zone['width'])
+				y_end = int(zone['position'])
+			else:
+				y_start = int(zone['position'])
+				y_end = int(zone['position']) + int(zone['width'])
+			if y_start <=  point.y and point.y <= y_end:
+				return (zoneName, zone['top'])
+		return None
+
 
 
 	def autoAlignToZones(self, g):
@@ -497,7 +548,6 @@ class AutoHinting():
 						if abs(y - p[0].y) <= .1*abs(y_end-y_start):
 							redundant = True
 				if not exists and not redundant and ( (HF.isHorizontal_byAngle(p[5], 45) or HF.isHorizontal_byAngle(p[6], 45)) ):
-
 					newCommand = {}
 					newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 					newCommand['zone'] = zoneName
@@ -507,29 +557,38 @@ class AutoHinting():
 						newCommand['code'] = 'alignb'
 					self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
+					p2List = []
 					for i in range(len(self.h_pointList)):
 						p2 = self.h_pointList[i]
 						if i > 0:
-							p2_prev = self.h_pointList[i-1][0]
+							p2_prev = self.h_pointList[i-1]
 						else:
-							p2_prev = self.h_pointList[len(self.h_pointList)-1][0]
+							p2_prev = self.h_pointList[len(self.h_pointList)-1]
 						if i <len(self.h_pointList)-1:
-							p2_next = self.h_pointList[i+1][0]
+							p2_next = self.h_pointList[i+1]
 						else:
-							p2_next = self.h_pointList[0][0]
-						if abs(p[0].y - p2[0].y) <= 2 and p != p2 and p[0] != p2_prev and p[0] != p2_next:
-							newCommand = {}
-							newCommand['code'] = 'singlev'
-							newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-							newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
-							dontLink = False
-							for command2 in self.TTHToolInstance.glyphTTHCommands:
-								if command2['code'] == 'alignv':
-									if command2['point'] == newCommand['point2']:
-										dontLink = True
-										break
-							if not dontLink:
+							p2_next = self.h_pointList[0]
+						if abs(p[0].y - p2[0].y) <= 2:
+							if p != p2 and p != p2_prev and p != p2_next:
+								for command2 in self.TTHToolInstance.glyphTTHCommands:
+									if command2['code'] in ['alignt', 'alignb']:
+										if command2['point'] != self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]:
+											p2List.append((p2_prev, p2, p2_next))
+
+					for (p2_prev, p2, p2_next) in p2List:
+						newCommand = {}
+						newCommand['code'] = 'singlev'
+						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+						point2 = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
+						newCommand['point2'] = point2
+						for (p3_prev, p3, p3_next) in p2List:
+							point3_prev = self.TTHToolInstance.pointCoordinatesToName[(p3_prev[0].x, p3_prev[0].y)]
+							point3_next = self.TTHToolInstance.pointCoordinatesToName[(p3_next[0].x, p3_next[0].y)]
+							if point2 == point3_prev or point2 == point3_next:
+								break
+							elif p2 == p3 and newCommand not in self.TTHToolInstance.glyphTTHCommands:	
 								self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
 
 
 
