@@ -577,6 +577,7 @@ class AutoHinting():
 		for i in range(len(p2List)):
 			c_i = p2List[i][1]
 			point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
+
 			prev_i = p2List[i][0]
 			next_i = p2List[i][2]
 			for j in range(len(p2List)):
@@ -586,7 +587,10 @@ class AutoHinting():
 				if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
 					break
 				if c_j == c_i and p2[0] != p:
-					siblingsList.append(point2)
+					if axis == 'X' and (HF.isVertical(c_i[5]) or HF.isVertical(c_i[6])):
+						siblingsList.append(point2)
+					elif axis == 'Y' and (HF.isHorizontal(c_i[5]) or HF.isHorizontal(c_i[6])):
+						siblingsList.append(point2)
 
 		return siblingsList
 
