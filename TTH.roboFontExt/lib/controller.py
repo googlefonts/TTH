@@ -1964,11 +1964,11 @@ class TTHTool(BaseEventTool):
 		return pointUniqueIDToCoordinates
 
 	def makePointNameToCoordinatesDict(self, g):
-		pointUniqueIDToCoordinates = {}
+		pointNameToCoordinates = {}
 		for contour in g:
 			for point in contour.points:
-				pointUniqueIDToCoordinates[point.name.split(',')[0]] = ((point.x, point.y))
-		return pointUniqueIDToCoordinates
+				pointNameToCoordinates[point.name.split(',')[0]] = ((point.x, point.y))
+		return pointNameToCoordinates
 
 	def makePointCoordinatesToUniqueIDDict(self, g):
 		pointCoordinatesToUniqueID = {}

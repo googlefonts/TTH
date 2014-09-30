@@ -234,8 +234,8 @@ class toolsWindow(object):
 		self.wTools.StemTypeText.show(False)
 		self.wTools.StemTypePopUpButton.show(False)
 
-		self.wTools.RoundDistanceText = TextBox((10, 57, 80, 15), "Round Distance:", sizeStyle = "mini")
-		self.wTools.RoundDistanceCheckBox = CheckBox((90, 55, 15, 15), "", sizeStyle = "mini",
+		self.wTools.RoundDistanceText = TextBox((10, 59, 80, 15), "Round Distance:", sizeStyle = "mini")
+		self.wTools.RoundDistanceCheckBox = CheckBox((90, 57, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
