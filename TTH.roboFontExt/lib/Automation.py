@@ -574,16 +574,20 @@ class AutoHinting():
 				if p != p2[0] and p != p2_prev[0] and p != p2_next[0]:
 					p2List.append((p2_prev, p2, p2_next))
 
-
-		for (p2_prev, p2, p2_next) in p2List:
-			point2 = self.TTHToolInstance.pointCoordinatesToName[(p2[0].x, p2[0].y)]
-			for (p3_prev, p3, p3_next) in p2List:
-				point3_prev = self.TTHToolInstance.pointCoordinatesToName[(p3_prev[0].x, p3_prev[0].y)]
-				point3_next = self.TTHToolInstance.pointCoordinatesToName[(p3_next[0].x, p3_next[0].y)]
-				if point2 == point3_prev or point2 == point3_next:
+		for i in range(len(p2List)):
+			c_i = p2List[i][1]
+			point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
+			prev_i = p2List[i][0]
+			next_i = p2List[i][2]
+			for j in range(len(p2List)):
+				c_j = p2List[j][1]
+				prev_j = p2List[j][0]
+				next_j = p2List[j][2]
+				if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
 					break
-				elif p2 == p3 and p2[0] != p:	
+				if c_j == c_i and p2[0] != p:
 					siblingsList.append(point2)
+
 		return siblingsList
 
 
