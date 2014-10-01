@@ -54,6 +54,7 @@ cursorFinalDelta = CreateCursor(cursorFinalDeltaPath, hotSpot=(2, 2))
 
 whiteColor = NSColor.whiteColor()
 blackColor = NSColor.blackColor()
+redColor = NSColor.redColor()
 axisColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
@@ -2642,9 +2643,9 @@ class TTHTool(BaseEventTool):
 
 			displaysize = str(size)
 			if size == self.tthtm.PPM_Size and text != '':
-				self.drawPreviewSize(displaysize, x-20, y, NSColor.redColor())
+				self.drawPreviewSize(displaysize, x-20, y, redColor)
 			elif text != '':
-				self.drawPreviewSize(displaysize, x-20, y, NSColor.blackColor())
+				self.drawPreviewSize(displaysize, x-20, y, blackColor)
 
 			self.tthtm.textRenderer.set_cur_size(size)
 			self.tthtm.textRenderer.set_pen((x, y))

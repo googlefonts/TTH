@@ -433,7 +433,7 @@ class previewWindow(object):
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.viewSize = self.tthtm.previewWindowViewSize
+		#self.viewSize = self.tthtm.previewWindowViewSize
 
 		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
 		# self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
@@ -444,9 +444,8 @@ class previewWindow(object):
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
 
-		# self.wPreview.previewScrollview = ScrollView((10, 50, -10, -40),
-		# 		self.view)
 		self.wPreview.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize= self.tthtm.previewWindowViewSize)
+		self.previewWindowMovedorResized(None)
 
 		self.wPreview.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
 		self.wPreview.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
@@ -467,19 +466,17 @@ class previewWindow(object):
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 
 	def mouseUp(self, event):
-
 		scrollOrg = self.wPreview.view.getNSView().superview().documentVisibleRect().origin
-
 		x = event.locationInWindow().x - 10 + scrollOrg.x
-		y = event.locationInWindow().y - 50 + scrollOrg.y
-
+		y = event.locationInWindow().y - 40 + scrollOrg.y
 		for i in self.TTHToolInstance.clickableSizes:
-			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+8:
 				self.TTHToolInstance.changeSize(self.TTHToolInstance.clickableSizes[i])
-
+				break
 		for coords, glyphName in self.TTHToolInstance.clickableGlyphs.items():
 			if x >= coords[0] and x <= coords[2] and y >= coords[1] and y <= coords[3]:
 				SetCurrentGlyphByName(glyphName[0])
+				break
 
 	def draw(self):
 		self.TTHToolInstance.drawPreviewWindow()
@@ -492,7 +489,7 @@ class previewWindow(object):
 
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
-		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
+		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-90)))
 		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
@@ -501,8 +498,6 @@ class previewWindow(object):
 	def previewEditTextCallback(self, sender):
 		self.tthtm.setPreviewString(sender.get())
 		self.TTHToolInstance.updatePartialFontIfNeeded()
-		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
-		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-105)))
 		self.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 	def DisplayFromEditTextCallback(self, sender):
