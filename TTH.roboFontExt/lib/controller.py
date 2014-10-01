@@ -297,6 +297,7 @@ class callbackSetDeltaPPM2():
 		self.ttht.tthtm.g.performUndo()
 
 
+
 class TTHTool(BaseEventTool):
 
 	def __init__(self, tthtm):
@@ -1437,6 +1438,43 @@ class TTHTool(BaseEventTool):
 			self.refreshGlyph()
 		self.tthtm.g.performUndo()
 
+	def convertToDoublehCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Convert to Double Link')
+		self.glyphTTHCommands[cmdIndex]['code'] = 'doubleh'
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+	def convertToDoublevCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Convert to Double Link')
+		self.glyphTTHCommands[cmdIndex]['code'] = 'doublev'
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+	def convertToSinglehCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Convert to Single Link')
+		self.glyphTTHCommands[cmdIndex]['code'] = 'singleh'
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+	def convertToSinglevCallback(self, item):
+		cmdIndex = self.commandRightClicked
+		self.tthtm.g.prepareUndo('Convert to Single Link')
+		self.glyphTTHCommands[cmdIndex]['code'] = 'singlev'
+		self.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph()
+		self.tthtm.g.performUndo()
+
+
 	def roundDistanceCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		self.tthtm.g.prepareUndo('Round Distance')
@@ -1633,18 +1671,12 @@ class TTHTool(BaseEventTool):
 
 				items.append(("Alignment Type", alignments))
 
-			# if clickedCommand['code'] in ['alignt', 'alignb']:
-			# 	zonesListItems = []
-
-			# 	for zoneName in self.tthtm.zones:
-			# 		zoneContext = zoneName
-			# 		if zoneName == clickedCommand['zone']:
-			# 			zoneContext = u'✓ ' + str(zoneName)
-			# 		self.zoneAlignmentCallBack = callbackZoneAlignment(self, zoneName)
-			# 		zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
-			# 	items.append(("Attach to Zone", zonesListItems))
 
 			if clickedCommand['code'] in ['doubleh', 'doublev']:
+				if clickedCommand['code'] == 'doubleh':
+					items.append(('Convert to Single Link', self.convertToSinglehCallback))
+				else:
+					items.append(('Convert to Single Link', self.convertToSinglevCallback))
 				if 'stem' in clickedCommand:
 					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
 				else:
@@ -1674,6 +1706,10 @@ class TTHTool(BaseEventTool):
 
 			if clickedCommand['code'] in ['singleh', 'singlev']:
 				items.append(('Reverse Direction', self.reverseSingleCallback))
+				if clickedCommand['code'] == 'singleh':
+					items.append(('Convert to Double Link', self.convertToDoublehCallback))
+				else:
+					items.append(('Convert to Double Link', self.convertToDoublevCallback))
 				if 'round' not in clickedCommand:
 					items.append(('Round Distance', self.roundDistanceCallback))
 				else:
