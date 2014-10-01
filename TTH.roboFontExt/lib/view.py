@@ -466,9 +466,10 @@ class previewWindow(object):
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 
 	def mouseUp(self, event):
-		scrollOrg = self.wPreview.view.getNSView().superview().documentVisibleRect().origin
-		x = event.locationInWindow().x - 10 + scrollOrg.x
-		y = event.locationInWindow().y - 40 + scrollOrg.y
+		cnt = self.wPreview.view.scrollView._getContentView().contentView()
+		#print cnt.frame(), cnt.bounds()
+		pos = self.wPreview.getNSWindow().contentView().convertPoint_toView_(event.locationInWindow(), cnt)
+		x, y = pos.x, pos.y
 		for i in self.TTHToolInstance.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+8:
 				self.TTHToolInstance.changeSize(self.TTHToolInstance.clickableSizes[i])
