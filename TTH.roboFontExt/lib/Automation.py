@@ -380,11 +380,22 @@ class AutoHinting():
 						ref_point = p1
 						siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, 'Y')
 						for point in siblingsList:
+							isTouched = False
+							for cmd in self.TTHToolInstance.glyphTTHCommands:
+								if 'point' in cmd:
+									if cmd['point'] == point:
+										isTouched = True
+								if 'point1' in cmd:
+									if cmd['point1'] == point:
+										isTouched = True
+								if 'point2' in cmd:
+									if cmd['point2'] == point:
+										isTouched = True
 							newSiblingCommand = {}
 							newSiblingCommand['code'] = 'singlev'
 							newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
 							newSiblingCommand['point2'] = point
-							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2']:
+							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2'] and not isTouched:
 								self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 				if zonePoint2 != None:
@@ -402,11 +413,22 @@ class AutoHinting():
 						ref_point = p2
 						siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, 'Y')
 						for point in siblingsList:
+							isTouched = False
+							for cmd in self.TTHToolInstance.glyphTTHCommands:
+								if 'point' in cmd:
+									if cmd['point'] == point:
+										isTouched = True
+								if 'point1' in cmd:
+									if cmd['point1'] == point:
+										isTouched = True
+								if 'point2' in cmd:
+									if cmd['point2'] == point:
+										isTouched = True
 							newSiblingCommand = {}
 							newSiblingCommand['code'] = 'singlev'
 							newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
 							newSiblingCommand['point2'] = point
-							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2']:
+							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2'] and not isTouched:
 								self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 
@@ -453,32 +475,65 @@ class AutoHinting():
 						ref_point = p2
 					siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, axis)
 					for point in siblingsList:
+						isTouched = False
+						for cmd in self.TTHToolInstance.glyphTTHCommands:
+							if 'point' in cmd:
+								if cmd['point'] == point:
+									isTouched = True
+							if 'point1' in cmd:
+								if cmd['point1'] == point:
+									isTouched = True
+							if 'point2' in cmd:
+								if cmd['point2'] == point:
+									isTouched = True
 						newSiblingCommand = {}
 						newSiblingCommand['code'] = newSiblingCommandCode
 						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
 						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands:
+						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
 							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 				
 				if newCommand['code'] in ['doubleh', 'doublev']:
 					ref_point = p1
 					siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, axis)
 					for point in siblingsList:
+						isTouched = False
+						for cmd in self.TTHToolInstance.glyphTTHCommands:
+							if 'point' in cmd:
+								if cmd['point'] == point:
+									isTouched = True
+							if 'point1' in cmd:
+								if cmd['point1'] == point:
+									isTouched = True
+							if 'point2' in cmd:
+								if cmd['point2'] == point:
+									isTouched = True
 						newSiblingCommand = {}
 						newSiblingCommand['code'] = newSiblingCommandCode
 						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
 						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands:
+						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
 							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 					ref_point = p2
 					siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, axis)
 					for point in siblingsList:
+						isTouched = False
+						for cmd in self.TTHToolInstance.glyphTTHCommands:
+							if 'point' in cmd:
+								if cmd['point'] == point:
+									isTouched = True
+							if 'point1' in cmd:
+								if cmd['point1'] == point:
+									isTouched = True
+							if 'point2' in cmd:
+								if cmd['point2'] == point:
+									isTouched = True
 						newSiblingCommand = {}
 						newSiblingCommand['code'] = newSiblingCommandCode
 						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
 						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands:
+						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
 							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 					
 
@@ -543,11 +598,22 @@ class AutoHinting():
 
 					siblingsList = self.findSiblingsforPoints_amongst_inAxis(p[0], self.h_pointList, 'Y')
 					for point in siblingsList:
+						isTouched = False
+						for cmd in self.TTHToolInstance.glyphTTHCommands:
+							if 'point' in cmd:
+								if cmd['point'] == point:
+									isTouched = True
+							if 'point1' in cmd:
+								if cmd['point1'] == point:
+									isTouched = True
+							if 'point2' in cmd:
+								if cmd['point2'] == point:
+									isTouched = True
 						newCommand = {}
 						newCommand['code'] = 'singlev'
 						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 						newCommand['point2'] = point
-						if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+						if newCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
 							self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 	def findSiblingsforPoints_amongst_inAxis(self, p, h_pointList, axis):
