@@ -1,6 +1,5 @@
 import math
 
-
 def direction(point1, point2):
 	direction_x = 4
 	direction_y = 4
@@ -36,13 +35,16 @@ def rotated(point, angle):
 	rotatedPoint_y = int(sina*x + cosa*y)
 	return (rotatedPoint_x, rotatedPoint_y)
 
-def rotatedVector(vector, angle):
-	rotatedVector = -vector - angle
-	return rotatedVector
-	
-	
 def angle(point1, point2):
-	return math.atan2(point2.y - point1.y, point2.x - point1.x) / math.pi * 180
+	return math.atan2(point2.y - point1.y, point2.x - point1.x) / math.pi * 180.0
+
+def addAngles(a, b):
+	r = a+b
+	while r > 180.0:
+		r -= 360.0
+	while r <= -180.0:
+		r += 360.0
+	return r
 	
 def shearFactor(angle):
 	# find the shearFactor r with a given angle
@@ -58,48 +60,34 @@ def distance(point1, point2):
 	
 def closeAngle(angle1, angle2):
 	diff = angle1 - angle2
-	while diff >= 90:
-		diff -= 180
-	while diff < -90:
-		diff += 180
-	return (abs(diff)<5)
+	while diff >= 90.0:
+		diff -= 180.0
+	while diff < -90.0:
+		diff += 180.0
+	return abs(diff) < 5.0
 
 def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
 	return ( abs(a1 - a2) <= factor*a_max )
 
 def opposite(direction1, direction2):
-	isOpposite = False
-	LR1 = direction1[0]
-	UD1 = direction1[1]
-	LR2 = direction2[0]
-	UD2 = direction2[1]
-	if LR1 + LR2 == 0:
-		isOpposite = True
-	if UD1 + UD2 == 0:
-		isOpposite = True
-	return isOpposite
-	
-def isVertical(vector):
-	vector = abs(vector)
-	if ((85 < vector) and (vector < 95)):
+	if direction1[0] + direction2[0] == 0:
 		return True
-	else:
-		return False
+	if direction1[1] + direction2[1] == 0:
+		return True
+	return False
 
-def isHorizontal(vector):
-	vector = abs(vector)
-	if ((0 <= vector) and (vector <= 10)) or ((170 <= vector) and (vector <= 180)):
-		return True
-	else:
-		return False
+def isVertical(angle):
+	a = abs(angle)
+	return ((85 < a) and (a < 95))
 
-def isHorizontal_byAngle(vector, angle):
-	vector = abs(vector)
-	if ((0 <= vector) and (vector <= angle)) or ((180-angle <= vector) and (vector <= 180)):
-		return True
-	else:
-		return False
+def isHorizontal(angle):
+	a = abs(angle)
+	return ((0 <= a) and (a <= 10)) or ((170 <= a) and (a <= 180))
+
+def isHorizontal_withTolerance(angle, tolerance):
+	a = abs(angle)
+	return ((0 <= a) and (a <= tolerance)) or ((180-tolerance <= a) and (a <= 180))
 
 #True si il existe un element de la liste l pour lequel la fonction p renvoi True (on dit que le predicat p est vrai sur cet element)
 def exists(l, p):
@@ -119,3 +107,21 @@ def compare((k1,v1),(k2,v2)):
 	return v2 - v1
 
 ###### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def inInterval(x, i):
+	return (i[0] <= x) and (x <= i[1])
+
+def pointToPair(p):
+	return p.x, p.y
+
+def scale(s, (x,y)):
+	return s*x, s*y
+
+def scalePoint(s, p):
+	return scale(s, pointToPair(p))
+
+def add((x1, y1), (x2, y2)):
+	return x1+x2, y1+y2
+
+def lerpPoints(t, a, b):
+	return add(scalePoint(1.0-t, a), scalePoint(t, b))
