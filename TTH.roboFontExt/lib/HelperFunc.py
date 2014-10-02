@@ -1,22 +1,22 @@
 import math
 
-def direction(point1, point2):
+def directionForPairs((p1x, p1y), (p2x, p2y)):
 	direction_x = 4
 	direction_y = 4
-	if point1.x < point2.x:
+	if p1x < p2x:
 		# Direction is RIGHT
 		direction_x = 1
-	elif point1.x > point2.x:
+	elif p1x > p2x:
 		# Direction is LEFT
 		direction_x = -1
 	else:
 		# Direction is NONE
 		direction_x = 4
 		
-	if point1.y < point2.y:
+	if p1y < p2y:
 		# Direction is UP
 		direction_y = 1
-	elif point1.y > point2.y:
+	elif p1y > p2y:
 		# Direction is DOWN
 		direction_y = -1
 	else:
@@ -24,6 +24,8 @@ def direction(point1, point2):
 		direction_y = 4
 	return (direction_x, direction_y)
 
+def directionForPoints(a,b):
+	return directionForPairs((a.x, a.y), (b.x, b.y))
 
 def rotated(point, angle):
 	x = point.x
@@ -35,8 +37,14 @@ def rotated(point, angle):
 	rotatedPoint_y = int(sina*x + cosa*y)
 	return (rotatedPoint_x, rotatedPoint_y)
 
-def angle(point1, point2):
-	return addAngles(math.atan2(point2.y - point1.y, point2.x - point1.x) / math.pi * 180.0, 0.0)
+def angleOfVector((vx, vy)):
+	return addAngles(math.atan2(vy, vx) / math.pi * 180.0, 0.0)
+
+def angleOfVectorBetweenPoints(point1, point2):
+	return angleOfVector((point2.x - point1.x, point2.y - point1.y))
+
+def angleOfVectorBetweenPairs((p1x, p1y), (p2x, p2y)):
+	return angleOfVector((p2x - p1x, p2y - p1y))
 
 def addAngles(a, b):
 	r = a+b
@@ -46,11 +54,6 @@ def addAngles(a, b):
 		r += 360.0
 	return r
 	
-def shearFactor(angle):
-	# find the shearFactor r with a given angle
-	r = math.tan(math.radians(angle))
-	return r
-
 def absoluteDiff(point1, point2):
 	return (abs(point1.x - point2.x), abs(point1.y - point2.y))
 	
@@ -97,8 +100,8 @@ def exists(l, p):
 	return False
 
 def sheared(point, angle):
-	r = shearFactor(angle)
-	return (point.x + r*point.y, point.y)
+	r = math.tan(math.radians(angle))
+	return (point.x - r*point.y, point.y)
 
 def roundbase(x, base):
 	return int(base * round(float(x)/base))

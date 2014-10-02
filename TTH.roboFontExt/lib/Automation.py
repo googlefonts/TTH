@@ -3,27 +3,28 @@ import string
 import HelperFunc as HF
 reload(HF)
 
-def make_hPointsList(g):
+def make_hPointsList(g, italAngle):
 	hPointsList = []
 	for (contour_index, contour) in enumerate(g):
 		contour_pts = contour.points
 		nbPts = len(contour_pts)
 		for (point_index, currentPoint) in enumerate(contour_pts):
 			if currentPoint.type == 'offCurve': continue
-			# Also we should remove non-SMOOTH points... so we should iterate on segments, not points
 			prevPoint = contour_pts[point_index - 1]
 			nextPoint = contour_pts[(point_index + 1) % nbPts]
+
+			prev,cur,nex = map(lambda p: HF.sheared(p, italAngle), (prevPoint, currentPoint, nextPoint))
 			
-			directionIN  = HF.direction(prevPoint, currentPoint)
-			directionOUT = HF.direction(currentPoint, nextPoint)
-			angleIN      = HF.angle(prevPoint, currentPoint)
-			angleOUT     = HF.angle(currentPoint, nextPoint)
+			directionIN  = HF.directionForPairs(prev, cur) # useless
+			directionOUT = HF.directionForPairs(cur, nex) # useless
+			angleIN      = HF.angleOfVectorBetweenPairs(prev, cur)
+			angleOUT     = HF.angleOfVectorBetweenPairs(cur, nex)
 
 			hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, angleIN, angleOUT)
 			hPointsList.append(hPoint)
 	return hPointsList
 	
-def hasWhite(point1, point2, g, maxStemX, maxStemY):
+def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 	dif = HF.absoluteDiff(point1, point2)
 	if dif[0] < maxStemX or dif[1] < maxStemY:
 		hypothLength = HF.distance(point1, point2)
@@ -80,7 +81,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		if goodCandidate(angleOut_source, angleOut_target):
 			goodAngle = angleOut_source # so of both in and out are good, we keep only one, namely 'out'
 		if goodAngle == None: continue
-		if hasWhite(sourcePoint, targetPoint, g, maxStemX, maxStemY): continue
+		if hasSomeWhite(sourcePoint, targetPoint, g, maxStemX, maxStemY): continue
 		dx, dy = HF.absoluteDiff(sourcePoint, targetPoint)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distance(sourcePoint, targetPoint)
@@ -92,7 +93,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 				stemsListY_temp.append((hypoth, stem))
 
 		## if they are vertical, treat the stem on the X axis
-		if HF.isVertical(HF.addAngles(goodAngle, italicAngle)):
+		if HF.isVertical(goodAngle): # the angle is already sheared to counter italic
 			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				stemsListX_temp.append((hypoth, stem))
@@ -100,33 +101,31 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		# ... do something here with diagonal
 
 	# avoid duplicates, filters temporary stems
-	stemsListY_temp.sort()
+	stemsListY_temp.sort() # sort by stem length (hypoth)
 	stemsListX_temp.sort()
 	yList = []
 	for (hypoth, stem) in stemsListY_temp:
-		def pred0(y):
-			return HF.approxEqual(stem[0].y, y, .025) # 2.5% error
-		def pred1(y):
-			return HF.approxEqual(stem[1].y, y, .025)
-		if not HF.exists(yList, pred0) or not HF.exists(yList, pred1):
+		sourceAbsent = not HF.exists(yList, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
+		targetAbsent = not HF.exists(yList, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
+		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
+		if sourceAbsent:
 			yList.append(stem[0].y)
+		if targetAbsent:
 			yList.append(stem[1].y)
 
 	xList = []
 	for (hypoth, stem) in stemsListX_temp:
-		(preRot0x, preRot0y) = HF.rotated(stem[0], italicAngle)
-		(preRot1x, preRot1y) = HF.rotated(stem[1], italicAngle)
-		def pred0(x):
-			#print preRot0x, x
-			return HF.approxEqual(preRot0x, x, 0.025)
-		def pred1(x):
-			#print preRot1x, x
-			return HF.approxEqual(preRot1x, x, 0.025)
-		if not HF.exists(xList,pred0) or not HF.exists(xList,pred1):
+		shearedSourceX, _ = HF.sheared(stem[0], italicAngle)
+		shearedTargetX, _ = HF.sheared(stem[1], italicAngle)
+		sourceAbsent = not HF.exists(xList, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
+		targetAbsent = not HF.exists(xList, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
+		if sourceAbsent or targetAbsent:
 			stemsListX.append(stem)
-			xList.append(preRot0x)
-			xList.append(preRot1x)
+		if sourceAbsent:
+			xList.append(shearedSourceX)
+		if targetAbsent:
+			xList.append(shearedTargetX)
 	
 	return (stemsListX, stemsListY)
 	
@@ -170,7 +169,7 @@ class Automation():
 		g = font['O']
 		if not g:
 			print "WARNING: glyph 'O' missing"
-		O_hPoints = make_hPointsList(g)
+		O_hPoints = make_hPointsList(g, ital)
 		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 
 		Xs = []
@@ -197,7 +196,7 @@ class Automation():
 	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
 		originalStemsXList = []
 		originalStemsYList = []
-		g_hPoints = make_hPointsList(g)
+		g_hPoints = make_hPointsList(g, ital)
 		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 		for stem in self.stemsListX:
 			originalStemsXList.append(stem[2][0])
@@ -657,11 +656,12 @@ class AutoHinting():
 
 
 	def autohint(self, g):
-		self.h_pointList = make_hPointsList(g)
 		if self.tthtm.f.info.italicAngle != None:
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
 			self.ital = 0
+
+		self.h_pointList = make_hPointsList(g, self.ital)
 
 		self.tthtm.g.prepareUndo("AutoHint")
 		self.detectStems(g)
