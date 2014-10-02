@@ -67,7 +67,7 @@ def closeAngle(angle1, angle2):
 		diff -= 180.0
 	while diff < -90.0:
 		diff += 180.0
-	return abs(diff) < 5.0
+	return abs(diff) < 10.0
 
 def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
