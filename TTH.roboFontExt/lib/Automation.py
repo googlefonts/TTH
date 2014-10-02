@@ -372,7 +372,6 @@ class AutoHinting():
 						self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 						ref_point = p1
 						siblingsList = self.findSiblingsforPoints_amongst_inAxis(ref_point, self.h_pointList, 'Y')
-						print siblingsList
 						for point in siblingsList:
 							isTouched = False
 							for cmd in self.TTHToolInstance.glyphTTHCommands:
@@ -639,7 +638,7 @@ class AutoHinting():
 			point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
 
 			# Find a way to keep only stricly necessary siblings
-			
+
 			# prev_i = p2List[i][0]
 			# next_i = p2List[i][2]
 			# for j in range(len(p2List)):
