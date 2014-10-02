@@ -17,12 +17,23 @@ def make_hPointsList(g):
 			directionIN  = HF.direction(prevPoint, currentPoint)
 			directionOUT = HF.direction(currentPoint, nextPoint)
 			angleIN      = HF.angle(prevPoint, currentPoint)
-			# we don't need angleOUT because angleOUT = -angleIN
+			angleOUT     = HF.angle(currentPoint, nextPoint)
 
-			hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, angleIN)
+			hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, angleIN, angleOUT)
 			hPointsList.append(hPoint)
 	return hPointsList
 	
+def hasWhite(point1, point2, g, maxStemX, maxStemY):
+	dif = HF.absoluteDiff(point1, point2)
+	if dif[0] < maxStemX or dif[1] < maxStemY:
+		hypothLength = HF.distance(point1, point2)
+		for j in range(1, int(hypothLength), 5):
+			p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
+			if not g.pointInside(p):
+				return True
+		return False
+	return True # too far away, assume there is white in between
+
 def getColor(point1, point2, g, maxStemX, maxStemY):
 	hasSomeBlack = False
 	hasSomeWhite = False
@@ -51,50 +62,50 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 	stemsListX = []
 	stemsListY = []
 
+	def goodCandidate(a1, a2):
+		# True if nearly opposite angles
+		return HF.closeAngle(a1, HF.addAngles(a2, 180.0))
+
 	n = len(g_hPoints)
-	pairs = [(i1, i2) for i1 in range(n) for i2 in range(n) if i1 != i2]
-	# why not i1 < i2 ?
+	pairs = [(i1, i2) for i1 in range(n) for i2 in range(n) if i1 < i2]
 	for (i1, i2) in pairs:
 		source_hPoint = g_hPoints[i1]
 		target_hPoint = g_hPoints[i2]
-		sourcePoint, _, _, directionIn_source, directionOut_source, angleIn_source = source_hPoint
-		targetPoint, _, _, directionIn_target, directionOut_target, angleIn_target = target_hPoint
+		sourcePoint, _, _, _, _, angleIn_source, angleOut_source = source_hPoint
+		targetPoint, _, _, _, _, angleIn_target, angleOut_target = target_hPoint
 
-		sourceIsHorizontal = HF.isHorizontal(angleIn_source)
-		targetIsHorizontal = HF.isHorizontal(angleIn_target)
-		sourceIsVertical   = HF.isVertical(  HF.addAngles(angleIn_source, italicAngle))
-		targetIsVertical   = HF.isVertical(  HF.addAngles(angleIn_target, italicAngle))
-		almostAxisParallel = ( sourceIsHorizontal and targetIsHorizontal ) or ( sourceIsVertical and targetIsVertical )
-		if not almostAxisParallel: continue
-		color = getColor(sourcePoint, targetPoint, g, maxStemX, maxStemY)
-		if color is not 'Black': continue
-		c_distance = HF.absoluteDiff(sourcePoint, targetPoint)
-		c_distance = ( HF.roundbase(c_distance[0], roundFactor_Stems), HF.roundbase(c_distance[1], roundFactor_Stems) )
-		# if Source and Target are not almost aligned, we skip the pair
-		if not HF.closeAngle(angleIn_source, angleIn_target): continue
-		# if Source and Target have not opposite direction, we skip the pair
-		if abs(HF.addAngles(angleIn_source, - angleIn_target)) < 170.0: continue
-
+		goodAngle = None
+		if goodCandidate(angleIn_source, angleIn_target):
+			goodAngle = angleIn_source
+		if goodCandidate(angleOut_source, angleOut_target):
+			goodAngle = angleOut_source # so of both in and out are good, we keep only one, namely 'out'
+		if goodAngle == None: continue
+		if hasWhite(sourcePoint, targetPoint, g, maxStemX, maxStemY): continue
+		dx, dy = HF.absoluteDiff(sourcePoint, targetPoint)
+		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distance(sourcePoint, targetPoint)
 		stem = (sourcePoint, targetPoint, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
-		if sourceIsHorizontal:
+		if HF.isHorizontal(goodAngle):
 			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				stemsListY_temp.append((hypoth, stem))
 
 		## if they are vertical, treat the stem on the X axis
-		if sourceIsVertical:
+		if HF.isVertical(HF.addAngles(goodAngle, italicAngle)):
 			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				stemsListX_temp.append((hypoth, stem))
+		## Here, the angle of the stem is more diagonal
+		# ... do something here with diagonal
+
 	# avoid duplicates, filters temporary stems
 	stemsListY_temp.sort()
 	stemsListX_temp.sort()
 	yList = []
 	for (hypoth, stem) in stemsListY_temp:
 		def pred0(y):
-			return HF.approxEqual(stem[0].y, y, .025)
+			return HF.approxEqual(stem[0].y, y, .025) # 2.5% error
 		def pred1(y):
 			return HF.approxEqual(stem[1].y, y, .025)
 		if not HF.exists(yList, pred0) or not HF.exists(yList, pred1):
@@ -569,7 +580,7 @@ class AutoHinting():
 							(x, y) = self.TTHToolInstance.pointNameToCoordinates[command['point']]
 						if abs(y - p[0].y) <= .1*abs(y_end-y_start):
 							redundant = True
-				if not exists and not redundant and ( HF.isHorizontal_withTolerance(p[5], 45) and not p[0].smooth):
+				if not exists and not redundant and ( (HF.isHorizontal_withTolerance(p[5], 45) or HF.isHorizontal_withTolerance(p[6], 45)) and not p[0].smooth):
 					newCommand = {}
 					newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
 					newCommand['zone'] = zoneName
@@ -636,9 +647,9 @@ class AutoHinting():
 				if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
 					break
 				if c_j == c_i and p2[0] != p:
-					if axis == 'X' and HF.isVertical(c_i[5]):
+					if axis == 'X' and (HF.isVertical(c_i[5]) or HF.isVertical(c_i[6])):
 						siblingsList.append(point2)
-					elif axis == 'Y' and HF.isHorizontal(c_i[5]):
+					elif axis == 'Y' and (HF.isHorizontal(c_i[5]) or HF.isHorizontal(c_i[5])):
 						siblingsList.append(point2)
 
 		return siblingsList

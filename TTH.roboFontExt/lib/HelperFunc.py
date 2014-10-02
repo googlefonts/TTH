@@ -36,7 +36,7 @@ def rotated(point, angle):
 	return (rotatedPoint_x, rotatedPoint_y)
 
 def angle(point1, point2):
-	return math.atan2(point2.y - point1.y, point2.x - point1.x) / math.pi * 180.0
+	return addAngles(math.atan2(point2.y - point1.y, point2.x - point1.x) / math.pi * 180.0, 0.0)
 
 def addAngles(a, b):
 	r = a+b
