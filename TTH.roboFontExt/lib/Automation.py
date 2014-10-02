@@ -609,12 +609,12 @@ class AutoHinting():
 							if 'point2' in cmd:
 								if cmd['point2'] == point:
 									isTouched = True
-						newCommand = {}
-						newCommand['code'] = 'singlev'
-						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-						newCommand['point2'] = point
-						if newCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-							self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+						newSiblingCommand = {}
+						newSiblingCommand['code'] = 'singlev'
+						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+						newSiblingCommand['point2'] = point
+						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
+							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 	def findSiblingsforPoints_amongst_inAxis(self, p, h_pointList, axis):
 		p2List = []
