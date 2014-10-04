@@ -412,13 +412,11 @@ class AutoHinting():
 	def findTouchedPoints(self, g):
 		touchedPoints = sets.Set()
 		for command in self.TTHToolInstance.glyphTTHCommands:
-			if command['code'][-1:] in ['t', 'b', 'v']:
+			axis = 'X'
+			if command['code'][-1] in ['t', 'b', 'v']:
 				axis = 'Y'
-			else:
-				axis = 'X'
-			if 'point' in command: touchedPoints.add((command['point'], axis))
-			if 'point1' in command: touchedPoints.add((command['point1'], axis))
-			if 'point2' in command: touchedPoints.add((command['point2'], axis))
+			for n in ('point', 'point1', 'point2'):
+				if n in command: touchedPoints.add((command[n], axis))
 		return touchedPoints
 
 
