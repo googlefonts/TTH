@@ -174,8 +174,9 @@ class centralWindow(object):
 		menuController.buildAdditionContectualMenuItems(self.menuAction, items)
 		NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.TTHToolInstance.getCurrentEvent(), self.TTHToolInstance.getNSView())
 
-class toolsWindow(object):
+class toolsWindow(BaseWindowController):
 	def __init__(self, TTHToolInstance):
+		BaseWindowController.__init__(self)
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
@@ -269,6 +270,7 @@ class toolsWindow(object):
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
 
 		self.wTools.open()
+		self.w = self.wTools
 
 
 	def closeTools(self):
@@ -425,7 +427,7 @@ class toolsWindow(object):
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
 	def AutoGlyphButtonCallback(self, sender):
-		self.tthtm.g.prepareUndo("AutoHint Glyph")
+		self.tthtm.g.prepareUndo("Auto-hint Glyph")
 		self.autohinting.autohint(self.tthtm.g)
 		self.TTHToolInstance.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
@@ -433,15 +435,16 @@ class toolsWindow(object):
 		self.tthtm.g.performUndo()
 
 	def AutoFontButtonCallback(self, sender):
-		
+		progress = self.startProgress(u'Auto-hinting Font…')
+		progress.setTickCount(len(self.tthtm.f))
 		for g in self.tthtm.f:
-			self.tthtm.g.prepareUndo("AutoHint Font")
+			self.tthtm.g.prepareUndo("Auto-hint Font")
 			self.autohinting.autohint(g)
 			self.TTHToolInstance.updateGlyphProgram()
 			self.tthtm.g.performUndo()
-			
+			progress.update()
 		self.TTHToolInstance.resetFonts()
-		
+		progress.close()
 
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):

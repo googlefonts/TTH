@@ -12,7 +12,6 @@ from robofab.world import *
 import robofab.interface.all.dialogs as Dialogs
 from mojo.roboFont import *
 from vanilla import *
-from defconAppKit.windows.baseWindow import BaseWindowController
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 import tempfile
 import time

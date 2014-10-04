@@ -411,17 +411,20 @@ class AutoHinting():
 
 		for pointName, axis in touchedPoints:
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
-			for h_point in self.h_pointList:
+			nb_h_Pts = len(self.h_pointList)
+			for h_pointIndex, h_point in enumerate(self.h_pointList):
+				prev_h_Point = self.h_pointList[h_pointIndex - 1]
+				next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				if h_pointName in touchedPointsNames:
 					continue
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])) and prev_h_Point[0].y != h_point[0].y and prev_h_Point[0].x != p_x and next_h_Point[0].x != p_x:
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)) and prev_h_Point[0].x != h_point[0].x and prev_h_Point[0].y != p_y and next_h_Point[0].y != p_y:
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
 					newSiblingCommand['point1'] = pointName
