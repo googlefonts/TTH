@@ -105,7 +105,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 	for (hypoth, stem) in stemsListY_temp:
 		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
 		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
-		if sourceAbsent or targetAbsent:
+		if sourceAbsent and targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
 			references.append(stem[0].y)
@@ -118,7 +118,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		shearedTargetX, _ = HF.sheared(stem[1], italicAngle)
 		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
 		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
-		if sourceAbsent or targetAbsent:
+		if sourceAbsent and targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
 			references.append(shearedSourceX)
