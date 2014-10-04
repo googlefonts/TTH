@@ -1,5 +1,6 @@
 import math
 import string
+import sets
 import HelperFunc as HF
 reload(HF)
 
@@ -409,7 +410,6 @@ class AutoHinting():
 
 
 	def findTouchedPoints(self, g):
-		import sets
 		touchedPoints = sets.Set()
 		for command in self.TTHToolInstance.glyphTTHCommands:
 			if command['code'][-1:] in ['t', 'b', 'v']:
