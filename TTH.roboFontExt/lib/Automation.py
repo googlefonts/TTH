@@ -35,29 +35,29 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 		return False
 	return True # too far away, assume there is white in between
 
-def getColor(point1, point2, g, maxStemX, maxStemY):
-	hasSomeBlack = False
-	hasSomeWhite = False
-	dif = HF.absoluteDiff(point1, point2)
-	if dif[0] < maxStemX or dif[1] < maxStemY:
-		hypothLength = HF.distance(point1, point2)
-		for j in range(1, int(hypothLength), 5):
-			p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
-			if g.pointInside(p):
-				hasSomeBlack = True
-			else:
-				hasSomeWhite = True
-			if hasSomeBlack and hasSomeWhite:
-				break
+#def getColor(point1, point2, g, maxStemX, maxStemY):
+#	hasSomeBlack = False
+#	hasSomeWhite = False
+#	dif = HF.absoluteDiff(point1, point2)
+#	if dif[0] < maxStemX or dif[1] < maxStemY:
+#		hypothLength = HF.distance(point1, point2)
+#		for j in range(1, int(hypothLength), 5):
+#			p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
+#			if g.pointInside(p):
+#				hasSomeBlack = True
+#			else:
+#				hasSomeWhite = True
+#			if hasSomeBlack and hasSomeWhite:
+#				break
+#
+#	if hasSomeBlack and hasSomeWhite:
+#		return 'Gray'
+#	elif hasSomeBlack:
+#		return 'Black'
+#	else:
+#		return 'White'
 
-	if hasSomeBlack and hasSomeWhite:
-		return 'Gray'
-	elif hasSomeBlack:
-		return 'Black'
-	else:
-		return 'White'
-
-def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
+def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
 	# parameter 'f' is not used. Remove?
 	stemsListX_temp = []
 	stemsListY_temp = []
@@ -67,13 +67,13 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		hypoth = HF.distance(sourcePoint, targetPoint)
 		stem = (sourcePoint, targetPoint, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
-		if HF.isHorizontal(angle) and not existingStems['h']:
+		if HF.isHorizontal_withTolerance(angle, tolerance) and not existingStems['h']:
 			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, stem))
 		## if they are vertical, treat the stem on the X axis
-		if HF.isVertical(angle) and not existingStems['v']: # the angle is already sheared to counter italic
+		if HF.isVertical_withTolerance(angle, tolerance) and not existingStems['v']: # the angle is already sheared to counter italic
 			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
@@ -135,29 +135,14 @@ class Automation():
 		self.tthtm = TTHToolInstance.tthtm
 		self.controller = controller
 
-
-	def autoStems(self, font, progressBar):
-		minStemX = self.tthtm.minStemX
-		minStemY = self.tthtm.minStemY
-		maxStemX = self.tthtm.maxStemX
-		maxStemY = self.tthtm.maxStemY
+	def autoStems(self, font, progressBar, angleTolerance):
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
-		minStemX = HF.roundbase(minStemX, roundFactor_Stems)
-		minStemY = HF.roundbase(minStemY, roundFactor_Stems)
-		maxStemX = HF.roundbase(maxStemX, roundFactor_Stems)
-		maxStemY = HF.roundbase(maxStemY, roundFactor_Stems)
-
-
-		stemsValuesXList = []
-		stemsValuesYList = []
-		stemSnapHList = []
-		stemSnapVList = []
-		roundedStemsXList = []
-		roundedStemsYList = []
-		originalStemsXList = []
-		originalStemsYList = []
+		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
+		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
+		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
+		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
 
 		if font.info.italicAngle != None:
 			ital = - font.info.italicAngle
@@ -169,13 +154,9 @@ class Automation():
 			return
 		g = font['O']
 		O_hPoints = make_hPointsList(g, ital)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
+		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance)
 
-		Xs = []
-		for stem in O_stemsListX:
-			Xs.append(stem[2][0])
-		maxStemX = max(Xs)
-		maxStemY = max(Xs)
+		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -184,30 +165,23 @@ class Automation():
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
-			( originalStemsXList, originalStemsYList ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
-			stemsValuesXList.extend(originalStemsXList)
-			stemsValuesYList.extend(originalStemsYList)
+			( XStems, YStems ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
+			stemsValuesXList.extend(XStems)
+			stemsValuesYList.extend(YStems)
 			progressBar.increment(tick)
 
-		self.sortAndStoreValues(stemsValuesXList, False, roundFactor_Jumps)
-		self.sortAndStoreValues(stemsValuesYList, True, roundFactor_Jumps)
+		self.sortAndStoreValues(stemsValuesXList, roundFactor_Jumps, isHorizontal=False)
+		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
-	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
-		originalStemsXList = []
-		originalStemsYList = []
+	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance):
 		g_hPoints = make_hPointsList(g, ital)
-		(self.stemsListX, self.stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
-		for stem in self.stemsListX:
-			originalStemsXList.append(stem[2][0])
-		for stem in self.stemsListY:
-			originalStemsYList.append(stem[2][1])
-
+		(stemsListX, stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance)
+		originalStemsXList = [stem[2][0] for stem in stemsListX]
+		originalStemsYList = [stem[2][1] for stem in stemsListY]
 		return (originalStemsXList, originalStemsYList)
-	
 
-	def sortAndStoreValues(self, stemsValuesList, isHorizontal, roundFactor_Jumps):
+	def sortAndStoreValues(self, stemsValuesList, roundFactor_Jumps, isHorizontal):
 		valuesDict = {}
-		stemSnapList = []
 		for StemValue in stemsValuesList:
 			try:
 				valuesDict[StemValue] += 1
@@ -216,23 +190,22 @@ class Automation():
 		
 		
 		keyValueList = valuesDict.items()
-		keyValueList.sort(HF.compare)
-		keyValueList = keyValueList[:6]
+		keyValueList.sort(lambda (k1,v1),(k2,v2): v2-v1)
 
-		for keyValue in keyValueList:
-			stemSnapList.append(keyValue[0])
+		stemSnapList = [k for k,v in keyValueList[:6]]
 
 		for width in stemSnapList:
-			if isHorizontal == False:
+			if not isHorizontal:
 				name = 'X_' + str(width)
 			else:
 				name = 'Y_' + str(width)
 			#stemPitch = float(self.tthtm.UPM)/width
 			roundedStem = HF.roundbase(width, roundFactor_Jumps)
-			if roundedStem !=0:
+			if roundedStem != 0:
 				stemPitch = float(self.tthtm.UPM)/roundedStem
 			else:
 				stemPitch = float(self.tthtm.UPM)/width
+				# FIXME maybe, here we should juste skip this width and 'continue'?
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
 			px2 = str(int(2*stemPitch))
@@ -308,21 +281,15 @@ class AutoHinting():
 		self.tthtm = TTHToolInstance.tthtm
 
 	def detectStems(self, g):
-		minStemX = self.tthtm.minStemX
-		minStemY = self.tthtm.minStemY
-		maxStemX = self.tthtm.maxStemX
-		maxStemY = self.tthtm.maxStemY
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
-		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
-
-		minStemX = HF.roundbase(minStemX, roundFactor_Stems)
-		minStemY = HF.roundbase(minStemY, roundFactor_Stems)
-		maxStemX = HF.roundbase(maxStemX, roundFactor_Stems)
-		maxStemY = HF.roundbase(maxStemY, roundFactor_Stems)
+		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
+		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
+		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
+		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
 
 		font = g.getParent()
 
-		(g_stemsListX, g_stemsListY) = makeStemsList(font, self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10)
+		(g_stemsListX, g_stemsListY) = makeStemsList(font, self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10, self.angleTolerance)
 
 		for stem in  g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
@@ -334,12 +301,13 @@ class AutoHinting():
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		candidatesList = []
 		for stemName, stem in self.tthtm.stems.items():
+			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
-			if stem['horizontal'] == isHorizontal and isHorizontal == True:
+			if isHorizontal:
 				detectedWidth = HF.absoluteDiff(p1, p2)[1]
 				if abs(w - detectedWidth) <= detectedWidth*0.20:
 					candidatesList.append((abs(w - detectedWidth), stemName))
-			elif stem['horizontal'] == isHorizontal and isHorizontal == False:
+			else:
 				detectedWidth = HF.absoluteDiff(p1, p2)[0]
 				if abs(w - detectedWidth) <= detectedWidth*0.20:
 					candidatesList.append((abs(w - detectedWidth), stemName))
@@ -425,7 +393,7 @@ class AutoHinting():
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				if (h_pointName in touchedPointsNames_X and axis == 'X') or (h_pointName in touchedPointsNames_Y and axis == 'Y'):
 					continue
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.angleTolerance)):
 					if prev_h_Point[0].y == h_point[0].y or prev_h_Point[0].x == p_x or next_h_Point[0].x == p_x:
 						continue
 					newSiblingCommand = {}
@@ -433,7 +401,7 @@ class AutoHinting():
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.angleTolerance)):
 					if prev_h_Point[0].x == h_point[0].x or prev_h_Point[0].y == p_y or next_h_Point[0].y == p_y:
 						continue
 					newSiblingCommand = {}
@@ -499,18 +467,20 @@ class AutoHinting():
 				newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				newAlign['zone'] = zoneName
 
-				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal_withTolerance(h_point[5], self.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.angleTolerance)):
 					self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 					touchedPointsNames.append(newAlign['point'])
 
 
-	def autohint(self, g):
+	def autohint(self, g, angleTolerance):
 		if self.tthtm.f.info.italicAngle != None:
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
 			self.ital = 0
+
 		self.h_pointList = make_hPointsList(g, self.ital)
 	
+		self.angleTolerance = angleTolerance
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []

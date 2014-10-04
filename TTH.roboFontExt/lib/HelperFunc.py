@@ -86,16 +86,20 @@ def opposite(direction1, direction2):
 	return False
 
 def isVertical(angle):
-	a = abs(angle)
-	return ((70 < a) and (a < 110))
+	a = round(addAngles(angle, 0.0))
+	return a == 90 or a == -90
 
 def isHorizontal(angle):
-	a = abs(angle)
-	return ((0 <= a) and (a <= 20)) or ((160 <= a) and (a <= 180))
+	a = round(addAngles(angle, 0.0))
+	return a == 0 or a == 180 or a == -180
+
+def isVertical_withTolerance(angle, tolerance):
+	a = abs(addAngles(angle, 0.0)) # Now, we know that 0 <= a <= 180.0
+	return abs(90.0 - a) <= tolerance
 
 def isHorizontal_withTolerance(angle, tolerance):
-	a = abs(angle)
-	return ((0 <= a) and (a <= tolerance)) or ((180-tolerance <= a) and (a <= 180))
+	a = abs(addAngles(angle, 0.0)) # Now, we know that 0 <= a <= 180.0
+	return (a <= tolerance) or (a >= 180-tolerance)
 
 #True si il existe un element de la liste l pour lequel la fonction p renvoi True (on dit que le predicat p est vrai sur cet element)
 def exists(l, p):
@@ -115,9 +119,6 @@ def shearedFromCoords((p_x, p_y), angle):
 def roundbase(x, base):
 	return int(base * round(float(x)/base))
 	
-def compare((k1,v1),(k2,v2)):
-	return v2 - v1
-
 ###### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def inInterval(x, i):
