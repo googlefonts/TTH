@@ -408,9 +408,13 @@ class AutoHinting():
 
 	def findSiblings(self, g):
 		touchedPoints = self.findTouchedPoints(g)
-		touchedPointsNames = []
-		for name, _ in touchedPoints:
-			touchedPointsNames.append(name)
+		touchedPointsNames_X = []
+		touchedPointsNames_Y = []
+		for name, axis in touchedPoints:
+			if axis == 'X':
+				touchedPointsNames_X.append(name)
+			else:
+				touchedPointsNames_Y.append(name)
 
 		for pointName, axis in touchedPoints:
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
@@ -419,18 +423,18 @@ class AutoHinting():
 				prev_h_Point = self.h_pointList[h_pointIndex - 1]
 				next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
-				if h_pointName in touchedPointsNames:
+				if (h_pointName in touchedPointsNames_X and axis == 'X') or (h_pointName in touchedPointsNames_Y and axis == 'Y'):
 					continue
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])) and prev_h_Point[0].x != p_x and next_h_Point[0].x != p_x:
-					if prev_h_Point[0].y == h_point[0].y:
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+					if prev_h_Point[0].y == h_point[0].y or prev_h_Point[0].x == p_x or next_h_Point[0].x == p_x:
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)) and prev_h_Point[0].y != p_y and next_h_Point[0].y != p_y:
-					if prev_h_Point[0].x == h_point[0].x:
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
+					if prev_h_Point[0].x == h_point[0].x or prev_h_Point[0].y == p_y or next_h_Point[0].y == p_y:
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
