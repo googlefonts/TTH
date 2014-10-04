@@ -409,19 +409,16 @@ class AutoHinting():
 
 
 	def findTouchedPoints(self, g):
-		touchedPoints = []
+		import sets
+		touchedPoints = sets.Set()
 		for command in self.TTHToolInstance.glyphTTHCommands:
 			if command['code'][-1:] in ['t', 'b', 'v']:
 				axis = 'Y'
 			else:
 				axis = 'X'
-
-			if 'point' in command and (command['point'], axis) not in touchedPoints:
-				touchedPoints.append((command['point'], axis))
-			if 'point1' in command and (command['point1'], axis) not in touchedPoints:
-				touchedPoints.append((command['point1'], axis))
-			if 'point2' in command and (command['point2'], axis) not in touchedPoints:
-				touchedPoints.append((command['point2'], axis))
+			if 'point' in command: touchedPoints.add((command['point'], axis))
+			if 'point1' in command: touchedPoints.add((command['point1'], axis))
+			if 'point2' in command: touchedPoints.add((command['point2'], axis))
 		return touchedPoints
 
 
@@ -443,24 +440,21 @@ class AutoHinting():
 
 	def processZone(self, g, zoneName, isTop, y_start, y_end):
 		touchedPoints = self.findTouchedPoints(g)
-		touchedPointsNames = []
-		for name, axis in touchedPoints:
-			if axis == 'Y':
-				touchedPointsNames.append(name)
+		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
 		nb_h_Pts = len(self.h_pointList)
 		for h_pointIndex, h_point in enumerate(self.h_pointList):
 			prev_h_Point = self.h_pointList[h_pointIndex - 1]
-			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[(prev_h_Point[0].x, prev_h_Point[0].y)]
+			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(prev_h_Point[0])]
 			next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
-			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[(next_h_Point[0].x, next_h_Point[0].y)]
+			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(next_h_Point[0])]
 			if y_start <= h_point[0].y  and h_point[0].y <= y_end:
 				newAlign = {}
 				if isTop:
 					newAlign['code'] = 'alignt'
 				else:
 					newAlign['code'] = 'alignb'
-				newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+				newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(h_point[0])]
 				newAlign['zone'] = zoneName
 
 				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
