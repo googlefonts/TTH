@@ -297,18 +297,16 @@ class AutoHinting():
 			self.addDoubleLink(stem[0], stem[1], stemName, False)
 			
 	def guessStemForDistance(self, p1, p2, isHorizontal):
+		if isHorizontal:
+			detectedWidth = abs(p1.y - p2.y)
+		else:
+			detectedWidth = abs(p1.x - p2.x)
 		candidatesList = []
 		for stemName, stem in self.tthtm.stems.items():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
-			if isHorizontal:
-				detectedWidth = HF.absoluteDiff(p1, p2)[1]
-				if abs(w - detectedWidth) <= detectedWidth*0.20:
-					candidatesList.append((abs(w - detectedWidth), stemName))
-			else:
-				detectedWidth = HF.absoluteDiff(p1, p2)[0]
-				if abs(w - detectedWidth) <= detectedWidth*0.20:
-					candidatesList.append((abs(w - detectedWidth), stemName))
+			if abs(w - detectedWidth) <= detectedWidth*0.20:
+				candidatesList.append((abs(w - detectedWidth), stemName))
 
 		if candidatesList != []:
 			candidatesList.sort()
@@ -318,6 +316,7 @@ class AutoHinting():
 			return None
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
+		if stemName == None: return
 		newCommand = {}
 		if isHorizontal:
 			newCommand['code'] = 'doublev'
@@ -325,39 +324,38 @@ class AutoHinting():
 			newCommand['code'] = 'doubleh'
 		newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 		newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-		if stemName != None:
-			newCommand['stem'] = stemName
-			if newCommand not in self.TTHToolInstance.glyphTTHCommands:
-				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+		newCommand['stem'] = stemName
+		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 	def attachLinksToZones(self, g):
 		for command in self.TTHToolInstance.glyphTTHCommands:
-			if command['code'] == 'doublev':
-				p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
-				p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
-				p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
-				p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
-				zonePoint1 = self.isInZone(p1_y)
-				zonePoint2 = self.isInZone(p2_y)
-				if zonePoint1 != None or zonePoint2 != None:
-					command['code'] = 'singlev'
-					if zonePoint2 != None:
-						p2 = command['point2']
-						p1 = command['point1']
-						command['point1'] = p2
-						command['point2'] = p1
-						self.addAlign(g, p2_uniqueID, zonePoint2)
-					elif zonePoint1 != None:
-						self.addAlign(g, p1_uniqueID, zonePoint1)
+			if command['code'] != 'doublev': continue
+			p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
+			p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
+			p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
+			p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
+			zonePoint1 = self.isInZone(p1_y)
+			zonePoint2 = self.isInZone(p2_y)
+			if zonePoint1 == None and zonePoint2 == None: continue
+			command['code'] = 'singlev'
+			if zonePoint2 != None:
+				p2 = command['point2']
+				p1 = command['point1']
+				command['point1'] = p2 # swap the points
+				command['point2'] = p1
+				self.addAlign(g, p2_uniqueID, zonePoint2)
+			else: # elif zonePoint1 != None:
+				self.addAlign(g, p1_uniqueID, zonePoint1)
 
-	def addAlign(self, g, pointName, zonePoint):
+	def addAlign(self, g, pointName, (zoneName, isTopZone)):
 		newAlign = {}
-		if zonePoint[1] == True:
+		if isTopZone:
 			newAlign['code'] = 'alignt'
 		else:
 			newAlign['code'] = 'alignb'
 		newAlign['point'] = pointName
-		newAlign['zone'] = zonePoint[0]
+		newAlign['zone'] = zoneName
 		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 
 	def isInZone(self, y):
