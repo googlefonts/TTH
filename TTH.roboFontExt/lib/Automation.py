@@ -272,7 +272,7 @@ class Automation():
 
 		if "O" in font and "H" in font:
 			baselineZone = (0, -font["O"].box[1])
-			capHeightZone = (font["H"].box[3], -font["O"].box[1])
+			capHeightZone = (font["H"].box[3], font["O"].box[3] - font["H"].box[3])
 		if "o" in font:
 			xHeightZone = (font["o"].box[3] + font["o"].box[1], - font["o"].box[1])
 		if "f" in font and "l" in font:
@@ -340,11 +340,11 @@ class AutoHinting():
 			w = int(stem['width'])
 			if stem['horizontal'] == isHorizontal and isHorizontal == True:
 				detectedWidth = HF.absoluteDiff(p1, p2)[1]
-				if HF.approxEqual(w, detectedWidth, self.TTHToolInstance.tthtm.roundFactor_Stems/100.0):
+				if abs(w - detectedWidth) <= detectedWidth*0.20:
 					candidatesList.append((abs(w - detectedWidth), stemName))
 			elif stem['horizontal'] == isHorizontal and isHorizontal == False:
 				detectedWidth = HF.absoluteDiff(p1, p2)[0]
-				if HF.approxEqual(w, detectedWidth, self.TTHToolInstance.tthtm.roundFactor_Stems/100.0):
+				if abs(w - detectedWidth) <= detectedWidth*0.20:
 					candidatesList.append((abs(w - detectedWidth), stemName))
 
 		if candidatesList != []:
@@ -411,20 +411,27 @@ class AutoHinting():
 
 	def findSiblings(self, g):
 		touchedPoints = self.findTouchedPoints(g)
+		touchedPointsNames = []
+		for name, _ in touchedPoints:
+			touchedPointsNames.append(name)
+
 		for pointName, axis in touchedPoints:
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
 			for h_point in self.h_pointList:
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_point[0].name.split(',')[0] != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+				if h_pointName in touchedPointsNames:
+					continue
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
 					newSiblingCommand['point1'] = pointName
-					newSiblingCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_point[0].name.split(',')[0] != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
 					newSiblingCommand['point1'] = pointName
-					newSiblingCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 
@@ -565,7 +572,7 @@ class AutoHinting():
 		else:
 			self.ital = 0
 		self.h_pointList = make_hPointsList(g, self.ital)
-		g.prepareUndo("AutoHint")
+	
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []
@@ -574,7 +581,4 @@ class AutoHinting():
 		self.findSiblings(g)
 		#self.autoAlignToZones(g)
 		#self.hintWidth(g)
-		self.TTHToolInstance.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.TTHToolInstance.refreshGlyph()
-		g.performUndo()
+		

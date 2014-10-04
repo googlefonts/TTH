@@ -425,11 +425,23 @@ class toolsWindow(object):
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
 	def AutoGlyphButtonCallback(self, sender):
+		self.tthtm.g.prepareUndo("AutoHint Glyph")
 		self.autohinting.autohint(self.tthtm.g)
+		self.TTHToolInstance.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.TTHToolInstance.refreshGlyph()
+		self.tthtm.g.performUndo()
 
 	def AutoFontButtonCallback(self, sender):
+		
 		for g in self.tthtm.f:
+			self.tthtm.g.prepareUndo("AutoHint Font")
 			self.autohinting.autohint(g)
+			self.TTHToolInstance.updateGlyphProgram()
+			self.tthtm.g.performUndo()
+			
+		self.TTHToolInstance.resetFonts()
+		
 
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
