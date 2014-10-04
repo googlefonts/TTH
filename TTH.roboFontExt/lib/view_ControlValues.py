@@ -350,7 +350,7 @@ class SheetControlValues(object):
 
 	def autoStemButtonCallback(self, sender):
 		self.w.stemBox.AutoStemProgressBar.show(1)
-		self.automation.autoStems(self.tthtm.f, self.w.stemBox.AutoStemProgressBar, 20.0)
+		self.automation.autoStems(self.tthtm.f, self.w.stemBox.AutoStemProgressBar)
 		self.w.stemBox.AutoStemProgressBar.show(0)
 
 	def closeButtonCallback(self, sender):

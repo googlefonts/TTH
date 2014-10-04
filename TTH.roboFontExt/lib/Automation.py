@@ -57,7 +57,7 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 #	else:
 #		return 'White'
 
-def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
+def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
 	# parameter 'f' is not used. Remove?
 	stemsListX_temp = []
 	stemsListY_temp = []
@@ -135,7 +135,7 @@ class Automation():
 		self.tthtm = TTHToolInstance.tthtm
 		self.controller = controller
 
-	def autoStems(self, font, progressBar, angleTolerance):
+	def autoStems(self, font, progressBar):
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
@@ -154,7 +154,7 @@ class Automation():
 			return
 		g = font['O']
 		O_hPoints = make_hPointsList(g, ital)
-		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance)
+		(O_stemsListX, O_stemsListY) = makeStemsList(O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 
 		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
 
@@ -165,7 +165,7 @@ class Automation():
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
-			( XStems, YStems ) = self.getRoundedStems(font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
+			( XStems, YStems ) = self.getRoundedStems(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 			stemsValuesXList.extend(XStems)
 			stemsValuesYList.extend(YStems)
 			progressBar.increment(tick)
@@ -173,9 +173,9 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesXList, roundFactor_Jumps, isHorizontal=False)
 		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
-	def getRoundedStems(self, font, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance):
+	def getRoundedStems(self, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
 		g_hPoints = make_hPointsList(g, ital)
-		(stemsListX, stemsListY) = makeStemsList(font, g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, angleTolerance)
+		(stemsListX, stemsListY) = makeStemsList(g_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 		originalStemsXList = [stem[2][0] for stem in stemsListX]
 		originalStemsYList = [stem[2][1] for stem in stemsListY]
 		return (originalStemsXList, originalStemsYList)
@@ -287,9 +287,7 @@ class AutoHinting():
 		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
 		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
 
-		font = g.getParent()
-
-		(g_stemsListX, g_stemsListY) = makeStemsList(font, self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10, self.angleTolerance)
+		(g_stemsListX, g_stemsListY) = makeStemsList(self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10, self.tthtm.angleTolerance)
 
 		for stem in  g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
@@ -393,7 +391,7 @@ class AutoHinting():
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				if (h_pointName in touchedPointsNames_X and axis == 'X') or (h_pointName in touchedPointsNames_Y and axis == 'Y'):
 					continue
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.angleTolerance)):
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
 					if prev_h_Point[0].y == h_point[0].y or prev_h_Point[0].x == p_x or next_h_Point[0].x == p_x:
 						continue
 					newSiblingCommand = {}
@@ -401,7 +399,7 @@ class AutoHinting():
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.angleTolerance)):
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
 					if prev_h_Point[0].x == h_point[0].x or prev_h_Point[0].y == p_y or next_h_Point[0].y == p_y:
 						continue
 					newSiblingCommand = {}
@@ -467,12 +465,12 @@ class AutoHinting():
 				newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				newAlign['zone'] = zoneName
 
-				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal_withTolerance(h_point[5], self.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.angleTolerance)):
+				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
 					self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 					touchedPointsNames.append(newAlign['point'])
 
 
-	def autohint(self, g, angleTolerance):
+	def autohint(self, g):
 		if self.tthtm.f.info.italicAngle != None:
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
@@ -480,7 +478,6 @@ class AutoHinting():
 
 		self.h_pointList = make_hPointsList(g, self.ital)
 	
-		self.angleTolerance = angleTolerance
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []

@@ -428,7 +428,7 @@ class toolsWindow(BaseWindowController):
 
 	def AutoGlyphButtonCallback(self, sender):
 		self.tthtm.g.prepareUndo("Auto-hint Glyph")
-		self.autohinting.autohint(self.tthtm.g, 20.0)
+		self.autohinting.autohint(self.tthtm.g)
 		self.TTHToolInstance.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
 			self.TTHToolInstance.refreshGlyph()
@@ -439,7 +439,7 @@ class toolsWindow(BaseWindowController):
 		progress.setTickCount(len(self.tthtm.f))
 		for g in self.tthtm.f:
 			self.tthtm.g.prepareUndo("Auto-hint Font")
-			self.autohinting.autohint(g, 20.0)
+			self.autohinting.autohint(g)
 			self.TTHToolInstance.updateGlyphProgram()
 			self.tthtm.g.performUndo()
 			progress.update()
