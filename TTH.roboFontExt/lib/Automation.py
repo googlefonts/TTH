@@ -14,7 +14,7 @@ def make_hPointsList(g, italAngle):
 			prevPoint = contour_pts[point_index - 1]
 			nextPoint = contour_pts[(point_index + 1) % nbPts]
 
-			prev,cur,nex = map(lambda p: HF.sheared(p, italAngle), (prevPoint, currentPoint, nextPoint))
+			prev,cur,nex = map(lambda p: HF.shearPoint(p, italAngle), (prevPoint, currentPoint, nextPoint))
 			
 			directionIN  = HF.directionForPairs(prev, cur) # useless
 			directionOUT = HF.directionForPairs(cur, nex) # useless
@@ -115,8 +115,8 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 
 	references = []
 	for (hypoth, stem) in stemsListX_temp:
-		shearedSourceX, _ = HF.sheared(stem[0], italicAngle)
-		shearedTargetX, _ = HF.sheared(stem[1], italicAngle)
+		shearedSourceX, _ = HF.shearPoint(stem[0], italicAngle)
+		shearedTargetX, _ = HF.shearPoint(stem[1], italicAngle)
 		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
 		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
 		if sourceAbsent or targetAbsent:
@@ -387,9 +387,9 @@ class AutoHinting():
 			for h_pointIndex, h_point in enumerate(self.h_pointList):
 				prev_h_Point = self.h_pointList[h_pointIndex - 1]
 				next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
-				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
-				if (h_pointName in touchedPointsNames_X and axis == 'X') or (h_pointName in touchedPointsNames_Y and axis == 'Y'):
-					continue
+				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(h_point[0])]
+				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
+				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
 				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
 					if prev_h_Point[0].y == h_point[0].y or prev_h_Point[0].x == p_x or next_h_Point[0].x == p_x:
 						continue
@@ -398,7 +398,7 @@ class AutoHinting():
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
+				if axis == 'X' and abs(HF.shearPoint(h_point[0], self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
 					if prev_h_Point[0].x == h_point[0].x or prev_h_Point[0].y == p_y or next_h_Point[0].y == p_y:
 						continue
 					newSiblingCommand = {}

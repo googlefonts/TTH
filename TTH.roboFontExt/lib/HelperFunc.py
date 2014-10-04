@@ -108,11 +108,11 @@ def exists(l, p):
 			return True
 	return False
 
-def sheared(point, angle):
+def shearPoint(point, angle):
 	r = math.tan(math.radians(angle))
 	return (point.x - r*point.y, point.y)
 
-def shearedFromCoords((p_x, p_y), angle):
+def shearPair((p_x, p_y), angle):
 	r = math.tan(math.radians(angle))
 	return (p_x - r*p_y, p_y)
 
