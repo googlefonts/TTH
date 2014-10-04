@@ -266,7 +266,7 @@ class Automation():
 
 		if "O" in font and "H" in font:
 			baselineZone = (0, -font["O"].box[1])
-			capHeightZone = (font["H"].box[3], -font["O"].box[1])
+			capHeightZone = (font["H"].box[3], font["O"].box[3] - font["H"].box[3])
 		if "o" in font:
 			xHeightZone = (font["o"].box[3] + font["o"].box[1], - font["o"].box[1])
 		if "f" in font and "l" in font:
@@ -322,336 +322,241 @@ class AutoHinting():
 		(g_stemsListX, g_stemsListY) = makeStemsList(font, self.h_pointList, g, self.ital, minStemX, minStemY, maxStemX, maxStemY, 10)
 
 		for stem in  g_stemsListY:
-			detectedWidth = HF.absoluteDiff(stem[0], stem[1])[1]
-			self.addStem(stem[0], stem[1], detectedWidth, False)
+			stemName = self.guessStemForDistance(stem[0], stem[1], True)
+			self.addDoubleLink(stem[0], stem[1], stemName, True)
 		for stem in  g_stemsListX:
-			detectedWidth = HF.absoluteDiff(stem[0], stem[1])[0]
-			self.addStem(stem[0], stem[1], detectedWidth, True)
+			stemName = self.guessStemForDistance(stem[0], stem[1], False)
+			self.addDoubleLink(stem[0], stem[1], stemName, False)
 			
-
-	def addStem(self, p1, p2, width, isHorizontal):
-		
+	def guessStemForDistance(self, p1, p2, isHorizontal):
 		candidatesList = []
 		for stemName, stem in self.tthtm.stems.items():
-			if stem['horizontal'] != isHorizontal:
-				w = int(stem['width'])
-				if HF.approxEqual(w, width, .20):
-					candidatesList.append((abs(w - width), stemName))
+			w = int(stem['width'])
+			if stem['horizontal'] == isHorizontal and isHorizontal == True:
+				detectedWidth = HF.absoluteDiff(p1, p2)[1]
+				if abs(w - detectedWidth) <= detectedWidth*0.20:
+					candidatesList.append((abs(w - detectedWidth), stemName))
+			elif stem['horizontal'] == isHorizontal and isHorizontal == False:
+				detectedWidth = HF.absoluteDiff(p1, p2)[0]
+				if abs(w - detectedWidth) <= detectedWidth*0.20:
+					candidatesList.append((abs(w - detectedWidth), stemName))
 
 		if candidatesList != []:
 			candidatesList.sort()
 			stemName = candidatesList[0][1]
-			newCommand = {}
-			if isHorizontal:
-				newCommand['code'] = 'doubleh'
-			else:
-				newCommand['code'] = 'doublev'
-			newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-			newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-			zonePoint1 = self.isInZone(p1)
-			zonePoint2 = self.isInZone(p2)
+			return stemName
+		else:
+			return None
 
-			if zonePoint1 != None or zonePoint2 != None:
-				if newCommand['code'] == 'doubleh':
-					newCommand['code'] = 'singleh'
-				elif newCommand['code'] == 'doublev':
-					newCommand['code'] = 'singlev'
-
-				if zonePoint1 != None:
-					newAlign = {}
-					if zonePoint1[1]:
-						newAlign['code'] = 'alignt'
-					else:
-						newAlign['code'] = 'alignb'
-					newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-					newAlign['zone'] = zonePoint1[0]
-
-					if newAlign not in self.TTHToolInstance.glyphTTHCommands:
-						self.TTHToolInstance.glyphTTHCommands.append(newAlign)
-						ref_point = p1
-						siblingsList = self.findSiblingsforPoint_amongst_inAxis(ref_point, self.h_pointList, 'Y')
-						for point in siblingsList:
-							isTouched = False
-							for cmd in self.TTHToolInstance.glyphTTHCommands:
-								if 'point' in cmd:
-									if cmd['point'] == point:
-										isTouched = True
-								if 'point1' in cmd:
-									if cmd['point1'] == point:
-										isTouched = True
-								if 'point2' in cmd:
-									if cmd['point2'] == point:
-										isTouched = True
-							newSiblingCommand = {}
-							newSiblingCommand['code'] = 'singlev'
-							newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
-							newSiblingCommand['point2'] = point
-							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2'] and not isTouched:
-								self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-
-				if zonePoint2 != None:
-					newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-					newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-					newAlign = {}
-					if zonePoint2[1]:
-						newAlign['code'] = 'alignt'
-					else:
-						newAlign['code'] = 'alignb'
-					newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-					newAlign['zone'] = zonePoint2[0]
-					if newAlign not in self.TTHToolInstance.glyphTTHCommands:
-						self.TTHToolInstance.glyphTTHCommands.append(newAlign)
-						ref_point = p2
-						siblingsList = self.findSiblingsforPoint_amongst_inAxis(ref_point, self.h_pointList, 'Y')
-						for point in siblingsList:
-							isTouched = False
-							for cmd in self.TTHToolInstance.glyphTTHCommands:
-								if 'point' in cmd:
-									if cmd['point'] == point:
-										isTouched = True
-								if 'point1' in cmd:
-									if cmd['point1'] == point:
-										isTouched = True
-								if 'point2' in cmd:
-									if cmd['point2'] == point:
-										isTouched = True
-							newSiblingCommand = {}
-							newSiblingCommand['code'] = 'singlev'
-							newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
-							newSiblingCommand['point2'] = point
-							if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and newSiblingCommand['point1'] != newSiblingCommand['point2'] and not isTouched:
-								self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-
-
-			for command in self.TTHToolInstance.glyphTTHCommands:
-				if (isHorizontal and command['code'] == 'alignv') or ( not isHorizontal and command['code'] in ['alignh', 'alignt', 'alignb']):
-					if command['point'] == newCommand['point2']:
-						if newCommand['code'] == 'doubleh':
-							newCommand['code'] = 'singleh'
-						elif newCommand['code'] == 'doublev':
-							newCommand['code'] = 'singlev'
-						newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-						newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-					elif command['point'] == newCommand['point1']:
-						if newCommand['code'] == 'doubleh':
-							newCommand['code'] = 'singleh'
-						elif newCommand['code'] == 'doublev':
-							newCommand['code'] = 'singlev'
-
+	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
+		newCommand = {}
+		if isHorizontal:
+			newCommand['code'] = 'doublev'
+		else:
+			newCommand['code'] = 'doubleh'
+		newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+		newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+		if stemName != None:
 			newCommand['stem'] = stemName
-			commandExists = False
-			for command in self.TTHToolInstance.glyphTTHCommands:
-				if (isHorizontal and command['code'] in ['singleh', 'doubleh']) or ( not isHorizontal and command['code'] in ['singlev', 'doublev']) :
-					if (command['point1'] == newCommand['point1'] or command['point1'] == newCommand['point2']) and (command['point2'] == newCommand['point1'] or command['point2'] == newCommand['point2']):
-						commandExists = True
-
-
-			if not commandExists:
+			if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-				if isHorizontal:
-					axis = 'X'
-					typeList = ['singleh', 'doubleh']
-					newSiblingCommandCode = 'singleh'
-				else:
-					axis = 'Y'
-					typeList = ['singlev', 'doublev']
-					newSiblingCommandCode = 'singlev'
+	def attachLinksToZones(self, g):
+		for command in self.TTHToolInstance.glyphTTHCommands:
+			if command['code'] == 'doublev':
+				p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
+				p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
+				p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
+				p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
+				zonePoint1 = self.isInZone(p1_y)
+				zonePoint2 = self.isInZone(p2_y)
+				if zonePoint1 != None or zonePoint2 != None:
+					command['code'] = 'singlev'
+					if zonePoint2 != None:
+						p2 = command['point2']
+						p1 = command['point1']
+						command['point1'] = p2
+						command['point2'] = p1
+						self.addAlign(g, p2_uniqueID, zonePoint2)
+					elif zonePoint1 != None:
+						self.addAlign(g, p1_uniqueID, zonePoint1)
+
+	def addAlign(self, g, pointName, zonePoint):
+		newAlign = {}
+		if zonePoint[1] == True:
+			newAlign['code'] = 'alignt'
+		else:
+			newAlign['code'] = 'alignb'
+		newAlign['point'] = pointName
+		newAlign['zone'] = zonePoint[0]
+		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+
+	def isInZone(self, y):
+		for zoneName, zone in self.tthtm.zones.items():
+			if not zone['top']:
+				y_start = int(zone['position']) - int(zone['width'])
+				y_end = int(zone['position'])
+			else:
+				y_start = int(zone['position'])
+				y_end = int(zone['position']) + int(zone['width'])
+			if y_start <=  y and y <= y_end:
+				return (zoneName, zone['top'])
+		return None
+
+	def findSiblings(self, g):
+		touchedPoints = self.findTouchedPoints(g)
+		touchedPointsNames = []
+		for name, _ in touchedPoints:
+			touchedPointsNames.append(name)
+
+		for pointName, axis in touchedPoints:
+			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
+			for h_point in self.h_pointList:
+				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+				if h_pointName in touchedPointsNames:
+					continue
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+					newSiblingCommand = {}
+					newSiblingCommand['code'] = 'singlev'
+					newSiblingCommand['point1'] = pointName
+					newSiblingCommand['point2'] = h_pointName
+					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)):
+					newSiblingCommand = {}
+					newSiblingCommand['code'] = 'singleh'
+					newSiblingCommand['point1'] = pointName
+					newSiblingCommand['point2'] = h_pointName
+					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
 
-				if newCommand['code'] in ['singleh', 'singlev']:
-					if newCommand['point2'] == self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]:
-						ref_point = p1
-					elif newCommand['point2'] == self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]:
-						ref_point = p2
-					siblingsList = self.findSiblingsforPoint_amongst_inAxis(ref_point, self.h_pointList, axis)
-					for point in siblingsList:
-						isTouched = False
-						for cmd in self.TTHToolInstance.glyphTTHCommands:
-							if 'point' in cmd:
-								if cmd['point'] == point:
-									isTouched = True
-							if 'point1' in cmd:
-								if cmd['point1'] == point:
-									isTouched = True
-							if 'point2' in cmd:
-								if cmd['point2'] == point:
-									isTouched = True
-						newSiblingCommand = {}
-						newSiblingCommand['code'] = newSiblingCommandCode
-						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
-						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				
-				if newCommand['code'] in ['doubleh', 'doublev']:
-					ref_point = p1
-					siblingsList = self.findSiblingsforPoint_amongst_inAxis(ref_point, self.h_pointList, axis)
-					for point in siblingsList:
-						isTouched = False
-						for cmd in self.TTHToolInstance.glyphTTHCommands:
-							if 'point' in cmd:
-								if cmd['point'] == point:
-									isTouched = True
-							if 'point1' in cmd:
-								if cmd['point1'] == point:
-									isTouched = True
-							if 'point2' in cmd:
-								if cmd['point2'] == point:
-									isTouched = True
-						newSiblingCommand = {}
-						newSiblingCommand['code'] = newSiblingCommandCode
-						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
-						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
-					ref_point = p2
-					siblingsList = self.findSiblingsforPoint_amongst_inAxis(ref_point, self.h_pointList, axis)
-					for point in siblingsList:
-						isTouched = False
-						for cmd in self.TTHToolInstance.glyphTTHCommands:
-							if 'point' in cmd:
-								if cmd['point'] == point:
-									isTouched = True
-							if 'point1' in cmd:
-								if cmd['point1'] == point:
-									isTouched = True
-							if 'point2' in cmd:
-								if cmd['point2'] == point:
-									isTouched = True
-						newSiblingCommand = {}
-						newSiblingCommand['code'] = newSiblingCommandCode
-						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(ref_point.x, ref_point.y)]
-						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-					
+	def findTouchedPoints(self, g):
+		touchedPoints = []
+		for command in self.TTHToolInstance.glyphTTHCommands:
+			if command['code'][-1:] in ['t', 'b', 'v']:
+				axis = 'Y'
+			else:
+				axis = 'X'
+
+			if 'point' in command and (command['point'], axis) not in touchedPoints:
+				touchedPoints.append((command['point'], axis))
+			if 'point1' in command and (command['point1'], axis) not in touchedPoints:
+				touchedPoints.append((command['point1'], axis))
+			if 'point2' in command and (command['point2'], axis) not in touchedPoints:
+				touchedPoints.append((command['point2'], axis))
+		return touchedPoints
 
 
 	def hintWidth(self, g):
 		pass
 
-	def isInZone(self, point):
-		for zoneName, zone in self.tthtm.zones.items():
-			if not zone['top']:
-				y_start = int(zone['position']) - int(zone['width'])
-				y_end = int(zone['position'])
-			else:
-				y_start = int(zone['position'])
-				y_end = int(zone['position']) + int(zone['width'])
-			if y_start <=  point.y and point.y <= y_end:
-				return (zoneName, zone['top'])
-		return None
+
+	# def autoAlignToZones(self, g):
+	# 	for zoneName, zone in self.tthtm.zones.items():
+	# 		if not zone['top']:
+	# 			y_start = int(zone['position']) - int(zone['width'])
+	# 			y_end = int(zone['position'])
+	# 			self.processZone(g, zoneName, False, y_start, y_end)
+	# 		else:
+	# 			y_start = int(zone['position'])
+	# 			y_end = int(zone['position']) + int(zone['width'])
+	# 			self.processZone(g, zoneName, True , y_start, y_end)
 
 
+	# def processZone(self, g, zoneName, isTop, y_start, y_end):
+	# 	#hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, vectorIN, vectorOUT)
 
-	def autoAlignToZones(self, g):
-		for zoneName, zone in self.tthtm.zones.items():
-			if not zone['top']:
-				y_start = int(zone['position']) - int(zone['width'])
-				y_end = int(zone['position'])
-				self.processZone(g, zoneName, False, y_start, y_end)
-			else:
-				y_start = int(zone['position'])
-				y_end = int(zone['position']) + int(zone['width'])
-				self.processZone(g, zoneName, True , y_start, y_end)
+	# 	for p in self.h_pointList:
+	# 		if y_start <= p[0].y  and p[0].y <= y_end and p[0].type != 'offCurve':
+	# 			exists = False
+	# 			redundant = False
+	# 			for command in self.TTHToolInstance.glyphTTHCommands:
+	# 				if command['code'][:5] != 'align':
+	# 					continue
+	# 				else:
+	# 					if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]:
+	# 						exists = True
+	# 					try:
+	# 						(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
+	# 					except:
+	# 						(x, y) = self.TTHToolInstance.pointNameToCoordinates[command['point']]
+	# 					if abs(y - p[0].y) <= .1*abs(y_end-y_start):
+	# 						redundant = True
+	# 			if not exists and not redundant and ( (HF.isHorizontal_withTolerance(p[5], 45) or HF.isHorizontal_withTolerance(p[6], 45)) and not p[0].smooth):
+	# 				newCommand = {}
+	# 				newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+	# 				newCommand['zone'] = zoneName
+	# 				if isTop:
+	# 					newCommand['code'] = 'alignt'
+	# 				else:
+	# 					newCommand['code'] = 'alignb'
+	# 				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
+	# 				siblingsList = self.findSiblingsforPoint_amongst_inAxis(p[0], self.h_pointList, 'Y')
+	# 				for point in siblingsList:
+	# 					isTouched = False
+	# 					for cmd in self.TTHToolInstance.glyphTTHCommands:
+	# 						if 'point' in cmd:
+	# 							if cmd['point'] == point:
+	# 								isTouched = True
+	# 						if 'point1' in cmd:
+	# 							if cmd['point1'] == point:
+	# 								isTouched = True
+	# 						if 'point2' in cmd:
+	# 							if cmd['point2'] == point:
+	# 								isTouched = True
+	# 					newSiblingCommand = {}
+	# 					newSiblingCommand['code'] = 'singlev'
+	# 					newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
+	# 					newSiblingCommand['point2'] = point
+	# 					if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
+	# 						self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 
-	def processZone(self, g, zoneName, isTop, y_start, y_end):
-		#hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, vectorIN, vectorOUT)
+	# def findSiblingsforPoint_amongst_inAxis(self, p, h_pointList, axis):
+	# 	p2List = []
+	# 	siblingsList = []
+	# 	for i in range(len(h_pointList)):
+	# 		p2 = self.h_pointList[i]
+	# 		if i == 0:
+	# 			p2_prev = h_pointList[len(h_pointList)-1]
+	# 		else:
+	# 			p2_prev = h_pointList[i-1]
 
-		for p in self.h_pointList:
-			if y_start <= p[0].y  and p[0].y <= y_end and p[0].type != 'offCurve':
-				exists = False
-				redundant = False
-				for command in self.TTHToolInstance.glyphTTHCommands:
-					if command['code'][:5] != 'align':
-						continue
-					else:
-						if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]:
-							exists = True
-						try:
-							(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
-						except:
-							(x, y) = self.TTHToolInstance.pointNameToCoordinates[command['point']]
-						if abs(y - p[0].y) <= .1*abs(y_end-y_start):
-							redundant = True
-				if not exists and not redundant and ( (HF.isHorizontal_withTolerance(p[5], 45) or HF.isHorizontal_withTolerance(p[6], 45)) and not p[0].smooth):
-					newCommand = {}
-					newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-					newCommand['zone'] = zoneName
-					if isTop:
-						newCommand['code'] = 'alignt'
-					else:
-						newCommand['code'] = 'alignb'
-					self.TTHToolInstance.glyphTTHCommands.append(newCommand)
-
-					siblingsList = self.findSiblingsforPoint_amongst_inAxis(p[0], self.h_pointList, 'Y')
-					for point in siblingsList:
-						isTouched = False
-						for cmd in self.TTHToolInstance.glyphTTHCommands:
-							if 'point' in cmd:
-								if cmd['point'] == point:
-									isTouched = True
-							if 'point1' in cmd:
-								if cmd['point1'] == point:
-									isTouched = True
-							if 'point2' in cmd:
-								if cmd['point2'] == point:
-									isTouched = True
-						newSiblingCommand = {}
-						newSiblingCommand['code'] = 'singlev'
-						newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-						newSiblingCommand['point2'] = point
-						if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-							self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-
-	def findSiblingsforPoint_amongst_inAxis(self, p, h_pointList, axis):
-		p2List = []
-		siblingsList = []
-		for i in range(len(h_pointList)):
-			p2 = self.h_pointList[i]
-			if i == 0:
-				p2_prev = h_pointList[len(h_pointList)-1]
-			else:
-				p2_prev = h_pointList[i-1]
-
-			if i == len(h_pointList)-1:
-				p2_next = h_pointList[0]
-			else:
-				p2_next = h_pointList[i+1]
+	# 		if i == len(h_pointList)-1:
+	# 			p2_next = h_pointList[0]
+	# 		else:
+	# 			p2_next = h_pointList[i+1]
 				
 
-			if axis == 'Y':
-				condition = (abs(p.y - p2[0].y) <= 2)
-			else:
-				condition = (abs(p.x - p2[0].x) <= 2)
-			if condition:
-				if p != p2[0] and p != p2_prev[0] and p != p2_next[0]:
-					p2List.append((p2_prev, p2, p2_next))
+	# 		if axis == 'Y':
+	# 			condition = (abs(p.y - p2[0].y) <= 2)
+	# 		else:
+	# 			condition = (abs(p.x - p2[0].x) <= 2)
+	# 		if condition:
+	# 			if p != p2[0] and p != p2_prev[0] and p != p2_next[0]:
+	# 				p2List.append((p2_prev, p2, p2_next))
 
-		for i in range(len(p2List)):
-			c_i = p2List[i][1]
-			point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
+	# 	for i in range(len(p2List)):
+	# 		c_i = p2List[i][1]
+	# 		point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
 
-			# Find a way to keep only stricly necessary siblings
+	# 		# Find a way to keep only stricly necessary siblings
 
-			# prev_i = p2List[i][0]
-			# next_i = p2List[i][2]
-			# for j in range(len(p2List)):
-			# 	c_j = p2List[j][1]
-			# 	prev_j = p2List[j][0]
-			# 	next_j = p2List[j][2]
-			# 	if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
-			# 		break
-			# 	if c_j == c_i and p2[0] != p:
-			# 		if axis == 'X' and (HF.isVertical(c_i[5]) or HF.isVertical(c_i[6])):
-			# 			siblingsList.append(point2)
-			# 		elif axis == 'Y' and (HF.isHorizontal(c_i[5]) or HF.isHorizontal(c_i[5])):
-			siblingsList.append(point2)
+	# 		# prev_i = p2List[i][0]
+	# 		# next_i = p2List[i][2]
+	# 		# for j in range(len(p2List)):
+	# 		# 	c_j = p2List[j][1]
+	# 		# 	prev_j = p2List[j][0]
+	# 		# 	next_j = p2List[j][2]
+	# 		# 	if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
+	# 		# 		break
+	# 		# 	if c_j == c_i and p2[0] != p:
+	# 		# 		if axis == 'X' and (HF.isVertical(c_i[5]) or HF.isVertical(c_i[6])):
+	# 		# 			siblingsList.append(point2)
+	# 		# 		elif axis == 'Y' and (HF.isHorizontal(c_i[5]) or HF.isHorizontal(c_i[5])):
+	# 		siblingsList.append(point2)
 
-		return siblingsList
+	# 	return siblingsList
 
 
 
@@ -660,14 +565,14 @@ class AutoHinting():
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
 			self.ital = 0
-
 		self.h_pointList = make_hPointsList(g, self.ital)
-
-		self.tthtm.g.prepareUndo("AutoHint")
+	
+		self.tthtm.setGlyph(g)
+		self.TTHToolInstance.resetglyph()
+		self.TTHToolInstance.glyphTTHCommands = []
 		self.detectStems(g)
-		self.autoAlignToZones(g)
-		self.hintWidth(g)
-		self.TTHToolInstance.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.TTHToolInstance.refreshGlyph()
-		self.tthtm.g.performUndo()
+		self.attachLinksToZones(g)
+		self.findSiblings(g)
+		#self.autoAlignToZones(g)
+		#self.hintWidth(g)
+		
