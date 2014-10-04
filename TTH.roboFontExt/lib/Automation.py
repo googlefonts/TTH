@@ -105,7 +105,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 	for (hypoth, stem) in stemsListY_temp:
 		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
 		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
-		if sourceAbsent and targetAbsent:
+		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
 			references.append(stem[0].y)
@@ -118,7 +118,7 @@ def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, ma
 		shearedTargetX, _ = HF.sheared(stem[1], italicAngle)
 		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
 		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
-		if sourceAbsent and targetAbsent:
+		if sourceAbsent or targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
 			references.append(shearedSourceX)
@@ -164,9 +164,10 @@ class Automation():
 		else:
 			ital = 0
 
+		if 'O' not in font:
+			print "WARNING: glyph 'O' missing, unable to calculate stems"
+			return
 		g = font['O']
-		if not g:
-			print "WARNING: glyph 'O' missing"
 		O_hPoints = make_hPointsList(g, ital)
 		(O_stemsListX, O_stemsListY) = makeStemsList(font, O_hPoints, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems)
 
@@ -261,8 +262,8 @@ class Automation():
 		baselineZone = None
 		capHeightZone = None
 		xHeightZone = None
-		ascenderstZone = None
-		descenderstZone = None
+		ascendersZone = None
+		descendersZone = None
 
 		if "O" in font and "H" in font:
 			baselineZone = (0, -font["O"].box[1])
@@ -271,10 +272,12 @@ class Automation():
 			xHeightZone = (font["o"].box[3] + font["o"].box[1], - font["o"].box[1])
 		if "f" in font and "l" in font:
 			if font["l"].box[3] < font["f"].box[3]:
-				ascenderstZone = (font["l"].box[3], font["f"].box[3] - font["l"].box[3])
+				ascendersZone = (font["l"].box[3], font["f"].box[3] - font["l"].box[3])
+			elif font["l"].box[3] == font["f"].box[3]:
+				ascendersZone = (font["l"].box[3] + font["o"].box[1] , - font["o"].box[1])
 		if "g" in font and "p" in font:
 			if font["p"].box[1] > font["g"].box[1]:
-				descenderstZone = (font["p"].box[1], - (font["g"].box[1] - font["p"].box[1]) )
+				descendersZone = (font["p"].box[1], - (font["g"].box[1] - font["p"].box[1]) )
 
 		if baselineZone != None:
 			self.addZone('baseline', 'bottom', baselineZone[0], baselineZone[1])
@@ -282,10 +285,10 @@ class Automation():
 			self.addZone('cap-height', 'top', capHeightZone[0], capHeightZone[1])
 		if xHeightZone != None:
 			self.addZone('x-height', 'top', xHeightZone[0], xHeightZone[1])
-		if ascenderstZone != None:
-			self.addZone('ascenders', 'top', ascenderstZone[0], ascenderstZone[1])
-		if descenderstZone != None:
-			self.addZone('descenders', 'bottom', descenderstZone[0], descenderstZone[1])
+		if ascendersZone != None:
+			self.addZone('ascenders', 'top', ascendersZone[0], ascendersZone[1])
+		if descendersZone != None:
+			self.addZone('descenders', 'bottom', descendersZone[0], descendersZone[1])
 
 
 	def addZone(self, zoneName, ID, position, width, delta='0@0'):
@@ -418,13 +421,17 @@ class AutoHinting():
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
 				if h_pointName in touchedPointsNames:
 					continue
-				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])) and prev_h_Point[0].y != h_point[0].y and prev_h_Point[0].x != p_x and next_h_Point[0].x != p_x:
+				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])) and prev_h_Point[0].x != p_x and next_h_Point[0].x != p_x:
+					if prev_h_Point[0].y == h_point[0].y:
+						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)) and prev_h_Point[0].x != h_point[0].x and prev_h_Point[0].y != p_y and next_h_Point[0].y != p_y:
+				if axis == 'X' and abs(HF.sheared(h_point[0], self.ital)[0] - HF.shearedFromCoords((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical(h_point[5]-self.ital) or HF.isVertical(h_point[6]-self.ital)) and prev_h_Point[0].y != p_y and next_h_Point[0].y != p_y:
+					if prev_h_Point[0].x == h_point[0].x:
+						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
 					newSiblingCommand['point1'] = pointName
@@ -454,113 +461,43 @@ class AutoHinting():
 		pass
 
 
-	# def autoAlignToZones(self, g):
-	# 	for zoneName, zone in self.tthtm.zones.items():
-	# 		if not zone['top']:
-	# 			y_start = int(zone['position']) - int(zone['width'])
-	# 			y_end = int(zone['position'])
-	# 			self.processZone(g, zoneName, False, y_start, y_end)
-	# 		else:
-	# 			y_start = int(zone['position'])
-	# 			y_end = int(zone['position']) + int(zone['width'])
-	# 			self.processZone(g, zoneName, True , y_start, y_end)
+	def autoAlignToZones(self, g):
+		for zoneName, zone in self.tthtm.zones.items():
+			if not zone['top']:
+				y_start = int(zone['position']) - int(zone['width'])
+				y_end = int(zone['position'])
+				self.processZone(g, zoneName, False, y_start, y_end)
+			else:
+				y_start = int(zone['position'])
+				y_end = int(zone['position']) + int(zone['width'])
+				self.processZone(g, zoneName, True , y_start, y_end)
 
 
-	# def processZone(self, g, zoneName, isTop, y_start, y_end):
-	# 	#hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, vectorIN, vectorOUT)
+	def processZone(self, g, zoneName, isTop, y_start, y_end):
+		touchedPoints = self.findTouchedPoints(g)
+		touchedPointsNames = []
+		for name, axis in touchedPoints:
+			if axis == 'Y':
+				touchedPointsNames.append(name)
 
-	# 	for p in self.h_pointList:
-	# 		if y_start <= p[0].y  and p[0].y <= y_end and p[0].type != 'offCurve':
-	# 			exists = False
-	# 			redundant = False
-	# 			for command in self.TTHToolInstance.glyphTTHCommands:
-	# 				if command['code'][:5] != 'align':
-	# 					continue
-	# 				else:
-	# 					if command['point'] == self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]:
-	# 						exists = True
-	# 					try:
-	# 						(x, y) = self.TTHToolInstance.pointUniqueIDToCoordinates[command['point']]
-	# 					except:
-	# 						(x, y) = self.TTHToolInstance.pointNameToCoordinates[command['point']]
-	# 					if abs(y - p[0].y) <= .1*abs(y_end-y_start):
-	# 						redundant = True
-	# 			if not exists and not redundant and ( (HF.isHorizontal_withTolerance(p[5], 45) or HF.isHorizontal_withTolerance(p[6], 45)) and not p[0].smooth):
-	# 				newCommand = {}
-	# 				newCommand['point'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-	# 				newCommand['zone'] = zoneName
-	# 				if isTop:
-	# 					newCommand['code'] = 'alignt'
-	# 				else:
-	# 					newCommand['code'] = 'alignb'
-	# 				self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+		nb_h_Pts = len(self.h_pointList)
+		for h_pointIndex, h_point in enumerate(self.h_pointList):
+			prev_h_Point = self.h_pointList[h_pointIndex - 1]
+			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[(prev_h_Point[0].x, prev_h_Point[0].y)]
+			next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
+			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[(next_h_Point[0].x, next_h_Point[0].y)]
+			if y_start <= h_point[0].y  and h_point[0].y <= y_end:
+				newAlign = {}
+				if isTop:
+					newAlign['code'] = 'alignt'
+				else:
+					newAlign['code'] = 'alignb'
+				newAlign['point'] = self.TTHToolInstance.pointCoordinatesToName[(h_point[0].x, h_point[0].y)]
+				newAlign['zone'] = zoneName
 
-	# 				siblingsList = self.findSiblingsforPoint_amongst_inAxis(p[0], self.h_pointList, 'Y')
-	# 				for point in siblingsList:
-	# 					isTouched = False
-	# 					for cmd in self.TTHToolInstance.glyphTTHCommands:
-	# 						if 'point' in cmd:
-	# 							if cmd['point'] == point:
-	# 								isTouched = True
-	# 						if 'point1' in cmd:
-	# 							if cmd['point1'] == point:
-	# 								isTouched = True
-	# 						if 'point2' in cmd:
-	# 							if cmd['point2'] == point:
-	# 								isTouched = True
-	# 					newSiblingCommand = {}
-	# 					newSiblingCommand['code'] = 'singlev'
-	# 					newSiblingCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p[0].x, p[0].y)]
-	# 					newSiblingCommand['point2'] = point
-	# 					if newSiblingCommand not in self.TTHToolInstance.glyphTTHCommands and not isTouched:
-	# 						self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-
-	# def findSiblingsforPoint_amongst_inAxis(self, p, h_pointList, axis):
-	# 	p2List = []
-	# 	siblingsList = []
-	# 	for i in range(len(h_pointList)):
-	# 		p2 = self.h_pointList[i]
-	# 		if i == 0:
-	# 			p2_prev = h_pointList[len(h_pointList)-1]
-	# 		else:
-	# 			p2_prev = h_pointList[i-1]
-
-	# 		if i == len(h_pointList)-1:
-	# 			p2_next = h_pointList[0]
-	# 		else:
-	# 			p2_next = h_pointList[i+1]
-				
-
-	# 		if axis == 'Y':
-	# 			condition = (abs(p.y - p2[0].y) <= 2)
-	# 		else:
-	# 			condition = (abs(p.x - p2[0].x) <= 2)
-	# 		if condition:
-	# 			if p != p2[0] and p != p2_prev[0] and p != p2_next[0]:
-	# 				p2List.append((p2_prev, p2, p2_next))
-
-	# 	for i in range(len(p2List)):
-	# 		c_i = p2List[i][1]
-	# 		point2 = self.TTHToolInstance.pointCoordinatesToName[(c_i[0].x, c_i[0].y)]
-
-	# 		# Find a way to keep only stricly necessary siblings
-
-	# 		# prev_i = p2List[i][0]
-	# 		# next_i = p2List[i][2]
-	# 		# for j in range(len(p2List)):
-	# 		# 	c_j = p2List[j][1]
-	# 		# 	prev_j = p2List[j][0]
-	# 		# 	next_j = p2List[j][2]
-	# 		# 	if prev_i == c_j or next_i == c_j or next_j == c_i or prev_j == c_i:
-	# 		# 		break
-	# 		# 	if c_j == c_i and p2[0] != p:
-	# 		# 		if axis == 'X' and (HF.isVertical(c_i[5]) or HF.isVertical(c_i[6])):
-	# 		# 			siblingsList.append(point2)
-	# 		# 		elif axis == 'Y' and (HF.isHorizontal(c_i[5]) or HF.isHorizontal(c_i[5])):
-	# 		siblingsList.append(point2)
-
-	# 	return siblingsList
-
+				if newAlign['point'] not in touchedPointsNames and not (prev_h_Point[0].y == h_point[0].y and prev_h_PointName in touchedPointsNames) and not (next_h_Point[0].y == h_point[0].y and next_h_PointName in touchedPointsNames) and (HF.isHorizontal(h_point[5]) or HF.isHorizontal(h_point[6])):
+					self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+					touchedPointsNames.append(newAlign['point'])
 
 
 	def autohint(self, g):
@@ -576,6 +513,6 @@ class AutoHinting():
 		self.detectStems(g)
 		self.attachLinksToZones(g)
 		self.findSiblings(g)
-		#self.autoAlignToZones(g)
+		self.autoAlignToZones(g)
 		#self.hintWidth(g)
 		

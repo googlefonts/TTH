@@ -63,7 +63,7 @@ def distance(point1, point2):
 	
 def closeAngle(angle1, angle2):
 	"""True if the angle are close modulo 360 degrees"""
-	return abs(addAngles(angle1,  - angle2)) < 10.0
+	return abs(addAngles(angle1,  - angle2)) < 15.0
 
 def closeAngleModulo180(angle1, angle2):
 	"""True if the angle are close modulo 180 degrees"""
@@ -72,7 +72,7 @@ def closeAngleModulo180(angle1, angle2):
 		diff -= 180.0
 	while diff < -90.0:
 		diff += 180.0
-	return abs(diff) < 10.0
+	return abs(diff) < 15.0
 
 def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
@@ -87,11 +87,11 @@ def opposite(direction1, direction2):
 
 def isVertical(angle):
 	a = abs(angle)
-	return ((85 < a) and (a < 95))
+	return ((70 < a) and (a < 110))
 
 def isHorizontal(angle):
 	a = abs(angle)
-	return ((0 <= a) and (a <= 10)) or ((170 <= a) and (a <= 180))
+	return ((0 <= a) and (a <= 20)) or ((160 <= a) and (a <= 180))
 
 def isHorizontal_withTolerance(angle, tolerance):
 	a = abs(angle)

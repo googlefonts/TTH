@@ -67,8 +67,8 @@ class TTHToolModel():
 			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
 			self.zones = self.getOrPutDefault(tth_lib, "zones", {})
 			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 48)
-			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 48)
+			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 72)
+			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 64)
 			self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
 			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
 		except:
