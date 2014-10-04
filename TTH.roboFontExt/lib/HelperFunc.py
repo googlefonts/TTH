@@ -103,6 +103,10 @@ def sheared(point, angle):
 	r = math.tan(math.radians(angle))
 	return (point.x - r*point.y, point.y)
 
+def shearedFromCoords((p_x, p_y), angle):
+	r = math.tan(math.radians(angle))
+	return (p_x - r*p_y, p_y)
+
 def roundbase(x, base):
 	return int(base * round(float(x)/base))
 	
