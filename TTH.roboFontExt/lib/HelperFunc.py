@@ -62,6 +62,11 @@ def distance(point1, point2):
 	return math.sqrt(dx*dx+dy*dy)
 	
 def closeAngle(angle1, angle2):
+	"""True if the angle are close modulo 360 degrees"""
+	return abs(addAngles(angle1,  - angle2)) < 10.0
+
+def closeAngleModulo180(angle1, angle2):
+	"""True if the angle are close modulo 180 degrees"""
 	diff = angle1 - angle2
 	while diff >= 90.0:
 		diff -= 180.0

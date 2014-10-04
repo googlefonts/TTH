@@ -58,74 +58,72 @@ def getColor(point1, point2, g, maxStemX, maxStemY):
 		return 'White'
 
 def makeStemsList(f, g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
+	# parameter 'f' is not used. Remove?
 	stemsListX_temp = []
 	stemsListY_temp = []
-	stemsListX = []
-	stemsListY = []
-
-	def goodCandidate(a1, a2):
-		# True if nearly opposite angles
-		return HF.closeAngle(a1, HF.addAngles(a2, 180.0))
-
-	n = len(g_hPoints)
-	pairs = [(i1, i2) for i1 in range(n) for i2 in range(n) if i1 < i2]
-	for (i1, i2) in pairs:
-		source_hPoint = g_hPoints[i1]
-		target_hPoint = g_hPoints[i2]
-		sourcePoint, _, _, _, _, angleIn_source, angleOut_source = source_hPoint
-		targetPoint, _, _, _, _, angleIn_target, angleOut_target = target_hPoint
-
-		goodAngle = None
-		if goodCandidate(angleIn_source, angleIn_target):
-			goodAngle = angleIn_source
-		if goodCandidate(angleOut_source, angleOut_target):
-			goodAngle = angleOut_source # so of both in and out are good, we keep only one, namely 'out'
-		if goodAngle == None: continue
-		if hasSomeWhite(sourcePoint, targetPoint, g, maxStemX, maxStemY): continue
+	def addStemToList(sourcePoint, targetPoint, angle, existingStems):
 		dx, dy = HF.absoluteDiff(sourcePoint, targetPoint)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distance(sourcePoint, targetPoint)
 		stem = (sourcePoint, targetPoint, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
-		if HF.isHorizontal(goodAngle):
+		if HF.isHorizontal(angle) and not existingStems['h']:
 			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
+				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, stem))
-
 		## if they are vertical, treat the stem on the X axis
-		if HF.isVertical(goodAngle): # the angle is already sheared to counter italic
+		if HF.isVertical(angle) and not existingStems['v']: # the angle is already sheared to counter italic
 			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
+				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, stem))
 		## Here, the angle of the stem is more diagonal
 		# ... do something here with diagonal
 
+	def hasWhite(wc, source, target):
+		if wc[0] == None:
+			wc[0] = hasSomeWhite(source, target, g, maxStemX, maxStemY)
+		return wc[0]
+
+	for (i1, source_hPoint) in enumerate(g_hPoints):
+		for target_hPoint in g_hPoints[i1+1:]:
+			sourcePoint, _, _, _, _, sia, soa = source_hPoint # sia = Source In Angle
+			targetPoint, _, _, _, _, tia, toa = target_hPoint
+			existingStems = {'h':False, 'v':False, 'd':False}
+			wc = [None]
+			for (sa,ta) in [(sia,tia), (soa,toa), (sia,toa), (soa,tia)]:
+				if HF.closeAngleModulo180(sa, ta):
+					if hasWhite(wc, sourcePoint, targetPoint): break
+					addStemToList(sourcePoint, targetPoint, sa, existingStems)
 	# avoid duplicates, filters temporary stems
 	stemsListY_temp.sort() # sort by stem length (hypoth)
 	stemsListX_temp.sort()
-	yList = []
+	stemsListX = []
+	stemsListY = []
+	references = []
 	for (hypoth, stem) in stemsListY_temp:
-		sourceAbsent = not HF.exists(yList, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
-		targetAbsent = not HF.exists(yList, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
+		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
+		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
 		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
-			yList.append(stem[0].y)
+			references.append(stem[0].y)
 		if targetAbsent:
-			yList.append(stem[1].y)
+			references.append(stem[1].y)
 
-	xList = []
+	references = []
 	for (hypoth, stem) in stemsListX_temp:
 		shearedSourceX, _ = HF.sheared(stem[0], italicAngle)
 		shearedTargetX, _ = HF.sheared(stem[1], italicAngle)
-		sourceAbsent = not HF.exists(xList, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
-		targetAbsent = not HF.exists(xList, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
+		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
+		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
 		if sourceAbsent or targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
-			xList.append(shearedSourceX)
+			references.append(shearedSourceX)
 		if targetAbsent:
-			xList.append(shearedTargetX)
+			references.append(shearedTargetX)
 	
 	return (stemsListX, stemsListY)
 	
