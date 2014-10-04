@@ -428,10 +428,12 @@ class TTHTool(BaseEventTool):
 	def viewDidChangeGlyph(self):
 		if self.fontClosed:
 			return
+		self.tthtm.setGlyph(self.getGlyph())
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
 
 	def currentGlyphChanged(self):
+		self.tthtm.setGlyph(self.getGlyph())
 		self.resetglyph()
 		self.updatePartialFontIfNeeded()
 
@@ -1523,6 +1525,7 @@ class TTHTool(BaseEventTool):
 
 	def refreshGlyph(self):
 		self.updatePartialFont() # to update the newly modified current glyph
+		self.tthtm.setGlyph(self.getGlyph())
 		self.resetglyph()
 		UpdateCurrentGlyphView()
 
@@ -1817,6 +1820,7 @@ class TTHTool(BaseEventTool):
 				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		#self.generateFullTempFont()
+		self.tthtm.setGlyph(self.getGlyph())
 		self.resetglyph()
 
 		#self.indexOfGlyphNames = dict([(self.partialTempUFO.lib['public.glyphOrder'][idx], idx) for idx in range(len(self.partialTempUFO.lib['public.glyphOrder']))])
@@ -1859,7 +1863,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, self.tthtm.bitmapPreviewSelection, self)
 
 	def resetglyph(self):
-		self.tthtm.setGlyph(self.getGlyph())
+		
 		if self.tthtm.g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)

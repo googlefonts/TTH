@@ -261,8 +261,10 @@ class toolsWindow(object):
 		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wTools.AutoHintButton = Button((10, -25, -10, 15), "Auto-Hinting", sizeStyle = 'mini', 
-				callback=self.AutoHintButtonCallback)
+		self.wTools.AutoGlyphButton = Button((10, -25, self.tthtm.toolsWindowPosSize[2]/2.0 -10, 15), "Auto-Glyph", sizeStyle = 'mini', 
+				callback=self.AutoGlyphButtonCallback)
+		self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
+				callback=self.AutoFontButtonCallback)
 
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
 
@@ -422,8 +424,12 @@ class toolsWindow(object):
 			self.DeltaSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
-	def AutoHintButtonCallback(self, sender):
+	def AutoGlyphButtonCallback(self, sender):
 		self.autohinting.autohint(self.tthtm.g)
+
+	def AutoFontButtonCallback(self, sender):
+		for g in self.tthtm.f:
+			self.autohinting.autohint(g)
 
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):

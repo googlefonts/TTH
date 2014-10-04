@@ -564,10 +564,10 @@ class AutoHinting():
 			self.ital = - self.tthtm.f.info.italicAngle
 		else:
 			self.ital = 0
-
 		self.h_pointList = make_hPointsList(g, self.ital)
-
-		self.tthtm.g.prepareUndo("AutoHint")
+		g.prepareUndo("AutoHint")
+		self.tthtm.setGlyph(g)
+		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []
 		self.detectStems(g)
 		self.attachLinksToZones(g)
@@ -577,4 +577,4 @@ class AutoHinting():
 		self.TTHToolInstance.updateGlyphProgram()
 		if self.tthtm.alwaysRefresh == 1:
 			self.TTHToolInstance.refreshGlyph()
-		self.tthtm.g.performUndo()
+		g.performUndo()
