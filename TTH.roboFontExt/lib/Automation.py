@@ -391,7 +391,7 @@ class AutoHinting():
 				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
 				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
 				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
-					if prev_h_Point[0].y == h_point[0].y or (prev_h_Point[0].x == p_x and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].x == p_x and next_h_Point[1] == h_point[1]):
+					if prev_h_Point[0].y == h_point[0].y or (h_point[0].y == p_y and prev_h_Point[1] != h_point[1]) or (prev_h_Point[0].x == p_x and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].x == p_x and next_h_Point[1] == h_point[1]):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
@@ -399,7 +399,7 @@ class AutoHinting():
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 				if axis == 'X' and abs(HF.shearPoint(h_point[0], self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
-					if prev_h_Point[0].x == h_point[0].x or (prev_h_Point[0].y == p_y and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].y == p_y and next_h_Point[1] == h_point[1]):
+					if prev_h_Point[0].x == h_point[0].x or (h_point[0].x == p_x and prev_h_Point[1] != h_point[1]) or (prev_h_Point[0].y == p_y and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].y == p_y and next_h_Point[1] == h_point[1]):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
