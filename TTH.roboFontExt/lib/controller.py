@@ -861,7 +861,9 @@ class TTHTool(BaseEventTool):
 			dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
 
 
-	def deleteStems(self, selected, stemView):
+	def deleteStems(self, selected, stemView, progressBar):
+		progressBar.set(0)
+		tick = 100.0/len(selected)
 		for name in selected:
 			try:
 				del self.tthtm.f.lib[FL_tth_key]["stems"][name]
@@ -878,7 +880,9 @@ class TTHTool(BaseEventTool):
 						if command['stem'] == name:
 							del command['stem']
 				self.writeGlyphFLTTProgram(g)
+
 			dummy = self.readGlyphFLTTProgram(self.tthtm.g) # recover the correct commands list
+			progressBar.increment(tick)
 
 		self.changeSelectedStemX('None')
 		self.changeSelectedStemY('None')
@@ -886,6 +890,7 @@ class TTHTool(BaseEventTool):
 		self.tthtm.stems = self.tthtm.getOrPutDefault(tth_lib, "stems", {})
 		stemView.set(self.tthtm.buildStemsUIList(stemView.isHorizontal))
 
+		progressBar.set(0)
 
 	def addStem(self, name, stemDict, stemView):
 		self.tthtm.stems[name] = stemDict

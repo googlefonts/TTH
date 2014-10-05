@@ -106,7 +106,7 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 	for (hypoth, stem) in stemsListY_temp:
 		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
 		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
-		if sourceAbsent or targetAbsent:
+		if sourceAbsent and targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
 			references.append(stem[0].y)
@@ -119,7 +119,7 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 		shearedTargetX, _ = HF.shearPoint(stem[1], italicAngle)
 		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
 		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
-		if sourceAbsent or targetAbsent:
+		if sourceAbsent and targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
 			references.append(shearedSourceX)
@@ -292,6 +292,7 @@ class AutoHinting():
 
 		for stem in  g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
+			print stemName
 			self.addDoubleLink(stem[0], stem[1], stemName, True)
 		for stem in  g_stemsListX:
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
@@ -306,7 +307,7 @@ class AutoHinting():
 		for stemName, stem in self.tthtm.stems.items():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
-			if abs(w - detectedWidth) <= detectedWidth*0.10:
+			if abs(w - detectedWidth) <= detectedWidth*0.20:
 				candidatesList.append((abs(w - detectedWidth), stemName))
 
 		if candidatesList != []:

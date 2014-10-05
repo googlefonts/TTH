@@ -251,7 +251,9 @@ class StemView(object):
 		UI.setSelection([])
 		selected = [UI[i]['Name'] for i in selection]
 		self.lock = True
-		self.controller.controller.deleteStems(selected, self)
+		self.controller.w.stemBox.AutoStemProgressBar.show(1)
+		self.controller.controller.deleteStems(selected, self, self.controller.w.stemBox.AutoStemProgressBar)
+		self.controller.w.stemBox.AutoStemProgressBar.show(0)
 		self.lock = False
 
 	def sanitizeStem(self, name, width, px1, px2, px3, px4, px5, px6):
