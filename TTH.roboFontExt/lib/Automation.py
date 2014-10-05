@@ -292,7 +292,6 @@ class AutoHinting():
 
 		for stem in  g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
-			print stemName
 			self.addDoubleLink(stem[0], stem[1], stemName, True)
 		for stem in  g_stemsListX:
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
