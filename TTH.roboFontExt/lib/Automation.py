@@ -399,7 +399,7 @@ class AutoHinting():
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 				if axis == 'X' and abs(HF.shearPoint(h_point[0], self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
-					if ((prev_h_Point.y < h_point[0].y and prev_h_Point.x == h_point[0].x) or (next_h_Point.y < h_point[0].y and next_h_Point.x == h_point[0].x)) or prev_h_Point.y == p_y or next_h_Point.y == p_y:
+					if (prev_h_Point.y < h_point[0].y and prev_h_Point.x == h_point[0].x) or (next_h_Point.y < h_point[0].y and next_h_Point.x == h_point[0].x) or prev_h_Point.y == p_y or next_h_Point.y == p_y:
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
