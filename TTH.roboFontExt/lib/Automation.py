@@ -385,13 +385,15 @@ class AutoHinting():
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
 			nb_h_Pts = len(self.h_pointList)
 			for h_pointIndex, h_point in enumerate(self.h_pointList):
-				prev_h_Point = h_point[7]
-				next_h_Point = h_point[8]
+				prev_h_Point = self.getPrevNextONCurve(g, h_point[0])[0]
+				next_h_Point = self.getPrevNextONCurve(g, h_point[0])[1]
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(h_point[0])]
 				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
 				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
 				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
-					if (prev_h_Point.x < h_point[0].x and prev_h_Point.y == h_point[0].y) or (next_h_Point.x < h_point[0].x and next_h_Point.y == h_point[0].y) or prev_h_Point.x == p_x or next_h_Point.x == p_x:
+					if prev_h_Point.x == p_x or next_h_Point.x == p_x:
+						continue
+					if (prev_h_Point.x < h_point[0].x and prev_h_Point.y == h_point[0].y) or (next_h_Point.x < h_point[0].x and next_h_Point.y == h_point[0].y):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
@@ -399,13 +401,32 @@ class AutoHinting():
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 				if axis == 'X' and abs(HF.shearPoint(h_point[0], self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
-					if (prev_h_Point.y < h_point[0].y and prev_h_Point.x == h_point[0].x) or (next_h_Point.y < h_point[0].y and next_h_Point.x == h_point[0].x) or prev_h_Point.y == p_y or next_h_Point.y == p_y:
+					if prev_h_Point.y == p_y or next_h_Point.y == p_y:
+						continue
+					if (prev_h_Point.y < h_point[0].y and prev_h_Point.x == h_point[0].x) or (next_h_Point.y < h_point[0].y and next_h_Point.x == h_point[0].x):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
 					newSiblingCommand['point1'] = pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
+
+	def getPrevNextONCurve(self, g, ref_point):
+		for index_c, c in enumerate(g):
+			contour_points = c.points
+			ON_pointsList = []
+			for index_p, p in enumerate(contour_points):
+				if p.type != 'offCurve':
+					ON_pointsList.append(p)
+			nbPts = len(ON_pointsList)
+			for index, ON_p in enumerate(ON_pointsList):
+				prevPoint = ON_pointsList[index - 1]
+				nextPoint = ON_pointsList[(index + 1) % nbPts]
+				if ON_p == ref_point:
+					return (prevPoint, nextPoint)
+
+		return (None, None)
+
 
 
 
