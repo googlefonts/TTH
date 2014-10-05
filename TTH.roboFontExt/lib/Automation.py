@@ -21,7 +21,7 @@ def make_hPointsList(g, italAngle):
 			angleIN      = HF.angleOfVectorBetweenPairs(prev, cur)
 			angleOUT     = HF.angleOfVectorBetweenPairs(cur, nex)
 
-			hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, angleIN, angleOUT)
+			hPoint = (currentPoint, contour_index, point_index, directionIN, directionOUT, angleIN, angleOUT, prevPoint, nextPoint)
 			hPointsList.append(hPoint)
 	return hPointsList
 	
@@ -89,8 +89,8 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 
 	for (i1, source_hPoint) in enumerate(g_hPoints):
 		for target_hPoint in g_hPoints[i1+1:]:
-			sourcePoint, _, _, _, _, sia, soa = source_hPoint # sia = Source In Angle
-			targetPoint, _, _, _, _, tia, toa = target_hPoint
+			sourcePoint, _, _, _, _, sia, soa, _, _ = source_hPoint # sia = Source In Angle
+			targetPoint, _, _, _, _, tia, toa, _, _ = target_hPoint
 			existingStems = {'h':False, 'v':False, 'd':False}
 			wc = [None]
 			for (sa,ta) in [(sia,tia), (soa,toa), (sia,toa), (soa,tia)]:
@@ -106,7 +106,7 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 	for (hypoth, stem) in stemsListY_temp:
 		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
 		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
-		if sourceAbsent and targetAbsent:
+		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
 			references.append(stem[0].y)
@@ -119,7 +119,7 @@ def makeStemsList(g_hPoints, g, italicAngle, minStemX, minStemY, maxStemX, maxSt
 		shearedTargetX, _ = HF.shearPoint(stem[1], italicAngle)
 		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
 		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
-		if sourceAbsent and targetAbsent:
+		if sourceAbsent or targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
 			references.append(shearedSourceX)
@@ -385,13 +385,13 @@ class AutoHinting():
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[pointName]
 			nb_h_Pts = len(self.h_pointList)
 			for h_pointIndex, h_point in enumerate(self.h_pointList):
-				prev_h_Point = self.h_pointList[h_pointIndex - 1]
-				next_h_Point = self.h_pointList[(h_pointIndex + 1) % nb_h_Pts]
+				prev_h_Point = h_point[7]
+				next_h_Point = h_point[8]
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(h_point[0])]
 				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
 				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
 				if axis == 'Y' and abs(h_point[0].y - p_y) <= 2 and h_pointName != pointName and (HF.isHorizontal_withTolerance(h_point[5], self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(h_point[6], self.tthtm.angleTolerance)):
-					if prev_h_Point[0].y == h_point[0].y or (h_point[0].y == p_y and prev_h_Point[1] != h_point[1]) or (prev_h_Point[0].x == p_x and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].x == p_x and next_h_Point[1] == h_point[1]):
+					if (prev_h_Point.x < h_point[0].x and prev_h_Point.y == h_point[0].y) or (next_h_Point.x < h_point[0].x and next_h_Point.y == h_point[0].y) or prev_h_Point.x == p_x or next_h_Point.x == p_x:
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
@@ -399,7 +399,7 @@ class AutoHinting():
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
 				if axis == 'X' and abs(HF.shearPoint(h_point[0], self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != pointName and (HF.isVertical_withTolerance(h_point[5]-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(h_point[6]-self.ital, self.tthtm.angleTolerance)):
-					if prev_h_Point[0].x == h_point[0].x or (h_point[0].x == p_x and prev_h_Point[1] != h_point[1]) or (prev_h_Point[0].y == p_y and prev_h_Point[1] == h_point[1]) or (next_h_Point[0].y == p_y and next_h_Point[1] == h_point[1]):
+					if ((prev_h_Point.y < h_point[0].y and prev_h_Point.x == h_point[0].x) or (next_h_Point.y < h_point[0].y and next_h_Point.x == h_point[0].x)) or prev_h_Point.y == p_y or next_h_Point.y == p_y:
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
