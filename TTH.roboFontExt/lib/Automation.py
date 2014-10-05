@@ -306,7 +306,7 @@ class AutoHinting():
 		for stemName, stem in self.tthtm.stems.items():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
-			if abs(w - detectedWidth) <= detectedWidth*0.20:
+			if abs(w - detectedWidth) <= detectedWidth*0.10:
 				candidatesList.append((abs(w - detectedWidth), stemName))
 
 		if candidatesList != []:
