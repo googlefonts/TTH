@@ -253,7 +253,7 @@ class Automation():
 			self.TTHToolInstance.AddZone(zoneName, newZone, self.controller.bottomZoneView)
 
 
-def zoneData(zoneName, zone):
+def zoneData((zoneName, zone)):
 	isTop = zone['top']
 	if isTop:
 		y_start = int(zone['position'])
@@ -291,7 +291,7 @@ class AutoHinting():
 		else:
 			detectedWidth = abs(p1.x - p2.x)
 		candidatesList = []
-		for stemName, stem in self.tthtm.stems.items():
+		for stemName, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
 			if abs(w - detectedWidth) <= detectedWidth*0.20:
@@ -344,8 +344,8 @@ class AutoHinting():
 			p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
 			p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
 			p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
-			zonePoint1 = self.isInZone(p1_y)
-			zonePoint2 = self.isInZone(p2_y)
+			zonePoint1 = self.zoneAt(p1_y)
+			zonePoint2 = self.zoneAt(p2_y)
 			if zonePoint1 == None and zonePoint2 == None: continue
 			command['code'] = 'singlev'
 			if zonePoint2 != None:
@@ -367,16 +367,11 @@ class AutoHinting():
 		newAlign['zone'] = zoneName
 		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 
-	def isInZone(self, y):
-		for zoneName, zone in self.tthtm.zones.items():
-			if not zone['top']:
-				y_start = int(zone['position']) - int(zone['width'])
-				y_end = int(zone['position'])
-			else:
-				y_start = int(zone['position'])
-				y_end = int(zone['position']) + int(zone['width'])
-			if y_start <=  y and y <= y_end:
-				return (zoneName, zone['top'])
+	def zoneAt(self, y):
+		for item in self.tthtm.zones.iteritems():
+                        zoneName, isTop, yStart, yEnd = zoneData(item)
+			if HF.inInterval(y, (yStart, yEnd):
+				return (zoneName, isTop)
 		return None
 
 	def findSiblings(self, g):
@@ -464,7 +459,7 @@ class AutoHinting():
 		touchedPoints = self.findTouchedPoints(g)
 		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
-		zones = [zoneData(zname, zone) for (zname, zone) in self.tthtm.zones.iteritems()]
+		zones = [zoneData(item) for item in self.tthtm.zones.iteritems()]
 		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in buildContourSegmentList(g)]
 
 		for onPt, (cidx, sidx) in hPoints:
