@@ -280,6 +280,7 @@ class AutoHinting():
 		for stem in  g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
 			self.addDoubleLink(stem[0], stem[1], stemName, True)
+			#self.processDoubleLinks()
 		for stem in  g_stemsListX:
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
 			self.addDoubleLink(stem[0], stem[1], stemName, False)
@@ -315,6 +316,26 @@ class AutoHinting():
 		newCommand['stem'] = stemName
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+
+	def processDoubleLinks(self):
+		for command1 in self.TTHToolInstance.glyphTTHCommands:
+			for command2 in self.TTHToolInstance.glyphTTHCommands:
+				if command1['code'][-1:] == 'v' and command2['code'][-1] == 'v':
+					if command1 != command2 and command1['code'][:6] == 'double' and command2['code'][:6] == 'double':
+						if command1['point2'] == command2['point2']:
+							command1['code'] = 'singlev'
+							command2['code'] = 'singlev'
+
+							c1p1 = command1['point1']
+							c1p2 = command1['point2']
+							c2p1 = command2['point1']
+							c2p2 = command2['point2']
+							command1['point1'] = c1p2
+							command1['point2'] = c1p1
+							command2['point1'] = c2p2
+							command2['point2'] = c2p1
+							
+
 
 	def attachLinksToZones(self, g):
 		for command in self.TTHToolInstance.glyphTTHCommands:
