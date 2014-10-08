@@ -369,10 +369,10 @@ class AutoHinting():
 
 	def zoneAt(self, y):
 		for item in self.tthtm.zones.iteritems():
-                        zoneName, isTop, yStart, yEnd = zoneData(item)
-			if HF.inInterval(y, (yStart, yEnd):
+			zoneName, isTop, yStart, yEnd = zoneData(item)
+			if HF.inInterval(y, (yStart, yEnd)):
 				return (zoneName, isTop)
-		return None
+				return None
 
 	def findSiblings(self, g):
 		touchedPoints = self.findTouchedPoints(g)
