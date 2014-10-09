@@ -470,11 +470,14 @@ class AutoHinting():
 			next_h_Point = HF.pointToPair(contour[(sidx+1)%len(contour)].onCurve)
 			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
 
-			if ((not (prev_h_Point[1] == onPoint.y and prev_h_PointName in touchedPointsNames)) and
-			    (not (next_h_Point[1] == onPoint.y and next_h_PointName in touchedPointsNames)) and
-			    (	HF.isHorizontal_withTolerance(angleIn, self.tthtm.angleTolerance) or
-				HF.isHorizontal_withTolerance(angleOut, self.tthtm.angleTolerance) )
-			    ): continue
+			neighborsAreNOTAlreadyAligned = \
+				(not (prev_h_Point[1] == onPoint.y and prev_h_PointName in touchedPointsNames)) and \
+				(not (next_h_Point[1] == onPoint.y and next_h_PointName in touchedPointsNames))
+			angleIsOkay = \
+				HF.isHorizontal_withTolerance(angleIn, self.tthtm.angleTolerance) or \
+				HF.isHorizontal_withTolerance(angleOut, self.tthtm.angleTolerance)
+
+			if (not neighborsAreNOTAlreadyAligned) or (not angleIsOkay): continue
 
 			pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPoint)]
 			for (zoneName, isTop, y_start, y_end) in zones:
