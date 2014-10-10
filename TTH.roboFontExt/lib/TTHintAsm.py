@@ -133,11 +133,12 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 						touchedPoints.append(point2UniqueID)
 
 			if 'stem' in TTHCommand:
-				stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
-				double = [
-						'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
-					'CALL[ ]'
-						]
+				if TTHCommand['stem'] in tt_tables.stem_to_cvt:
+					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
+					double = [
+							'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
+						'CALL[ ]'
+							]
 			else:
 				double = [
 						'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',

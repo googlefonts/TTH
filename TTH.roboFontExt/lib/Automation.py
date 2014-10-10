@@ -39,7 +39,8 @@ def hintingData(g, ital, (cidx, sidx)):
 def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
 	stemsListX_temp = []
 	stemsListY_temp = []
-	stemsListDiag_temp = []
+	stemsListDiagHoriz_temp = []
+	stemsListDiagVert_temp = []
 	def addStemToList(sourcePoint, targetPoint, angle, existingStems):
 		dx, dy = HF.absoluteDiff(sourcePoint, targetPoint)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
@@ -59,14 +60,25 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 				stemsListX_temp.append((hypoth, stem))
 		## Here, the angle of the stem is more diagonal
 		# ... do something here with diagonal
-		stemsListDiag_temp.append((hypoth, stem))
+		if not existingStems['h']:
+			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
+			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
+				existingStems['h'] = True
+				stemsListDiagHoriz_temp.append((hypoth, stem))
+		if not existingStems['v']:
+			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
+				existingStems['v'] = True
+				stemsListDiagVert_temp.append((hypoth, stem))
 
 	def hasWhite(wc, source, target):
 		if wc[0] == None:
 			wc[0] = hasSomeWhite(source, target, g, maxStemX, maxStemY)
 		return wc[0]
 
-	hPoints = [hintingData(g, italicAngle, contSeg) for contSeg in buildContourSegmentList(g)]
+	#hPoints = [hintingData(g, italicAngle, contSeg) for contSeg in buildContourSegmentList(g)]
+	# We don't use italicAngle anymore because we also treat diagonals
+	hPoints = [hintingData(g, 0, contSeg) for contSeg in buildContourSegmentList(g)]
 	for gidx, onPt0 in enumerate(hPoints):
 		sourcePoint, sia, soa = onPt0 # sia = Source In Angle
 		for onPt1 in hPoints[gidx+1:]:
@@ -80,7 +92,8 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 	# avoid duplicates, filters temporary stems
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
-	stemsListDiag_temp.sort()
+	stemsListDiagHoriz_temp.sort()
+	stemsListDiagVert_temp.sort()
 	stemsListX = []
 	stemsListY = []
 	references = []
@@ -89,6 +102,17 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
 		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
+		if sourceAbsent:
+			references.append(stem[0].y)
+		if targetAbsent:
+			references.append(stem[1].y)
+
+	stemsListDiagHoriz = []
+	for (hypoth, stem) in stemsListDiagHoriz_temp:
+		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
+		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
+		if sourceAbsent or targetAbsent:
+			stemsListDiagHoriz.append(stem)
 		if sourceAbsent:
 			references.append(stem[0].y)
 		if targetAbsent:
@@ -107,12 +131,21 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 		if targetAbsent:
 			references.append(shearedTargetX)
 
-	stemsListDiag = []
-	for (hypoth, stem) in stemsListDiag_temp:
-		if hypoth <= maxStemX and hypoth >= minStemX:
-			stemsListDiag.append(stem)
+	stemsListDiagVert = []
+	for (hypoth, stem) in stemsListDiagVert_temp:
+		# shearedSourceX, _ = HF.shearPoint(stem[0], italicAngle)
+		# shearedTargetX, _ = HF.shearPoint(stem[1], italicAngle)
+		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[0].x, x, 0.025))
+		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[1].x, x, 0.025))
+		if sourceAbsent or targetAbsent:
+			stemsListDiagVert.append(stem)
+		if sourceAbsent:
+			references.append(stem[0].x)
+		if targetAbsent:
+			references.append(stem[1].x)
+
 	
-	return (stemsListX, stemsListY, stemsListDiag)
+	return (stemsListX, stemsListY, stemsListDiagVert, stemsListDiagHoriz)
 	
 ### - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -136,13 +169,13 @@ class Automation():
 		else:
 			ital = 0
 
-		if 'O' not in font:
-			print "WARNING: glyph 'O' missing, unable to calculate stems"
-			return
-		g = font['O']
-		(O_stemsListX, O_stemsListY, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
+		# if 'O' not in font:
+		# 	print "WARNING: glyph 'O' missing, unable to calculate stems"
+		# 	return
+		# g = font['O']
+		# (O_stemsListX, O_stemsListY, _, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 
-		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
+		# maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -160,7 +193,7 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
 	def getRoundedStems(self, g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems):
-		(stemsListX, stemsListY, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
+		(stemsListX, stemsListY, _, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 		originalStemsXList = [stem[2][0] for stem in stemsListX]
 		originalStemsYList = [stem[2][1] for stem in stemsListY]
 		return (originalStemsXList, originalStemsYList)
@@ -283,7 +316,7 @@ class AutoHinting():
 		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
 		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
 
-		(g_stemsListX, g_stemsListY, g_stemsLystDiag) = makeStemsList(g, self.ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
+		(g_stemsListX, g_stemsListY, g_stemsLystDiagVert, g_stemsLystDiagHoriz) = makeStemsList(g, self.ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 
 		for stem in g_stemsListY:
 			stemName = self.guessStemForDistance(stem[0], stem[1], True)
@@ -292,8 +325,12 @@ class AutoHinting():
 		for stem in g_stemsListX:
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
 			self.addDoubleLink(stem[0], stem[1], stemName, False)
-		for stem in g_stemsLystDiag:
-			self.addDoubleLink(stem[0], stem[1], None, False)
+		for stem in g_stemsLystDiagHoriz:
+			stemName = self.guessStemForDistance(stem[0], stem[1], True)
+			self.addDoubleLink(stem[0], stem[1], stemName, True)
+		for stem in g_stemsLystDiagVert:
+			stemName = self.guessStemForDistance(stem[0], stem[1], False)
+			self.addDoubleLink(stem[0], stem[1], stemName, False)
 
 			
 	def guessStemForDistance(self, p1, p2, isHorizontal):
@@ -316,6 +353,8 @@ class AutoHinting():
 			return None
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
+		if stemName == None:
+			return
 		newCommand = {}
 		if isHorizontal:
 			newCommand['code'] = 'doublev'
@@ -323,10 +362,7 @@ class AutoHinting():
 			newCommand['code'] = 'doubleh'
 		newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
 		newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
-		if stemName != None:
-			newCommand['stem'] = stemName
-		else:
-			newCommand['round'] = 'true'
+		newCommand['stem'] = stemName
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
