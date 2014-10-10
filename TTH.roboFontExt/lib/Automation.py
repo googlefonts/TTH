@@ -169,13 +169,13 @@ class Automation():
 		else:
 			ital = 0
 
-		# if 'O' not in font:
-		# 	print "WARNING: glyph 'O' missing, unable to calculate stems"
-		# 	return
-		# g = font['O']
-		# (O_stemsListX, O_stemsListY, _, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
+		if 'O' not in font:
+			print "WARNING: glyph 'O' missing, unable to calculate stems"
+			return
+		g = font['O']
+		(O_stemsListX, O_stemsListY, _, _) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
 
-		# maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
+		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
 
 		stemsValuesXList = []
 		stemsValuesYList = []

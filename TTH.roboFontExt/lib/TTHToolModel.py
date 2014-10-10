@@ -62,7 +62,7 @@ class TTHToolModel():
 		self.maxStemX = 300
 		self.maxStemY = 200
 
-		self.angleTolerance = 0.0
+		self.angleTolerance = 10.0
 
 	def setControlValues(self):
 		try:
