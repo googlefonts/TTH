@@ -99,7 +99,7 @@ def isVertical_withTolerance(angle, tolerance):
 
 def isHorizontal_withTolerance(angle, tolerance):
 	a = abs(addAngles(angle, 0.0)) # Now, we know that 0 <= a <= 180.0
-	return (a <= tolerance) or (a >= 180-tolerance)
+	return (a <= tolerance) or (a >= 180.0 - tolerance)
 
 #True si il existe un element de la liste l pour lequel la fonction p renvoi True (on dit que le predicat p est vrai sur cet element)
 def exists(l, p):

@@ -520,7 +520,7 @@ class AutoHinting():
 			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
 
 			neighborsAreAlreadyAligned = \
-				(prev_h_Point[1] == onPoint.y and prev_h_PointName in touchedPointsNames) and \
+				(prev_h_Point[1] == onPoint.y and prev_h_PointName in touchedPointsNames) or \
 				(next_h_Point[1] == onPoint.y and next_h_PointName in touchedPointsNames)
 			angleIsOkay = \
 				HF.isHorizontal_withTolerance(angleIn, self.tthtm.angleTolerance) or \
