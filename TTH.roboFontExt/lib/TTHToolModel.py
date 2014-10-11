@@ -10,7 +10,7 @@ class TTHToolModel():
 	def __init__(self):
 		self.f = CurrentFont()
 		self.g = CurrentGlyph()
-		self.UPM = 1000
+		self.UPM = CurrentFont().info.unitsPerEm
 		self.PPM_Size = 9
 		self.pitch = self.UPM/self.PPM_Size
 		self.selectedAxis = 'X'
@@ -59,8 +59,8 @@ class TTHToolModel():
 
 		self.minStemX = 20
 		self.minStemY = 20
-		self.maxStemX = 300
-		self.maxStemY = 200
+		self.maxStemX = 500
+		self.maxStemY = 400
 
 		self.angleTolerance = 10.0
 

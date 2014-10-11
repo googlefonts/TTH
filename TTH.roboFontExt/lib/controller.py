@@ -110,8 +110,8 @@ def topologicalSort(l, f):
 	print "ERROR: Found a loop in topological sort"
 	return l
 
-def pointsApproxEqual(p_glyph, p_cursor):
-	return (abs(p_glyph[0] - p_cursor[0]) < 10) and (abs(p_glyph[1] - p_cursor[1]) < 10)
+def pointsApproxEqual(p_glyph, p_cursor, value):
+	return (abs(p_glyph[0] - p_cursor[0]) < value) and (abs(p_glyph[1] - p_cursor[1]) < value)
 
 def pointInCommand(commandPos, p_cursor):
 	x = commandPos[0][0]
@@ -905,21 +905,21 @@ class TTHTool(BaseEventTool):
 
 	def isOnPoint(self, p_cursor):
 		def pred0(p_glyph):
-			return pointsApproxEqual(p_glyph, p_cursor)
+			return pointsApproxEqual(p_glyph, p_cursor, 10*(self.tthtm.UPM/1000.0))
 		touched_p_glyph = find_closest(self.p_glyphList, pred0, p_cursor)
 
 		return touched_p_glyph
 
 	def isOffPoint(self, p_cursor):
 		def pred0(p_glyph):
-			return pointsApproxEqual(p_glyph, p_cursor)
+			return pointsApproxEqual(p_glyph, p_cursor, 10*(self.tthtm.UPM/1000.0))
 		touched_p_glyph = find_closest(self.pOff_glyphList, pred0, p_cursor)	
 
 		return touched_p_glyph
 
 	def isOffOnPoint(self, p_cursor):
 		def pred0(p_glyph):
-			return pointsApproxEqual(p_glyph, p_cursor)
+			return pointsApproxEqual(p_glyph, p_cursor, 10*(self.tthtm.UPM/1000.0))
 		touched_p_glyph = find_closest(self.pOffOn_glyphList, pred0, p_cursor)
 		
 
@@ -1798,6 +1798,7 @@ class TTHTool(BaseEventTool):
 		if CurrentFont() == None:
 			return
 		self.tthtm.setFont(CurrentFont())
+		self.tthtm.setUPM(CurrentFont().info.unitsPerEm)
 		if checkSegmentType(self.tthtm.f) == False:
 			self.messageInFront = True
 		 	Dialogs.Message("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
@@ -2072,13 +2073,13 @@ class TTHTool(BaseEventTool):
 	def drawGrid(self, scale, pitch):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
-			pos = - int(1000/pitch) * pitch
+			pos = - int(1000*(self.tthtm.UPM/1000.0)/pitch) * pitch
 			maxi = -2 * pos
 			while pos < maxi:
-				path.moveToPoint_((pos, -1000))
-				path.lineToPoint_((pos, 2000))
-				path.moveToPoint_((-1000, pos))
-				path.lineToPoint_((2000, pos))
+				path.moveToPoint_((pos, -1000*(self.tthtm.UPM/1000.0)))
+				path.lineToPoint_((pos, 2000*(self.tthtm.UPM/1000.0)))
+				path.moveToPoint_((-1000*(self.tthtm.UPM/1000.0), pos))
+				path.lineToPoint_((2000*(self.tthtm.UPM/1000.0), pos))
 				pos += pitch
 			self.cachedPathes['grid'] = path
 		path = self.cachedPathes['grid']
@@ -2108,7 +2109,7 @@ class TTHTool(BaseEventTool):
 			path = NSBezierPath.bezierPath()
 			r = scale * 3
 			r = (r,r)
-			x = - int(1000/pitch) * pitch + pitch/2 - r[0]/2
+			x = - int(1000*(self.tthtm.UPM/1000.0)/pitch) * pitch + pitch/2 - r[0]/2
 			yinit = x
 			maxi = -2 * x
 			while x < maxi:
@@ -2131,10 +2132,10 @@ class TTHTool(BaseEventTool):
 			if not zone['top']:
 				y_end = - y_end
 			pathZone = NSBezierPath.bezierPath()
-			pathZone.moveToPoint_((-5000, y_start))
-			pathZone.lineToPoint_((5000, y_start))
-			pathZone.lineToPoint_((5000, y_start+y_end))
-			pathZone.lineToPoint_((-5000, y_start+y_end))
+			pathZone.moveToPoint_((-5000*(self.tthtm.UPM/1000.0), y_start))
+			pathZone.lineToPoint_((5000*(self.tthtm.UPM/1000.0), y_start))
+			pathZone.lineToPoint_((5000*(self.tthtm.UPM/1000.0), y_start+y_end))
+			pathZone.lineToPoint_((-5000*(self.tthtm.UPM/1000.0), y_start+y_end))
 			pathZone.closePath
 			zonecolor.set()
 			pathZone.fill()	
@@ -2328,7 +2329,7 @@ class TTHTool(BaseEventTool):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		pathArrow, junction_pathArrow = self.drawArrowAtPoint_FromPoint_WithScale(endPoint, offcurve1, scale)
 
@@ -2349,7 +2350,7 @@ class TTHTool(BaseEventTool):
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		extension = ''
 		if 'align' in self.glyphTTHCommands[cmdIndex]:
@@ -2389,7 +2390,7 @@ class TTHTool(BaseEventTool):
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 
 		pathArrowStart, junction_pathArrowStart = self.drawArrowAtPoint_FromPoint_WithScale(startPoint, offcurve1, scale)
@@ -2413,7 +2414,7 @@ class TTHTool(BaseEventTool):
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale)
+	 	offcurve1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		extension = ''
 		text = 'D'
@@ -2438,7 +2439,7 @@ class TTHTool(BaseEventTool):
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
 		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
-		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale)
+		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		pathArrowStart, junction_pathArrowStart = self.drawArrowAtPoint_FromPoint_WithScale(startPoint, center1, scale)
 		pathArrowEnd, junction_pathArrowEnd = self.drawArrowAtPoint_FromPoint_WithScale(middlePoint, center1, scale)
@@ -2476,7 +2477,7 @@ class TTHTool(BaseEventTool):
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
 		angle = getAngle((startPoint[0], startPoint[1]), (middlePoint[0], middlePoint[1])) + math.radians(90)
-		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale, startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale)
+		center1 = (startPoint[0] - dx + math.cos(angle)*(distance(startPoint, middlePoint)/25)*scale*(1000.0/self.tthtm.UPM), startPoint[1] - dy + math.sin(angle)*(distance(startPoint, middlePoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		pathArrowStart, junction_pathArrowStart = self.drawArrowAtPoint_FromPoint_WithScale(startPoint, center1, scale)
 		pathArrowEnd, junction_pathArrowEnd = self.drawArrowAtPoint_FromPoint_WithScale(middlePoint, center1, scale)
@@ -2484,7 +2485,7 @@ class TTHTool(BaseEventTool):
 		middle_end_diff = difference(middlePoint, endPoint)
 		dx, dy = middle_end_diff[0]/2, middle_end_diff[1]/2
 		angle = getAngle((middlePoint[0], middlePoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
-		center2 = (middlePoint[0] - dx + math.cos(angle)*(distance(middlePoint, endPoint)/25)*scale, middlePoint[1] - dy + math.sin(angle)*(distance(middlePoint, endPoint)/25)*scale)
+		center2 = (middlePoint[0] - dx + math.cos(angle)*(distance(middlePoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM), middlePoint[1] - dy + math.sin(angle)*(distance(middlePoint, endPoint)/25)*scale*(1000.0/self.tthtm.UPM))
 
 		pathArrowStart2, junction_pathArrowStart2 = self.drawArrowAtPoint_FromPoint_WithScale(endPoint, center2, scale)
 		pathArrowEnd2, junction_pathArrowEnd2 = self.drawArrowAtPoint_FromPoint_WithScale(middlePoint, center2, scale)
