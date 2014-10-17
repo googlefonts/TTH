@@ -13,15 +13,17 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	if g == None:
 		return
 
+	assembly = []
+	g.lib['com.robofont.robohint.assembly'] = []
+	if glyphTTHCommands == []:
+		return
+
 	nbPointsContour = 0
 	for contour in g:
 		nbPointsContour += len(contour.points)
 
 	lsbIndex = nbPointsContour
 	rsbIndex = nbPointsContour+1
-
-	assembly = []
-	g.lib['com.robofont.robohint.assembly'] = []
 	x_instructions = ['SVTCA[1]']
 	y_instructions = ['SVTCA[0]']
 	RP0 = RP1 = RP2 = None
@@ -453,7 +455,6 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	##############################	
 	assembly.extend(x_instructions)
 	assembly.extend(y_instructions)
-
 	assembly.extend(['IUP[0]', 'IUP[1]'])
 	assembly.append('SVTCA[1]')
 	assembly.extend(finalDeltasH)
