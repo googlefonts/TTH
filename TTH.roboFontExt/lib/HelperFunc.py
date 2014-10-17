@@ -54,8 +54,15 @@ def addAngles(a, b):
 		r += 360.0
 	return r
 	
+def absoluteDiffOfPairs(point1, point2):
+	return (abs(point1[0] - point2[0]), abs(point1[1] - point2[1]))
+	
 def absoluteDiff(point1, point2):
 	return (abs(point1.x - point2.x), abs(point1.y - point2.y))
+	
+def distanceOfPairs(point1, point2):
+	dx, dy = absoluteDiffOfPairs(point1, point2)
+	return math.sqrt(dx*dx+dy*dy)
 	
 def distance(point1, point2):
 	dx, dy = absoluteDiff(point1, point2)
@@ -63,7 +70,7 @@ def distance(point1, point2):
 	
 def closeAngle(angle1, angle2):
 	"""True if the angle are close modulo 360 degrees"""
-	return abs(addAngles(angle1,  - angle2)) <= 0.0
+	return abs(addAngles(angle1,  - angle2)) <= 1.0
 
 def closeAngleModulo180(angle1, angle2):
 	"""True if the angle are close modulo 180 degrees"""
@@ -72,7 +79,7 @@ def closeAngleModulo180(angle1, angle2):
 		diff -= 180.0
 	while diff < -90.0:
 		diff += 180.0
-	return abs(diff) <= 0.0
+	return abs(diff) <= 1.0
 
 def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
