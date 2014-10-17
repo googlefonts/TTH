@@ -366,6 +366,7 @@ class TTHTool(BaseEventTool):
 	def becomeInactive(self):
 		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow != None:
 			self.previewInGlyphWindow.removeFromSuperview()
+			self.previewInGlyphWindow == None
 
 		self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -863,6 +864,8 @@ class TTHTool(BaseEventTool):
 
 	def deleteStems(self, selected, stemView, progressBar):
 		progressBar.set(0)
+		if len(selected) == 0:
+			return
 		tick = 100.0/len(selected)
 		for name in selected:
 			try:
@@ -2741,7 +2744,7 @@ class TTHTool(BaseEventTool):
 			text = u'⬌'
 		else:
 			text = u'⬍'
-		self.drawRawTextAtPoint(scale, text, -100, 120, 120)
+		self.drawRawTextAtPoint(scale*(1000.0/self.tthtm.UPM), text, -100*scale*(1000.0/self.tthtm.UPM), 120*scale*(1000.0/self.tthtm.UPM), 120)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0, discColor)
@@ -2783,7 +2786,7 @@ class TTHTool(BaseEventTool):
 
 				touchedEnd = self.isOffOnPoint(self.currentPoint)
 				self.drawDeltaDragging(scale, self.startPoint, self.endPoint, color)
-			if touchedEnd != None:
+			if touchedEnd != None and self.tthtm.selectedHintingTool not in ['Middle Delta', 'Final Delta']:
 				self.endPoint = touchedEnd
 				x_end = touchedEnd[0]
 				y_end = touchedEnd[1]
@@ -2905,12 +2908,12 @@ class TTHTool(BaseEventTool):
 			if self.previewInGlyphWindow == None:
 				self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
 				superview.addSubview_(self.previewInGlyphWindow)
+				
 			frame = superview.frame()
 			frame.size.width -= 30
 			frame.origin.x = 0
 			self.previewInGlyphWindow.setFrame_(frame)
-			self.previewInGlyphWindow.setNeedsDisplay_(True)
-			UpdateCurrentGlyphView()
+				#self.previewInGlyphWindow.setNeedsDisplay_(True)
 
 
 reload(TR)

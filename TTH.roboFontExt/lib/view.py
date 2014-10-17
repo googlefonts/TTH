@@ -66,6 +66,12 @@ class centralWindow(object):
 		self.wCentral.PanelsPopButton = PopUpButton((60, 50, -10, 15), self.panelsList, sizeStyle = 'mini', 
 				callback=self.PanelsPopButtonCallback)
 
+		self.wCentral.AlwaysRefreshText = TextBox((10, -63, -10, 15), 'Always Refresh:', sizeStyle = 'mini')
+		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-20, -65, 15, 15), '',  sizeStyle = 'mini', callback = self.AlwaysRefreshCheckBoxCallback)
+		self.wCentral.AlwaysRefreshCheckBox.set(1)
+		self.wCentral.RefreshButton = Button((10, -45, -10, 15), "Refresh Glyph", sizeStyle = 'mini', 
+				callback=self.RefreshGlyphButtonCallback)
+
 
 		# self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
 		# 		callback=self.AssemblyShowButtonCallback)
@@ -438,10 +444,10 @@ class toolsWindow(BaseWindowController):
 		progress = self.startProgress(u'Auto-hinting Font…')
 		progress.setTickCount(len(self.tthtm.f))
 		for g in self.tthtm.f:
-			self.tthtm.g.prepareUndo("Auto-hint Font")
+			g.prepareUndo("Auto-hint Font")
 			self.autohinting.autohint(g)
 			self.TTHToolInstance.updateGlyphProgram()
-			self.tthtm.g.performUndo()
+			g.performUndo()
 			progress.update()
 		self.TTHToolInstance.resetFonts()
 		progress.close()

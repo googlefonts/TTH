@@ -39,7 +39,7 @@ class TTHToolModel():
 		#self.previewWindowViewSize = (self.previewWindowPosSize[2]-35, self.previewWindowPosSize[3]-105)
 		self.previewWindowViewSize = (465, 495)
 		self.toolsWindowPosSize = (170, 30, 215, 100)
-		self.centralWindowPosSize = (10, 30, 150, 100)
+		self.centralWindowPosSize = (10, 30, 150, 135)
 		self.programWindowPosSize = (10, -300, -10, 300)
 		self.assemblyWindowPosSize = (10, 150, 150, -400)
 		self.previewString = 'HH/?HH'
@@ -54,13 +54,13 @@ class TTHToolModel():
 		self.showCenterPixel = 0
 		self.showPreviewInGlyphWindow = 1
 
-		self.roundFactor_Stems = 10
+		self.roundFactor_Stems = 40
 		self.roundFactor_Jumps = 20
 
 		self.minStemX = 20
 		self.minStemY = 20
-		self.maxStemX = 500
-		self.maxStemY = 400
+		self.maxStemX = 1000
+		self.maxStemY = 1000
 
 		self.angleTolerance = 10.0
 
