@@ -90,21 +90,21 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					align = [
 							'RUTG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'double':
 					align = [
 							'RTDG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'center':
 					align = [
 							'RTHG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				if TTHCommand['code'] == 'alignh':
@@ -200,28 +200,28 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					align = [
 							'RDTG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
 					align = [
 							'RUTG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'double':
 					align = [
 							'RTDG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'center':
 					align = [
 							'RTHG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 			else:
