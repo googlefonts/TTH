@@ -1,5 +1,9 @@
-from AppKit import NSView, NSColor
+#coding=utf-8
+
+from AppKit import *
 from math import ceil
+
+bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 
 class PreviewInGlyphWindow(NSView):
 
@@ -9,19 +13,32 @@ class PreviewInGlyphWindow(NSView):
 		return self
 
 	def drawRect_(self, rect):
+		
+		path = NSBezierPath.bezierPath()
+		path.appendBezierPathWithRoundedRect_xRadius_yRadius_(((30, 65), (190, 190)), 3, 3)
+		#path.appendBezierPathWithRoundedRect_xRadius_yRadius_(((30, 0), (5000, 250)), 5, 5)
+		bkgColor.set()
+		path.fill()
+
+		if self.TTHToolInstance.tthtm.selectedAxis == 'X':
+			text = u'⬌'
+		else:
+			text = u'⬍'
+		self.TTHToolInstance.drawRawTextAtPoint(1, text, 250, 190, 120)
+
 		self.clickableSizesGlyphWindow = {}
 		if self.TTHToolInstance.tthtm.g == None:
 			return
 		if self.TTHToolInstance.tthtm.g.unicode == None:
 			return
 		tr = self.TTHToolInstance.tthtm.textRenderer
-		advance = 30
+		advance = 40
 		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
 
 			self.clickableSizesGlyphWindow[(advance, 20)] = size
 
 			tr.set_cur_size(size)
-			tr.set_pen((advance, 50))
+			tr.set_pen((advance, 40))
 			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
 			if size == self.TTHToolInstance.tthtm.PPM_Size:
 				color = NSColor.redColor()

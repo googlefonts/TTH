@@ -368,7 +368,7 @@ class TTHTool(BaseEventTool):
 			self.previewInGlyphWindow.removeFromSuperview()
 			self.previewInGlyphWindow == None
 
-		self.centralWindow.closeCentral()
+		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		if self.tthtm.programWindowVisible == 1:
 			self.programWindow.closeProgram()
@@ -402,7 +402,7 @@ class TTHTool(BaseEventTool):
 		if len(AllFonts()) > 1:
 			return
 
-		self.centralWindow.wCentral.hide()
+		#self.centralWindow.wCentral.hide()
 		self.toolsWindow.wTools.hide()
 		if self.tthtm.programWindowVisible == 1:
 			self.programWindow.wProgram.hide()
@@ -413,7 +413,7 @@ class TTHTool(BaseEventTool):
 		self.fontClosed = True
 
 	def fontDidOpen(self, font):
-		self.centralWindow.wCentral.show()
+		#self.centralWindow.wCentral.show()
 		self.toolsWindow.wTools.show()
 		if self.tthtm.programWindowVisible == 1:
 			self.programWindow.wProgram.show()
@@ -439,8 +439,8 @@ class TTHTool(BaseEventTool):
 
 	def getSizeListIndex(self, size):
 		sizeIndex = 0
-		for i in range(len(self.centralWindow.PPMSizesList)):
-			if self.centralWindow.PPMSizesList[i] == str(size):
+		for i in range(len(self.toolsWindow.PPMSizesList)):
+			if self.toolsWindow.PPMSizesList[i] == str(size):
 				sizeIndex = i
 		return sizeIndex
 
@@ -508,20 +508,20 @@ class TTHTool(BaseEventTool):
 
 		UpdateCurrentGlyphView()
 
-	def getPreviewListIndex(self, preview):
-		previewIndex = 0
-		for i in range(len(self.centralWindow.BitmapPreviewList)):
-			if self.centralWindow.BitmapPreviewList[i] == preview:
-				previewIndex = i
-		return previewIndex
+	# def getPreviewListIndex(self, preview):
+	# 	previewIndex = 0
+	# 	for i in range(len(self.centralWindow.BitmapPreviewList)):
+	# 		if self.centralWindow.BitmapPreviewList[i] == preview:
+	# 			previewIndex = i
+	# 	return previewIndex
 
 	def changeBitmapPreview(self, preview):
 		if self.doneGeneratingPartialFont == False:
 			return
 		self.tthtm.setBitmapPreview(preview)
 		self.tthtm.textRenderer = TR.TextRenderer(self.partialtempfontpath, preview, self)
-		previewIndex = self.getPreviewListIndex(preview)
-		self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
+		#previewIndex = self.getPreviewListIndex(preview)
+		#self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
 		if self.tthtm.g == None:
 			return
@@ -695,7 +695,7 @@ class TTHTool(BaseEventTool):
 
 	def changeAlwaysRefresh(self, valueBool):
 		self.tthtm.setAlwaysRefresh(valueBool)
-		self.centralWindow.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
+		#self.centralWindow.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 
 	def changeStemSnap(self, value):
 		try:
@@ -1045,12 +1045,23 @@ class TTHTool(BaseEventTool):
 			self.changeSize(self.tthtm.PPM_Size+1)
 
 		elif event.characters() == 'p':
-			bitmappreviewIndex = self.centralWindow.wCentral.BitmapPreviewPopUpButton.get()
-			if bitmappreviewIndex < 2:
-				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[bitmappreviewIndex+1]
+			bitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
+			i = 0
+			for index, bitmapPreview in enumerate(bitmapPreviewList):
+				if bitmapPreview == self.tthtm.bitmapPreviewSelection:
+					i = index
+
+			if self.tthtm.bitmapPreviewSelection == bitmapPreviewList[2]:
+				self.changeBitmapPreview(bitmapPreviewList[0])
 			else:
-				bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[0]
-			self.changeBitmapPreview(bitmapPreviewSelection)
+				self.changeBitmapPreview(bitmapPreviewList[i+1])
+
+			#bitmappreviewIndex = self.centralWindow.wCentral.BitmapPreviewPopUpButton.get()
+			# if bitmappreviewIndex < 2:
+			# 	bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[bitmappreviewIndex+1]
+			# else:
+			# 	bitmapPreviewSelection = self.centralWindow.BitmapPreviewList[0]
+			
 
 		elif event.characters() == 'P':
 			if self.tthtm.showPreviewInGlyphWindow == 1:
@@ -1812,7 +1823,7 @@ class TTHTool(BaseEventTool):
 
 		if createWindows:
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
-			self.centralWindow = view.centralWindow(self)
+			#self.centralWindow = view.centralWindow(self)
 			self.toolsWindow = view.toolsWindow(self)
 			# if self.tthtm.previewWindowVisible == 1:
 			# 	self.previewWindow = view.previewWindow(self, self.tthtm)

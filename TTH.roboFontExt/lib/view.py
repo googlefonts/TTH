@@ -24,7 +24,10 @@ buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 
 defaultKeyStub = "com.sansplomb.TTH."
-defaultKeyCentralWindowPosSize = defaultKeyStub + "centralWindowPosSize"
+defaultKeyToolsWindowPosSize = defaultKeyStub + "toolsWindowPosSize"
+defaultKeyPreviewWindowPosSize = defaultKeyStub + "previewWindowPosSize"
+defaultKeyProgramWindowPosSize = defaultKeyStub + "programWindowPosSize"
+defaultKeyAssemblyWindowPosSize = defaultKeyStub + "assemblyWindowPosSize"
 
 class centralWindow(object):
 	def __init__(self, TTHToolInstance):
@@ -37,7 +40,7 @@ class centralWindow(object):
 
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.wCentral = FloatingWindow(getExtensionDefault(defaultKeyCentralWindowPosSize, fallback=self.tthtm.centralWindowPosSize), "Central", closable = False)
+		self.wCentral = FloatingWindow(self.tthtm.centralWindowPosSize, "Central", closable = False)
 
 		self.PPMSizesList = [str(i) for i in range(9, 73)]
 
@@ -93,7 +96,6 @@ class centralWindow(object):
 
 	def centralWindowMovedorResized(self, sender):
 		self.tthtm.centralWindowPosSize = self.wCentral.getPosSize()
-		setExtensionDefault(defaultKeyCentralWindowPosSize, self.tthtm.centralWindowPosSize)
 
 	def PPEMSizeEditTextCallback(self, sender):
 		self.TTHToolInstance.changeSize(sender.get())
@@ -206,7 +208,7 @@ class toolsWindow(BaseWindowController):
 
 
 
-		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "TTH", closable = False)
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=self.tthtm.toolsWindowPosSize), "TTH", closable = False)
 
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
@@ -283,7 +285,7 @@ class toolsWindow(BaseWindowController):
 		# self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
 		# 		callback=self.AutoFontButtonCallback)
 
-		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.callback, sizeStyle="small")
+		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="small")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
 		self.wTools.gear.getNSPopUpButton().setBordered_(False)
 
@@ -317,7 +319,7 @@ class toolsWindow(BaseWindowController):
 			NSMenuItem.separatorItem(),
 			"Control Values",
 			NSMenuItem.separatorItem(),
-			"Auto-hinting",
+			"Guess Glyph",
 			NSMenuItem.separatorItem(),
 			"Preferences",
 			]
@@ -333,8 +335,66 @@ class toolsWindow(BaseWindowController):
 		self.wTools.open()
 		self.w = self.wTools
 
-	def callback(self, sender):
-		print sender.get()
+	def gearMenuCallback(self, sender):
+		gearOption = sender.get()
+		if gearOption == 1:
+			self.TTHToolInstance.changeBitmapPreview("Monochrome")
+		if gearOption == 2:
+			self.TTHToolInstance.changeBitmapPreview("Grayscale")
+		if gearOption == 3:
+			self.TTHToolInstance.changeBitmapPreview("Subpixel")
+
+		if gearOption == 5:
+			self.showPreviewCallback()
+		if gearOption == 6:
+			self.showProgramCallback()
+		if gearOption == 7:
+			self.showAssemblyCallback()
+
+		if gearOption == 9:
+			self.controlValuesCallback()
+
+		if gearOption == 11:
+			self.autoGlyphCallback()
+
+
+	def controlValuesCallback(self):
+		sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
+
+
+	def showPreviewCallback(self):
+		if self.tthtm.previewWindowVisible == 0:
+
+			for i in string.lowercase:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+			for i in string.uppercase:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+			for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
+				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+
+			self.TTHToolInstance.updatePartialFont()
+			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
+			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
+
+	def showProgramCallback(self):
+		if self.tthtm.programWindowVisible == 0:
+			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.resetglyph()
+
+	def showAssemblyCallback(self):
+		if self.tthtm.assemblyWindowVisible == 0:
+			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
+			self.TTHToolInstance.resetglyph()
+
+	def autoGlyphCallback(self):
+		self.tthtm.g.prepareUndo("Auto-hint Glyph")
+		self.autohinting.autohint(self.tthtm.g)
+		self.TTHToolInstance.updateGlyphProgram()
+		if self.tthtm.alwaysRefresh == 1:
+			self.TTHToolInstance.refreshGlyph()
+		self.tthtm.g.performUndo()
+
 
 	def refreshButtonCallback(self, sender):
 		print 'refresh'
@@ -344,6 +404,7 @@ class toolsWindow(BaseWindowController):
 
 	def toolsWindowMovedorResized(self, sender):
 		self.tthtm.toolsWindowPosSize = self.wTools.getPosSize()
+		setExtensionDefault(defaultKeyToolsWindowPosSize, self.tthtm.toolsWindowPosSize)
 
 	def LinkSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -501,14 +562,6 @@ class toolsWindow(BaseWindowController):
 			self.DeltaSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
 
-	def AutoGlyphButtonCallback(self, sender):
-		self.tthtm.g.prepareUndo("Auto-hint Glyph")
-		self.autohinting.autohint(self.tthtm.g)
-		self.TTHToolInstance.updateGlyphProgram()
-		if self.tthtm.alwaysRefresh == 1:
-			self.TTHToolInstance.refreshGlyph()
-		self.tthtm.g.performUndo()
-
 	def AutoFontButtonCallback(self, sender):
 		progress = self.startProgress(u'Auto-hinting Font…')
 		progress.setTickCount(len(self.tthtm.f))
@@ -531,7 +584,7 @@ class previewWindow(object):
 
 		#self.viewSize = self.tthtm.previewWindowViewSize
 
-		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
+		self.wPreview = FloatingWindow(getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=self.tthtm.previewWindowPosSize), "Preview", minSize=(350, 200))
 		# self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
@@ -587,6 +640,7 @@ class previewWindow(object):
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
 		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-90)))
+		setExtensionDefault(defaultKeyPreviewWindowPosSize, self.tthtm.previewWindowPosSize)
 		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
@@ -622,7 +676,7 @@ class programWindow(object):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
-		self.wProgram = FloatingWindow(self.tthtm.programWindowPosSize, "Program", minSize=(600, 80))
+		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
@@ -648,6 +702,7 @@ class programWindow(object):
 
 	def programWindowMovedorResized(self, sender):
 		self.tthtm.programWindowPosSize = self.wProgram.getPosSize()
+		setExtensionDefault(defaultKeyProgramWindowPosSize, self.tthtm.programWindowPosSize)
 
 	def selectionCallback(self, sender):
 		pass
@@ -677,7 +732,7 @@ class assemblyWindow(object):
 
 		self.assemblyList = []
 
-		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(10050, 100))
+		self.wAssembly = FloatingWindow(getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize), "Assembly", minSize=(10050, 100))
 		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
 
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
@@ -695,6 +750,7 @@ class assemblyWindow(object):
 
 	def assemblyWindowMovedorResized(self, sender):
 		self.tthtm.assemblyWindowPosSize = self.wAssembly.getPosSize()
+		setExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize)
 
 	def updateAssemblyList(self, assembly):
 		self.wAssembly.assemblyList.set(assembly)
