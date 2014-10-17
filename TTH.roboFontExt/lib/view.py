@@ -23,6 +23,9 @@ buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
 buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 
+defaultKeyStub = "com.sansplomb.TTH."
+defaultKeyCentralWindowPosSize = defaultKeyStub + "centralWindowPosSize"
+
 class centralWindow(object):
 	def __init__(self, TTHToolInstance):
 		#self.screenArea = preview.ScreenArea.alloc().init()
@@ -34,12 +37,9 @@ class centralWindow(object):
 
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.wCentral = FloatingWindow(self.tthtm.centralWindowPosSize, "Central", closable = False)
+		self.wCentral = FloatingWindow(getExtensionDefault(defaultKeyCentralWindowPosSize, fallback=self.tthtm.centralWindowPosSize), "Central", closable = False)
 
-		self.PPMSizesList = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', 
-							'21', '22', '23', '24', '25', '26', '27', '28', '29', '30',
-							'31', '32', '33', '34', '35', '36', '37', '38', '39', '40',
-							'41', '42', '43', '44', '45', '46', '47', '48', '60', '72' ]
+		self.PPMSizesList = [str(i) for i in range(9, 73)]
 
 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 
@@ -93,6 +93,7 @@ class centralWindow(object):
 
 	def centralWindowMovedorResized(self, sender):
 		self.tthtm.centralWindowPosSize = self.wCentral.getPosSize()
+		setExtensionDefault(defaultKeyCentralWindowPosSize, self.tthtm.centralWindowPosSize)
 
 	def PPEMSizeEditTextCallback(self, sender):
 		self.TTHToolInstance.changeSize(sender.get())
@@ -205,7 +206,7 @@ class toolsWindow(BaseWindowController):
 
 
 
-		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "Tools", closable = False)
+		self.wTools = FloatingWindow(self.tthtm.toolsWindowPosSize, "TTH", closable = False)
 
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
@@ -221,28 +222,37 @@ class toolsWindow(BaseWindowController):
 			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool")
 		]
 
+		self.wTools.PPEMSizeEditText = EditText((10, 14, 25, 15), sizeStyle = "mini", 
+				callback=self.PPEMSizeEditTextCallback)
+		self.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
+
+		self.PPMSizesList = [str(i) for i in range(9, 73)]
+		self.wTools.PPEMSizePopUpButton = PopUpButton((40, 14, 40, 15),
+				self.PPMSizesList, sizeStyle = "mini",
+				callback=self.PPEMSizePopUpButtonCallback)
+
+		self.wTools.axisSegmentedButton = SegmentedButton((85, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.axisSegmentedButton.set(0)
+
 		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 12, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(0)
 
-		self.wTools.axisSegmentedButton = SegmentedButton((10, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
-		self.wTools.axisSegmentedButton.set(0)
-
 		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
-		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 65, 15),
+		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 15),
 				self.alignmentTypeListDisplay, sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
 		self.wTools.AlignmentTypeText.show(True)
 		self.wTools.AlignmentTypePopUpButton.show(True)
 
-		self.wTools.StemTypeText = TextBox((110, 42, 30, 15), "Stem:", sizeStyle = "mini")
-		self.wTools.StemTypePopUpButton = PopUpButton((140, 40, 65, 15),
+		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
+		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 15),
 				self.stemTypeList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wTools.StemTypeText.show(False)
 		self.wTools.StemTypePopUpButton.show(False)
 
-		self.wTools.RoundDistanceText = TextBox((10, 59, 80, 15), "Round Distance:", sizeStyle = "mini")
-		self.wTools.RoundDistanceCheckBox = CheckBox((90, 57, 15, 15), "", sizeStyle = "mini",
+		self.wTools.RoundDistanceText = TextBox((155, 42, 80, 15), "Round Distance:", sizeStyle = "mini")
+		self.wTools.RoundDistanceCheckBox = CheckBox((-25, 44, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
@@ -268,16 +278,66 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
 
-		self.wTools.AutoGlyphButton = Button((10, -25, self.tthtm.toolsWindowPosSize[2]/2.0 -10, 15), "Auto-Glyph", sizeStyle = 'mini', 
-				callback=self.AutoGlyphButtonCallback)
-		self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
-				callback=self.AutoFontButtonCallback)
+		# self.wTools.AutoGlyphButton = Button((10, -25, self.tthtm.toolsWindowPosSize[2]/2.0 -10, 15), "Auto-Glyph", sizeStyle = 'mini', 
+		# 		callback=self.AutoGlyphButtonCallback)
+		# self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
+		# 		callback=self.AutoFontButtonCallback)
+
+		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.callback, sizeStyle="small")
+		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
+		self.wTools.gear.getNSPopUpButton().setBordered_(False)
+
+		im = NSImage.imageNamed_(NSImageNameActionTemplate)
+		im.setSize_((10, 10))
+
+		firstItem = NSMenuItem.alloc().init()
+		firstItem.setImage_(im)
+		firstItem.setTitle_("")
+
+		previewSubMenu = NSMenu.alloc().init()
+		previewSubMenu.initWithTitle_("Preview")
+		#monoItem = NSMenuItem.alloc().init()
+		#monoItem.setTitle_("Monochrome")
+		#previewSubMenu.addItem_(monoItem)
+
+		previewItem = NSMenuItem.alloc().init()
+		previewItem.setTitle_("Preview")
+		#previewItem.setSubMenu_(previewSubMenu)
+
+
+		self.wTools.gear.setItems(
+			[firstItem,
+			"Monochrome",
+			"Grayscale",
+			"Subpixel",
+			NSMenuItem.separatorItem(),
+			"Preview",
+			"Program",
+			"Assembly",
+			NSMenuItem.separatorItem(),
+			"Control Values",
+			NSMenuItem.separatorItem(),
+			"Auto-hinting",
+			NSMenuItem.separatorItem(),
+			"Preferences",
+			]
+			)
+
+		imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
+		imgRefresh.setSize_((10, 13))
+
+		self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
 
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
 
 		self.wTools.open()
 		self.w = self.wTools
 
+	def callback(self, sender):
+		print sender.get()
+
+	def refreshButtonCallback(self, sender):
+		print 'refresh'
 
 	def closeTools(self):
 		self.wTools.close()
@@ -360,6 +420,15 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1EditText.show(True)
 		self.wTools.DeltaRange2EditText.show(True)
 		self.wTools.DeltaOffsetEditText.show(True)
+
+	def PPEMSizeEditTextCallback(self, sender):
+		self.TTHToolInstance.changeSize(sender.get())
+
+	def PPEMSizePopUpButtonCallback(self, sender):
+		if self.tthtm.g == None:
+			return
+		size = self.PPMSizesList[sender.get()]
+		self.TTHToolInstance.changeSize(size)
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
 		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
@@ -608,7 +677,7 @@ class assemblyWindow(object):
 
 		self.assemblyList = []
 
-		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(150, 100))
+		self.wAssembly = FloatingWindow(self.tthtm.assemblyWindowPosSize, "Assembly", minSize=(10050, 100))
 		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
 
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)

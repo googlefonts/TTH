@@ -471,8 +471,8 @@ class TTHTool(BaseEventTool):
 
 		self.tthtm.setSize(size)
 		sizeIndex = self.getSizeListIndex(self.tthtm.PPM_Size)
-		self.centralWindow.wCentral.PPEMSizePopUpButton.set(sizeIndex)
-		self.centralWindow.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
+		self.toolsWindow.wTools.PPEMSizePopUpButton.set(sizeIndex)
+		self.toolsWindow.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.tthtm.resetPitch()
 
