@@ -115,7 +115,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 			references.append(shearedTargetX)
 
 	return (stemsListX, stemsListY)
-	
+
 ### - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - 
 
 class Automation():
@@ -174,8 +174,7 @@ class Automation():
 				valuesDict[StemValue] += 1
 			except KeyError:
 				valuesDict[StemValue] = 1
-		
-		
+
 		keyValueList = valuesDict.items()
 		keyValueList.sort(lambda (k1,v1),(k2,v2): v2-v1)
 
@@ -207,7 +206,6 @@ class Automation():
 
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
-					
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
 		if stemName in self.tthtm.stems:
 			return
@@ -295,7 +293,6 @@ class AutoHinting():
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
 			self.addDoubleLink(stem[0], stem[1], stemName, False)
 
-			
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
 			detectedWidth = abs(p1.y - p2.y)
@@ -346,7 +343,6 @@ class AutoHinting():
 							command1['point2'] = c1p1
 							command2['point1'] = c2p2
 							command2['point2'] = c2p1
-							
 
 
 	def attachLinksToZones(self, g):
@@ -519,4 +515,4 @@ class AutoHinting():
 		self.findSiblings(g)
 		self.autoAlignToZones(g)
 		#self.hintWidth(g)
-		
+

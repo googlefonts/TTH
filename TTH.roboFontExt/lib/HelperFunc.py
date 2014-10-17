@@ -12,7 +12,7 @@ def directionForPairs((p1x, p1y), (p2x, p2y)):
 	else:
 		# Direction is NONE
 		direction_x = 4
-		
+
 	if p1y < p2y:
 		# Direction is UP
 		direction_y = 1
@@ -53,21 +53,21 @@ def addAngles(a, b):
 	while r <= -180.0:
 		r += 360.0
 	return r
-	
+
 def absoluteDiffOfPairs(point1, point2):
 	return (abs(point1[0] - point2[0]), abs(point1[1] - point2[1]))
-	
+
 def absoluteDiff(point1, point2):
 	return (abs(point1.x - point2.x), abs(point1.y - point2.y))
-	
+
 def distanceOfPairs(point1, point2):
 	dx, dy = absoluteDiffOfPairs(point1, point2)
 	return math.sqrt(dx*dx+dy*dy)
-	
+
 def distance(point1, point2):
 	dx, dy = absoluteDiff(point1, point2)
 	return math.sqrt(dx*dx+dy*dy)
-	
+
 def closeAngle(angle1, angle2):
 	"""True if the angle are close modulo 360 degrees"""
 	return abs(addAngles(angle1,  - angle2)) <= 1.0
@@ -125,7 +125,7 @@ def shearPair((p_x, p_y), angle):
 
 def roundbase(x, base):
 	return int(base * round(float(x)/base))
-	
+
 ###### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def inInterval(x, i):
