@@ -83,7 +83,7 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 					align = [
 							'RDTG[ ]',
 							'PUSHW[ ] ' + str(pointIndex),
-							'MDAP[1]'
+							'MDAP[1]',
 							'RTG[ ]'
 							]
 				elif TTHCommand['align'] == 'right' or TTHCommand['align'] == 'top':
