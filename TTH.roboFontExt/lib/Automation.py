@@ -15,9 +15,18 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 			return True
 	return False
 
-def buildContourSegmentList(g):
-	l = [[(cidx, sidx) for sidx in range(len(g[cidx]))] for cidx in range(len(g))]
-	return sum(l, []) # flatten the list of lists
+def contourSegmentIterator(g):
+	for cidx, c in enumerate(g):
+		for sidx, s in enumerate(c):
+			yield (cidx, sidx)
+
+class HintingData(object):
+	__slots__ = ('pos', 'shearedPos', 'inAngle', 'outAngle')
+	def __init__(self, on, sh, ina, outa):
+		self.pos = on
+		self.shearedPos = sh
+		self.inAngle = ina
+		self.outAngle = outa
 
 def hintingData(g, ital, (cidx, sidx)):
 	"""Compute data relevant to hinting for the ON point in the
@@ -34,16 +43,16 @@ def hintingData(g, ital, (cidx, sidx)):
 	shearedOn = HF.shearPoint(segment.onCurve, ital)
 	angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
-	return (onPt, angleIn, angleOut)
+	return HintingData(onPt, shearedOn, angleIn, angleOut)
 
 def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
 	stemsListX_temp = []
 	stemsListY_temp = []
-	def addStemToList(sourcePoint, targetPoint, angle, existingStems):
-		dx, dy = HF.absoluteDiff(sourcePoint, targetPoint)
+	def addStemToList(src, tgt, angle, existingStems):
+		dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
-		hypoth = HF.distance(sourcePoint, targetPoint)
-		stem = (sourcePoint, targetPoint, c_distance)
+		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
+		stem = (src.pos, tgt.pos, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
 		if HF.isHorizontal_withTolerance(angle, tolerance) and not existingStems['h']:
 			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
@@ -51,33 +60,31 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, stem))
 		## if they are vertical, treat the stem on the X axis
-		if HF.isVertical_withTolerance(angle, tolerance) and not existingStems['v']: # the angle is already sheared to counter italic
+		elif HF.isVertical_withTolerance(angle, tolerance) and not existingStems['v']: # the angle is already sheared to counter italic
 			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, stem))
+		else:
 		## Here, the angle of the stem is more diagonal
 		# ... do something here with diagonal
-		
+			pass
 
 	def hasWhite(wc, source, target):
 		if wc[0] == None:
 			wc[0] = hasSomeWhite(source, target, g, maxStemX, maxStemY)
 		return wc[0]
 
-	#hPoints = [hintingData(g, italicAngle, contSeg) for contSeg in buildContourSegmentList(g)]
-	# We don't use italicAngle anymore because we also treat diagonals
-	hPoints = [hintingData(g, 0, contSeg) for contSeg in buildContourSegmentList(g)]
-	for gidx, onPt0 in enumerate(hPoints):
-		sourcePoint, sia, soa = onPt0 # sia = Source In Angle
-		for onPt1 in hPoints[gidx+1:]:
-			targetPoint, tia, toa = onPt1
+	hPoints = [hintingData(g, italicAngle, contSeg) for contSeg in contourSegmentIterator(g)]
+	for gidx, src in enumerate(hPoints):
+		for tgt in hPoints[gidx+1:]:
 			existingStems = {'h':False, 'v':False, 'd':False}
 			wc = [None]
-			for (sa,ta) in [(sia,tia), (soa,toa), (sia,toa), (soa,tia)]:
+			for (sa,ta) in [(src.inAngle,tgt.inAngle), (src.outAngle,tgt.outAngle),
+					(src.inAngle,tgt.outAngle), (src.outAngle,tgt.inAngle)]:
 				if HF.closeAngleModulo180(sa, ta):
-					if hasWhite(wc, sourcePoint, targetPoint): break
-					addStemToList(sourcePoint, targetPoint, sa, existingStems)
+					if hasWhite(wc, src.pos, tgt.pos): break
+					addStemToList(src, tgt, sa, existingStems)
 	# avoid duplicates, filters temporary stems
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
@@ -107,9 +114,8 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 		if targetAbsent:
 			references.append(shearedTargetX)
 
-	
 	return (stemsListX, stemsListY)
-	
+
 ### - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - 
 
 class Automation():
@@ -168,8 +174,7 @@ class Automation():
 				valuesDict[StemValue] += 1
 			except KeyError:
 				valuesDict[StemValue] = 1
-		
-		
+
 		keyValueList = valuesDict.items()
 		keyValueList.sort(lambda (k1,v1),(k2,v2): v2-v1)
 
@@ -201,7 +206,6 @@ class Automation():
 
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
-					
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
 		if stemName in self.tthtm.stems:
 			return
@@ -289,7 +293,6 @@ class AutoHinting():
 			stemName = self.guessStemForDistance(stem[0], stem[1], False)
 			self.addDoubleLink(stem[0], stem[1], stemName, False)
 
-			
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
 			detectedWidth = abs(p1.y - p2.y)
@@ -340,7 +343,6 @@ class AutoHinting():
 							command1['point2'] = c1p1
 							command2['point1'] = c2p2
 							command2['point2'] = c2p1
-							
 
 
 	def attachLinksToZones(self, g):
@@ -390,12 +392,11 @@ class AutoHinting():
 			else:
 				touchedPointsNames_Y.append(name)
 
-		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in buildContourSegmentList(g)]
+		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 		for t_pointName, axis in touchedPoints:
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[t_pointName]
 			for onPt, (cidx, sidx) in hPoints:
-				onPoint, angleIn, angleOut = onPt # angleIn = Source In Angle
-				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPoint)]
+				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
 
 				# Find prev and next ON points
 				contour = g[cidx]
@@ -406,20 +407,20 @@ class AutoHinting():
 
 				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
 				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
-				if axis == 'Y' and abs(onPoint.y - p_y) <= 2 and h_pointName != t_pointName and (HF.isHorizontal_withTolerance(angleIn, self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(angleOut, self.tthtm.angleTolerance)):
+				if axis == 'Y' and abs(onPt.pos.y - p_y) <= 2 and h_pointName != t_pointName and (HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)):
 					if prev_h_Point.x == p_x or next_h_Point.x == p_x:
 						continue
-					if (prev_h_Point.x < onPoint.x and prev_h_Point.y == onPoint.y) or (next_h_Point.x < onPoint.x and next_h_Point.y == onPoint.y):
+					if (prev_h_Point.x < onPt.pos.x and prev_h_Point.y == onPt.pos.y) or (next_h_Point.x < onPt.pos.x and next_h_Point.y == onPt.pos.y):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singlev'
 					newSiblingCommand['point1'] = t_pointName
 					newSiblingCommand['point2'] = h_pointName
 					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
-				if axis == 'X' and abs(HF.shearPoint(onPoint, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(angleIn-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(angleOut-self.ital, self.tthtm.angleTolerance)):
+				if axis == 'X' and abs(HF.shearPoint(onPt.pos, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(onPt.inAngle-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(onPt.outAngle-self.ital, self.tthtm.angleTolerance)):
 					if prev_h_Point.y == p_y or next_h_Point.y == p_y:
 						continue
-					if (prev_h_Point.y < onPoint.y and prev_h_Point.x == onPoint.x) or (next_h_Point.y < onPoint.y and next_h_Point.x == onPoint.x):
+					if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
 						continue
 					newSiblingCommand = {}
 					newSiblingCommand['code'] = 'singleh'
@@ -466,10 +467,9 @@ class AutoHinting():
 		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
 		zones = [zoneData(item) for item in self.tthtm.zones.iteritems()]
-		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in buildContourSegmentList(g)]
+		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 
 		for onPt, (cidx, sidx) in hPoints:
-			onPoint, angleIn, angleOut = onPt # angleIn = Source In Angle
 			contour = g[cidx]
 			prev_h_Point = HF.pointToPair(contour[sidx-1].onCurve)
 			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[prev_h_Point]
@@ -477,17 +477,17 @@ class AutoHinting():
 			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
 
 			neighborsAreAlreadyAligned = \
-				(prev_h_Point[1] == onPoint.y and prev_h_PointName in touchedPointsNames) or \
-				(next_h_Point[1] == onPoint.y and next_h_PointName in touchedPointsNames)
+				(prev_h_Point[1] == onPt.pos.y and prev_h_PointName in touchedPointsNames) or \
+				(next_h_Point[1] == onPt.pos.y and next_h_PointName in touchedPointsNames)
 			angleIsOkay = \
-				HF.isHorizontal_withTolerance(angleIn, self.tthtm.angleTolerance) or \
-				HF.isHorizontal_withTolerance(angleOut, self.tthtm.angleTolerance)
+				HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or \
+				HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)
 
 			if neighborsAreAlreadyAligned or (not angleIsOkay): continue
 
-			pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPoint)]
+			pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
 			for (zoneName, isTop, y_start, y_end) in zones:
-				if not HF.inInterval(onPoint.y, (y_start, y_end)): continue
+				if not HF.inInterval(onPt.pos.y, (y_start, y_end)): continue
 				newAlign = {}
 				if isTop:
 					newAlign['code'] = 'alignt'
@@ -515,4 +515,4 @@ class AutoHinting():
 		self.findSiblings(g)
 		self.autoAlignToZones(g)
 		#self.hintWidth(g)
-		
+
