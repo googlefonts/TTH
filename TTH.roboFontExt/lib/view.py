@@ -33,6 +33,7 @@ defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
 defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
 defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
 
+
 # class centralWindow(object):
 # 	def __init__(self, TTHToolInstance):
 # 		#self.screenArea = preview.ScreenArea.alloc().init()
@@ -353,16 +354,13 @@ class toolsWindow(BaseWindowController):
 
 		if gearOption == 7:
 			self.showPreviewCallback()
-			self.tthtm.previewWindowVisible = 1
-			setExtensionDefault(defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
+			self.tthtm.setPreviewWindowVisible(1)
 		if gearOption == 8:
 			self.showProgramCallback()
-			self.tthtm.programWindowVisible = 1
-			setExtensionDefault(defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
+			self.tthtm.setProgramWindowVisible(1)
 		if gearOption == 9:
 			self.showAssemblyCallback()
-			self.tthtm.assemblyWindowVisible = 1
-			setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
+			self.tthtm.setAssemblyWindowVisible(1)
 
 		if gearOption == 11:
 			self.controlValuesCallback()

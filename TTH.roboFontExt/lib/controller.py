@@ -461,8 +461,8 @@ class TTHTool(BaseEventTool):
 	def changePreviewSize(self, FromSize, ToSize):
 		if FromSize > ToSize:
 			FromSize = ToSize
-		self.tthtm.previewFrom = FromSize
-		self.tthtm.previewTo = ToSize
+		self.tthtm.setPreviewFrom(FromSize)
+		self.tthtm.setPreviewTo(ToSize)
 		self.previewWindow.wPreview.DisplayFromEditText.set(FromSize)
 		self.previewWindow.wPreview.DisplayToEditText.set(ToSize)
 

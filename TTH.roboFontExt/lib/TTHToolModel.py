@@ -6,6 +6,12 @@ defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
 defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
 defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
 
+defaultKeyCurrentPPMSize = defaultKeyStub + "currentPPMSize"
+defaultKeySelectedAxis = defaultKeyStub + "selectedAxis"
+defaultKeyBitmapPreviewSelection = defaultKeyStub + "bitmapPreviewSelection"
+defaultKeyPreviewFrom = defaultKeyStub + "previewFrom"
+defaultKeyPreviewTo = defaultKeyStub + "previewTo"
+
 # ======================================================================
 
 FL_tth_key = "com.fontlab.v2.tth"
@@ -17,16 +23,16 @@ class TTHToolModel():
 		self.f = CurrentFont()
 		self.g = CurrentGlyph()
 		self.UPM = CurrentFont().info.unitsPerEm
-		self.PPM_Size = 9
+		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
 		self.pitch = self.UPM/self.PPM_Size
-		self.selectedAxis = 'X'
-		self.bitmapPreviewSelection = 'Monochrome'
+		self.selectedAxis = getExtensionDefault(defaultKeySelectedAxis, fallback='X')
+		self.bitmapPreviewSelection = getExtensionDefault(defaultKeyBitmapPreviewSelection, fallback='Monochrome')
 
 		self.selectedHintingTool = 'Align'
 		self.selectedAlignmentTypeAlign = 'round'
 		self.selectedAlignmentTypeLink = 'None'
-		self.selectedStemX = 'None'
-		self.selectedStemY = 'None'
+		self.selectedStemX = 'Guess'
+		self.selectedStemY = 'Guess'
 		self.stemsListX = []
 		self.stemsListY = []
 		self.roundBool = 0
@@ -54,8 +60,8 @@ class TTHToolModel():
 		self.programWindowPosSize = (10, -300, -10, 300)
 		self.assemblyWindowPosSize = (10, 150, 150, -400)
 		self.previewString = 'HH/?HH'
-		self.previewFrom = 9
-		self.previewTo = 72
+		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
+		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = 1
@@ -111,11 +117,32 @@ class TTHToolModel():
 	def setGlyph(self, glyph):
 		self.g = glyph
 
+	def setPreviewWindowVisible(self, valueBool):
+		self.previewWindowVisible = 1
+		setExtensionDefault(defaultKeyPreviewWindowVisibility, self.previewWindowVisible)
+
+	def setProgramWindowVisible(self, valueBool):
+		self.programWindowVisible = 1
+		setExtensionDefault(defaultKeyProgramWindowVisibility, self.programWindowVisible)
+
+	def setAssemblyWindowVisible(self, valueBool):
+		self.assemblyWindowVisible = 1
+		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.assemblyWindowVisible)
+
 	def setUPM(self, UPM):
 		self.UPM = int(UPM)
 
 	def setSize(self, size):
 		self.PPM_Size = int(size)
+		setExtensionDefault(defaultKeyCurrentPPMSize, self.PPM_Size)
+
+	def setPreviewFrom(self, value):
+		self.previewFrom = value
+		setExtensionDefault(defaultKeyPreviewFrom, value)
+
+	def setPreviewTo(self, value):
+		self.previewTo = value
+		setExtensionDefault(defaultKeyPreviewTo, value)
 
 	def resetFontUPM(self, font):
 		if font != None:
@@ -130,10 +157,12 @@ class TTHToolModel():
 	def setAxis(self, axis):
 		if axis in ['X', 'Y']:
 			self.selectedAxis = axis
+			setExtensionDefault(defaultKeySelectedAxis, axis)
 
 	def setBitmapPreview(self, preview):
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
 			self.bitmapPreviewSelection = preview
+			setExtensionDefault(defaultKeyBitmapPreviewSelection, preview)
 
 	def setHintingTool(self, hintingTool):
 		if hintingTool in ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']:
