@@ -313,7 +313,7 @@ class toolsWindow(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Guess Glyph",
+			"Auto-hint Glyph",
 			NSMenuItem.separatorItem(),
 			"Monochrome",
 			"Grayscale",

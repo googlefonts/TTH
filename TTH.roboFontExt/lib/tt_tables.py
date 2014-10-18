@@ -10,7 +10,7 @@ zone_to_cvt = {}
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
 
-def writeMAXPandGASP(f, codeppm):
+def writegasp(f, codeppm):
 	try:
 		lower = str(f.info.openTypeHeadLowestRecPPEM - 1)
 	except:
@@ -30,9 +30,10 @@ def writeMAXPandGASP(f, codeppm):
 
 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
 
-	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 10
 
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
+	
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 10
 
 	table_CVT = []
 

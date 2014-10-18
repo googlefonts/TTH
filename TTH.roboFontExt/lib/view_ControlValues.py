@@ -336,7 +336,7 @@ class SheetControlValues(object):
 			dict(width=50, title="Zones", toolTip="Zones Settings"),
 			dict(width=50, title="Stems", toolTip="Stems Settings"),
 			dict(width=50, title="General", toolTip="General Settings"),
-			dict(width=50, title="GASP", toolTip="GASP Settings")
+			dict(width=50, title="gasp", toolTip="gasp Settings")
 		]
 
 
@@ -353,6 +353,26 @@ class SheetControlValues(object):
 		w.stemBox.AutoStemProgressBar.show(0)
 		w.stemBox.show(0)
 
+		yesNoButton = PopUpButtonListCell(["Yes", "No"])
+		self.gaspRangesList = [{"range": "7", "GAA": "Yes", "GF": "Yes", "SGF": "Yes", "SS": "Yes"} ]
+
+		w.gaspBox = Box((10, 19, -10, -40))
+		w.gaspBox.gaspSettingsList = List((10, 10, -10, -32), self.gaspRangesList,
+			columnDescriptions=[{"title": "Range", "width": 50, "key": "range", "editable": True}, 
+								{"title": "Gray AntiAlias", "key": "GAA", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
+								{"title": "GridFit", "key": "GF", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
+								{"title": "Sym. GridFit", "key": "SGF", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
+								{"title": "Sym. Smoothing", "key": "SS", "editable": True, "binding": "selectedValue", "cell": yesNoButton}],
+			editCallback = self.gaspSettingsList_EditCallBack )
+		w.gaspBox.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
+		w.gaspBox.rangeEditText = EditText((32, -32, 56, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
+		w.gaspBox.GAA_PopUpButton = PopUpButton((88, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.GF_PopUpButton = PopUpButton((183, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.SGF_PopUpButton = PopUpButton((273, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.SS_PopUpButton = PopUpButton((363, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.buttonAddRange = SquareButton((-32, -32, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddRangeCallback)
+		w.gaspBox.show(0)
+
 		w.controlsSegmentedButton = SegmentedButton((137, 10, 220, 18), controlsSegmentDescriptions, callback=self.controlsSegmentedButtonCallback, sizeStyle="mini")
 		w.controlsSegmentedButton.set(0)
 
@@ -360,26 +380,43 @@ class SheetControlValues(object):
 		w.closeButton = Button((-70, -32, 60, 22), "OK", sizeStyle = "small", callback=self.closeButtonCallback)
 		w.open()
 
+	def gaspSettingsList_EditCallBack(self, sender):
+		print sender.get()
+
+	def gaspRangeEditTextCallback(self, sender):
+		print sender.get()
+
+	def buttonAddRangeCallback(self, sender):
+		print "add range"
+
+	def buttonRemoveRangeCallback(self, sender):
+		print 'remove range'
+
 	def controlsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
 			self.w.zoneBox.show(1)
 			self.w.stemBox.show(0)
 			self.w.generalBox.show(0)
+			self.w.gaspBox.show(0)
 			self.w.resize(505, 480)
 		if sender.get() == 1:
 			self.w.zoneBox.show(0)
 			self.w.stemBox.show(1)
 			self.w.generalBox.show(0)
+			self.w.gaspBox.show(0)
 			self.w.resize(505, 480)
 		if sender.get() == 2:
 			self.w.zoneBox.show(0)
 			self.w.stemBox.show(0)
 			self.w.generalBox.show(1)
+			self.w.gaspBox.show(0)
 			self.w.resize(505, 150)
 		if sender.get() == 3:
 			self.w.zoneBox.show(0)
 			self.w.stemBox.show(0)
 			self.w.generalBox.show(0)
+			self.w.gaspBox.show(1)
+			self.w.resize(505, 200)
 
 
 	def autoZoneButtonCallback(self, sender):
