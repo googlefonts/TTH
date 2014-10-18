@@ -22,10 +22,10 @@ def writeMAXPandGASP(f, codeppm):
 		stopgridfit = "72"
 
 	gasp_ranges = {
-		lower:				GASP_DOGRAY +                          GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
+		lower:				GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
 		"20":				GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT,
 		stopgridfit:		GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT + GASP_SYMMETRIC_SMOOTHING, # com.fontlab.v2.tth[codeppm]
-		"65535":			GASP_DOGRAY +                          GASP_SYMMETRIC_SMOOTHING,
+		"65535":			GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING,
 	}
 
 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
