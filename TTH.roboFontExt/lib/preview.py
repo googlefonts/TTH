@@ -24,19 +24,19 @@ class PreviewInGlyphWindow(NSView):
 
 		if self.TTHToolInstance.tthtm.selectedAxis == 'Y':
 			axisPath = NSBezierPath.bezierPath()
-			axisPath.moveToPoint_((250, 95))
+			axisPath.moveToPoint_((240, 85))
 			axisPath.lineToPoint_((230, 75))
 			axisPath.lineToPoint_((230, 245))
-			axisPath.lineToPoint_((250, 225))
+			axisPath.lineToPoint_((240, 235))
 			blackColor.set()
 			path.setLineWidth_(1)
 			axisPath.stroke()
 		else:
 			axisPath = NSBezierPath.bezierPath()
-			axisPath.moveToPoint_((60, 285))
+			axisPath.moveToPoint_((50, 275))
 			axisPath.lineToPoint_((40, 265))
 			axisPath.lineToPoint_((210, 265))
-			axisPath.lineToPoint_((190, 285))
+			axisPath.lineToPoint_((200, 275))
 			blackColor.set()
 			path.setLineWidth_(1)
 			axisPath.stroke()

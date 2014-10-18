@@ -1,4 +1,10 @@
 from robofab.world import *
+from mojo.extensions import *
+
+defaultKeyStub = "com.sansplomb.TTH."
+defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
+defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
+defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
 
 # ======================================================================
 
@@ -30,9 +36,14 @@ class TTHToolModel():
 
 		self.textRenderer = None
 
-		self.previewWindowVisible = 0
-		self.programWindowVisible = 0
-		self.assemblyWindowVisible = 0
+		self.previewWindowOpened = 0
+		self.previewWindowVisible = getExtensionDefault(defaultKeyPreviewWindowVisibility, fallback=0)
+
+		self.programWindowOpened = 0
+		self.programWindowVisible = getExtensionDefault(defaultKeyProgramWindowVisibility, fallback=0)
+
+		self.assemblyWindowOpened = 0
+		self.assemblyWindowVisible = getExtensionDefault(defaultKeyAssemblyWindowVisibility, fallback=0)
 
 
 		self.previewWindowPosSize = (-510, 30, 500, 600)
@@ -41,7 +52,7 @@ class TTHToolModel():
 		self.toolsWindowPosSize = (170, 30, 265, 95)
 		self.centralWindowPosSize = (10, 30, 150, 135)
 		self.programWindowPosSize = (10, -300, -10, 300)
-		self.assemblyWindowPosSize = (10, 150, 200, -400)
+		self.assemblyWindowPosSize = (10, 150, 150, -400)
 		self.previewString = 'HH/?HH'
 		self.previewFrom = 9
 		self.previewTo = 72

@@ -317,8 +317,6 @@ class TTHTool(BaseEventTool):
 		self.previewText = ''
 		self.movingMouse = None
 
-		self.testTextBox = TextBox((10, 10, 200, 22), "Hello this is a test", alignment="left", sizeStyle="regular")
-
 		self.cachedPathes = {'grid':None, 'centers':None}
 
 		self.previewInGlyphWindow = None
@@ -370,12 +368,18 @@ class TTHTool(BaseEventTool):
 
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
-		if self.tthtm.programWindowVisible == 1:
+		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.closeProgram()
-		if self.tthtm.previewWindowVisible == 1:
+			self.tthtm.programWindowVisible = 1
+			setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.closePreview()
-		if self.tthtm.assemblyWindowVisible == 1:
+			self.tthtm.previewWindowVisible = 1
+			setExtensionDefault(view.defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
+		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.closeAssembly()
+			self.tthtm.assemblyWindowVisible = 1
+			setExtensionDefault(view.defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
 
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
@@ -401,25 +405,24 @@ class TTHTool(BaseEventTool):
 		# 	return
 		if len(AllFonts()) > 1:
 			return
-
 		#self.centralWindow.wCentral.hide()
 		self.toolsWindow.wTools.hide()
-		if self.tthtm.programWindowVisible == 1:
+		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.wProgram.hide()
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.wPreview.hide()
-		if self.tthtm.assemblyWindowVisible == 1:
+		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.hide()
 		self.fontClosed = True
 
 	def fontDidOpen(self, font):
 		#self.centralWindow.wCentral.show()
 		self.toolsWindow.wTools.show()
-		if self.tthtm.programWindowVisible == 1:
+		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.wProgram.show()
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.wPreview.show()
-		if self.tthtm.assemblyWindowVisible == 1:
+		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.show()
 
 		self.resetFonts(createWindows=False)
@@ -481,7 +484,7 @@ class TTHTool(BaseEventTool):
 		self.cachedScale = None
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
@@ -525,7 +528,7 @@ class TTHTool(BaseEventTool):
 
 		if self.tthtm.g == None:
 			return
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 		UpdateCurrentGlyphView()
 
@@ -1825,8 +1828,16 @@ class TTHTool(BaseEventTool):
 			#self.FL_Windows = fl_tth.FL_TTH_Windows(self.tthtm.f, self)
 			#self.centralWindow = view.centralWindow(self)
 			self.toolsWindow = view.toolsWindow(self)
-			# if self.tthtm.previewWindowVisible == 1:
-			# 	self.previewWindow = view.previewWindow(self, self.tthtm)
+			if self.tthtm.previewWindowOpened == 0 and self.tthtm.previewWindowVisible == 1:
+				self.previewWindow = view.previewWindow(self, self.tthtm)
+				setExtensionDefault(view.defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
+			if self.tthtm.programWindowOpened == 0 and self.tthtm.programWindowVisible == 1:
+				setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
+				self.programWindow = view.programWindow(self, self.tthtm)
+			if self.tthtm.assemblyWindowOpened == 0 and self.tthtm.assemblyWindowVisible == 1:
+				setExtensionDefault(view.defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
+				self.assemblyWindow = view.assemblyWindow(self, self.tthtm)
+
 
 		tt_tables.writeCVTandPREP(self.tthtm.f, self.tthtm.UPM, self.tthtm.alignppm, self.tthtm.stems, self.tthtm.zones, self.tthtm.codeppm)
 		tt_tables.writeFPGM(self.tthtm.f)
@@ -1861,7 +1872,7 @@ class TTHTool(BaseEventTool):
 		self.changeDeltaOffset(self.tthtm.deltaOffset)
 		self.changeDeltaRange(self.tthtm.deltaRange1, self.tthtm.deltaRange2)
 
-		#self.showHidePreviewWindow(self.tthtm.previewWindowVisible)
+		#self.showHidePreviewWindow(self.tthtm.previewWindowOpened)
 
 	def updatePartialFontIfNeeded(self):
 		"""Re-create the partial font if new glyphs are required."""
@@ -1886,14 +1897,14 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(self.tthtm.g)
-		if glyphTTHCommands != None and self.tthtm.programWindowVisible == 1:
+		if glyphTTHCommands != None and self.tthtm.programWindowOpened == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
-		elif self.tthtm.programWindowVisible == 1:
+		elif self.tthtm.programWindowOpened == 1:
 			self.programWindow.updateProgramList([])
 
-		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib and self.tthtm.assemblyWindowVisible == 1:
+		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib and self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.updateAssemblyList(self.tthtm.g.lib['com.robofont.robohint.assembly'])
-		elif self.tthtm.assemblyWindowVisible == 1:
+		elif self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.updateAssemblyList([])
 
 		self.commandLabelPos = {}
@@ -1903,7 +1914,7 @@ class TTHTool(BaseEventTool):
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.tthtm.g)
 		#print 'full temp font loaded'
 		self.ready = True
-		if self.tthtm.previewWindowVisible == 1:
+		if self.tthtm.previewWindowOpened == 1:
 			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 		self.p_glyphList = ([(0, 0), (self.tthtm.g.width, 0)])

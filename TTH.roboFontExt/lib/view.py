@@ -29,6 +29,10 @@ defaultKeyPreviewWindowPosSize = defaultKeyStub + "previewWindowPosSize"
 defaultKeyProgramWindowPosSize = defaultKeyStub + "programWindowPosSize"
 defaultKeyAssemblyWindowPosSize = defaultKeyStub + "assemblyWindowPosSize"
 
+defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
+defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
+defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
+
 # class centralWindow(object):
 # 	def __init__(self, TTHToolInstance):
 # 		#self.screenArea = preview.ScreenArea.alloc().init()
@@ -146,7 +150,7 @@ defaultKeyAssemblyWindowPosSize = defaultKeyStub + "assemblyWindowPosSize"
 
 
 # 	def PreviewShowButtonCallback(self, sender):
-# 		if self.tthtm.previewWindowVisible == 0:
+# 		if self.tthtm.previewWindowOpened == 0:
 
 # 			for i in string.lowercase:
 # 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
@@ -164,12 +168,12 @@ defaultKeyAssemblyWindowPosSize = defaultKeyStub + "assemblyWindowPosSize"
 # 		sheet = CV.SheetControlValues(self, self.wCentral, self.tthtm, self.TTHToolInstance)
 
 # 	def ProgramShowButtonCallback(self, sender):
-# 		if self.tthtm.programWindowVisible == 0:
+# 		if self.tthtm.programWindowOpened == 0:
 # 			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
 # 			self.TTHToolInstance.resetglyph()
 
 # 	def AssemblyShowButtonCallback(self, sender):
-# 		if self.tthtm.assemblyWindowVisible == 0:
+# 		if self.tthtm.assemblyWindowOpened == 0:
 # 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
 # 			self.TTHToolInstance.resetglyph()
 
@@ -346,6 +350,8 @@ class toolsWindow(BaseWindowController):
 
 		if gearOption == 5:
 			self.showPreviewCallback()
+			self.tthtm.previewWindowVisible = 1
+			setExtensionDefault(defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
 		if gearOption == 6:
 			self.showProgramCallback()
 		if gearOption == 7:
@@ -363,8 +369,7 @@ class toolsWindow(BaseWindowController):
 
 
 	def showPreviewCallback(self):
-		if self.tthtm.previewWindowVisible == 0:
-
+		if self.tthtm.previewWindowOpened == 0:
 			for i in string.lowercase:
 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
 			for i in string.uppercase:
@@ -378,12 +383,12 @@ class toolsWindow(BaseWindowController):
 			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
 
 	def showProgramCallback(self):
-		if self.tthtm.programWindowVisible == 0:
+		if self.tthtm.programWindowOpened == 0:
 			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
 			self.TTHToolInstance.resetglyph()
 
 	def showAssemblyCallback(self):
-		if self.tthtm.assemblyWindowVisible == 0:
+		if self.tthtm.assemblyWindowOpened == 0:
 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
 			self.TTHToolInstance.resetglyph()
 
@@ -607,7 +612,7 @@ class previewWindow(object):
 		self.wPreview.DisplayToEditText.set(self.ToSize)
 		self.wPreview.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
-		self.tthtm.previewWindowVisible = 1
+		self.tthtm.previewWindowOpened = 1
 		self.wPreview.bind("close", self.previewWindowWillClose)
 		self.wPreview.bind("move", self.previewWindowMovedorResized)
 		self.wPreview.bind("resize", self.previewWindowMovedorResized)
@@ -635,7 +640,9 @@ class previewWindow(object):
 		self.wPreview.close()
 
 	def previewWindowWillClose(self, sender):
+		self.tthtm.previewWindowOpened = 0
 		self.tthtm.previewWindowVisible = 0
+		setExtensionDefault(defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
 
 	def previewWindowMovedorResized(self, sender):
 		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
@@ -688,7 +695,7 @@ class programWindow(object):
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
-		self.tthtm.programWindowVisible = 1
+		self.tthtm.programWindowOpened = 1
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.wProgram.bind("move", self.programWindowMovedorResized)
 		self.wProgram.bind("resize", self.programWindowMovedorResized)
@@ -698,7 +705,9 @@ class programWindow(object):
 		self.wProgram.close()
 
 	def programWindowWillClose(self, sender):
+		self.tthtm.programWindowOpened = 0
 		self.tthtm.programWindowVisible = 0
+		setExtensionDefault(defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
 
 	def programWindowMovedorResized(self, sender):
 		self.tthtm.programWindowPosSize = self.wProgram.getPosSize()
@@ -732,11 +741,11 @@ class assemblyWindow(object):
 
 		self.assemblyList = []
 
-		self.wAssembly = FloatingWindow(getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize), "Assembly", minSize=(10050, 100))
+		self.wAssembly = FloatingWindow(getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize), "Assembly", minSize=(150, 100))
 		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
 
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
-		self.tthtm.assemblyWindowVisible = 1
+		self.tthtm.assemblyWindowOpened = 1
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
 		self.wAssembly.bind("move", self.assemblyWindowMovedorResized)
 		self.wAssembly.bind("resize", self.assemblyWindowMovedorResized)
@@ -746,11 +755,13 @@ class assemblyWindow(object):
 		self.wAssembly.close()
 
 	def assemblyWindowWillClose(self, sender):
+		self.tthtm.assemblyWindowOpened = 0
 		self.tthtm.assemblyWindowVisible = 0
+		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
 
 	def assemblyWindowMovedorResized(self, sender):
 		self.tthtm.assemblyWindowPosSize = self.wAssembly.getPosSize()
-		setExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize)
+		setExtensionDefault(defaultKeyAssemblyWindowPosSize, self.tthtm.assemblyWindowPosSize)
 
 	def updateAssemblyList(self, assembly):
 		self.wAssembly.assemblyList.set(assembly)
