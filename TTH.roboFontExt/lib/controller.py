@@ -2751,11 +2751,11 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.g.unicode == None:
 			return
 
-		if self.tthtm.selectedAxis == 'X':
-			text = u'⬌'
-		else:
-			text = u'⬍'
-		self.drawRawTextAtPoint(scale*(1000.0/self.tthtm.UPM), text, -100*scale*(1000.0/self.tthtm.UPM), 120*scale*(1000.0/self.tthtm.UPM), 120)
+		# if self.tthtm.selectedAxis == 'X':
+		# 	text = u'⬌'
+		# else:
+		# 	text = u'⬍'
+		# self.drawRawTextAtPoint(scale*(1000.0/self.tthtm.UPM), text, -100*scale*(1000.0/self.tthtm.UPM), 120*scale*(1000.0/self.tthtm.UPM), 120)
 
 		r = 5*scale
 		self.drawDiscAtPoint(r, 0, 0, discColor)

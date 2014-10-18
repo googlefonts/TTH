@@ -4,6 +4,8 @@ from AppKit import *
 from math import ceil
 
 bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
+blackColor = NSColor.blackColor()
+redColor = NSColor.redColor()
 
 class PreviewInGlyphWindow(NSView):
 
@@ -20,11 +22,24 @@ class PreviewInGlyphWindow(NSView):
 		bkgColor.set()
 		path.fill()
 
-		if self.TTHToolInstance.tthtm.selectedAxis == 'X':
-			text = u'⬌'
+		if self.TTHToolInstance.tthtm.selectedAxis == 'Y':
+			axisPath = NSBezierPath.bezierPath()
+			axisPath.moveToPoint_((250, 95))
+			axisPath.lineToPoint_((230, 75))
+			axisPath.lineToPoint_((230, 245))
+			axisPath.lineToPoint_((250, 225))
+			blackColor.set()
+			path.setLineWidth_(1)
+			axisPath.stroke()
 		else:
-			text = u'⬍'
-		self.TTHToolInstance.drawRawTextAtPoint(1, text, 250, 190, 120)
+			axisPath = NSBezierPath.bezierPath()
+			axisPath.moveToPoint_((60, 285))
+			axisPath.lineToPoint_((40, 265))
+			axisPath.lineToPoint_((210, 265))
+			axisPath.lineToPoint_((190, 285))
+			blackColor.set()
+			path.setLineWidth_(1)
+			axisPath.stroke()
 
 		self.clickableSizesGlyphWindow = {}
 		if self.TTHToolInstance.tthtm.g == None:
@@ -41,9 +56,9 @@ class PreviewInGlyphWindow(NSView):
 			tr.set_pen((advance, 40))
 			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
 			if size == self.TTHToolInstance.tthtm.PPM_Size:
-				color = NSColor.redColor()
+				color = redColor
 			else:
-				color = NSColor.blackColor()
+				color = blackColor
 			self.TTHToolInstance.drawPreviewSize(str(size), advance, 20, color)
 			advance += delta_pos[0] + 5
 
