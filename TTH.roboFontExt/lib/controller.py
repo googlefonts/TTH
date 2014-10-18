@@ -319,7 +319,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
-		self.previewInGlyphWindow = None
+		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
 
@@ -351,7 +351,7 @@ class TTHTool(BaseEventTool):
 	###############
 
 	def becomeActive(self):
-		self.previewInGlyphWindow = None
+		self.previewInGlyphWindow[self.tthtm.f] = None
 		if checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
 			self.drawingPreferencesChanged = True
@@ -362,9 +362,9 @@ class TTHTool(BaseEventTool):
 		self.updatePartialFont()
 
 	def becomeInactive(self):
-		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow != None:
-			self.previewInGlyphWindow.removeFromSuperview()
-			self.previewInGlyphWindow == None
+		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow[self.tthtm.f] != None:
+			self.previewInGlyphWindow[self.tthtm.f].removeFromSuperview()
+			self.previewInGlyphWindow[self.tthtm.f] == None
 
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -1069,8 +1069,8 @@ class TTHTool(BaseEventTool):
 		elif event.characters() == 'P':
 			if self.tthtm.showPreviewInGlyphWindow == 1:
 				self.tthtm.showPreviewInGlyphWindow = 0
-				self.previewInGlyphWindow.removeFromSuperview()
-				self.previewInGlyphWindow = None
+				self.previewInGlyphWindow[self.tthtm.f].removeFromSuperview()
+				self.previewInGlyphWindow[self.tthtm.f] = None
 			else:
 				self.tthtm.showPreviewInGlyphWindow = 1
 				UpdateCurrentGlyphView()
@@ -1116,9 +1116,9 @@ class TTHTool(BaseEventTool):
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
 
-			for i in self.previewInGlyphWindow.clickableSizesGlyphWindow:
+			for i in self.previewInGlyphWindow[self.tthtm.f].clickableSizesGlyphWindow:
 				if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-					self.changeSize(self.previewInGlyphWindow.clickableSizesGlyphWindow[i])
+					self.changeSize(self.previewInGlyphWindow[self.tthtm.f].clickableSizesGlyphWindow[i])
 
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
@@ -1815,6 +1815,7 @@ class TTHTool(BaseEventTool):
 		if CurrentFont() == None:
 			return
 		self.tthtm.setFont(CurrentFont())
+		self.previewInGlyphWindow[self.tthtm.f] = None
 		self.tthtm.setUPM(CurrentFont().info.unitsPerEm)
 		if checkSegmentType(self.tthtm.f) == False:
 			self.messageInFront = True
@@ -2927,14 +2928,14 @@ class TTHTool(BaseEventTool):
 
 		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
 			superview = self.getNSView().enclosingScrollView().superview()
-			if self.previewInGlyphWindow == None:
-				self.previewInGlyphWindow = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-				superview.addSubview_(self.previewInGlyphWindow)
+			if self.previewInGlyphWindow[self.tthtm.f] == None:
+				self.previewInGlyphWindow[self.tthtm.f] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+				superview.addSubview_(self.previewInGlyphWindow[self.tthtm.f])
 				
 			frame = superview.frame()
 			frame.size.width -= 30
 			frame.origin.x = 0
-			self.previewInGlyphWindow.setFrame_(frame)
+			self.previewInGlyphWindow[self.tthtm.f].setFrame_(frame)
 				#self.previewInGlyphWindow.setNeedsDisplay_(True)
 
 

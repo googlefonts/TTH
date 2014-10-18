@@ -55,6 +55,7 @@ class PreviewInGlyphWindow(NSView):
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 40))
 			delta_pos = tr.render_text(unichr(self.TTHToolInstance.tthtm.g.unicode))
+			
 			if size == self.TTHToolInstance.tthtm.PPM_Size:
 				color = redColor
 			else:
