@@ -30,9 +30,9 @@ def writeMAXPandGASP(f, codeppm):
 
 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
 
-def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 10
 
-	f.lib['com.robofont.robohint.maxp.maxFunctionDefs'] = 10
+def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 
 	table_CVT = []
 
