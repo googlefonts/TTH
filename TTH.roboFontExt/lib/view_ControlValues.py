@@ -20,22 +20,22 @@ class ZoneView(object):
 		self.controller = controller
 		self.UIZones = UIZones
 		self.zonesTitle = TextBox((10, height-24, -10, 14), title, sizeStyle = "small")
-		self.box = Box((10, height, -10, 132))
+		self.box = Box((10, height, -10, 152))
 		# put the title as a sub-widget of the zones window
 		controller.w.zoneBox.__setattr__(ID + 'ZoneViewTitle', self.zonesTitle)
 		# put the box as a sub-widget of the zones window
 		controller.w.zoneBox.__setattr__(ID + 'ZoneViewBox', self.box)
 		box = self.box
-		box.zones_List = List((0, 0, -0, 100), self.UIZones,
+		box.zones_List = List((0, 0, -0, 120), self.UIZones,
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
 					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
 			editCallback = self.UIZones_EditCallBack )
-		box.buttonRemoveZone = SquareButton((0, 100, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
-		box.editTextZoneName = EditText(    (22, 100, 160, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
-		box.editTextZonePosition = EditText(    (182, 100, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
-		box.editTextZoneWidth = EditText(    (237, 100, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
-		box.editTextZoneDelta = EditText(    (292, 100, 135, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
-		box.buttonAddZone     = SquareButton((-22, 100, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
+		box.buttonRemoveZone = SquareButton((0, 120, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
+		box.editTextZoneName = EditText(    (22, 120, 160, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
+		box.editTextZonePosition = EditText(    (182, 120, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneWidth = EditText(    (237, 120, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneDelta = EditText(    (292, 120, 135, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
+		box.buttonAddZone     = SquareButton((-22, 120, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
 
 	def set(self, uiZones):
 		self.UIZones = uiZones
@@ -330,6 +330,7 @@ class SheetControlValues(object):
 		w.generalBox.editTextAlignment.set(self.tthtm.alignppm)
 		w.generalBox.editTextInstructions = EditText((940, 0, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
 		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
+		w.generalBox.show(0)
 
 		controlsSegmentDescriptions = [
 			dict(width=50, title="Zones", toolTip="Zones Settings"),
@@ -339,17 +340,18 @@ class SheetControlValues(object):
 		]
 
 
-		w.zoneBox = Box((10, 50, 485, 380))
+		w.zoneBox = Box((10, 19, 485, 420))
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
-		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
-		w.zoneBox.autoZoneButton = Button((-60, 342, 50, 20), "Auto", sizeStyle = "small", callback=self.autoZoneButtonCallback)
+		self.bottomZoneView = ZoneView(self, 220, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
+		w.zoneBox.autoZoneButton = Button((-60, 382, 50, 20), "Auto", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		w.stemBox = Box((505, 50, 485, 380))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
 		self.verticalStemView	= StemView(self, 200, "X Stems", False, self.tthtm.buildStemsUIList(False))
-		w.stemBox.autoStemButton = Button((-60, 342, 50, 20), "Auto", sizeStyle = "small", callback=self.autoStemButtonCallback)
+		w.stemBox.autoStemButton = Button((-60, 382, 50, 20), "Auto", sizeStyle = "small", callback=self.autoStemButtonCallback)
 		w.stemBox.AutoStemProgressBar = ProgressBar((10, 344, -70, 16), sizeStyle = "small",  maxValue=100)
 		w.stemBox.AutoStemProgressBar.show(0)
+		w.stemBox.show(0)
 
 		w.controlsSegmentedButton = SegmentedButton((85, 10, 220, 18), controlsSegmentDescriptions, callback=self.controlsSegmentedButtonCallback, sizeStyle="mini")
 		w.controlsSegmentedButton.set(0)
@@ -359,7 +361,22 @@ class SheetControlValues(object):
 		w.open()
 
 	def controlsSegmentedButtonCallback(self, sender):
-		print sender.get()
+		if sender.get() == 0:
+			self.w.zoneBox.show(1)
+			self.w.stemBox.show(0)
+			self.w.generalBox.show(0)
+		if sender.get() == 1:
+			self.w.zoneBox.show(0)
+			self.w.stemBox.show(1)
+			self.w.generalBox.show(0)
+		if sender.get() == 2:
+			self.w.zoneBox.show(0)
+			self.w.stemBox.show(0)
+			self.w.generalBox.show(1)
+		if sender.get() == 3:
+			self.w.zoneBox.show(0)
+			self.w.stemBox.show(0)
+			self.w.generalBox.show(0)
 
 	def autoZoneButtonCallback(self, sender):
 		self.automation.autoZones(self.tthtm.f)
