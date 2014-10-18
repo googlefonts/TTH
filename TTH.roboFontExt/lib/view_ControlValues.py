@@ -331,6 +331,14 @@ class SheetControlValues(object):
 		w.generalBox.editTextInstructions = EditText((940, 0, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
 		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
 
+		controlsSegmentDescriptions = [
+			dict(width=50, title="Zones", toolTip="Zones Settings"),
+			dict(width=50, title="Stems", toolTip="Stems Settings"),
+			dict(width=50, title="General", toolTip="General Settings"),
+			dict(width=50, title="GASP", toolTip="GASP Settings")
+		]
+
+
 		w.zoneBox = Box((10, 50, 485, 380))
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
 		self.bottomZoneView = ZoneView(self, 200, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
@@ -343,9 +351,15 @@ class SheetControlValues(object):
 		w.stemBox.AutoStemProgressBar = ProgressBar((10, 344, -70, 16), sizeStyle = "small",  maxValue=100)
 		w.stemBox.AutoStemProgressBar.show(0)
 
+		w.controlsSegmentedButton = SegmentedButton((85, 10, 220, 18), controlsSegmentDescriptions, callback=self.controlsSegmentedButtonCallback, sizeStyle="mini")
+		w.controlsSegmentedButton.set(0)
+
 		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		w.open()
+
+	def controlsSegmentedButtonCallback(self, sender):
+		print sender.get()
 
 	def autoZoneButtonCallback(self, sender):
 		self.automation.autoZones(self.tthtm.f)

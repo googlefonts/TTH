@@ -289,7 +289,7 @@ class toolsWindow(BaseWindowController):
 		# self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
 		# 		callback=self.AutoFontButtonCallback)
 
-		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="small")
+		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
 		self.wTools.gear.getNSPopUpButton().setBordered_(False)
 
@@ -313,6 +313,8 @@ class toolsWindow(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
+			"Guess Glyph",
+			NSMenuItem.separatorItem(),
 			"Monochrome",
 			"Grayscale",
 			"Subpixel",
@@ -322,8 +324,6 @@ class toolsWindow(BaseWindowController):
 			"Assembly",
 			NSMenuItem.separatorItem(),
 			"Control Values",
-			NSMenuItem.separatorItem(),
-			"Guess Glyph",
 			NSMenuItem.separatorItem(),
 			"Preferences",
 			]
@@ -342,26 +342,32 @@ class toolsWindow(BaseWindowController):
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
 		if gearOption == 1:
-			self.TTHToolInstance.changeBitmapPreview("Monochrome")
-		if gearOption == 2:
-			self.TTHToolInstance.changeBitmapPreview("Grayscale")
+			self.autoGlyphCallback()
+
 		if gearOption == 3:
+			self.TTHToolInstance.changeBitmapPreview("Monochrome")
+		if gearOption == 4:
+			self.TTHToolInstance.changeBitmapPreview("Grayscale")
+		if gearOption == 5:
 			self.TTHToolInstance.changeBitmapPreview("Subpixel")
 
-		if gearOption == 5:
+		if gearOption == 7:
 			self.showPreviewCallback()
 			self.tthtm.previewWindowVisible = 1
 			setExtensionDefault(defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
-		if gearOption == 6:
+		if gearOption == 8:
 			self.showProgramCallback()
-		if gearOption == 7:
-			self.showAssemblyCallback()
-
+			self.tthtm.programWindowVisible = 1
+			setExtensionDefault(defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
 		if gearOption == 9:
-			self.controlValuesCallback()
+			self.showAssemblyCallback()
+			self.tthtm.assemblyWindowVisible = 1
+			setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
 
 		if gearOption == 11:
-			self.autoGlyphCallback()
+			self.controlValuesCallback()
+
+		
 
 
 	def controlValuesCallback(self):
