@@ -691,7 +691,7 @@ class programWindow(object):
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
-					columnDescriptions=[{"title": "index", "editable": False}, {"title": "code", "editable": False}, {"title": "point", "editable": False},
+					columnDescriptions=[{"title": "index", "width": 30, "editable": False}, {"title": "code", "editable": False}, {"title": "point", "editable": False},
 				{"title": "point1", "editable": False}, {"title": "point2", "editable": False}, {"title": "align", "editable": False},
 				{"title": "round", "editable": False}, {"title": "stem", "editable": False}, {"title": "zone", "editable": False},
 				{"title": "delta", "editable": False}, {"title": "ppm1", "editable": False}, {"title": "ppm2", "editable": False}],

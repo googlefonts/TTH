@@ -151,19 +151,6 @@ def getOrNone(dico, key):
 	except:
 		return None
 
-def loadFonts():
-	af = AllFonts()
-	if not af:
-		return
-	return af
-
-def loadCurrentFont(allFonts):
-	cf = CurrentFont()
-	for f in allFonts:
-		if f.fileName == cf.fileName:
-			return cf
-
-
 def getGlyphNameByUnicode(unicodeToNameDict, unicodeChar):
 	return unicodeToNameDict[unicodeChar]
 
@@ -1103,7 +1090,10 @@ class TTHTool(BaseEventTool):
 		candidatesList.sort()
 		if len(candidatesList) == 0:
 			return None
-		return candidatesList[0][1]
+		if candidatesList[0][0] <= .2*dist:
+			return candidatesList[0][1]
+		else:
+			return None
 
 	def didUndo(self, font):
 		self.readGlyphFLTTProgram(self.tthtm.g)
