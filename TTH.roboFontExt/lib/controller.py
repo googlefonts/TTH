@@ -779,7 +779,7 @@ class TTHTool(BaseEventTool):
 		self.c_fontModel.zones[name] = newZone
 		self.c_fontModel.f.lib[FL_tth_key]["zones"][name] = newZone
 		# add the zone in the UI
-		uiZone = self.tthtm.buildUIZoneDict(newZone, name)
+		uiZone = self.c_fontModel.buildUIZoneDict(newZone, name)
 		zoneView.box.zones_List.append(uiZone)
 		zoneView.UIZones.append(uiZone)
 
@@ -802,7 +802,7 @@ class TTHTool(BaseEventTool):
 						command['align'] = 'round'
 			self.writeGlyphFLTTProgram(g)
 		dummy = self.readGlyphFLTTProgram(self.getGlyph()) # recover the correct commands list
-		zoneView.set(self.tthtm.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
+		zoneView.set(self.c_fontModel.buildUIZonesList(buildTop = (zoneView.ID == 'top')))
 
 	def EditZone(self, oldZoneName, zoneName, zoneDict, isTop):
 		self.storeZone(zoneName, zoneDict, isTop)

@@ -435,9 +435,9 @@ class SheetControlValues(object):
 		self.controller.changeStemSnap(self.w.generalBox.editTextStemSnap.get())
 		self.controller.changeAlignppm(self.w.generalBox.editTextAlignment.get())
 		self.controller.changeCodeppm(self.w.generalBox.editTextInstructions.get())
-		self.controller.resetFonts()
-		self.controller.updateGlyphProgram()
-		self.controller.refreshGlyph()
+		self.controller.resetFont()
+		self.controller.updateGlyphProgram(self.controller.getGlyph())
+		self.controller.refreshGlyph(self.controller.getGlyph())
 
 	def editTextStemSnapCallback(self, sender):
 		try:
