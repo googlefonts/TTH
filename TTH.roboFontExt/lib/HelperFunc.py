@@ -1,5 +1,19 @@
 import math
 
+def getOrDefault(dico, key, default):
+	try:
+		return dico[key]
+	except:
+		return default
+
+def getOrPutDefault(dico, key, default):
+	try:
+		return dico[key]
+	except:
+		dico[key] = default
+	return default
+
+
 def directionForPairs((p1x, p1y), (p2x, p2y)):
 	direction_x = 4
 	direction_y = 4

@@ -118,14 +118,45 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def findGroups(g, ital, proj):
+def findGroups(g, ital, horizontal):
+	if horizontal:
+		proj = lambda p: p.x
+	else:
+		proj = lambda p: p.y
 	contours = [[]] * len(g)
-	byPos = []
+	byPos = {}
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
-		byPos.append(proj(hd.pos), contseg)
-	print byPos
+		pos = int(round(proj(hd.pos)))
+		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
+		ptsAtPos.append(contseg)
+
+	byPos = [(k, v) for (k, v) in byPos.iteritems() if len(v) > 1]
+	groups = {}
+	for pos, pts in byPos:
+		components = []
+		for (cont,seg) in pts:
+			if components == []:
+				components.append([(cont,seg)])
+				continue
+			lenc = len(contours[cont])
+			prevId = cont, (seg+lenc-1) % lenc
+			nextId = cont, (seg+1) % lenc
+			found = False
+			for comp in components:
+				if (prevId in comp) or (nextId in comp):
+					comp.append((cont,seg))
+					found = True
+					break
+			if not found:
+				components.append([(cont,seg)])
+		groups[pos] = components
+	for pos, comps in groups:
+		nbComps = len(comps)
+		for i in range(nbComps-1):
+			self.addSingleLink()
+	return groups
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -286,6 +317,7 @@ class AutoHinting():
 	def __init__(self, TTHToolInstance):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
+		self.singleLinkCommandName = { False: 'singlev', True:'singleh' }
 
 	def detectStems(self, g):
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
@@ -322,6 +354,13 @@ class AutoHinting():
 			return stemName
 		else:
 			return None
+
+	def addSingleLink(self, p1, p2, isHorizontal):
+		command = {}
+		command['code'] = self.singleLinkCommandName[isHorizontal]
+		command['point1'] = p1
+		command['point2'] = p2
+		self.TTHToolInstance.glyphTTHCommands.append(command)
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
 		if stemName == None:
@@ -423,21 +462,13 @@ class AutoHinting():
 						continue
 					if (prev_h_Point.x < onPt.pos.x and prev_h_Point.y == onPt.pos.y) or (next_h_Point.x < onPt.pos.x and next_h_Point.y == onPt.pos.y):
 						continue
-					newSiblingCommand = {}
-					newSiblingCommand['code'] = 'singlev'
-					newSiblingCommand['point1'] = t_pointName
-					newSiblingCommand['point2'] = h_pointName
-					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
+					self.addSingleLink(t_pointName, h_pointName, isHorizontal=False)
 				if axis == 'X' and abs(HF.shearPoint(onPt.pos, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(onPt.inAngle-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(onPt.outAngle-self.ital, self.tthtm.angleTolerance)):
 					if prev_h_Point.y == p_y or next_h_Point.y == p_y:
 						continue
 					if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
 						continue
-					newSiblingCommand = {}
-					newSiblingCommand['code'] = 'singleh'
-					newSiblingCommand['point1'] = t_pointName
-					newSiblingCommand['point2'] = h_pointName
-					self.TTHToolInstance.glyphTTHCommands.append(newSiblingCommand)
+					self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
 
 	#def getPrevNextONCurve(self, g, ref_point):
 	#	for index_c, c in enumerate(g):
@@ -518,13 +549,14 @@ class AutoHinting():
 		else:
 			self.ital = 0
 
-		findGroups(g, self.ital, lambda p:p.y)
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []
 		self.detectStems(g)
 		self.attachLinksToZones(g)
-		self.findSiblings(g)
+		#self.findSiblings(g)
+		findGroups(g, self.ital, horizontal=True)
+		findGroups(g, self.ital, horizontal=False)
 		self.autoAlignToZones(g)
 		#self.hintWidth(g)
 

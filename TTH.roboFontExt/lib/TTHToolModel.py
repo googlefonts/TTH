@@ -1,5 +1,6 @@
 from robofab.world import *
 from mojo.extensions import *
+import HelperFunc as HF
 
 defaultKeyStub = "com.sansplomb.TTH."
 defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
@@ -83,13 +84,13 @@ class TTHToolModel():
 
 	def setControlValues(self):
 		try:
-			tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
-			self.zones = self.getOrPutDefault(tth_lib, "zones", {})
-			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-			self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 72)
-			self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 64)
-			self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
-			self.stems = self.getOrPutDefault(tth_lib, "stems", {})
+			tth_lib = HF.getOrPutDefault(self.f.lib, FL_tth_key, {})
+			self.zones = HF.getOrPutDefault(tth_lib, "zones", {})
+			self.stems = HF.getOrPutDefault(tth_lib, "stems", {})
+			self.codeppm	= HF.getOrPutDefault(tth_lib, "codeppm", 72)
+			self.alignppm	= HF.getOrPutDefault(tth_lib, "alignppm", 64)
+			self.stemsnap	= HF.getOrPutDefault(tth_lib, "stemsnap", 17)
+			self.stems = HF.getOrPutDefault(tth_lib, "stems", {})
 		except:
 			print "ERROR: can't set font's control values"
 			pass
@@ -97,19 +98,6 @@ class TTHToolModel():
 
 	def invertedDictionary(self, dico):
 		return dict([(v,k) for (k,v) in dico.iteritems()])
-
-	def getOrDefault(self, dico, key, default):
-		try:
-			return dico[key]
-		except:
-			return default
-
-	def getOrPutDefault(self, dico, key, default):
-		try:
-			return dico[key]
-		except:
-			dico[key] = default
-			return default
 
 	def setFont(self, font):
 		self.f = font
@@ -252,7 +240,7 @@ class TTHToolModel():
 		c_stemDict['Width'] = stem['width']
 		invDico = self.invertedDictionary(stem['round'])
 		for i in range(1,7):
-			c_stemDict[str(i)+' px'] = self.getOrDefault(invDico, i, '0')
+			c_stemDict[str(i)+' px'] = HF.getOrDefault(invDico, i, '0')
 		return c_stemDict
 
 	def buildStemsUIList(self, horizontal=True):

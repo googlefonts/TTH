@@ -20,6 +20,7 @@ import tt_tables
 import TTHintAsm
 import view
 import TextRenderer as TR
+import HelperFunc as HF
 import preview
 
 import xml.etree.ElementTree as ET
@@ -810,8 +811,8 @@ class TTHTool(BaseEventTool):
 #================ Functions for Stems
 
 	def storeStem(self, stemName, entry, horizontal):
-		stem = self.tthtm.getOrPutDefault(self.tthtm.stems, stemName, {})
-		stem['width'] = self.tthtm.getOrDefault(entry, 'Width', 0)
+		stem = HF.getOrPutDefault(self.tthtm.stems, stemName, {})
+		stem['width'] = HF.getOrDefault(entry, 'Width', 0)
 		stem['horizontal'] = horizontal
 		# stems round dict
 		sr = {}
@@ -879,8 +880,8 @@ class TTHTool(BaseEventTool):
 
 		self.changeSelectedStemX('None')
 		self.changeSelectedStemY('None')
-		tth_lib = self.tthtm.getOrPutDefault(self.tthtm.f.lib, FL_tth_key, {})
-		self.tthtm.stems = self.tthtm.getOrPutDefault(tth_lib, "stems", {})
+		tth_lib = HF.getOrPutDefault(self.tthtm.f.lib, FL_tth_key, {})
+		self.tthtm.stems = HF.getOrPutDefault(tth_lib, "stems", {})
 		stemView.set(self.tthtm.buildStemsUIList(stemView.isHorizontal))
 
 		progressBar.set(0)
