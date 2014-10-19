@@ -370,7 +370,7 @@ class TTHTool(BaseEventTool):
 	def becomeInactive(self):
 		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow[self.c_fontModel.f.fileName] != None:
 			self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
-			self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None
+			self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
 
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -410,6 +410,10 @@ class TTHTool(BaseEventTool):
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
 			return
+		if font.fileName in self.previewInGlyphWindow:
+			if self.previewInGlyphWindow[font.fileName] != None:
+				self.previewInGlyphWindow[font.fileName].removeFromSuperview()
+				self.previewInGlyphWindow[font.fileName] = None
 
 		self.resetFont(createWindows=False)
 
@@ -445,6 +449,8 @@ class TTHTool(BaseEventTool):
 			self.fontModels[key] = TTHToolModel.fontModel(font)
 		else:
 			print "ERROR: A font was opened that I already knew about"
+
+		self.previewInGlyphWindow[key] = None
 
 		self.toolsWindow.wTools.show()
 		if self.tthtm.programWindowOpened == 1:
@@ -1085,8 +1091,9 @@ class TTHTool(BaseEventTool):
 		elif event.characters() == 'P':
 			if self.tthtm.showPreviewInGlyphWindow == 1:
 				self.tthtm.showPreviewInGlyphWindow = 0
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
+				if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
+					self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
+					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
 			else:
 				self.tthtm.showPreviewInGlyphWindow = 1
 				UpdateCurrentGlyphView()
@@ -1136,9 +1143,10 @@ class TTHTool(BaseEventTool):
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
 
-			for i in self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow:
-				if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-					self.changeSize(self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow[i])
+			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
+				for i in self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow:
+					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+						self.changeSize(self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow[i])
 
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
@@ -1855,7 +1863,10 @@ class TTHTool(BaseEventTool):
 
 		f = self.c_fontModel.f
 
-		self.previewInGlyphWindow[f] = None
+		if f.fileName in self.previewInGlyphWindow:
+			if self.previewInGlyphWindow[f.fileName] != None:
+				self.previewInGlyphWindow[f.fileName].removeFromSuperview()
+				self.previewInGlyphWindow[f.fileName] = None
 		self.c_fontModel.setUPM(f.info.unitsPerEm)
 		if checkSegmentType(f) == False:
 			self.messageInFront = True
@@ -2970,14 +2981,15 @@ class TTHTool(BaseEventTool):
 
 		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
 			superview = self.getNSView().enclosingScrollView().superview()
-			if self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None:
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-				superview.addSubview_(self.previewInGlyphWindow[self.c_fontModel.f.fileName])
+			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
+				if self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None:
+					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+					superview.addSubview_(self.previewInGlyphWindow[self.c_fontModel.f.fileName])
 				
-			frame = superview.frame()
-			frame.size.width -= 30
-			frame.origin.x = 0
-			self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
+				frame = superview.frame()
+				frame.size.width -= 30
+				frame.origin.x = 0
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
 				#self.previewInGlyphWindow.setNeedsDisplay_(True)
 
 
