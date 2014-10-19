@@ -20,7 +20,7 @@ class TRCache (object):
 
 class TextRenderer(object):
 
-	def __init__(self, face_path, renderMode, TTHToolInstance):
+	def __init__(self, face_path, renderMode):
 		try:
 			self.face = FT.Face(face_path)
 			# the glyph slot in the face, from which we extract the images
@@ -40,8 +40,6 @@ class TextRenderer(object):
 		# drawing position
 		self.pen = (0,0)
 		self.set_cur_size(9)
-
-		self.TTHToolInstance = TTHToolInstance
 
 		self.outlinecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
 

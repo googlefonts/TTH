@@ -34,160 +34,6 @@ defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
 defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
 
 
-# class centralWindow(object):
-# 	def __init__(self, TTHToolInstance):
-# 		#self.screenArea = preview.ScreenArea.alloc().init()
-# 		# print screenArea.frame()
-# 		# screenArea.setFrameOrigin_((800, 800))
-# 		# screenArea.setFrameSize_((800, 800))
-# 		# screenArea.setNeedsDisplay_(True)
-# 		# print screenArea.frame().origin
-
-# 		self.TTHToolInstance = TTHToolInstance
-# 		self.tthtm = TTHToolInstance.tthtm
-# 		self.wCentral = FloatingWindow(self.tthtm.centralWindowPosSize, "Central", closable = False)
-
-# 		self.PPMSizesList = [str(i) for i in range(9, 73)]
-
-# 		self.BitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
-
-# 		self.panelsList = [u'…', 'Preview', 'Program', 'Assembly']
-
-# 		self.wCentral.PPEMSizeText= TextBox((10, 12, 50, 15), "ppEm:", sizeStyle = "mini")
-		
-# 		self.wCentral.PPEMSizeEditText = EditText((60, 10, 30, 15), sizeStyle = "mini", 
-# 				callback=self.PPEMSizeEditTextCallback)
-
-# 		self.wCentral.PPEMSizeEditText.set(self.tthtm.PPM_Size)
-		
-# 		self.wCentral.PPEMSizePopUpButton = PopUpButton((100, 10, 40, 15),
-# 				self.PPMSizesList, sizeStyle = "mini",
-# 				callback=self.PPEMSizePopUpButtonCallback)
-
-# 		self.wCentral.BitmapPreviewText= TextBox((10, 32, 50, 15), "Preview:", sizeStyle = "mini")
-# 		self.wCentral.BitmapPreviewPopUpButton = PopUpButton((60, 30, 80, 15),
-# 				self.BitmapPreviewList, sizeStyle = "mini",
-# 				callback=self.BitmapPreviewPopUpButtonCallback)
-
-		
-# 		self.wCentral.PanelsText= TextBox((10, 52, 50, 15), "Panels:", sizeStyle = "mini")
-# 		self.wCentral.PanelsPopButton = PopUpButton((60, 50, -10, 15), self.panelsList, sizeStyle = 'mini', 
-# 				callback=self.PanelsPopButtonCallback)
-
-# 		self.wCentral.AlwaysRefreshText = TextBox((10, -63, -10, 15), 'Always Refresh:', sizeStyle = 'mini')
-# 		self.wCentral.AlwaysRefreshCheckBox = CheckBox((-20, -65, 15, 15), '',  sizeStyle = 'mini', callback = self.AlwaysRefreshCheckBoxCallback)
-# 		self.wCentral.AlwaysRefreshCheckBox.set(1)
-# 		self.wCentral.RefreshButton = Button((10, -45, -10, 15), "Refresh Glyph", sizeStyle = 'mini', 
-# 				callback=self.RefreshGlyphButtonCallback)
-
-
-# 		# self.wCentral.AssemblyShowButton = Button((10, -85, -10, 15), "Glyph Assembly", sizeStyle = 'mini', 
-# 		# 		callback=self.AssemblyShowButtonCallback)
-
-# 		# self.wCentral.ProgramShowButton = Button((10, -65, -10, 15), "Glyph Program", sizeStyle = 'mini', 
-# 		# 		callback=self.ProgramShowButtonCallback)
-
-# 		# self.wCentral.PreviewShowButton = Button((10, -45, -10, 15), "Preview Window", sizeStyle = 'mini', 
-# 		# 		callback=self.PreviewShowButtonCallback)
-
-# 		self.wCentral.ControlValuesButton = Button((10, -25, -10, 15), "Control Values", sizeStyle = 'mini', 
-# 				callback=self.ControlValuesButtonCallback)
-
-# 		self.wCentral.bind("move", self.centralWindowMovedorResized)
-# 		self.wCentral.open()
-
-# 	def closeCentral(self):
-# 		self.wCentral.close()
-
-# 	def centralWindowMovedorResized(self, sender):
-# 		self.tthtm.centralWindowPosSize = self.wCentral.getPosSize()
-
-# 	def PPEMSizeEditTextCallback(self, sender):
-# 		self.TTHToolInstance.changeSize(sender.get())
-
-# 	def PPEMSizePopUpButtonCallback(self, sender):
-# 		if self.tthtm.g == None:
-# 			return
-# 		size = self.PPMSizesList[sender.get()]
-# 		self.TTHToolInstance.changeSize(size)
-
-# 	def BitmapPreviewPopUpButtonCallback(self, sender):
-# 		self.TTHToolInstance.changeBitmapPreview(self.BitmapPreviewList[sender.get()])
-
-# 	def PrintTTProgramButtonCallback(self, sender):
-# 		FLTTProgram = self.TTHToolInstance.readGlyphFLTTProgram(self.tthtm.g)
-# 		if not FLTTProgram:
-# 			print 'There is no Program in this glyph'
-# 			return
-# 		for i in FLTTProgram:
-# 			print i
-
-# 	def PrintAssemblyButtonCallback(self, sender):
-# 		glyphAssembly = ''
-# 		if 'com.robofont.robohint.assembly' in self.tthtm.g.lib:
-# 			glyphAssembly = self.tthtm.g.lib['com.robofont.robohint.assembly']
-# 		if not glyphAssembly:
-# 			print 'There is no Assembly in this glyph'
-# 			return
-# 		for i in glyphAssembly:
-# 			print i
-
-# 	def RefreshGlyphButtonCallback(self, sender):
-# 		self.TTHToolInstance.refreshGlyph()
-# 		self.TTHToolInstance.updateGlyphProgram()
-
-# 	def AlwaysRefreshCheckBoxCallback(self, sender):
-# 		self.TTHToolInstance.changeAlwaysRefresh(sender.get())
-
-# 	def PanelsPopButtonCallback(self, sender):
-# 		selection = sender.get()
-# 		if selection == 1:
-# 			self.PreviewShowButtonCallback(sender)
-# 		if selection == 2:
-# 			self.ProgramShowButtonCallback(sender)
-# 		if selection == 3:
-# 			self.AssemblyShowButtonCallback(sender)
-# 		sender.set(0)
-
-
-# 	def PreviewShowButtonCallback(self, sender):
-# 		if self.tthtm.previewWindowOpened == 0:
-
-# 			for i in string.lowercase:
-# 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-# 			for i in string.uppercase:
-# 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-# 			for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-# 				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-
-# 			self.TTHToolInstance.updatePartialFont()
-# 			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
-# 			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
-# 			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]+1, self.tthtm.previewWindowPosSize[3]+1, animate=False)
-
-# 	def ControlValuesButtonCallback(self, sender):
-# 		sheet = CV.SheetControlValues(self, self.wCentral, self.tthtm, self.TTHToolInstance)
-
-# 	def ProgramShowButtonCallback(self, sender):
-# 		if self.tthtm.programWindowOpened == 0:
-# 			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
-# 			self.TTHToolInstance.resetglyph()
-
-# 	def AssemblyShowButtonCallback(self, sender):
-# 		if self.tthtm.assemblyWindowOpened == 0:
-# 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
-# 			self.TTHToolInstance.resetglyph()
-
-# 	def PanelsShowButtonCallback(self, sender):
-# 		self.menuAction = NSMenu.alloc().init()
-# 		items = []
-# 		items.append(('Preview', self.PreviewShowButtonCallback))
-# 		items.append(('Program', self.ProgramShowButtonCallback))
-# 		items.append(('Assembly', self.AssemblyShowButtonCallback))
-# 		menuController = BaseMenu()
-# 		menuController.buildAdditionContectualMenuItems(self.menuAction, items)
-# 		NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.TTHToolInstance.getCurrentEvent(), self.TTHToolInstance.getNSView())
-
 class toolsWindow(BaseWindowController):
 	def __init__(self, TTHToolInstance):
 		BaseWindowController.__init__(self)
@@ -284,11 +130,6 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange2EditText.show(False)
 		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
-
-		# self.wTools.AutoGlyphButton = Button((10, -25, self.tthtm.toolsWindowPosSize[2]/2.0 -10, 15), "Auto-Glyph", sizeStyle = 'mini', 
-		# 		callback=self.AutoGlyphButtonCallback)
-		# self.wTools.AutoFontButton = Button((self.tthtm.toolsWindowPosSize[2]/2.0 +10, -25, -10, 15), "Auto-Font", sizeStyle = 'mini', 
-		# 		callback=self.AutoFontButtonCallback)
 
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
@@ -397,12 +238,13 @@ class toolsWindow(BaseWindowController):
 			self.TTHToolInstance.resetglyph()
 
 	def autoGlyphCallback(self):
-		self.tthtm.g.prepareUndo("Auto-hint Glyph")
-		self.autohinting.autohint(self.tthtm.g)
-		self.TTHToolInstance.updateGlyphProgram()
+		g = self.TTHToolInstance.getGlyph()
+		g.prepareUndo("Auto-hint Glyph")
+		self.autohinting.autohint(g)
+		self.TTHToolInstance.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
-			self.TTHToolInstance.refreshGlyph()
-		self.tthtm.g.performUndo()
+			self.TTHToolInstance.refreshGlyph(g)
+		g.performUndo()
 
 
 	def refreshButtonCallback(self, sender):
@@ -495,7 +337,8 @@ class toolsWindow(BaseWindowController):
 		self.TTHToolInstance.changeSize(sender.get())
 
 	def PPEMSizePopUpButtonCallback(self, sender):
-		if self.tthtm.g == None:
+		g = self.TTHToolInstance.getGlyph()
+		if g == None:
 			return
 		size = self.PPMSizesList[sender.get()]
 		self.TTHToolInstance.changeSize(size)
@@ -574,7 +417,7 @@ class toolsWindow(BaseWindowController):
 	def AutoFontButtonCallback(self, sender):
 		progress = self.startProgress(u'Auto-hinting Font…')
 		progress.setTickCount(len(self.tthtm.f))
-		for g in self.tthtm.f:
+		for g in self.TTHToolInstance.c_fontModel.f:
 			g.prepareUndo("Auto-hint Font")
 			self.autohinting.autohint(g)
 			self.TTHToolInstance.updateGlyphProgram()

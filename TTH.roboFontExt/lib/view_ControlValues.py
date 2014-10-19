@@ -65,14 +65,14 @@ class ZoneView(object):
 
 		if oldZoneName != newZoneName:
 			#print "Original zone name = ", oldZoneName, ", new zone name = ", newZoneName
-			if newZoneName in self.controller.tthtm.zones:
+			if newZoneName in self.controller.c_fontModel.zones:
 				print "ERROR: Can't use an already existing name."
 				newZoneName = oldZoneName
 				sender[sel]['Name'] = newZoneName
 				self.lock = False
 				return
 			else:
-				del self.controller.tthtm.zones[oldZoneName]
+				del self.controller.c_fontModel.zones[oldZoneName]
 		self.UIZones[sel] = sender[sel]
 		self.controller.controller.EditZone(oldZoneName, newZoneName, zoneDict, self.ID == 'top')
 		self.lock = False
@@ -101,7 +101,7 @@ class ZoneView(object):
 
 	def buttonAddZoneCallback(self, sender):
 		name = self.box.editTextZoneName.get()
-		if name == '' or name in self.controller.tthtm.zones:
+		if name == '' or name in self.controller.c_fontModel.zones:
 			return
 		position = int(self.box.editTextZonePosition.get())
 		width = int(self.box.editTextZoneWidth.get())
@@ -196,21 +196,21 @@ class StemView(object):
 
 		if oldStemName != newStemName:
 			#print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
-			if newStemName in self.controller.controller.tthtm.stems:
+			if newStemName in self.controller.controller.c_fontModel.stems:
 				print "ERROR: Can't use an already existing name."
 				newStemName = oldStemName
 				sender[sel]['Name'] = newStemName
 				self.lock = False
 				return
 			else:
-				del self.controller.controller.tthtm.stems[oldStemName]
+				del self.controller.controller.c_fontModel.stems[oldStemName]
 		self.UIStems[sel] = sender[sel]
 
 		self.controller.controller.EditStem(oldStemName, newStemName, stemDict, self.isHorizontal)
 		if self.isHorizontal:
-			self.box.stemsList.set(self.controller.tthtm.buildStemsUIList(horizontal=True))
+			self.box.stemsList.set(self.controller.c_fontModel.buildStemsUIList(horizontal=True))
 		else:
-			self.box.stemsList.set(self.controller.tthtm.buildStemsUIList(horizontal=False))
+			self.box.stemsList.set(self.controller.c_fontModel.buildStemsUIList(horizontal=False))
 		self.lock = False
 
 	def editTextDummyCallback(self, sender):
@@ -227,9 +227,9 @@ class StemView(object):
 		sender.set(value)
 		roundedStem = roundbase(value, 20)
 		if roundedStem != 0:
-			stemPitch = float(self.controller.controller.tthtm.UPM)/roundedStem
+			stemPitch = float(self.controller.controller.c_fontModel.UPM)/roundedStem
 		else:
-			stemPitch = float(self.controller.controller.tthtm.UPM)/value
+			stemPitch = float(self.controller.controller.c_fontModel.UPM)/value
 		self.box.editTextStem1px.set(str(0))
 		self.box.editTextStem2px.set(str(int(2*stemPitch)))
 		self.box.editTextStem3px.set(str(int(3*stemPitch)))
@@ -313,7 +313,7 @@ class StemView(object):
 class SheetControlValues(object):
 
 	def __init__(self, baseWindow, parent, model, controller):
-		self.tthtm = model
+		self.c_fontModel = controller.c_fontModel
 		self.controller = controller
 		self.baseWindow = baseWindow
 		self.w = Sheet((505, 480), parentWindow=parent)
@@ -325,11 +325,11 @@ class SheetControlValues(object):
 		w.generalBox.InstructionsTitle= TextBox((10, 54, 250, 22), "Do not execute instructions above (ppEm)", sizeStyle = "small")
 
 		w.generalBox.editTextStemSnap = EditText((-40, 10, 30, 17), sizeStyle = "small", callback=self.editTextStemSnapCallback)
-		w.generalBox.editTextStemSnap.set(self.tthtm.stemsnap)
+		w.generalBox.editTextStemSnap.set(self.c_fontModel.stemsnap)
 		w.generalBox.editTextAlignment = EditText((-40, 32, 30, 17), sizeStyle = "small", callback=self.editTextAlignmentCallback)
-		w.generalBox.editTextAlignment.set(self.tthtm.alignppm)
+		w.generalBox.editTextAlignment.set(self.c_fontModel.alignppm)
 		w.generalBox.editTextInstructions = EditText((-40, 54, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
-		w.generalBox.editTextInstructions.set(self.tthtm.codeppm)
+		w.generalBox.editTextInstructions.set(self.c_fontModel.codeppm)
 		w.generalBox.show(0)
 
 		controlsSegmentDescriptions = [
@@ -341,13 +341,13 @@ class SheetControlValues(object):
 
 
 		w.zoneBox = Box((10, 19, -10, -40))
-		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.tthtm.buildUIZonesList(buildTop=True))
-		self.bottomZoneView = ZoneView(self, 220, "Bottom zones", 'bottom', self.tthtm.buildUIZonesList(buildTop=False))
+		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.c_fontModel.buildUIZonesList(buildTop=True))
+		self.bottomZoneView = ZoneView(self, 220, "Bottom zones", 'bottom', self.c_fontModel.buildUIZonesList(buildTop=False))
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		w.stemBox = Box((10, 19, -10, -40))
-		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.tthtm.buildStemsUIList(True))
-		self.verticalStemView	= StemView(self, 220, "X Stems", False, self.tthtm.buildStemsUIList(False))
+		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.c_fontModel.buildStemsUIList(True))
+		self.verticalStemView	= StemView(self, 220, "X Stems", False, self.c_fontModel.buildStemsUIList(False))
 		w.stemBox.autoStemButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 		w.stemBox.AutoStemProgressBar = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
 		w.stemBox.AutoStemProgressBar.show(0)
@@ -420,11 +420,11 @@ class SheetControlValues(object):
 
 
 	def autoZoneButtonCallback(self, sender):
-		self.automation.autoZones(self.tthtm.f)
+		self.automation.autoZones(self.c_fontModel.f)
 
 	def autoStemButtonCallback(self, sender):
 		self.w.stemBox.AutoStemProgressBar.show(1)
-		self.automation.autoStems(self.tthtm.f, self.w.stemBox.AutoStemProgressBar)
+		self.automation.autoStems(self.c_fontModel.f, self.w.stemBox.AutoStemProgressBar)
 		self.w.stemBox.AutoStemProgressBar.show(0)
 
 	def closeButtonCallback(self, sender):
@@ -446,8 +446,8 @@ class SheetControlValues(object):
 			value = 0
 			sender.set(0)
 
-		self.tthtm.f.lib[FL_tth_key]["stemsnap"] = value
-		self.tthtm.stemsnap = value
+		self.c_fontModel.f.lib[FL_tth_key]["stemsnap"] = value
+		self.c_fontModel.stemsnap = value
 
 	def editTextAlignmentCallback(self, sender):
 		try:
@@ -456,8 +456,8 @@ class SheetControlValues(object):
 			value = 0
 			sender.set(0)
 
-		self.tthtm.f.lib[FL_tth_key]["alignppm"] = value
-		self.tthtm.alignppm = value
+		self.c_fontModel.f.lib[FL_tth_key]["alignppm"] = value
+		self.c_fontModel.alignppm = value
 
 	def editTextInstructionsCallback(self, sender):
 		try:
@@ -466,8 +466,8 @@ class SheetControlValues(object):
 			value = 0
 			sender.set(0)
 
-		self.tthtm.f.lib[FL_tth_key]["codeppm"] = value
-		self.tthtm.codeppm = value
+		self.c_fontModel.f.lib[FL_tth_key]["codeppm"] = value
+		self.c_fontModel.codeppm = value
 
 reload(tt_tables)
 reload(TTHintAsm)

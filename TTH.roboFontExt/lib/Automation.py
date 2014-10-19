@@ -188,9 +188,9 @@ class Automation():
 			#stemPitch = float(self.tthtm.UPM)/width
 			roundedStem = HF.roundbase(width, roundFactor_Jumps)
 			if roundedStem != 0:
-				stemPitch = float(self.tthtm.UPM)/roundedStem
+				stemPitch = float(self.c_fontModel.UPM)/roundedStem
 			else:
-				stemPitch = float(self.tthtm.UPM)/width
+				stemPitch = float(self.c_fontModel.UPM)/width
 				# FIXME maybe, here we should juste skip this width and 'continue'?
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
@@ -207,7 +207,7 @@ class Automation():
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
-		if stemName in self.tthtm.stems:
+		if stemName in self.c_fontModel.stems:
 			return
 		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		if isHorizontal:
@@ -250,7 +250,7 @@ class Automation():
 
 
 	def addZone(self, zoneName, ID, position, width, delta='0@0'):
-		if zoneName in self.tthtm.zones:
+		if zoneName in self.c_fontModel.zones:
 			return
 		deltaDict = self.TTHToolInstance.deltaDictFromString(delta)
 
@@ -299,7 +299,7 @@ class AutoHinting():
 		else:
 			detectedWidth = abs(p1.x - p2.x)
 		candidatesList = []
-		for stemName, stem in self.tthtm.stems.iteritems():
+		for stemName, stem in self.TTHToolInstance.c_fontModel.stems.iteritems():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
 			if abs(w - detectedWidth) <= detectedWidth*0.20:
@@ -376,7 +376,7 @@ class AutoHinting():
 		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 
 	def zoneAt(self, y):
-		for item in self.tthtm.zones.iteritems():
+		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
 			zoneName, isTop, yStart, yEnd = zoneData(item)
 			if HF.inInterval(y, (yStart, yEnd)):
 				return (zoneName, isTop)
@@ -466,7 +466,7 @@ class AutoHinting():
 		touchedPoints = self.findTouchedPoints(g)
 		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
-		zones = [zoneData(item) for item in self.tthtm.zones.iteritems()]
+		zones = [zoneData(item) for item in self.TTHToolInstance.c_fontModel.zones.iteritems()]
 		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 
 		for onPt, (cidx, sidx) in hPoints:
@@ -502,13 +502,12 @@ class AutoHinting():
 
 
 	def autohint(self, g):
-		if self.tthtm.f.info.italicAngle != None:
-			self.ital = - self.tthtm.f.info.italicAngle
+		if self.TTHToolInstance.c_fontModel.f.info.italicAngle != None:
+			self.ital = - self.TTHToolInstance.c_fontModel.f.info.italicAngle
 		else:
 			self.ital = 0
 
-		self.tthtm.setGlyph(g)
-		self.TTHToolInstance.resetglyph()
+		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 		self.detectStems(g)
 		self.attachLinksToZones(g)
