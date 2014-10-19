@@ -28,7 +28,7 @@ class HintingData(object):
 		self.inAngle = ina
 		self.outAngle = outa
 
-def hintingData(g, ital, (cidx, sidx)):
+def makeHintingData(g, ital, (cidx, sidx)):
 	"""Compute data relevant to hinting for the ON point in the
 	sidx-th segment of the cidx-th contour of glyph 'g'."""
 	contour = g[cidx]
@@ -75,7 +75,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 			wc[0] = hasSomeWhite(source, target, g, maxStemX, maxStemY)
 		return wc[0]
 
-	hPoints = [hintingData(g, italicAngle, contSeg) for contSeg in contourSegmentIterator(g)]
+	hPoints = [makeHintingData(g, italicAngle, contSeg) for contSeg in contourSegmentIterator(g)]
 	for gidx, src in enumerate(hPoints):
 		for tgt in hPoints[gidx+1:]:
 			existingStems = {'h':False, 'v':False, 'd':False}
@@ -116,7 +116,18 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 	return (stemsListX, stemsListY)
 
-### - - - - - - - - - - -  - - - - - - - - - - - - - - - - - - - - - - 
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def findGroups(g, ital, proj):
+	contours = [[]] * len(g)
+	byPos = []
+	for contseg in contourSegmentIterator(g):
+		hd = makeHintingData(g, ital, contseg)
+		contours[contseg[0]].append(hd)
+		byPos.append(proj(hd.pos), contseg)
+	print byPos
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Automation():
 	def __init__(self, controller, TTHToolInstance):
@@ -392,7 +403,7 @@ class AutoHinting():
 			else:
 				touchedPointsNames_Y.append(name)
 
-		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
+		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 		for t_pointName, axis in touchedPoints:
 			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[t_pointName]
 			for onPt, (cidx, sidx) in hPoints:
@@ -467,7 +478,7 @@ class AutoHinting():
 		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
 		zones = [zoneData(item) for item in self.tthtm.zones.iteritems()]
-		hPoints = [(hintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
+		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 
 		for onPt, (cidx, sidx) in hPoints:
 			contour = g[cidx]
@@ -507,6 +518,7 @@ class AutoHinting():
 		else:
 			self.ital = 0
 
+		findGroups(g, self.ital, lambda p:p.y)
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []
