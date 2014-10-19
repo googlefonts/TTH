@@ -188,9 +188,9 @@ class Automation():
 			#stemPitch = float(self.tthtm.UPM)/width
 			roundedStem = HF.roundbase(width, roundFactor_Jumps)
 			if roundedStem != 0:
-				stemPitch = float(self.c_fontModel.UPM)/roundedStem
+				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/roundedStem
 			else:
-				stemPitch = float(self.c_fontModel.UPM)/width
+				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/width
 				# FIXME maybe, here we should juste skip this width and 'continue'?
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
@@ -207,7 +207,7 @@ class Automation():
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
-		if stemName in self.c_fontModel.stems:
+		if stemName in self.TTHToolInstance.c_fontModel.stems:
 			return
 		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		if isHorizontal:
@@ -250,7 +250,7 @@ class Automation():
 
 
 	def addZone(self, zoneName, ID, position, width, delta='0@0'):
-		if zoneName in self.c_fontModel.zones:
+		if zoneName in self.TTHToolInstance.c_fontModel.zones:
 			return
 		deltaDict = self.TTHToolInstance.deltaDictFromString(delta)
 

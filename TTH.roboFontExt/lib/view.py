@@ -80,7 +80,7 @@ class toolsWindow(BaseWindowController):
 		self.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.PPMSizesList = [str(i) for i in range(9, 73)]
-		self.wTools.PPEMSizePopUpButton = PopUpButton((40, 14, 40, 15),
+		self.wTools.PPEMSizePopUpButton = PopUpButton((40, 14, 40, 16),
 				self.PPMSizesList, sizeStyle = "mini",
 				callback=self.PPEMSizePopUpButtonCallback)
 
@@ -91,14 +91,14 @@ class toolsWindow(BaseWindowController):
 		self.wTools.toolsSegmentedButton.set(0)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
-		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 15),
+		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 16),
 				self.alignmentTypeListDisplay, sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
 		self.wTools.AlignmentTypeText.show(True)
 		self.wTools.AlignmentTypePopUpButton.show(True)
 
 		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
-		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 15),
+		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 16),
 				self.stemTypeList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wTools.StemTypeText.show(False)
@@ -206,12 +206,8 @@ class toolsWindow(BaseWindowController):
 		if gearOption == 11:
 			self.controlValuesCallback()
 
-		
-
-
 	def controlValuesCallback(self):
-		sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
-
+		self.sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
 
 	def showPreviewCallback(self):
 		if self.tthtm.previewWindowOpened == 0:

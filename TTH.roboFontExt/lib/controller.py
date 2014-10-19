@@ -368,9 +368,10 @@ class TTHTool(BaseEventTool):
 		self.updatePartialFont()
 
 	def becomeInactive(self):
-		if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow[self.c_fontModel.f.fileName] != None:
-			self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
-			self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
+		if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
+			if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow[self.c_fontModel.f.fileName] != None:
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
 
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
@@ -423,6 +424,12 @@ class TTHTool(BaseEventTool):
 
 		if self.fontClosed:
 			return
+
+		if hasattr(self.toolsWindow, 'sheet'):
+			self.toolsWindow.sheet.c_fontModel = self.c_fontModel
+			self.toolsWindow.sheet.resetGeneralBox()
+			self.toolsWindow.sheet.resetStemBox()
+			self.toolsWindow.sheet.resetZoneBox()
 
 		self.resetFont(createWindows=False)
 		self.updatePartialFont()
@@ -733,29 +740,29 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setAlwaysRefresh(valueBool)
 		#self.centralWindow.wCentral.AlwaysRefreshCheckBox.set(self.tthtm.alwaysRefresh)
 
-	def changeStemSnap(self, value):
+	def changeStemSnap(self, f, value):
 		try:
 			value = int(value)
 		except ValueError:
 			value = 17
 		self.c_fontModel.setStemsnap(value)
-		self.c_fontModel.f.lib["com.fontlab.v2.tth"]["stemsnap"] = value
+		f.lib["com.fontlab.v2.tth"]["stemsnap"] = value
 
-	def changeAlignppm(self, value):
+	def changeAlignppm(self, f, value):
 		try:
 			value = int(value)
 		except ValueError:
 			value = 48
 		self.c_fontModel.setAlignppm(value)
-		self.c_fontModel.f.lib["com.fontlab.v2.tth"]["alignppm"] = value
+		f.lib["com.fontlab.v2.tth"]["alignppm"] = value
 
-	def changeCodeppm(self, value):
+	def changeCodeppm(self, f, value):
 		try:
 			value = int(value)
 		except ValueError:
 			value = 48
 		self.c_fontModel.setCodeppm(value)
-		self.c_fontModel.f.lib["com.fontlab.v2.tth"]["codeppm"] = value
+		f.lib["com.fontlab.v2.tth"]["codeppm"] = value
 
 	def makeStemsListsPopUpMenu(self):
 		self.tthtm.stemsListX = ['None', 'Guess']
@@ -790,6 +797,8 @@ class TTHTool(BaseEventTool):
 		zoneView.UIZones.append(uiZone)
 
 	def deleteZones(self, selected, zoneView):
+		if selected == []:
+			return
 		for zoneName in selected:
 			try:
 				del self.c_fontModel.f.lib[FL_tth_key]["zones"][zoneName]

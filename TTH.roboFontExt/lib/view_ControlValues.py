@@ -366,10 +366,14 @@ class SheetControlValues(object):
 			editCallback = self.gaspSettingsList_EditCallBack )
 		w.gaspBox.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
 		w.gaspBox.rangeEditText = EditText((32, -32, 56, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
-		w.gaspBox.GAA_PopUpButton = PopUpButton((88, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.GF_PopUpButton = PopUpButton((183, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.SGF_PopUpButton = PopUpButton((273, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.SS_PopUpButton = PopUpButton((363, -32, 80, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.GAA_PopUpButton = PopUpButton((98, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.GAA_PopUpButton.getNSPopUpButton().setBordered_(False)
+		w.gaspBox.GF_PopUpButton = PopUpButton((183, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.GF_PopUpButton.getNSPopUpButton().setBordered_(False)
+		w.gaspBox.SGF_PopUpButton = PopUpButton((273, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.SGF_PopUpButton.getNSPopUpButton().setBordered_(False)
+		w.gaspBox.SS_PopUpButton = PopUpButton((363, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
+		w.gaspBox.SS_PopUpButton.getNSPopUpButton().setBordered_(False)
 		w.gaspBox.buttonAddRange = SquareButton((-32, -32, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddRangeCallback)
 		w.gaspBox.show(0)
 
@@ -379,6 +383,20 @@ class SheetControlValues(object):
 		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.closeButton = Button((-70, -32, 60, 22), "OK", sizeStyle = "small", callback=self.closeButtonCallback)
 		w.open()
+
+	def resetGeneralBox(self):
+		self.w.generalBox.editTextStemSnap.set(self.c_fontModel.stemsnap)
+		self.w.generalBox.editTextAlignment.set(self.c_fontModel.alignppm)
+		self.w.generalBox.editTextInstructions.set(self.c_fontModel.codeppm)
+
+	def resetStemBox(self):
+		self.horizontalStemView.set(self.c_fontModel.buildStemsUIList(True))
+		self.verticalStemView.set(self.c_fontModel.buildStemsUIList(False))
+
+	def resetZoneBox(self):
+		self.topZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=True))
+		self.bottomZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=False))
+
 
 	def gaspSettingsList_EditCallBack(self, sender):
 		print sender.get()
@@ -432,9 +450,9 @@ class SheetControlValues(object):
 		self.w.close()
 
 	def applyButtonCallback(self, sender):
-		self.controller.changeStemSnap(self.w.generalBox.editTextStemSnap.get())
-		self.controller.changeAlignppm(self.w.generalBox.editTextAlignment.get())
-		self.controller.changeCodeppm(self.w.generalBox.editTextInstructions.get())
+		self.controller.changeStemSnap(self.c_fontModel.f, self.w.generalBox.editTextStemSnap.get())
+		self.controller.changeAlignppm(self.c_fontModel.f, self.w.generalBox.editTextAlignment.get())
+		self.controller.changeCodeppm(self.c_fontModel.f, self.w.generalBox.editTextInstructions.get())
 		self.controller.resetFont()
 		self.controller.updateGlyphProgram(self.controller.getGlyph())
 		self.controller.refreshGlyph(self.controller.getGlyph())
