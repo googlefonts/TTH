@@ -118,17 +118,17 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def findGroups(g, ital, horizontal):
+def findGroups(g, ital, horizontal, automation):
 	if horizontal:
-		proj = lambda p: p.x
+		proj = lambda p: p[0]
 	else:
-		proj = lambda p: p.y
+		proj = lambda p: p[1]
 	contours = [[]] * len(g)
 	byPos = {}
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
-		pos = int(round(proj(hd.pos)))
+		pos = int(round(proj(hd.shearedPos)))
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append(contseg)
 
@@ -152,10 +152,14 @@ def findGroups(g, ital, horizontal):
 			if not found:
 				components.append([(cont,seg)])
 		groups[pos] = components
-	for pos, comps in groups:
+	for pos, comps in groups.iteritems():
 		nbComps = len(comps)
-		for i in range(nbComps-1):
-			self.addSingleLink()
+		cont, seg = comps[0][0]
+		startName = contours[cont][seg].pos.name
+		for i in range(1,nbComps):
+			cont, seg = comps[i][0]
+			endName = contours[cont][seg].pos.name
+			automation.addSingleLink(startName, endName, horizontal)
 	return groups
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -555,8 +559,8 @@ class AutoHinting():
 		self.detectStems(g)
 		self.attachLinksToZones(g)
 		#self.findSiblings(g)
-		findGroups(g, self.ital, horizontal=True)
-		findGroups(g, self.ital, horizontal=False)
+		findGroups(g, self.ital, True, self)
+		findGroups(g, self.ital, False, self)
 		self.autoAlignToZones(g)
 		#self.hintWidth(g)
 
