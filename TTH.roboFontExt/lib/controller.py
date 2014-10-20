@@ -22,6 +22,7 @@ import TTHintAsm
 import view
 import TextRenderer as TR
 import preview
+from Automation import AutoHinting
 
 import xml.etree.ElementTree as ET
 import math, os
@@ -321,6 +322,8 @@ class TTHTool(BaseEventTool):
 		self.drawingPreferencesChanged = False
 
 		self.isInterpolating = False
+
+		self.shiftDown = 0
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
@@ -1013,6 +1016,7 @@ class TTHTool(BaseEventTool):
 		return None
 
 	def keyDown(self, event):
+
 		keyDict = {'a':('Align', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
@@ -1108,6 +1112,8 @@ class TTHTool(BaseEventTool):
 				UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):
+		if self.getModifiers()['shiftDown'] != 0:
+			self.shiftDown = 1
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
@@ -1148,6 +1154,8 @@ class TTHTool(BaseEventTool):
 		 	self.refreshGlyph(g)
 
 	def mouseUp(self, point):
+		if self.getModifiers()['shiftDown'] != 0:
+			self.shiftDown = 1
 		if self.tthtm.showPreviewInGlyphWindow == 1:
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
@@ -1193,30 +1201,30 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.selectedHintingTool == 'Single Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
 			if self.tthtm.selectedAxis == 'X':
 				newCommand['code'] = 'singleh'
-				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess' and self.tthtm.roundBool != 1:
+				if self.tthtm.selectedStemX != 'None' and self.tthtm.selectedStemX != 'Guess' and self.tthtm.roundBool != 1 and self.shiftDown != 1:
 					newCommand['stem'] = self.tthtm.selectedStemX
-				elif self.tthtm.selectedStemX == 'Guess' and self.tthtm.roundBool != 1:
+				elif self.tthtm.selectedStemX == 'Guess' and self.tthtm.roundBool != 1  and self.shiftDown != 1:
 					stem = self.guessStem(self.startPoint, self.endPoint)
 					if stem != None:
 						newCommand['stem'] = stem
-				elif self.tthtm.roundBool == 1:
+				elif self.tthtm.roundBool == 1 or self.shiftDown == 1:
 					newCommand['round'] = 'true'
 			else:
 				newCommand['code'] = 'singlev'
-				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess' and self.tthtm.roundBool != 1:
+				if self.tthtm.selectedStemY != 'None' and self.tthtm.selectedStemY != 'Guess' and self.tthtm.roundBool != 1 and self.shiftDown != 1:
 					newCommand['stem'] = self.tthtm.selectedStemY
-				elif self.tthtm.selectedStemY == 'Guess' and self.tthtm.roundBool != 1:
+				elif self.tthtm.selectedStemY == 'Guess' and self.tthtm.roundBool != 1  and self.shiftDown != 1:
 					stem = self.guessStem(self.startPoint, self.endPoint)
 					if stem != None:
 						newCommand['stem'] = stem
-				elif self.tthtm.roundBool == 1:
+				elif self.tthtm.roundBool == 1 or self.shiftDown == 1:
 					newCommand['round'] = 'true'
 
 			newCommand['point1'] = self.pointCoordinatesToName[self.startPoint]
 			newCommand['point2'] = self.pointCoordinatesToName[self.endPoint]
 			if self.tthtm.selectedAlignmentTypeLink != 'None' and self.tthtm.roundBool == 0 and 'stem' not in newCommand:
 				newCommand['align'] = self.tthtm.selectedAlignmentTypeLink
-			elif self.tthtm.roundBool == 1:
+			elif self.tthtm.roundBool == 1 or self.shiftDown == 1:
 				newCommand['round'] = 'true'
 
 		if self.tthtm.selectedHintingTool == 'Double Link' and self.startPoint != self.endPoint and self.startPoint != None and self.endPoint != None:
@@ -1301,12 +1309,37 @@ class TTHTool(BaseEventTool):
 		if newCommand != {}:
 			g = self.getGlyph()
 			g.prepareUndo("New Command")
-			self.glyphTTHCommands.append(newCommand)	
+			if newCommand['code'] in ['singleh', 'singlev']:
+				touchedPoints = AutoHinting(self).findTouchedPoints(self.getGlyph())
+				newAlign = {}
+				newAlign['point'] = newCommand['point1']
+				if newCommand['code'] == 'singleh':
+					newAlign['code'] = 'alignh'
+					touchedPointsNames = [name for name,axis in touchedPoints if axis == 'X']
+					newAlign['align'] = self.tthtm.selectedAlignmentTypeAlign
+				else:
+					touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
+					if self.isInTopZone(self.startPoint):
+						newAlign['code'] = 'alignt'
+						newAlign['zone'] = self.isInTopZone(self.startPoint)
+					elif self.isInBottomZone(self.startPoint):
+						newAlign['code'] = 'alignb'
+						newAlign['zone'] = self.isInBottomZone(self.startPoint)
+					else:
+						newAlign['code'] = 'alignv'
+						newAlign['align'] = self.tthtm.selectedAlignmentTypeAlign
+
+				if newAlign['point'] not in touchedPointsNames:
+					self.glyphTTHCommands.append(newAlign)
+
+
+			self.glyphTTHCommands.append(newCommand)
 			self.updateGlyphProgram(g)
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph(g)
 			g.performUndo()
 
+		self.shiftDown = 0
 		self.endPoint = None
 		self.startPoint = None
 		self.endPointOff = None

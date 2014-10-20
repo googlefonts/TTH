@@ -226,12 +226,12 @@ class toolsWindow(BaseWindowController):
 	def showProgramCallback(self):
 		if self.tthtm.programWindowOpened == 0:
 			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
-			self.TTHToolInstance.resetglyph()
+			self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
 
 	def showAssemblyCallback(self):
 		if self.tthtm.assemblyWindowOpened == 0:
 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
-			self.TTHToolInstance.resetglyph()
+			self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
 
 	def autoGlyphCallback(self):
 		g = self.TTHToolInstance.getGlyph()
