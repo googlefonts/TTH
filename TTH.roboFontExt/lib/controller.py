@@ -1135,13 +1135,13 @@ class TTHTool(BaseEventTool):
 		candidatesList.sort()
 		if len(candidatesList) == 0:
 			return None
-		if candidatesList[0][0] <= .2*dist:
+		if candidatesList[0][0] <= .3*dist:
 			return candidatesList[0][1]
 		else:
 			return None
 
 	def didUndo(self, font):
-		g = self.getGlyph
+		g = self.getGlyph()
 		self.readGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
