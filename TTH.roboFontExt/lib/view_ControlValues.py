@@ -336,7 +336,7 @@ class SheetControlValues(object):
 			dict(width=50, title="Zones", toolTip="Zones Settings"),
 			dict(width=50, title="Stems", toolTip="Stems Settings"),
 			dict(width=50, title="General", toolTip="General Settings"),
-			dict(width=50, title="gasp", toolTip="gasp Settings")
+			dict(width=50, title="<gasp>", toolTip="gasp Settings")
 		]
 
 
