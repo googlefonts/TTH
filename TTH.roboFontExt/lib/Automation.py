@@ -164,11 +164,11 @@ def findGroups(g, ital, horizontal, autoh):
 		leader = None
 		for i, comp in enumerate(comps):
 			for j, (cont, seg) in enumerate(comp):
+				if leader != None: break
 				name = contours[cont][seg].pos.name
 				if name in touchedNames:
-					if leader == None:
-						leader = i,j
-				
+					leader = i,j
+
 		# Put the leader first
 		if leader != None:
 			i, j = leader
