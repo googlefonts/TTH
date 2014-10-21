@@ -1015,6 +1015,9 @@ class TTHTool(BaseEventTool):
 				return name
 		return None
 
+	def keyUp(self, event):
+		self.shiftDown = 0
+
 	def keyDown(self, event):
 
 		keyDict = {'a':('Align', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
@@ -1339,7 +1342,6 @@ class TTHTool(BaseEventTool):
 				self.refreshGlyph(g)
 			g.performUndo()
 
-		self.shiftDown = 0
 		self.endPoint = None
 		self.startPoint = None
 		self.endPointOff = None
