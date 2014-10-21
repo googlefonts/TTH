@@ -121,8 +121,10 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 def findGroups(g, ital, horizontal, automation):
 	if horizontal:
 		proj = lambda p: p[0]
+                ortho_proj = lambda p: p[1]
 	else:
 		proj = lambda p: p[1]
+                ortho_proj = lambda p: p[0]
 	contours = [[]] * len(g)
 	byPos = {}
         # make a copy of all contours with hinting data
@@ -132,13 +134,13 @@ def findGroups(g, ital, horizontal, automation):
 		contours[contseg[0]].append(hd)
 		pos = int(round(proj(hd.shearedPos)))
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
-		ptsAtPos.append(contseg)
+		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
-	byPos = [(k, v) for (k, v) in byPos.iteritems() if len(v) > 1]
+	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems() if len(v) > 1]
 	groups = {}
 	for pos, pts in byPos:
 		components = []
-		for (cont,seg) in pts:
+		for _, (cont,seg) in pts:
 			if components == []:
 				components.append([(cont,seg)])
 				continue
