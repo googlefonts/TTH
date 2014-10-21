@@ -31,8 +31,8 @@ FL_tth_key = "com.fontlab.v2.tth"
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
-cursorDefaultPath = ExtensionBundle("TTH").get("cursorDefaultTTH")
-cursorDefault = CreateCursor(cursorDefaultPath, hotSpot=(2, 2))
+cursorSelectionPath = ExtensionBundle("TTH").get("cursorSelection")
+cursorSelection = CreateCursor(cursorSelectionPath, hotSpot=(2, 2))
 
 cursorAlignPath = ExtensionBundle("TTH").get("cursorAlign")
 cursorAlign = CreateCursor(cursorAlignPath, hotSpot=(2, 2))
@@ -356,7 +356,9 @@ class TTHTool(BaseEventTool):
 			return cursorMiddleDelta
 		elif self.tthtm.selectedHintingTool == "Final Delta":
 			return cursorFinalDelta
-		return cursorDefault
+		elif self.tthtm.selectedHintingTool == "Selection":
+			return cursorSelection
+		
 	###############
 
 	def becomeActive(self):
@@ -517,8 +519,8 @@ class TTHTool(BaseEventTool):
 
 		self.tthtm.setSize(size)
 		sizeIndex = self.getSizeListIndex(self.tthtm.PPM_Size)
-		self.toolsWindow.wTools.PPEMSizePopUpButton.set(sizeIndex)
-		self.toolsWindow.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
+		#self.toolsWindow.wTools.PPEMSizePopUpButton.set(sizeIndex)
+		#self.toolsWindow.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.tthtm.resetPitch(self.c_fontModel.UPM)
 
@@ -611,24 +613,24 @@ class TTHTool(BaseEventTool):
 			elif self.tthtm.selectedAxis == 'Y':
 				self.changeSelectedStemY(self.tthtm.selectedStemY)
 			self.changeRoundBool(self.tthtm.roundBool)
-
 			self.toolsWindow.wTools.toolsSegmentedButton.set(2)
 			
 		if hintingToolIndex == 3:
 			self.toolsWindow.InterpolationSettings()
 			self.changeSelectedAlignmentTypeLink(self.tthtm.selectedAlignmentTypeLink)
-
 			self.toolsWindow.wTools.toolsSegmentedButton.set(3)
 
 		if hintingToolIndex == 4:
 			self.toolsWindow.DeltaSettings()
-
 			self.toolsWindow.wTools.toolsSegmentedButton.set(4)
 
 		if hintingToolIndex == 5:
 			self.toolsWindow.DeltaSettings()
-
 			self.toolsWindow.wTools.toolsSegmentedButton.set(5)
+
+		if hintingToolIndex == 6:
+			self.toolsWindow.SelectionSettings()
+			self.toolsWindow.wTools.toolsSegmentedButton.set(6)
 
 
 	def getAlignmentTypeAlignIndex(self, alignmentType):
@@ -1181,6 +1183,14 @@ class TTHTool(BaseEventTool):
 			self.isInterpolating = False
 
 			return
+
+		if self.tthtm.selectedHintingTool == 'Selection':
+			print 'selection'
+			self.p_selectionCursor = (int(point.x), int(point.y))
+			self.commandRightClicked = self.isOnCommand(self.p_selectionCursor)
+			if self.commandRightClicked != None:
+				print 'touché'
+
 
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
@@ -2895,7 +2905,7 @@ class TTHTool(BaseEventTool):
 		if g == None:
 			return
 			
-		if self.isDragging():
+		if self.isDragging() and self.tthtm.selectedHintingTool != 'Selection':
 			self.endPoint = self.currentPoint
 			touchedEnd = self.isOnPoint(self.currentPoint)
 			if self.startPoint != None and self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:

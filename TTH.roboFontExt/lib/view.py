@@ -22,6 +22,7 @@ buttonDoubleLinkPath = ExtensionBundle("TTH").get("buttonDoubleLink")
 buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
 buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
+buttonSelectionPath = ExtensionBundle("TTH").get("buttonSelection")
 
 defaultKeyStub = "com.sansplomb.TTH."
 defaultKeyToolsWindowPosSize = defaultKeyStub + "toolsWindowPosSize"
@@ -43,7 +44,7 @@ class toolsWindow(BaseWindowController):
 		self.autohinting = Automation.AutoHinting(self.TTHToolInstance)
 
 		self.axisList = ['X', 'Y']
-		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']
+		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']
 		if self.tthtm.selectedAxis == 'X':
 			self.stemTypeList = self.tthtm.stemsListX
 			self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
@@ -72,22 +73,28 @@ class toolsWindow(BaseWindowController):
 			dict(width=19, imageObject=buttonDoubleLinkPath, toolTip="Double Link Tool"),
 			dict(width=19, imageObject=buttonInterpolationPath, toolTip="Interpolation Tool"),
 			dict(width=19, imageObject=buttonMiddleDeltaPath, toolTip="Middle Delta Tool"),
-			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool")
+			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool"),
+			dict(width=19, imageObject=buttonSelectionPath, toolTip="Selection Tool")
 		]
 
-		self.wTools.PPEMSizeEditText = EditText((10, 14, 25, 15), sizeStyle = "mini", 
-				callback=self.PPEMSizeEditTextCallback)
-		self.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
+		# self.wTools.PPEMSizeEditText = EditText((10, 14, 25, 15), sizeStyle = "mini", 
+		# 		callback=self.PPEMSizeEditTextCallback)
+		# self.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
 
 		self.PPMSizesList = [str(i) for i in range(9, 73)]
-		self.wTools.PPEMSizePopUpButton = PopUpButton((40, 14, 40, 16),
-				self.PPMSizesList, sizeStyle = "mini",
-				callback=self.PPEMSizePopUpButtonCallback)
+		#self.wTools.PPEMSizePopUpButton = PopUpButton((40, 14, 40, 16),
+		#		self.PPMSizesList, sizeStyle = "mini",
+		#		callback=self.PPEMSizePopUpButtonCallback)
 
-		self.wTools.axisSegmentedButton = SegmentedButton((85, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.PPEMSizeComboBox = ComboBox((10, 14, 40, 16),
+				self.PPMSizesList, sizeStyle = "mini",
+				callback=self.PPEMSizeComboBoxCallback)
+		self.wTools.PPEMSizeComboBox.set(self.tthtm.PPM_Size)
+
+		self.wTools.axisSegmentedButton = SegmentedButton((60, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.axisSegmentedButton.set(0)
 
-		self.wTools.toolsSegmentedButton = SegmentedButton((-133, 12, 128, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(0)
 
 		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
@@ -329,15 +336,43 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange2EditText.show(True)
 		self.wTools.DeltaOffsetEditText.show(True)
 
-	def PPEMSizeEditTextCallback(self, sender):
-		self.TTHToolInstance.changeSize(sender.get())
+	def SelectionSettings(self):
+		self.wTools.AlignmentTypeText.show(False)
+		self.wTools.AlignmentTypePopUpButton.show(False)
+		self.wTools.StemTypeText.show(False)
+		self.wTools.StemTypePopUpButton.show(False)
+		self.wTools.RoundDistanceText.show(False)
+		self.wTools.RoundDistanceCheckBox.show(False)
+		self.wTools.DeltaOffsetText.show(False)
+		self.wTools.DeltaOffsetSlider.show(False)
+		self.wTools.DeltaRangeText.show(False)
+		self.wTools.DeltaRange1EditText.show(False)
+		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaOffsetEditText.show(False)
 
-	def PPEMSizePopUpButtonCallback(self, sender):
+	# def PPEMSizeEditTextCallback(self, sender):
+	# 	self.TTHToolInstance.changeSize(sender.get())
+
+	# def PPEMSizePopUpButtonCallback(self, sender):
+	# 	g = self.TTHToolInstance.getGlyph()
+	# 	if g == None:
+	# 		return
+	# 	size = self.PPMSizesList[sender.get()]
+	# 	self.TTHToolInstance.changeSize(size)
+
+	def PPEMSizeComboBoxCallback(self, sender):
 		g = self.TTHToolInstance.getGlyph()
 		if g == None:
 			return
-		size = self.PPMSizesList[sender.get()]
+		size = sender.get()
+		try:
+			int(size)
+		except:
+			size = self.tthtm.PPM_Size
+			sender.set(size)
+
 		self.TTHToolInstance.changeSize(size)
+
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
 		if self.tthtm.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
@@ -409,6 +444,10 @@ class toolsWindow(BaseWindowController):
 		if sender.get() == 5:
 			self.DeltaSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Final Delta')
+		if sender.get() == 6:
+			self.SelectionSettings()
+			self.TTHToolInstance.changeSelectedHintingTool('Selection')
+
 
 	def AutoFontButtonCallback(self, sender):
 		progress = self.startProgress(u'Auto-hinting Font…')

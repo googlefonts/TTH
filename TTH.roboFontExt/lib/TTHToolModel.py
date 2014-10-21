@@ -230,7 +230,7 @@ class TTHToolModel():
 			setExtensionDefault(defaultKeySelectedAxis, axis)
 
 	def setHintingTool(self, hintingTool):
-		if hintingTool in ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta']:
+		if hintingTool in ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']:
 			self.selectedHintingTool = hintingTool
 
 	def setAlignmentTypeAlign(self, alignmentType):
