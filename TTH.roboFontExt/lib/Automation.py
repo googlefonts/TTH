@@ -118,17 +118,17 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def findGroups(g, ital, horizontal, automation):
+def findGroups(g, ital, horizontal, autoh):
 	if horizontal:
 		proj = lambda p: p[0]
-                ortho_proj = lambda p: p[1]
+		ortho_proj = lambda p: p[1]
 	else:
 		proj = lambda p: p[1]
-                ortho_proj = lambda p: p[0]
+		ortho_proj = lambda p: p[0]
 	contours = [[]] * len(g)
 	byPos = {}
-        # make a copy of all contours with hinting data
-        # and groups the ON points having the same 'proj' coordinate (sheared X or Y)
+	# make a copy of all contours with hinting data
+	# and groups the ON points having the same 'proj' coordinate (sheared X or Y)
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
@@ -156,14 +156,32 @@ def findGroups(g, ital, horizontal, automation):
 			if not found:
 				components.append([(cont,seg)])
 		groups[pos] = components
+	axis = 'Y'
+	if horizontal: axis = 'X'
+	touchedNames = sets.Set([name for (name,ax) in autoh.findTouchedPoints(g) if ax == axis])
 	for pos, comps in groups.iteritems():
+		# are there touched points at this position?
+		leader = None
+		for i, comp in enumerate(comps):
+			for j, (cont, seg) in enumerate(comp):
+				if leader != None: break
+				name = contours[cont][seg].pos.name
+				if name in touchedNames:
+					leader = i,j
+		# Put the leader first
+		if leader != None:
+			i, j = leader
+			if i > 0: comps[0], comps[i] = comps[i], comps[0]
+			if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
+		# add single links
 		nbComps = len(comps)
 		cont, seg = comps[0][0]
 		startName = contours[cont][seg].pos.name
 		for i in range(1,nbComps):
 			cont, seg = comps[i][0]
 			endName = contours[cont][seg].pos.name
-			automation.addSingleLink(startName, endName, horizontal)
+			if endName in touchedNames: continue
+			autoh.addSingleLink(startName, endName, horizontal)
 	return groups
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -452,7 +470,7 @@ class AutoHinting():
 
 		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 		for t_pointName, axis in touchedPoints:
-			(p_x, p_y) = self.TTHToolInstance.pointNameToCoordinates[t_pointName]
+			(p_x, p_y) = self.TTHToolInstance.pointONNameToContSeg[t_pointName]
 			for onPt, (cidx, sidx) in hPoints:
 				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
 
@@ -477,23 +495,6 @@ class AutoHinting():
 					if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
 						continue
 					self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
-
-	#def getPrevNextONCurve(self, g, ref_point):
-	#	for index_c, c in enumerate(g):
-	#		contour_points = c.points
-	#		ON_pointsList = []
-	#		for index_p, p in enumerate(contour_points):
-	#			if p.type != 'offCurve':
-	#				ON_pointsList.append(p)
-	#		nbPts = len(ON_pointsList)
-	#		for index, ON_p in enumerate(ON_pointsList):
-	#			prevPoint = ON_pointsList[index - 1]
-	#			nextPoint = ON_pointsList[(index + 1) % nbPts]
-	#			if ON_p == ref_point:
-	#				return (prevPoint, nextPoint)
-
-	#	return (None, None)
-
 
 
 	def findTouchedPoints(self, g):
@@ -562,9 +563,11 @@ class AutoHinting():
 		self.TTHToolInstance.glyphTTHCommands = []
 		self.detectStems(g)
 		self.attachLinksToZones(g)
-		#self.findSiblings(g)
+		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
+		#self.findSiblings(g, 'X', hPoints)
+		#self.findSiblings(g, 'Y', hPoints)
+		self.autoAlignToZones(g)
 		findGroups(g, self.ital, True, self)
 		findGroups(g, self.ital, False, self)
-		self.autoAlignToZones(g)
 		#self.hintWidth(g)
 
