@@ -41,8 +41,10 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			elif TTHCommand['point'] == 'rsb':
 				pointIndex = rsbIndex
 			else:
-				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointNameToIndex[TTHCommand['point']]
+				if TTHCommand['point'] in pointNameToIndex:
+					pointIndex = pointNameToIndex[TTHCommand['point']]
+				else:
+					print 'problem with point', TTHCommand['point'], 'in glyph', g
 			zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
 			alignToZone = [
 					'PUSHW[ ] 0',
