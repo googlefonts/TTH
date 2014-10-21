@@ -74,6 +74,7 @@ finaldeltacolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
+selectedColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, .8)
 
 
 def topologicalSort(l, f):
@@ -324,6 +325,7 @@ class TTHTool(BaseEventTool):
 		self.isInterpolating = False
 
 		self.shiftDown = 0
+		self.popOverIsOpened = False
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
@@ -1158,7 +1160,33 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.alwaysRefresh == 1:
 		 	self.refreshGlyph(g)
 
+	def popoverOpened(self, sender):
+		self.popOverIsOpened = True
+
+	def popoverClosed(self, sender):
+		self.popOverIsOpened = False
+		UpdateCurrentGlyphView()
+
 	def mouseUp(self, point):
+		if self.tthtm.selectedHintingTool == 'Selection':
+			self.p_selectionCursor = (int(point.x), int(point.y))
+			self.commandRightClicked = self.isOnCommand(self.p_selectionCursor)
+			if self.commandRightClicked != None and not self.popOverIsOpened:
+				view = self.getNSView()
+				offsetX, offsetY = view.offset()
+				x = point.x
+				y = point.y
+				x += offsetX
+				y += offsetY
+				self.popover = Popover((100, 100))
+				self.popover.bind("did show", self.popoverOpened)
+				self.popover.bind("did close", self.popoverClosed)
+				self.popover.title = TextBox((10, 10, -10, 20), self.glyphTTHCommands[self.commandRightClicked]['code'])
+				self.popOverIsOpened = True
+				UpdateCurrentGlyphView()
+				self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
 		if self.tthtm.showPreviewInGlyphWindow == 1:
@@ -1181,16 +1209,7 @@ class TTHTool(BaseEventTool):
 				removeObserver(self, "draw")
 
 			self.isInterpolating = False
-
 			return
-
-		if self.tthtm.selectedHintingTool == 'Selection':
-			print 'selection'
-			self.p_selectionCursor = (int(point.x), int(point.y))
-			self.commandRightClicked = self.isOnCommand(self.p_selectionCursor)
-			if self.commandRightClicked != None:
-				print 'touché'
-
 
 		cmdIndex = len(self.glyphTTHCommands)
 		newCommand = {}
@@ -2268,9 +2287,10 @@ class TTHTool(BaseEventTool):
 			pathZone.closePath
 			zonecolor.set()
 			pathZone.fill()	
-			self.drawTextAtPoint(scale, zoneName, -100, y_start+y_end/2, whiteColor, zonecolorLabel)
+			self.drawTextAtPoint(scale, zoneName, -100, y_start+y_end/2, whiteColor, zonecolorLabel, None)
 
-	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor):
+
+	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
 		currentTool = getActiveEventTool()
 		view = currentTool.getNSView()
 
@@ -2295,19 +2315,34 @@ class TTHTool(BaseEventTool):
 		shadow.setShadowColor_(shadowColor)
 		shadow.setShadowOffset_((0, -1))
 		shadow.setShadowBlurRadius_(2)
+
+		selectedPath = None
+
+		if self.popOverIsOpened and cmdIndex == self.commandRightClicked and cmdIndex != None:
+			selectedPath = NSBezierPath.bezierPath()
+			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-5, y-5), (width+10, height+10)), 3*scale, 3*scale)
+			selectedShadow = NSShadow.alloc().init()
+			selectedShadow.setShadowColor_(selectedColor)
+			selectedShadow.setShadowOffset_((0, 0))
+			selectedShadow.setShadowBlurRadius_(10)
+
+		if selectedPath:
+			selectedShadow.set()
+			selectedColor.set()
+			selectedPath.fill()
+
 		thePath = NSBezierPath.bezierPath()
 		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x, y), (width, height)), 3*scale, 3*scale)
 		
 		context = NSGraphicsContext.currentContext()
 		context.saveGraphicsState()
-
 		shadow.set()
 		thePath.setLineWidth_(scale)
 		backgroundColor.set()
 		thePath.fill()
 		borderColor.set()
 		thePath.stroke()
-		#text.drawAtPoint_((int(x+4.0*scale), int(y+2.0*scale)))
+
 		context.restoreGraphicsState()
 		
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
@@ -2425,9 +2460,9 @@ class TTHTool(BaseEventTool):
 			text += '_' + self.glyphTTHCommands[cmdIndex]['zone']
 
 		if self.glyphTTHCommands[cmdIndex]['code'] == 'alignt':
-			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y + 20*scale, whiteColor, arrowColor)
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y + 20*scale, whiteColor, arrowColor, cmdIndex)
 		else:
-			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, whiteColor, arrowColor)
+			(width, height) = self.drawTextAtPoint(scale, text, x + 10*scale, y - 20*scale, whiteColor, arrowColor, cmdIndex)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2510,7 +2545,7 @@ class TTHTool(BaseEventTool):
 				text += '_' + stemName
 
 		self.drawLinkArrow(scale, startPoint, endPoint, color)
-		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], textColor, color)
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], textColor, color, cmdIndex)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2557,7 +2592,7 @@ class TTHTool(BaseEventTool):
 		elif stemName != None:
 			text += '_' + stemName
 
-		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], whiteColor, doublinkColor)
+		(width, height) = self.drawTextAtPoint(scale, text, offcurve1[0], offcurve1[1], whiteColor, doublinkColor, cmdIndex)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2649,7 +2684,7 @@ class TTHTool(BaseEventTool):
 					extension = 'closest'
 				text += '_' + extension
 
-		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, whiteColor, interpolatecolor)
+		(width, height) =self.drawTextAtPoint(scale, text, middlePoint[0] + 10*scale, middlePoint[1] - 10*scale, whiteColor, interpolatecolor, cmdIndex)
 
 		# compute x, y
 		if cmdIndex != None:
@@ -2723,9 +2758,9 @@ class TTHTool(BaseEventTool):
 
 		
 		if self.glyphTTHCommands[cmdIndex]['code'][-1:] == 'v' and int(value) < 0:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, whiteColor, color)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] + 10*scale, whiteColor, color, cmdIndex)
 		else:
-			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, whiteColor, color)
+			(width, height) = self.drawTextAtPoint(scale, text, point[0] - 10*scale, point[1] - 10*scale, whiteColor, color, cmdIndex)
 
 		# compute x, y
 		if cmdIndex != None:
