@@ -173,6 +173,8 @@ def findGroups(g, ital, horizontal, autoh):
 			i, j = leader
 			if i > 0: comps[0], comps[i] = comps[i], comps[0]
 			if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
+		else:
+			continue
 		# add single links
 		nbComps = len(comps)
 		cont, seg = comps[0][0]
