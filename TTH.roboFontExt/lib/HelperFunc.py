@@ -86,14 +86,14 @@ def closeAngle(angle1, angle2):
 	"""True if the angle are close modulo 360 degrees"""
 	return abs(addAngles(angle1,  - angle2)) <= 3.0
 
-def closeAngleModulo180(angle1, angle2):
+def closeAngleModulo180_withTolerance(angle1, angle2, tolerance):
 	"""True if the angle are close modulo 180 degrees"""
 	diff = angle1 - angle2
 	while diff >= 90.0:
 		diff -= 180.0
 	while diff < -90.0:
 		diff += 180.0
-	return abs(diff) <= 3.0
+	return abs(diff) <= tolerance
 
 def approxEqual(a1, a2, factor):
 	a_max = max(abs(a1), abs(a2))
