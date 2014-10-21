@@ -125,6 +125,8 @@ def findGroups(g, ital, horizontal, automation):
 		proj = lambda p: p[1]
 	contours = [[]] * len(g)
 	byPos = {}
+        # make a copy of all contours with hinting data
+        # and groups the ON points having the same 'proj' coordinate (sheared X or Y)
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
