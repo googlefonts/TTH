@@ -72,7 +72,7 @@ class TTHToolModel():
 		self.showCenterPixel = 0
 		self.showPreviewInGlyphWindow = 1
 
-		self.roundFactor_Stems = 20
+		self.roundFactor_Stems = 15
 		self.roundFactor_Jumps = 20
 
 		self.minStemX = 20

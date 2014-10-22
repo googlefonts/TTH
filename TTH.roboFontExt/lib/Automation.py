@@ -21,12 +21,17 @@ def contourSegmentIterator(g):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	__slots__ = ('pos', 'shearedPos', 'inAngle', 'outAngle')
-	def __init__(self, on, sh, ina, outa):
+	def __init__(self, on, sh, ina, outa, cont, seg):
 		self.pos = on
 		self.shearedPos = sh
 		self.inAngle = ina
 		self.outAngle = outa
+		self.inStemX = False
+		self.inStemY = False
+		self.touchedX = False
+		self.touchedY = False
+		self.cont= cont # contour number
+		self.seg = seg # segment number
 
 def makeHintingData(g, ital, (cidx, sidx)):
 	"""Compute data relevant to hinting for the ON point in the
@@ -43,7 +48,7 @@ def makeHintingData(g, ital, (cidx, sidx)):
 	shearedOn = HF.shearPoint(segment.onCurve, ital)
 	angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
-	return HintingData(onPt, shearedOn, angleIn, angleOut)
+	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx)
 
 def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
 	stemsListX_temp = []
@@ -52,7 +57,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 		dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
-		stem = (src.pos, tgt.pos, c_distance)
+		stem = (src, tgt, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
 		if HF.isHorizontal_withTolerance(angle, tolerance) and not existingStems['h']:
 			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
@@ -92,40 +97,40 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 	stemsListY = []
 	references = []
 	for (hypoth, stem) in stemsListY_temp:
-		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].y, y, 0.025))
-		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].y, y, 0.025))
+		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].pos.y, y, 0.025))
+		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].pos.y, y, 0.025))
 		if sourceAbsent or targetAbsent:
 			stemsListY.append(stem)
 		if sourceAbsent:
-			references.append(stem[0].y)
+			references.append(stem[0].pos.y)
 		if targetAbsent:
-			references.append(stem[1].y)
+			references.append(stem[1].pos.y)
 
 	references = []
 	for (hypoth, stem) in stemsListX_temp:
-		shearedSourceX, _ = HF.shearPoint(stem[0], italicAngle)
-		shearedTargetX, _ = HF.shearPoint(stem[1], italicAngle)
-		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedSourceX, x, 0.025))
-		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(shearedTargetX, x, 0.025))
+		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[0].shearedPos[0], x, 0.025))
+		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[1].shearedPos[0], x, 0.025))
 		if sourceAbsent or targetAbsent:
 			stemsListX.append(stem)
 		if sourceAbsent:
-			references.append(shearedSourceX)
+			references.append(stem[0].shearedPos[0])
 		if targetAbsent:
-			references.append(shearedTargetX)
+			references.append(stem[1].shearedPos[0])
 
 	return (stemsListX, stemsListY)
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def findGroups(g, ital, horizontal, autoh):
-	if horizontal:
+def makeGroups(g, ital, X):
+	if X:
 		proj = lambda p: p[0]
 		ortho_proj = lambda p: p[1]
 	else:
 		proj = lambda p: p[1]
 		ortho_proj = lambda p: p[0]
-	contours = [[]] * len(g)
+	contours = []
+	for i in range(len(g)):
+		contours.append([])
 	byPos = {}
 	# make a copy of all contours with hinting data
 	# and groups the ON points having the same 'proj' coordinate (sheared X or Y)
@@ -156,36 +161,21 @@ def findGroups(g, ital, horizontal, autoh):
 			if not found:
 				components.append([(cont,seg)])
 		groups[pos] = components
+	return (contours,groups)
+
+def printGroups((contours, groups), horizontal):
 	axis = 'Y'
 	if horizontal: axis = 'X'
-	touchedNames = sets.Set([name for (name,ax) in autoh.findTouchedPoints(g) if ax == axis])
-	for pos, comps in groups.iteritems():
-		# are there touched points at this position?
-		leader = None
-		for i, comp in enumerate(comps):
-			for j, (cont, seg) in enumerate(comp):
-				if leader != None: break
-				name = contours[cont][seg].pos.name
-				if name in touchedNames:
-					leader = i,j
-
-		# Put the leader first
-		if leader != None:
-			i, j = leader
-			if i > 0: comps[0], comps[i] = comps[i], comps[0]
-			if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
-		else:
-			continue
-		# add single links
-		nbComps = len(comps)
-		cont, seg = comps[0][0]
-		startName = contours[cont][seg].pos.name
-		for i in range(1,nbComps):
-			cont, seg = comps[i][0]
-			endName = contours[cont][seg].pos.name
-			if endName in touchedNames: continue
-			autoh.addSingleLink(startName, endName, horizontal)
-	return groups
+	# print the groups
+	print "Groups for", axis
+	for pos, comps in sorted(groups.iteritems(), reverse=True):
+		print pos, ":",
+		for comp in comps:
+			print '{',
+			for cont,seg in comp:
+				print str(cont)+'.'+str(seg),
+			print "}",
+		print ""
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -348,30 +338,63 @@ class AutoHinting():
 	def __init__(self, TTHToolInstance):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-		self.singleLinkCommandName = { False: 'singlev', True:'singleh' }
+		self.singleLinkCommandName = { False: 'singleh', True:'singlev' }
+		self.doubleLinkCommandName = { False: 'doubleh', True:'doublev' }
+		self.alignCommandName = { False: 'alignb', True:'alignt' }
 
-	def detectStems(self, g):
-		roundFactor_Stems =  1 #self.tthtm.roundFactor_Stems
-		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
-		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
-		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
-		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
-
-		(g_stemsListX, g_stemsListY) = makeStemsList(g, self.ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
-
+	def filterStems(self, stems):
+		g_stemsListX, g_stemsListY = stems
+		newX, newY = [], []
 		for stem in g_stemsListY:
-			stemName = self.guessStemForDistance(stem[0], stem[1], True)
-			self.addDoubleLink(stem[0], stem[1], stemName, True)
-			#self.processDoubleLinks()
+			name = self.guessStemForDistance(stem[0], stem[1], True)
+			if None != name:
+				newY.append((stem, name))
 		for stem in g_stemsListX:
-			stemName = self.guessStemForDistance(stem[0], stem[1], False)
-			self.addDoubleLink(stem[0], stem[1], stemName, False)
+			name = self.guessStemForDistance(stem[0], stem[1], False)
+			if None != name:
+				newX.append((stem,name))
+		return (newX, newY)
+
+	def detectStems(self, stems, (contours, groups)):
+		sx, sy = stems
+		for (stem, stemName) in sy:
+			for i in range(2):
+				contours[stem[i].cont][stem[i].seg].inStemY = True
+		for (stem, stemName) in sx:
+			for i in range(2):
+				contours[stem[i].cont][stem[i].seg].inStemX = True
+
+	def applyStems(self, stems, contours):
+		g_stemsListX, g_stemsListY = stems
+		for (stem, stemName) in g_stemsListY:
+			src, tgt = stem[0], stem[1]
+			hd0 = contours[src.cont][src.seg]
+			hd1 = contours[tgt.cont][tgt.seg]
+			if hd0.touchedY and hd1.touchedY: continue
+			if not (hd0.touchedY or hd1.touchedY):
+				self.addDoubleLink(src, tgt, stemName, True)
+				hd0.touchedY = True
+				hd1.touchedY = True
+				continue
+			if hd0.touchedY:
+				self.addSingleLink(src.pos.name, tgt.pos.name, True)
+				hd1.touchedY = True
+			else:
+				self.addSingleLink(tgt.pos.name, src.pos.name, True)
+				hd0.touchedY = True
+		for (stem, stemName) in g_stemsListX:
+			src, tgt = stem[0], stem[1]
+			hd0 = contours[src.cont][src.seg]
+			hd1 = contours[tgt.cont][tgt.seg]
+			self.addDoubleLink(src, tgt, stemName, False)
+			hd0.touchedX = True
+			hd1.touchedX = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
-			detectedWidth = abs(p1.y - p2.y)
+			detectedWidth = abs(p1.shearedPos[1] - p2.shearedPos[1])
 		else:
-			detectedWidth = abs(p1.x - p2.x)
+			detectedWidth = abs(p1.shearedPos[0] - p2.shearedPos[0])
 		candidatesList = []
 		for stemName, stem in self.tthtm.stems.iteritems():
 			if stem['horizontal'] != isHorizontal: continue
@@ -386,11 +409,11 @@ class AutoHinting():
 		else:
 			return None
 
-	def addSingleLink(self, p1, p2, isHorizontal):
+	def addSingleLink(self, p1name, p2name, isHorizontal):
 		command = {}
 		command['code'] = self.singleLinkCommandName[isHorizontal]
-		command['point1'] = p1
-		command['point2'] = p2
+		command['point1'] = p1name
+		command['point2'] = p2name
 		self.TTHToolInstance.glyphTTHCommands.append(command)
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
@@ -398,32 +421,14 @@ class AutoHinting():
 			return
 		newCommand = {}
 		if isHorizontal:
-			newCommand['code'] = 'doublev'
+			newCommand['code'] = 'doublev' #FIXME V ??? I would put H
 		else:
 			newCommand['code'] = 'doubleh'
-		newCommand['point1'] = self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-		newCommand['point2'] = self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+		newCommand['point1'] = p1.pos.name#self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+		newCommand['point2'] = p2.pos.name#self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 		newCommand['stem'] = stemName
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
-
-	def processDoubleLinks(self):
-		for command1 in self.TTHToolInstance.glyphTTHCommands:
-			for command2 in self.TTHToolInstance.glyphTTHCommands:
-				if command1['code'][-1:] == 'v' and command2['code'][-1] == 'v':
-					if command1 != command2 and command1['code'][:6] == 'double' and command2['code'][:6] == 'double':
-						if command1['point2'] == command2['point2']:
-							command1['code'] = 'singlev'
-							command2['code'] = 'singlev'
-
-							c1p1 = command1['point1']
-							c1p2 = command1['point2']
-							c2p1 = command2['point1']
-							c2p2 = command2['point2']
-							command1['point1'] = c1p2
-							command1['point2'] = c1p1
-							command2['point1'] = c2p2
-							command2['point2'] = c2p1
 
 
 	def attachLinksToZones(self, g):
@@ -556,6 +561,77 @@ class AutoHinting():
 					self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 					touchedPointsNames.append(pointName)
 
+	def handleZones(self, g, (contours, groups)):
+		# First, handle groups in zones
+		nonZonePos = []
+		for pos, comps in groups.iteritems():
+			# are we in a zone?
+			zoneInfo = self.zoneAt(pos)
+			if None == zoneInfo:
+				nonZonePos.append(pos)
+				continue
+
+			leader = None
+			for i,comp in enumerate(comps):
+				if leader != None: break
+				for j, (cont, seg) in enumerate(comp):
+					if contours[cont][seg].inStemY:
+						leader = i,j
+						break
+			if leader == None: leader = 0,0
+			i,j = leader
+			if i > 0: comps[0], comps[i] = comps[i], comps[0]
+			if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
+
+			#print "At pos", pos,", leader is", comps[0][0]
+
+			zoneName, isTop = zoneInfo
+			nbComps = len(comps)
+			cont, seg = comps[0][0]
+			hd = contours[cont][seg]
+			startName = hd.pos.name
+			hd.touchedY = True
+			# add align
+			self.addAlign(g, startName, zoneInfo)
+			# add single links
+			for i in range(1,nbComps):
+				cont, seg = comps[i][0]
+				hd = contours[cont][seg]
+				endName = hd.pos.name
+				hd.touchedY = True
+				self.addSingleLink(startName, endName, isHorizontal=True)
+
+	def tempopo(self):
+		# Third, the groups that are not in zones
+		for pos in nonZonePos:
+			comps = groups[pos]
+			# are there touched points at this position?
+			leader = None
+			for i, comp in enumerate(comps):
+				for j, (cont, seg) in enumerate(comp):
+					if leader != None: break
+					name = contours[cont][seg].pos.name
+					if name in touchedNames:
+						leader = i,j
+
+			# Put the leader first
+			if leader != None:
+				i, j = leader
+				if i > 0: comps[0], comps[i] = comps[i], comps[0]
+				if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
+			else:
+				continue
+			print "At pos", pos, "the leader is ",i,j
+			# add single links
+			nbComps = len(comps)
+			cont, seg = comps[0][0]
+			startName = contours[cont][seg].pos.name
+			for i in range(1,nbComps):
+				cont, seg = comps[i][0]
+				endName = contours[cont][seg].pos.name
+				if endName in touchedNames: continue
+				self.addSingleLink(startName, endName, isHorizontal=False)
+
 
 	def autohint(self, g):
 		if self.tthtm.f.info.italicAngle != None:
@@ -566,13 +642,26 @@ class AutoHinting():
 		self.tthtm.setGlyph(g)
 		self.TTHToolInstance.resetglyph()
 		self.TTHToolInstance.glyphTTHCommands = []
-		self.detectStems(g)
-		self.attachLinksToZones(g)
-		#hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
-		#self.findSiblings(g, 'X', hPoints)
-		#self.findSiblings(g, 'Y', hPoints)
-		findGroups(g, self.ital, True, self)
-		findGroups(g, self.ital, False, self)
+
+		roundFactor_Stems = 1 #self.tthtm.roundFactor_Stems
+		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
+		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
+		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
+		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
+
+		stems = self.filterStems(makeStemsList(g, self.ital, \
+				minStemX, minStemY, maxStemX, maxStemY, \
+				roundFactor_Stems, self.tthtm.angleTolerance))
+
+		cg = makeGroups(g, self.ital, X=False)
+		#printGroups(cg, horizontal=False)
+		self.detectStems(stems, cg)
+		self.handleZones(g, cg)
+		contours, groups = cg
+		self.applyStems(stems, contours)
+
+		# X hinting
+		cg = makeGroups(g, self.ital, X=True)
+		#self.attachLinksToZones(g)
 		#self.autoAlignToZones(g)
-		#self.hintWidth(g)
 
