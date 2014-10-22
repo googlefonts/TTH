@@ -327,6 +327,7 @@ class TTHTool(BaseEventTool):
 
 		self.shiftDown = 0
 		self.popOverIsOpened = False
+		self.commandsChecked = False
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
@@ -1479,8 +1480,12 @@ class TTHTool(BaseEventTool):
 			return (True, True)
 		return (False, False)
 
-	def prepareCommands(self):
+	def prepareCommands(self, g):
+		self.commandsChecked = False
 		x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
+
+		self.checkAndCleanCommandsPoints(g)
+
 		for e in self.glyphTTHCommands:
 			code = e['code']
 			if code == 'fdeltah':
@@ -1700,7 +1705,7 @@ class TTHTool(BaseEventTool):
 		g.performUndo()
 
 	def updateGlyphProgram(self, g):
-		self.prepareCommands()
+		self.prepareCommands(g)
 		self.writeGlyphFLTTProgram(g)
 		TTHintAsm.writeAssembly(g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
@@ -2014,10 +2019,10 @@ class TTHTool(BaseEventTool):
 		tt_tables.writegasp(f, self.c_fontModel.codeppm)
 
 		for g in f:
-			glyphTTHCommands = self.readGlyphFLTTProgram(g)
-			if glyphTTHCommands != None:
-				self.prepareCommands()
-				TTHintAsm.writeAssembly(g, glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+			self.glyphTTHCommands = self.readGlyphFLTTProgram(g)
+			if self.glyphTTHCommands != None:
+				self.prepareCommands(g)
+				TTHintAsm.writeAssembly(g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		#self.generateFullTempFont()
 		#self.tthtm.setGlyph(self.getGlyph())
@@ -2067,6 +2072,7 @@ class TTHTool(BaseEventTool):
 		if g == None:
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(g)
+
 		if glyphTTHCommands != None and self.tthtm.programWindowOpened == 1:
 			self.programWindow.updateProgramList(glyphTTHCommands)
 		elif self.tthtm.programWindowOpened == 1:
@@ -3044,8 +3050,9 @@ class TTHTool(BaseEventTool):
 					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint, None)
 				elif self.tthtm.selectedHintingTool == 'Interpolation':
 					self.drawInterpolateDragging(scale, self.startPoint, self.endPoint)
-
-		self.drawCommands(scale, self.glyphTTHCommands)
+	
+		if self.commandsChecked:
+			self.drawCommands(scale, self.glyphTTHCommands)
 
 		#self.sortOverlapingLabels(self.glyphTTHCommands)
 
@@ -3071,6 +3078,35 @@ class TTHTool(BaseEventTool):
 	# 				label2 = self.commandLabelPos[cmdIndex2]
 
 
+	def checkAndCleanCommandsPoints(self, g):
+		commandsToRemove = []
+		commandsCurated = []
+		pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
+
+		for command in self.glyphTTHCommands:
+			doAppend = True
+			if 'point' in command:
+				if command['point'] not in pointNameToUniqueID and command['point'] not in ['lsb', 'rsb']:
+					#print 'problem with point', command['point'], 'in glyph', g
+					commandsToRemove.append(command)
+			if 'point1' in command:
+				if command['point1'] not in pointNameToUniqueID and command['point1'] not in ['lsb', 'rsb']:
+					#print 'problem with point', command['point1'], 'in glyph', g
+					commandsToRemove.append(command)
+			if 'point2' in command:
+				if command['point2'] not in pointNameToUniqueID and command['point2'] not in ['lsb', 'rsb']:
+					#print 'problem with point', command['point2'], 'in glyph', g
+					commandsToRemove.append(command)
+
+		#print 'glyph commands to remove', g.name, commandsToRemove
+		for command in self.glyphTTHCommands:
+			if command not in commandsToRemove:
+				commandsCurated.append(command)
+		#print 'glyph curated', g.name, commandsCurated
+
+		self.commandsChecked = True
+		self.glyphTTHCommands = commandsCurated
+		self.writeGlyphFLTTProgram(g)
 
 	def drawCommands(self, scale, commands):
 		for cmdIndex, c in enumerate(commands):
