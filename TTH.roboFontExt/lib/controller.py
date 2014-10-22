@@ -2539,6 +2539,8 @@ class TTHTool(BaseEventTool):
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	color = linkColor
+	 	if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+			color = inactiveColor
 	 	textColor = whiteColor
 
 	 	start_end_diff = difference(startPoint, endPoint)
@@ -2570,6 +2572,8 @@ class TTHTool(BaseEventTool):
 				text += '_' + extension
 			elif stemName != None:
 				color = stemColor
+				if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+					color = inactiveColor
 				textColor = blackColor
 
 				text += '_' + stemName
@@ -2581,7 +2585,11 @@ class TTHTool(BaseEventTool):
 		if cmdIndex != None:
 			self.commandLabelPos[cmdIndex] = ((offcurve1[0], offcurve1[1]), (width, height))
 
-	def drawDoubleLinkDragging(self, scale, startPoint, endPoint):
+	def drawDoubleLinkDragging(self, scale, startPoint, endPoint, cmdIndex):
+		color = doublinkColor
+		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+			color = inactiveColor
+
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
 	 	angle = getAngle((startPoint[0], startPoint[1]), (endPoint[0], endPoint[1])) + math.radians(90)
@@ -2596,7 +2604,7 @@ class TTHTool(BaseEventTool):
 	 	path.moveToPoint_(junction_pathArrowStart)
 	 	path.curveToPoint_controlPoint1_controlPoint2_(junction_pathArrowEnd, (offcurve1), (offcurve1) )
 
-		doublinkColor.set()
+		color.set()
 		path.setLineWidth_(scale)
 		pathArrowEnd.fill()
 		pathArrowStart.fill()
@@ -2604,7 +2612,7 @@ class TTHTool(BaseEventTool):
 
 	def drawDoubleLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 
-	 	self.drawDoubleLinkDragging(scale, startPoint, endPoint)
+	 	self.drawDoubleLinkDragging(scale, startPoint, endPoint, cmdIndex)
 
 	 	start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
@@ -2993,7 +3001,7 @@ class TTHTool(BaseEventTool):
 				if self.tthtm.selectedHintingTool == 'Single Link':
 					self.drawLinkArrow(scale, self.startPoint, self.endPoint, linkColor)
 				elif self.tthtm.selectedHintingTool == 'Double Link':
-					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint)
+					self.drawDoubleLinkDragging(scale, self.startPoint, self.endPoint, None)
 				elif self.tthtm.selectedHintingTool == 'Interpolation':
 					self.drawInterpolateDragging(scale, self.startPoint, self.endPoint)
 
