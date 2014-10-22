@@ -218,13 +218,6 @@ class toolsWindow(BaseWindowController):
 
 	def showPreviewCallback(self):
 		if self.tthtm.previewWindowOpened == 0:
-			for i in string.lowercase:
-				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-			for i in string.uppercase:
-				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-			for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-				self.tthtm.requiredGlyphsForPartialTempFont.add(i)
-
 			self.TTHToolInstance.updatePartialFont()
 			self.TTHToolInstance.previewWindow = previewWindow(self.TTHToolInstance, self.tthtm)
 			self.TTHToolInstance.previewWindow.wPreview.resize(self.tthtm.previewWindowPosSize[2]-1, self.tthtm.previewWindowPosSize[3]-1, animate=False)
@@ -498,6 +491,14 @@ class previewWindow(object):
 		self.wPreview.bind("close", self.previewWindowWillClose)
 		self.wPreview.bind("move", self.previewWindowMovedorResized)
 		self.wPreview.bind("resize", self.previewWindowMovedorResized)
+		
+		for i in string.lowercase:
+			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+		for i in string.uppercase:
+			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
+			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
+
 		self.wPreview.open()
 		self.wPreview.resize(self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowPosSize[3])
 

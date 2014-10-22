@@ -1170,7 +1170,7 @@ class TTHTool(BaseEventTool):
 		UpdateCurrentGlyphView()
 
 	def popoverStateCheckBoxCallback(self, sender):
-		command = self.glyphTTHCommands[self.commandRightClicked]
+		command = self.glyphTTHCommands[self.commandClicked]
 		g = self.getGlyph()
 
 		if sender.get() == 0:
@@ -1184,27 +1184,61 @@ class TTHTool(BaseEventTool):
 		self.refreshGlyph(g)
 		g.performUndo()
 
+	def popoverPoint2NextCallback(self, sender):
+		command = self.glyphTTHCommands[self.commandClicked]
+		g = self.getGlyph()
+		contourLen = len(self.listOfUniqueID)
+
+		for i, ID in enumerate(self.listOfUniqueID):
+			if ID == command['point2']:
+				command['point2'] = self.listOfUniqueID[i+1]
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+
+
+	def popoverPoint2PrevCallback(self, sender):
+		command = self.glyphTTHCommands[self.commandClicked]
+		g = self.getGlyph()
+		
+		for i, ID in enumerate(self.listOfUniqueID):
+			if ID == command['point2']:
+				command['point2'] = self.listOfUniqueID[i-1]
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+
+
+	def popOverSingle(self, point):
+		command = self.glyphTTHCommands[self.commandClicked]
+		view = self.getNSView()
+		offsetX, offsetY = view.offset()
+		x = point.x
+		y = point.y
+		x += offsetX
+		y += offsetY
+		self.popover = Popover((100, 100))
+		self.popover.bind("did show", self.popoverOpened)
+		self.popover.bind("did close", self.popoverClosed)
+		self.popover.title = TextBox((10, 10, -30, 20), "Active", sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-30, 15, 8, 8), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='mini')
+		self.popover.stateCheckBox.set(command['active'] == 'true')
+		self.popover.prevButton = Button((10, 30, 30, 10), "<", callback=self.popoverPoint2PrevCallback, sizeStyle='small')
+		self.popover.nextButton = Button((50, 30, 30, 10), ">", callback=self.popoverPoint2NextCallback, sizeStyle='small')
+
+		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
+		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+
 
 	def mouseUp(self, point):
 		if self.tthtm.selectedHintingTool == 'Selection':
 			self.p_selectionCursor = (int(point.x), int(point.y))
-			self.commandRightClicked = self.isOnCommand(self.p_selectionCursor)
-			if self.commandRightClicked != None and not self.popOverIsOpened:
-				view = self.getNSView()
-				offsetX, offsetY = view.offset()
-				x = point.x
-				y = point.y
-				x += offsetX
-				y += offsetY
-				self.popover = Popover((100, 100))
-				self.popover.bind("did show", self.popoverOpened)
-				self.popover.bind("did close", self.popoverClosed)
-				self.popover.title = TextBox((10, 10, -10, 20), self.glyphTTHCommands[self.commandRightClicked]['code'])
-				self.popover.stateCheckBox = CheckBox((10, 30, 80, 8), "is active", callback=self.popoverStateCheckBoxCallback, sizeStyle='mini')
-				self.popover.stateCheckBox.set(self.glyphTTHCommands[self.commandRightClicked]['active'] == 'true')
-				self.popOverIsOpened = True
-				UpdateCurrentGlyphView()
-				self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+			self.commandClicked = self.isOnCommand(self.p_selectionCursor)
+			if self.commandClicked != None and not self.popOverIsOpened:
+				if self.glyphTTHCommands[self.commandClicked]['code'] in ['singleh', 'singlev']:
+					self.popOverSingle(point)
 
 
 		if self.getModifiers()['shiftDown'] != 0:
@@ -2088,6 +2122,7 @@ class TTHTool(BaseEventTool):
 		self.pointNameToCoordinates = self.makePointNameToCoordinatesDict(g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(g)
+		self.listOfUniqueID = self.makePoitnListOfUniqueID(g)
 		#print 'full temp font loaded'
 		self.ready = True
 		if self.tthtm.previewWindowOpened == 1:
@@ -2129,7 +2164,7 @@ class TTHTool(BaseEventTool):
 		return glyphSet
 
 	def generatePartialTempFont(self):
-		#start = time.time()
+		start = time.time()
 		try:
 			tempFont = RFont(showUI=False)
 			#tempFont.lib['com.typemytype.robofont.segmentType'] = 'qCurve'
@@ -2160,9 +2195,9 @@ class TTHTool(BaseEventTool):
 
 			tempFont.generate(self.c_fontModel.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 
-			#finishedin = time.time() - start
+			finishedin = time.time() - start
 			
-			#print 'partial temp font generated in %f seconds' % finishedin
+			print 'partial temp font generated in %f seconds' % finishedin
 			#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
 			self.doneGeneratingPartialFont = True
 		except:
@@ -2202,6 +2237,15 @@ class TTHTool(BaseEventTool):
 				else:
 					pointNameToUniqueID[uniqueID] = uniqueID
 		return pointNameToUniqueID
+
+	def makePoitnListOfUniqueID(self, g):
+		ListOfUniqueID = []
+		for contour in g:
+			for point in contour.points:
+				uniqueID = point.naked().uniqueID
+				ListOfUniqueID.append(uniqueID)
+
+		return ListOfUniqueID
 
 	def makePointUniqueIDToCoordinatesDict(self, g):
 		pointUniqueIDToCoordinates = {}
@@ -2384,7 +2428,7 @@ class TTHTool(BaseEventTool):
 
 		selectedPath = None
 
-		if self.popOverIsOpened and cmdIndex == self.commandRightClicked and cmdIndex != None:
+		if self.popOverIsOpened and cmdIndex == self.commandClicked and cmdIndex != None:
 			selectedPath = NSBezierPath.bezierPath()
 			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2, y-2), (width+4, height+4)), 3*scale, 3*scale)
 			selectedShadow = NSShadow.alloc().init()
