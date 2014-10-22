@@ -1901,7 +1901,7 @@ class TTHTool(BaseEventTool):
 
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(self.tthtm.g)
-		self.pointNameToCoordinates = self.makePointNameToCoordinatesDict(self.tthtm.g)
+		self.pointNameToContSeg = self.makeONPointNameToSegmentDict(self.tthtm.g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(self.tthtm.g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(self.tthtm.g)
 		#print 'full temp font loaded'
@@ -2026,12 +2026,12 @@ class TTHTool(BaseEventTool):
 				pointUniqueIDToCoordinates[point.naked().uniqueID] = ((point.x, point.y))
 		return pointUniqueIDToCoordinates
 
-	def makePointNameToCoordinatesDict(self, g):
-		pointNameToCoordinates = {}
-		for contour in g:
-			for point in contour.points:
-				pointNameToCoordinates[point.name.split(',')[0]] = ((point.x, point.y))
-		return pointNameToCoordinates
+	def makeONPointNameToSegmentDict(self, g):
+		dico = {}
+		for ci, contour in enumerate(g):
+			for si, segment in enumerate(contour):
+				dico[segment.onCurve.name.split(',')[0]] = (ci,si)
+		return dico
 
 	def makePointCoordinatesToUniqueIDDict(self, g):
 		pointCoordinatesToUniqueID = {}
