@@ -77,6 +77,10 @@ shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 selectedColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, .8)
 inactiveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 
+imgNext = NSImage.imageNamed_(NSImageNameRightFacingTriangleTemplate)
+imgNext.setSize_((8, 8))
+imgPrev = NSImage.imageNamed_(NSImageNameLeftFacingTriangleTemplate)
+imgPrev.setSize_((8, 8))
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -1167,50 +1171,144 @@ class TTHTool(BaseEventTool):
 
 	def popoverClosed(self, sender):
 		self.popOverIsOpened = False
-		UpdateCurrentGlyphView()
 
 	def popoverStateCheckBoxCallback(self, sender):
-		command = self.glyphTTHCommands[self.commandClicked]
 		g = self.getGlyph()
-
 		if sender.get() == 0:
 			g.prepareUndo("Deactivate Command")
-			command['active'] = 'false'
+			self.selectedCommand['active'] = 'false'
+			commandState = "Inactive"
 		else:
+			commandState = "Active"
 			g.prepareUndo("Activate Command")
-			command['active'] = 'true'
+			self.selectedCommand['active'] = 'true'
+
+		self.popover.stateTitle.set(commandState)
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
 		g.performUndo()
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
-	def popoverPoint2NextCallback(self, sender):
-		command = self.glyphTTHCommands[self.commandClicked]
+	def popoverZoneCheckBoxCallback(self, sender):
 		g = self.getGlyph()
-		contourLen = len(self.listOfUniqueID)
+		if sender.get() == 1:
+			g.prepareUndo("Align to Zone")
+			commandToZone = 'Aligned to Zone'
+			self.popover.AlignmentTypeText.show(False)
+			self.popover.AlignmentTypePopUpButton.show(False)
+			self.popover.AlignmentZoneText.show(True)
+			self.popover.AlignmentZonePopUpButton.show(True)
 
-		for i, ID in enumerate(self.listOfUniqueID):
-			if ID == command['point2']:
-				command['point2'] = self.listOfUniqueID[(i+1) % contourLen]
+			zoneName = self.zonesListItems[0]
+			if 'top' in self.c_fontModel.zones[zoneName]:
+				if self.c_fontModel.zones[zoneName]['top']:
+					code = 'alignt'
+				else:
+					code = 'alignb'
+			self.selectedCommand['code'] = code
+			if 'align' in self.selectedCommand:
+				del self.selectedCommand['align']
+			self.selectedCommand['zone'] = zoneName
+
+		else:
+			g.prepareUndo("Do Not Align to Zone")
+			commandToZone = 'Not Aligned to Zone'
+			self.popover.AlignmentTypeText.show(True)
+			self.popover.AlignmentTypePopUpButton.show(True)
+			self.popover.AlignmentZoneText.show(False)
+			self.popover.AlignmentZonePopUpButton.show(False)
+			self.selectedCommand['align'] = 'round'
+			if 'zone' in self.selectedCommand:
+				del self.selectedCommand['zone']
+			if self.tthtm.selectedAxis == 'X':
+				self.selectedCommand['code'] = 'alignh'
+			else:
+				self.selectedCommand['code'] = 'alignv'
+
+			
+		self.popover.zoneTitle.set(commandToZone)
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
+		g.performUndo()
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def reassignSelectedCommand(self, oldCommand):
+		for command in self.glyphTTHCommands:
+			if command == oldCommand:
+				return command
+
+	def popoverPointNextCallback(self, sender):
+		g = self.getGlyph()
+		contourLen = len(self.listOfUniqueID_On)
+
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point']:
+				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				self.selectedCommand['point'] = nextPoint
+				break
+		UpdateCurrentGlyphView()
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+
+	def popoverPointPrevCallback(self, sender):
+		g = self.getGlyph()
+		
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point']:
+				prevPoint = self.listOfUniqueID_On[i-1]
+				self.selectedCommand['point'] = prevPoint
+				break
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+
+	def popoverPoint2NextCallback(self, sender):
+		g = self.getGlyph()
+		contourLen = len(self.listOfUniqueID_On)
+
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point2']:
+				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				if nextPoint != self.selectedCommand['point1']:
+					self.selectedCommand['point2'] = nextPoint
+					break
+				else:
+					self.selectedCommand['point2'] = self.listOfUniqueID_On[(i+2) % contourLen]
+					break
+		UpdateCurrentGlyphView()
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popoverPoint2PrevCallback(self, sender):
-		command = self.glyphTTHCommands[self.commandClicked]
 		g = self.getGlyph()
 		
-		for i, ID in enumerate(self.listOfUniqueID):
-			if ID == command['point2']:
-				command['point2'] = self.listOfUniqueID[i-1]
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point2']:
+				prevPoint = self.listOfUniqueID_On[i-1]
+				if prevPoint != self.selectedCommand['point1']:
+					self.selectedCommand['point2'] = prevPoint
+					break
+				else:
+					self.selectedCommand['point2'] = self.listOfUniqueID_On[i-2]
+					break
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popOverSingle(self, point):
-		command = self.glyphTTHCommands[self.commandClicked]
+		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
 		view = self.getNSView()
 		offsetX, offsetY = view.offset()
 		x = point.x
@@ -1222,7 +1320,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did close", self.popoverClosed)
 		self.popover.title = TextBox((10, 10, -30, 20), "Active", sizeStyle='small')
 		self.popover.stateCheckBox = CheckBox((-30, 15, 8, 8), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='mini')
-		self.popover.stateCheckBox.set(command['active'] == 'true')
+		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		self.popover.prevButton = Button((10, 30, 30, 10), "<", callback=self.popoverPoint2PrevCallback, sizeStyle='small')
 		self.popover.nextButton = Button((50, 30, 30, 10), ">", callback=self.popoverPoint2NextCallback, sizeStyle='small')
 
@@ -1230,6 +1328,124 @@ class TTHTool(BaseEventTool):
 		UpdateCurrentGlyphView()
 		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
 
+
+	def popOverAlign(self, point):
+		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+		view = self.getNSView()
+		offsetX, offsetY = view.offset()
+		x = point.x
+		y = point.y
+		x += offsetX
+		y += offsetY
+		self.popover = Popover((200, 110))
+		self.popover.bind("did show", self.popoverOpened)
+		self.popover.bind("did close", self.popoverClosed)
+		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
+		if self.selectedCommand['active'] == 'true':
+			commandState = "Active"
+		else:
+			commandState = "Inactive"
+		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
+
+		if self.selectedCommand['code'] in ['alignt', 'alignb']:
+			commandToZone = 'Aligned to Zone'
+		else:
+			commandToZone = 'Not Aligned to Zone'
+
+		self.popover.zoneTitle = TextBox((10, 34, -30, 20), commandToZone, sizeStyle='small')
+		self.popover.zoneCheckBox = CheckBox((-20, 35, 10, 10), "", callback=self.popoverZoneCheckBoxCallback, sizeStyle='small')
+		self.popover.zoneCheckBox.set(self.selectedCommand['code'] in ['alignt', 'alignb'])
+
+		self.alignmentUI = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
+		self.popover.AlignmentTypeText = TextBox((10, 57, 40, 15), "Align:", sizeStyle = "small")
+		self.popover.AlignmentTypePopUpButton = PopUpButton((50, 56, -10, 16),
+				self.alignmentUI, sizeStyle = "mini",
+				callback=self.AlignmentTypePopUpButtonCallback)
+
+		self.popover.AlignmentTypeText.show(False)
+		self.popover.AlignmentTypePopUpButton.show(False)
+
+		self.zonesListItems = self.c_fontModel.zones.keys()
+		self.popover.AlignmentZoneText = TextBox((10, 57, 40, 15), "Zone:", sizeStyle = "small")
+		self.popover.AlignmentZonePopUpButton = PopUpButton((50, 56, -10, 16),
+				self.zonesListItems, sizeStyle = "mini",
+				callback=self.AlignmentZonePopUpButtonCallback)
+
+		self.popover.AlignmentZoneText.show(False)
+		self.popover.AlignmentZonePopUpButton.show(False)
+
+		if self.selectedCommand['code'] in ['alignv', 'alignh']:
+			self.popover.AlignmentTypeText.show(True)
+			self.popover.AlignmentTypePopUpButton.show(True)
+			if self.selectedCommand['align'] == 'round':
+				self.popover.AlignmentTypePopUpButton.set(0)
+			elif self.selectedCommand['align'] == 'left':
+				self.popover.AlignmentTypePopUpButton.set(1)
+			elif self.selectedCommand['align'] == 'right':
+				self.popover.AlignmentTypePopUpButton.set(2)
+			elif self.selectedCommand['align'] == 'center':
+				self.popover.AlignmentTypePopUpButton.set(3)
+			elif self.selectedCommand['align'] == 'double':
+				self.popover.AlignmentTypePopUpButton.set(4)
+
+		if self.selectedCommand['code'] in ['alignt', 'alignb']:
+			self.popover.AlignmentZoneText.show(True)
+			self.popover.AlignmentZonePopUpButton.show(True)
+			for index, zone in enumerate(self.zonesListItems):
+				if self.selectedCommand['zone'] == zone:
+					self.popover.AlignmentZonePopUpButton.set(index)
+					break
+
+		self.popover.prevButton = ImageButton((10, -20, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPointPrevCallback, sizeStyle='small')
+		self.popover.movePointText = TextBox((72, -22, 60, 15), "Move Point", sizeStyle = "small")
+		self.popover.nextButton = ImageButton((-20, -20, 10, 10), imageObject=imgNext, bordered=False, callback=self.popoverPointNextCallback, sizeStyle='small')
+
+		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
+		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+
+	def AlignmentTypePopUpButtonCallback(self, sender):
+		g = self.getGlyph()
+		g.prepareUndo('Change Alignment')
+		self.selectedCommand['align'] = self.alignmentTypeList[sender.get()]
+		if 'round' in self.selectedCommand:
+			del self.selectedCommand['round']
+		if 'stem' in self.selectedCommand:
+			del self.selectedCommand['stem']
+		if self.selectedCommand['code'] in ['alignt', 'alignb']:
+			self.selectedCommand['code'] = 'alignv'
+			del self.selectedCommand['zone']
+
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def AlignmentZonePopUpButtonCallback(self, sender):
+		g = self.getGlyph()
+		g.prepareUndo('Change Zone')
+		zoneName = self.zonesListItems[sender.get()]
+		if 'top' in self.c_fontModel.zones[zoneName]:
+			if self.c_fontModel.zones[zoneName]['top']:
+				code = 'alignt'
+			else:
+				code = 'alignb'
+		self.selectedCommand['code'] = code
+		if 'align' in self.selectedCommand:
+			del self.selectedCommand['align']
+		self.selectedCommand['zone'] = zoneName
+
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def mouseUp(self, point):
@@ -1239,6 +1455,8 @@ class TTHTool(BaseEventTool):
 			if self.commandClicked != None and not self.popOverIsOpened:
 				if self.glyphTTHCommands[self.commandClicked]['code'] in ['singleh', 'singlev']:
 					self.popOverSingle(point)
+				if self.glyphTTHCommands[self.commandClicked]['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
+					self.popOverAlign(point)
 
 
 		if self.getModifiers()['shiftDown'] != 0:
@@ -2122,7 +2340,7 @@ class TTHTool(BaseEventTool):
 		self.pointNameToCoordinates = self.makePointNameToCoordinatesDict(g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(g)
-		self.listOfUniqueID = self.makePoitnListOfUniqueID(g)
+		self.listOfUniqueID_On = self.makePoitnlistOfUniqueID_On(g)
 		#print 'full temp font loaded'
 		self.ready = True
 		if self.tthtm.previewWindowOpened == 1:
@@ -2197,7 +2415,7 @@ class TTHTool(BaseEventTool):
 
 			finishedin = time.time() - start
 			
-			print 'partial temp font generated in %f seconds' % finishedin
+			#print 'partial temp font generated in %f seconds' % finishedin
 			#self.partialTempUFO = OpenFont(self.partialtempfontpath, showUI=False)
 			self.doneGeneratingPartialFont = True
 		except:
@@ -2238,14 +2456,15 @@ class TTHTool(BaseEventTool):
 					pointNameToUniqueID[uniqueID] = uniqueID
 		return pointNameToUniqueID
 
-	def makePoitnListOfUniqueID(self, g):
-		ListOfUniqueID = []
+	def makePoitnlistOfUniqueID_On(self, g):
+		listOfUniqueID_On = []
 		for contour in g:
 			for point in contour.points:
-				uniqueID = point.naked().uniqueID
-				ListOfUniqueID.append(uniqueID)
+				if point.type != 'offCurve':
+					uniqueID = point.naked().uniqueID
+					listOfUniqueID_On.append(uniqueID)
 
-		return ListOfUniqueID
+		return listOfUniqueID_On
 
 	def makePointUniqueIDToCoordinatesDict(self, g):
 		pointUniqueIDToCoordinates = {}

@@ -61,20 +61,21 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			else:
 				if TTHCommand['point'] in pointNameToIndex:
 					pointIndex = pointNameToIndex[TTHCommand['point']]
-					
-			zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
-			alignToZone = [
-					'PUSHW[ ] 0',
-					'RCVT[ ]',
-					'IF[ ]',
-					'PUSHW[ ] ' + str(pointIndex),
-					'MDAP[1]',
-					'ELSE[ ]',
-					'PUSHW[ ] ' + str(pointIndex) + ' ' + str(zoneCV),
-					'MIAP[0]',
-					'EIF[ ]'
-					]
-			y_instructions.extend(alignToZone)
+			
+			if 'zone' in TTHCommand:
+				zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
+				alignToZone = [
+						'PUSHW[ ] 0',
+						'RCVT[ ]',
+						'IF[ ]',
+						'PUSHW[ ] ' + str(pointIndex),
+						'MDAP[1]',
+						'ELSE[ ]',
+						'PUSHW[ ] ' + str(pointIndex) + ' ' + str(zoneCV),
+						'MIAP[0]',
+						'EIF[ ]'
+						]
+				y_instructions.extend(alignToZone)
 
 		if TTHCommand['code'] == 'alignh' or TTHCommand['code'] == 'alignv':
 			if TTHCommand['point'] == 'lsb':

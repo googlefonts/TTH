@@ -87,7 +87,7 @@ class toolsWindow(BaseWindowController):
 		#		callback=self.PPEMSizePopUpButtonCallback)
 
 		self.wTools.PPEMSizeComboBox = ComboBox((10, 14, 40, 16),
-				self.PPMSizesList, sizeStyle = "mini",
+				self.PPMSizesList, sizeStyle = "small",
 				callback=self.PPEMSizeComboBoxCallback)
 		self.wTools.PPEMSizeComboBox.set(self.tthtm.PPM_Size)
 
