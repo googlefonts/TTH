@@ -1191,7 +1191,7 @@ class TTHTool(BaseEventTool):
 
 		for i, ID in enumerate(self.listOfUniqueID):
 			if ID == command['point2']:
-				command['point2'] = self.listOfUniqueID[i+1]
+				command['point2'] = self.listOfUniqueID[(i+1) % contourLen]
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
