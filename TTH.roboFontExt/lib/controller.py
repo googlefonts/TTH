@@ -1171,13 +1171,17 @@ class TTHTool(BaseEventTool):
 	def popoverStateCheckBoxCallback(self, sender):
 		command = self.glyphTTHCommands[self.commandRightClicked]
 		g = self.getGlyph()
+
 		if sender.get() == 0:
+			g.prepareUndo("Deactivate Command")
 			command['active'] = 'false'
 		else:
+			g.prepareUndo("Activate Command")
 			command['active'] = 'true'
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
+		g.performUndo()
 
 
 	def mouseUp(self, point):
@@ -1572,6 +1576,30 @@ class TTHTool(BaseEventTool):
 
 		g.performUndo()
 
+	def deactivateAllCommandsCallback(self, item):
+		g = self.getGlyph()
+		g.prepareUndo('Deactivate All Commands')
+		for command in self.glyphTTHCommands:
+			command['active'] = 'false'
+
+		self.rewriteGlyphXML(g)
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+	def activateAllCommandsCallback(self, item):
+		g = self.getGlyph()
+		g.prepareUndo('Activate All Commands')
+		for command in self.glyphTTHCommands:
+			command['active'] = 'true'
+
+		self.rewriteGlyphXML(g)
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
 	def reverseSingleCallback(self, item):
 		cmdIndex = self.commandRightClicked
 		g = self.getGlyph()
@@ -1685,6 +1713,7 @@ class TTHTool(BaseEventTool):
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.commandRightClicked = self.isOnCommand(self.p_cursor)
+		separator = NSMenuItem.separatorItem()
 		#print 'command point:', self.commandRightClicked
 		if self.commandRightClicked == None:
 			self.menuAction = NSMenu.alloc().init()
@@ -1693,13 +1722,15 @@ class TTHTool(BaseEventTool):
 			items.append(('Clear X Commands', self.deleteXCommandsCallback))
 			items.append(('Clear Y Commands', self.deleteYCommandsCallback))
 			items.append(('Clear All Deltas', self.deleteAllDeltasCallback))
+			items.append(separator)
+			items.append(('Deactivate All Commands', self.deactivateAllCommandsCallback))
+			items.append(('Activate All Commands', self.activateAllCommandsCallback))
 			menuController = BaseMenu()
 			menuController.buildAdditionContectualMenuItems(self.menuAction, items)
 			NSMenu.popUpContextMenu_withEvent_forView_(self.menuAction, self.getCurrentEvent(), self.getNSView())
 
 		else:
 			self.menuAction = NSMenu.alloc().init()
-			separator = NSMenuItem.separatorItem()
 
 			alignmentCallBack_Closest = callbackAlignment(self, 'round')
 			alignmentCallBack_Left = callbackAlignment(self, 'left')
@@ -2349,7 +2380,7 @@ class TTHTool(BaseEventTool):
 
 		if self.popOverIsOpened and cmdIndex == self.commandRightClicked and cmdIndex != None:
 			selectedPath = NSBezierPath.bezierPath()
-			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-5, y-5), (width+10, height+10)), 3*scale, 3*scale)
+			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2, y-2), (width+4, height+4)), 3*scale, 3*scale)
 			selectedShadow = NSShadow.alloc().init()
 			selectedShadow.setShadowColor_(selectedColor)
 			selectedShadow.setShadowOffset_((0, 0))
@@ -2413,7 +2444,7 @@ class TTHTool(BaseEventTool):
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
 		text.drawAtPoint_((x, y))
 
-	def drawArrowAtPoint(self, scale, r, a, x, y):
+	def drawArrowAtPoint(self, scale, r, a, x, y, color):
 		if x == None or y == None:
 			return
 
@@ -2431,7 +2462,7 @@ class TTHTool(BaseEventTool):
 		pathArrow.lineToPoint_((arrowPoint2_x, arrowPoint2_y))
 		pathArrow.lineToPoint_((x, y))
 
-		arrowColor.set()
+		color.set()
 		pathArrow.setLineWidth_(scale)
 		pathArrow.fill()
 		outlineColor.set()
@@ -2454,6 +2485,10 @@ class TTHTool(BaseEventTool):
 
 	def drawAlign(self, scale, pointID, angle, cmdIndex):
 
+		color = arrowColor
+		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+			color = inactiveColor
+
 		x = None
 		y = None
 		g = self.getGlyph()
@@ -2468,8 +2503,8 @@ class TTHTool(BaseEventTool):
 		elif pointID == 'rsb':
 			x, y = g.width, 0
 
-		self.drawArrowAtPoint(scale, 10, angle, x, y)
-		self.drawArrowAtPoint(scale, 10, angle+180, x, y)
+		self.drawArrowAtPoint(scale, 10, angle, x, y, color)
+		self.drawArrowAtPoint(scale, 10, angle+180, x, y, color)
 
 		extension = ''
 		text = 'A'
@@ -2676,6 +2711,9 @@ class TTHTool(BaseEventTool):
 
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
+		color = interpolatecolor
+		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+			color = inactiveColor
 
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
@@ -2699,7 +2737,7 @@ class TTHTool(BaseEventTool):
 		path.moveToPoint_(junction_pathArrowStart2)
 		path.curveToPoint_controlPoint1_controlPoint2_(junction_pathArrowEnd2, (center2), (center2) )
 
-		interpolatecolor.set()
+		color.set()
 		path.setLineWidth_(scale*1.3)
 		pathArrowEnd.fill()
 		pathArrowStart.fill()
@@ -2771,6 +2809,8 @@ class TTHTool(BaseEventTool):
 
 
 	def drawDelta(self, scale, point, value, cmdIndex, color):
+		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+			color = inactiveColor
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
@@ -3007,6 +3047,8 @@ class TTHTool(BaseEventTool):
 
 		self.drawCommands(scale, self.glyphTTHCommands)
 
+		#self.sortOverlapingLabels(self.glyphTTHCommands)
+
 		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
 			superview = self.getNSView().enclosingScrollView().superview()
 			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
@@ -3019,6 +3061,16 @@ class TTHTool(BaseEventTool):
 				frame.origin.x = 0
 				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
 				#self.previewInGlyphWindow.setNeedsDisplay_(True)
+	
+	# def sortOverlapingLabels(self, commands):
+	# 	#self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
+	# 	for cmdIndex1, c1 in enumerate(commands):
+	# 		for cmdIndex2, c2 in enumerate(commands):
+	# 			if c1 != c2 and cmdIndex2 > cmdIndex1:
+	# 				label1 = self.commandLabelPos[cmdIndex1]
+	# 				label2 = self.commandLabelPos[cmdIndex2]
+
+
 
 	def drawCommands(self, scale, commands):
 		for cmdIndex, c in enumerate(commands):
