@@ -75,6 +75,7 @@ sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 selectedColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, .8)
+inactiveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
 
 
 def topologicalSort(l, f):
@@ -1024,7 +1025,7 @@ class TTHTool(BaseEventTool):
 
 	def keyDown(self, event):
 
-		keyDict = {'a':('Align', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5)}
+		keyDict = {'a':('Align', 0), 's':('Single Link', 1), 'd':('Double Link', 2), 'i':('Interpolation', 3), 'm':('Middle Delta', 4), 'f':('Final Delta', 5), 't':('Selection', 6)}
 		if event.characters() in keyDict:
 			val = keyDict[event.characters()]
 			self.changeSelectedHintingTool(val[0])
@@ -1167,6 +1168,18 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = False
 		UpdateCurrentGlyphView()
 
+	def popoverStateCheckBoxCallback(self, sender):
+		command = self.glyphTTHCommands[self.commandRightClicked]
+		g = self.getGlyph()
+		if sender.get() == 0:
+			command['active'] = 'false'
+		else:
+			command['active'] = 'true'
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+
+
 	def mouseUp(self, point):
 		if self.tthtm.selectedHintingTool == 'Selection':
 			self.p_selectionCursor = (int(point.x), int(point.y))
@@ -1182,6 +1195,8 @@ class TTHTool(BaseEventTool):
 				self.popover.bind("did show", self.popoverOpened)
 				self.popover.bind("did close", self.popoverClosed)
 				self.popover.title = TextBox((10, 10, -10, 20), self.glyphTTHCommands[self.commandRightClicked]['code'])
+				self.popover.stateCheckBox = CheckBox((10, 30, 80, 8), "is active", callback=self.popoverStateCheckBoxCallback, sizeStyle='mini')
+				self.popover.stateCheckBox.set(self.glyphTTHCommands[self.commandRightClicked]['active'] == 'true')
 				self.popOverIsOpened = True
 				UpdateCurrentGlyphView()
 				self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
@@ -1366,6 +1381,7 @@ class TTHTool(BaseEventTool):
 
 
 			self.glyphTTHCommands.append(newCommand)
+
 			self.updateGlyphProgram(g)
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph(g)
@@ -2199,6 +2215,8 @@ class TTHTool(BaseEventTool):
 		root = ET.fromstring(ttprogram)
 		for child in root:
 			self.glyphTTHCommands.append(child.attrib)
+			if 'active' not in child.attrib:
+				child.attrib['active'] = 'true'
 		return self.glyphTTHCommands
 
 	def writeGlyphFLTTProgram(self, g):
@@ -2207,6 +2225,8 @@ class TTHTool(BaseEventTool):
 		root = ET.Element('ttProgram')
 		for command in self.glyphTTHCommands:
 			com = ET.SubElement(root, 'ttc')
+			if 'active' not in command:
+				command['active'] = 'true'
 			com.attrib = command
 		text = ET.tostring(root)
 		g.lib['com.fontlab.ttprogram'] = Data(text)
@@ -2291,6 +2311,15 @@ class TTHTool(BaseEventTool):
 
 
 	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
+		labelColor = backgroundColor
+
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				labelColor = inactiveColor
+				textColor = whiteColor
+			else:
+				labelColor = backgroundColor
+
 		currentTool = getActiveEventTool()
 		view = currentTool.getNSView()
 
@@ -2338,7 +2367,7 @@ class TTHTool(BaseEventTool):
 		context.saveGraphicsState()
 		shadow.set()
 		thePath.setLineWidth_(scale)
-		backgroundColor.set()
+		labelColor.set()
 		thePath.fill()
 		borderColor.set()
 		thePath.stroke()
@@ -2542,6 +2571,7 @@ class TTHTool(BaseEventTool):
 			elif stemName != None:
 				color = stemColor
 				textColor = blackColor
+
 				text += '_' + stemName
 
 		self.drawLinkArrow(scale, startPoint, endPoint, color)
@@ -2967,8 +2997,23 @@ class TTHTool(BaseEventTool):
 				elif self.tthtm.selectedHintingTool == 'Interpolation':
 					self.drawInterpolateDragging(scale, self.startPoint, self.endPoint)
 
+		self.drawCommands(scale, self.glyphTTHCommands)
 
-		for cmdIndex, c in enumerate(self.glyphTTHCommands):
+		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
+			superview = self.getNSView().enclosingScrollView().superview()
+			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
+				if self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None:
+					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+					superview.addSubview_(self.previewInGlyphWindow[self.c_fontModel.f.fileName])
+				
+				frame = superview.frame()
+				frame.size.width -= 30
+				frame.origin.x = 0
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
+				#self.previewInGlyphWindow.setNeedsDisplay_(True)
+
+	def drawCommands(self, scale, commands):
+		for cmdIndex, c in enumerate(commands):
 			# search elements only once
 			cmd_code = getOrNone(c, 'code')
 			cmd_pt   = getOrNone(c, 'point')
@@ -3067,19 +3112,6 @@ class TTHTool(BaseEventTool):
 					elif self.tthtm.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
 						self.drawDelta(scale, point, value, cmdIndex, color)
 
-
-		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
-			superview = self.getNSView().enclosingScrollView().superview()
-			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
-				if self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None:
-					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-					superview.addSubview_(self.previewInGlyphWindow[self.c_fontModel.f.fileName])
-				
-				frame = superview.frame()
-				frame.size.width -= 30
-				frame.origin.x = 0
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
-				#self.previewInGlyphWindow.setNeedsDisplay_(True)
 
 
 reload(TR)

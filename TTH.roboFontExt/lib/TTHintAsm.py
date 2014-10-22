@@ -35,6 +35,8 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	finalDeltasV = []
 
 	for TTHCommand in glyphTTHCommands:
+		if TTHCommand['active'] == 'false':
+			continue
 		if TTHCommand['code'] == 'alignt' or TTHCommand['code'] == 'alignb':
 			if TTHCommand['point'] == 'lsb':
 				pointIndex = lsbIndex
