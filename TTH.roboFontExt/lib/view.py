@@ -573,7 +573,8 @@ class programWindow(object):
 					columnDescriptions=[{"title": "index", "width": 30, "editable": False}, {"title": "code", "editable": False}, {"title": "point", "editable": False},
 				{"title": "point1", "editable": False}, {"title": "point2", "editable": False}, {"title": "align", "editable": False},
 				{"title": "round", "editable": False}, {"title": "stem", "editable": False}, {"title": "zone", "editable": False},
-				{"title": "delta", "editable": False}, {"title": "ppm1", "editable": False}, {"title": "ppm2", "editable": False}],
+				{"title": "delta", "editable": False}, {"title": "ppm1", "editable": False}, {"title": "ppm2", "editable": False},
+				{"title": "active", "editable": False}],
 					enableDelete=False, 
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
@@ -613,7 +614,7 @@ class programWindow(object):
 				self.i += 1
 		self.i = 0
 		for command in self.commands:
-			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']:
+			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:
 				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
 

@@ -75,7 +75,7 @@ sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 selectedColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, .8)
-inactiveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.3)
+inactiveColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, .5, .5, 0.2)
 
 imgNext = NSImage.imageNamed_(NSImageNameRightFacingTriangleTemplate)
 imgNext.setSize_((8, 8))
@@ -1199,6 +1199,7 @@ class TTHTool(BaseEventTool):
 			self.popover.AlignmentTypePopUpButton.show(False)
 			self.popover.AlignmentZoneText.show(True)
 			self.popover.AlignmentZonePopUpButton.show(True)
+			self.popover.AlignmentZonePopUpButton.set(0)
 
 			zoneName = self.zonesListItems[0]
 			if 'top' in self.c_fontModel.zones[zoneName]:
@@ -1218,6 +1219,8 @@ class TTHTool(BaseEventTool):
 			self.popover.AlignmentTypePopUpButton.show(True)
 			self.popover.AlignmentZoneText.show(False)
 			self.popover.AlignmentZonePopUpButton.show(False)
+			self.popover.AlignmentTypePopUpButton.set(0)
+
 			self.selectedCommand['align'] = 'round'
 			if 'zone' in self.selectedCommand:
 				del self.selectedCommand['zone']
@@ -1307,7 +1310,7 @@ class TTHTool(BaseEventTool):
 		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
-	def popOverSingle(self, point):
+	def popOverSimple(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
 		view = self.getNSView()
 		offsetX, offsetY = view.offset()
@@ -1318,11 +1321,13 @@ class TTHTool(BaseEventTool):
 		self.popover = Popover((100, 100))
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
-		self.popover.title = TextBox((10, 10, -30, 20), "Active", sizeStyle='small')
-		self.popover.stateCheckBox = CheckBox((-30, 15, 8, 8), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='mini')
+		if self.selectedCommand['active'] == 'true':
+			commandState = "Active"
+		else:
+			commandState = "Inactive"
+		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
-		self.popover.prevButton = Button((10, 30, 30, 10), "<", callback=self.popoverPoint2PrevCallback, sizeStyle='small')
-		self.popover.nextButton = Button((50, 30, 30, 10), ">", callback=self.popoverPoint2NextCallback, sizeStyle='small')
 
 		self.popOverIsOpened = True
 		UpdateCurrentGlyphView()
@@ -1453,10 +1458,10 @@ class TTHTool(BaseEventTool):
 			self.p_selectionCursor = (int(point.x), int(point.y))
 			self.commandClicked = self.isOnCommand(self.p_selectionCursor)
 			if self.commandClicked != None and not self.popOverIsOpened:
-				if self.glyphTTHCommands[self.commandClicked]['code'] in ['singleh', 'singlev']:
-					self.popOverSingle(point)
 				if self.glyphTTHCommands[self.commandClicked]['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
 					self.popOverAlign(point)
+				else:
+					self.popOverSimple(point)
 
 
 		if self.getModifiers()['shiftDown'] != 0:

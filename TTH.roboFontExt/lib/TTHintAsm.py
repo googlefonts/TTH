@@ -35,6 +35,9 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	finalDeltasV = []
 
 	for TTHCommand in glyphTTHCommands:
+		if TTHCommand['active'] == 'false':
+			continue
+
 		if 'point'in TTHCommand:
 			if TTHCommand['point'] not in pointNameToUniqueID and TTHCommand['point'] not in ['lsb', 'rsb']:
 				print 'problem with point', TTHCommand['point'], 'in glyph', g.name
@@ -51,8 +54,6 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 				#glyphTTHCommands.remove(TTHCommand)
 				continue
 
-		if TTHCommand['active'] == 'false':
-			continue
 		if TTHCommand['code'] == 'alignt' or TTHCommand['code'] == 'alignb':
 			if TTHCommand['point'] == 'lsb':
 				pointIndex = lsbIndex
