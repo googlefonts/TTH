@@ -119,7 +119,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def makeGroups(g, ital, X):
+def makeGroups(g, ital, X, autoh):
 	if X:
 		proj = lambda p: p[0]
 		ortho_proj = lambda p: p[1]
@@ -136,6 +136,12 @@ def makeGroups(g, ital, X):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
 		pos = int(round(proj(hd.shearedPos)))
+
+		# fuse zones
+		if not X:
+			zd = autoh.zoneAt(pos)
+			if None != zd: pos = zd[2]
+
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
@@ -419,7 +425,7 @@ class AutoHinting():
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-	def addAlign(self, g, pointName, (zoneName, isTopZone)):
+	def addAlign(self, g, pointName, (zoneName, isTopZone, ys, ye)):
 		newAlign = {}
 		if isTopZone:
 			newAlign['code'] = 'alignt'
@@ -431,10 +437,10 @@ class AutoHinting():
 
 	def zoneAt(self, y):
 		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
-			zoneName, isTop, yStart, yEnd = zoneData(item)
+			zd = zoneData(item)
+			zoneName, isTop, yStart, yEnd = zd
 			if HF.inInterval(y, (yStart, yEnd)):
-				return (zoneName, isTop)
-				return None
+				return zd
 
 	#def attachLinksToZones(self, g):
 	#	for command in self.TTHToolInstance.glyphTTHCommands:
@@ -571,7 +577,7 @@ class AutoHinting():
 				if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
 			#print "At pos", pos,", leader is", comps[0][0]
 
-			zoneName, isTop = zoneInfo
+			zoneName, isTop, _, _ = zoneInfo
 			nbComps = len(comps)
 			cont, seg = comps[0][0]
 			hd = contours[cont][seg]
@@ -628,8 +634,8 @@ class AutoHinting():
 				minStemX, minStemY, maxStemX, maxStemY, \
 				roundFactor_Stems, self.tthtm.angleTolerance))
 
-		cgY = makeGroups(g, self.ital, X=False) # for Y auto-hinting
-		cgX = makeGroups(g, self.ital, X=True) # for X auto-hinting
+		cgY = makeGroups(g, self.ital, False, self) # for Y auto-hinting
+		cgX = makeGroups(g, self.ital, True, self) # for X auto-hinting
 		#printGroups(cgX, 'X')
 		#printGroups(cgY, 'Y')
 		# we mark point in Y groups that have at least one stem attached to them:
