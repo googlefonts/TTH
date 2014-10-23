@@ -119,7 +119,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def makeGroups(g, ital, X):
+def makeGroups(g, ital, X, autoh):
 	if X:
 		proj = lambda p: p[0]
 		ortho_proj = lambda p: p[1]
@@ -136,6 +136,12 @@ def makeGroups(g, ital, X):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
 		pos = int(round(proj(hd.shearedPos)))
+
+		# fuse zones
+		if not X:
+			zd = autoh.zoneAt(pos)
+			if None != zd: pos = zd[2]
+
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
@@ -351,31 +357,23 @@ class AutoHinting():
 			for i in range(2):
 				contoursY[stem[i].cont][stem[i].seg].inStemY = True
 
-	def applyStems(self, stems, contoursX, contoursY):
-		g_stemsListX, g_stemsListY = stems
-		for (stem, stemName) in g_stemsListY:
+	def applyStems(self, stems, contours, isHorizontal):
+		for (stem, stemName) in stems:
 			src, tgt = stem[0], stem[1]
-			hd0 = contoursY[src.cont][src.seg]
-			hd1 = contoursY[tgt.cont][tgt.seg]
+			hd0 = contours[src.cont][src.seg]
+			hd1 = contours[tgt.cont][tgt.seg]
 			if hd0.touched and hd1.touched: continue
 			if not (hd0.touched or hd1.touched):
-				self.addDoubleLink(src, tgt, stemName, True)
+				self.addDoubleLink(src, tgt, stemName, isHorizontal)
 				hd0.touched = True
 				hd1.touched = True
 				continue
 			if hd0.touched:
-				self.addSingleLink(src.pos.name, tgt.pos.name, True, stemName)
+				self.addSingleLink(src.pos.name, tgt.pos.name, isHorizontal, stemName)
 				hd1.touched = True
 			else:
-				self.addSingleLink(tgt.pos.name, src.pos.name, True, stemName)
+				self.addSingleLink(tgt.pos.name, src.pos.name, isHorizontal, stemName)
 				hd0.touched = True
-		for (stem, stemName) in g_stemsListX:
-			src, tgt = stem[0], stem[1]
-			hd0 = contoursX[src.cont][src.seg]
-			hd1 = contoursX[tgt.cont][tgt.seg]
-			self.addDoubleLink(src, tgt, stemName, False)
-			hd0.touched = True
-			hd1.touched = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
@@ -419,7 +417,7 @@ class AutoHinting():
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-	def addAlign(self, g, pointName, (zoneName, isTopZone)):
+	def addAlign(self, g, pointName, (zoneName, isTopZone, ys, ye)):
 		newAlign = {}
 		if isTopZone:
 			newAlign['code'] = 'alignt'
@@ -431,10 +429,10 @@ class AutoHinting():
 
 	def zoneAt(self, y):
 		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
-			zoneName, isTop, yStart, yEnd = zoneData(item)
+			zd = zoneData(item)
+			zoneName, isTop, yStart, yEnd = zd
 			if HF.inInterval(y, (yStart, yEnd)):
-				return (zoneName, isTop)
-		return None
+				return zd
 
 	#def attachLinksToZones(self, g):
 	#	for command in self.TTHToolInstance.glyphTTHCommands:
@@ -571,7 +569,7 @@ class AutoHinting():
 				if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
 			#print "At pos", pos,", leader is", comps[0][0]
 
-			zoneName, isTop = zoneInfo
+			zoneName, isTop, _, _ = zoneInfo
 			nbComps = len(comps)
 			cont, seg = comps[0][0]
 			hd = contours[cont][seg]
@@ -628,8 +626,8 @@ class AutoHinting():
 				minStemX, minStemY, maxStemX, maxStemY, \
 				roundFactor_Stems, self.tthtm.angleTolerance))
 
-		cgY = makeGroups(g, self.ital, X=False) # for Y auto-hinting
-		cgX = makeGroups(g, self.ital, X=True) # for X auto-hinting
+		cgY = makeGroups(g, self.ital, False, self) # for Y auto-hinting
+		cgX = makeGroups(g, self.ital, True, self) # for X auto-hinting
 		#printGroups(cgX, 'X')
 		#printGroups(cgY, 'Y')
 		# we mark point in Y groups that have at least one stem attached to them:
@@ -639,7 +637,8 @@ class AutoHinting():
 		contoursX, groupsX = cgX
 		contoursY, groupsY = cgY
 		# now we actually insert the stem, as double or single links, in X and Y
-		self.applyStems(stems, contoursX, contoursY)
+		self.applyStems(stems[0], contoursX, False)
+		self.applyStems(stems[1], contoursY, True)
 		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
 		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
