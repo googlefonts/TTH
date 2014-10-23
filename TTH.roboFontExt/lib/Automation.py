@@ -139,7 +139,7 @@ def makeGroups(g, ital, X):
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
-	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems() if len(v) > 1]
+	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]# if len(v) > 1]
 	groups = {}
 	for pos, pts in byPos:
 		components = []
