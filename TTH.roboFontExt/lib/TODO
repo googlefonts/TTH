@@ -3,9 +3,6 @@ For v0.6 :
 ==============================
 
 ------------------------------
-Fuse groups at different pos, if they are in the same zone (cf. glyph 'g' in Hansom Italic and Minion)
-'g' in Minion a un truc bizarre avec un signle + un double sur le meme point
-------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
 y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
