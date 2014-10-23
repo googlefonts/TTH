@@ -357,31 +357,23 @@ class AutoHinting():
 			for i in range(2):
 				contoursY[stem[i].cont][stem[i].seg].inStemY = True
 
-	def applyStems(self, stems, contoursX, contoursY):
-		g_stemsListX, g_stemsListY = stems
-		for (stem, stemName) in g_stemsListY:
+	def applyStems(self, stems, contours, isHorizontal):
+		for (stem, stemName) in stems:
 			src, tgt = stem[0], stem[1]
-			hd0 = contoursY[src.cont][src.seg]
-			hd1 = contoursY[tgt.cont][tgt.seg]
+			hd0 = contours[src.cont][src.seg]
+			hd1 = contours[tgt.cont][tgt.seg]
 			if hd0.touched and hd1.touched: continue
 			if not (hd0.touched or hd1.touched):
-				self.addDoubleLink(src, tgt, stemName, True)
+				self.addDoubleLink(src, tgt, stemName, isHorizontal)
 				hd0.touched = True
 				hd1.touched = True
 				continue
 			if hd0.touched:
-				self.addSingleLink(src.pos.name, tgt.pos.name, True, stemName)
+				self.addSingleLink(src.pos.name, tgt.pos.name, isHorizontal, stemName)
 				hd1.touched = True
 			else:
-				self.addSingleLink(tgt.pos.name, src.pos.name, True, stemName)
+				self.addSingleLink(tgt.pos.name, src.pos.name, isHorizontal, stemName)
 				hd0.touched = True
-		for (stem, stemName) in g_stemsListX:
-			src, tgt = stem[0], stem[1]
-			hd0 = contoursX[src.cont][src.seg]
-			hd1 = contoursX[tgt.cont][tgt.seg]
-			self.addDoubleLink(src, tgt, stemName, False)
-			hd0.touched = True
-			hd1.touched = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
@@ -645,7 +637,8 @@ class AutoHinting():
 		contoursX, groupsX = cgX
 		contoursY, groupsY = cgY
 		# now we actually insert the stem, as double or single links, in X and Y
-		self.applyStems(stems, contoursX, contoursY)
+		self.applyStems(stems[0], contoursX, False)
+		self.applyStems(stems[1], contoursY, True)
 		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
 		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
