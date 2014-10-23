@@ -21,6 +21,7 @@ import tt_tables
 import TTHintAsm
 import view
 import TextRenderer as TR
+import HelperFunc as HF
 import preview
 from Automation import AutoHinting
 
@@ -878,8 +879,8 @@ class TTHTool(BaseEventTool):
 #================ Functions for Stems
 
 	def storeStem(self, stemName, entry, horizontal):
-		stem = self.c_fontModel.getOrPutDefault(self.c_fontModel.stems, stemName, {})
-		stem['width'] = self.c_fontModel.getOrDefault(entry, 'Width', 0)
+		stem = HF.getOrPutDefault(self.c_fontModel.stems, stemName, {})
+		stem['width'] = HF.getOrDefault(entry, 'Width', 0)
 		stem['horizontal'] = horizontal
 		# stems round dict
 		sr = {}
@@ -947,8 +948,8 @@ class TTHTool(BaseEventTool):
 
 		self.changeSelectedStemX('None')
 		self.changeSelectedStemY('None')
-		tth_lib = self.c_fontModel.getOrPutDefault(self.c_fontModel.f.lib, FL_tth_key, {})
-		self.c_fontModel.stems = self.c_fontModel.getOrPutDefault(tth_lib, "stems", {})
+		tth_lib = HF.getOrPutDefault(self.c_fontModel.f.lib, FL_tth_key, {})
+		self.c_fontModel.stems = HF.getOrPutDefault(tth_lib, "stems", {})
 		stemView.set(self.c_fontModel.buildStemsUIList(stemView.isHorizontal))
 
 		progressBar.set(0)
@@ -2342,7 +2343,6 @@ class TTHTool(BaseEventTool):
 
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(g)
-		self.pointNameToCoordinates = self.makePointNameToCoordinatesDict(g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(g)
 		self.listOfUniqueID_On = self.makePoitnlistOfUniqueID_On(g)
@@ -2477,13 +2477,6 @@ class TTHTool(BaseEventTool):
 			for point in contour.points:
 				pointUniqueIDToCoordinates[point.naked().uniqueID] = ((point.x, point.y))
 		return pointUniqueIDToCoordinates
-
-	def makePointNameToCoordinatesDict(self, g):
-		pointNameToCoordinates = {}
-		for contour in g:
-			for point in contour.points:
-				pointNameToCoordinates[point.name.split(',')[0]] = ((point.x, point.y))
-		return pointNameToCoordinates
 
 	def makePointCoordinatesToUniqueIDDict(self, g):
 		pointCoordinatesToUniqueID = {}
