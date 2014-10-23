@@ -434,7 +434,7 @@ class AutoHinting():
 			zoneName, isTop, yStart, yEnd = zoneData(item)
 			if HF.inInterval(y, (yStart, yEnd)):
 				return (zoneName, isTop)
-				return None
+		return None
 
 	#def attachLinksToZones(self, g):
 	#	for command in self.TTHToolInstance.glyphTTHCommands:

@@ -1169,9 +1169,11 @@ class TTHTool(BaseEventTool):
 
 	def popoverOpened(self, sender):
 		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
 
 	def popoverClosed(self, sender):
 		self.popOverIsOpened = False
+		UpdateCurrentGlyphView()
 
 	def popoverStateCheckBoxCallback(self, sender):
 		g = self.getGlyph()
@@ -1321,7 +1323,7 @@ class TTHTool(BaseEventTool):
 		y += offsetY
 		self.popover = Popover((100, 100))
 		self.popover.bind("did show", self.popoverOpened)
-		self.popover.bind("did close", self.popoverClosed)
+		self.popover.bind("will close", self.popoverClosed)
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
 		else:
@@ -1457,12 +1459,13 @@ class TTHTool(BaseEventTool):
 	def mouseUp(self, point):
 		if self.tthtm.selectedHintingTool == 'Selection':
 			self.p_selectionCursor = (int(point.x), int(point.y))
-			self.commandClicked = self.isOnCommand(self.p_selectionCursor)
-			if self.commandClicked != None and not self.popOverIsOpened:
-				if self.glyphTTHCommands[self.commandClicked]['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
-					self.popOverAlign(point)
-				else:
-					self.popOverSimple(point)
+			if self.popOverIsOpened == False:
+				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
+				if self.commandClicked != None and not self.popOverIsOpened:
+					if self.glyphTTHCommands[self.commandClicked]['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
+						self.popOverAlign(point)
+					else:
+						self.popOverSimple(point)
 
 
 		if self.getModifiers()['shiftDown'] != 0:
@@ -2643,8 +2646,6 @@ class TTHTool(BaseEventTool):
 		shadow.setShadowOffset_((0, -1))
 		shadow.setShadowBlurRadius_(2)
 
-		selectedPath = None
-
 		if self.popOverIsOpened and cmdIndex == self.commandClicked and cmdIndex != None:
 			selectedPath = NSBezierPath.bezierPath()
 			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2, y-2), (width+4, height+4)), 3*scale, 3*scale)
@@ -2653,7 +2654,6 @@ class TTHTool(BaseEventTool):
 			selectedShadow.setShadowOffset_((0, 0))
 			selectedShadow.setShadowBlurRadius_(10)
 
-		if selectedPath:
 			selectedShadow.set()
 			selectedColor.set()
 			selectedPath.fill()
