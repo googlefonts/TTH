@@ -127,7 +127,7 @@ def makeGroups(g, ital, X):
 		proj = lambda p: p[1]
 		ortho_proj = lambda p: p[0]
 	contours = []
-	for i in range(len(g)):
+	for c in g:
 		contours.append([])
 	byPos = {}
 	# make a copy of all contours with hinting data
@@ -410,7 +410,7 @@ class AutoHinting():
 			return
 		newCommand = {}
 		if isHorizontal:
-			newCommand['code'] = 'doublev' #FIXME V ??? I would put H
+			newCommand['code'] = 'doublev'
 		else:
 			newCommand['code'] = 'doubleh'
 		newCommand['point1'] = p1.pos.name#self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
@@ -419,6 +419,22 @@ class AutoHinting():
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
+	def addAlign(self, g, pointName, (zoneName, isTopZone)):
+		newAlign = {}
+		if isTopZone:
+			newAlign['code'] = 'alignt'
+		else:
+			newAlign['code'] = 'alignb'
+		newAlign['point'] = pointName
+		newAlign['zone'] = zoneName
+		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+
+	def zoneAt(self, y):
+		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
+			zoneName, isTop, yStart, yEnd = zoneData(item)
+			if HF.inInterval(y, (yStart, yEnd)):
+				return (zoneName, isTop)
+				return None
 
 	#def attachLinksToZones(self, g):
 	#	for command in self.TTHToolInstance.glyphTTHCommands:
@@ -439,23 +455,6 @@ class AutoHinting():
 	#			self.addAlign(g, p2_uniqueID, zonePoint2)
 	#		else: # elif zonePoint1 != None:
 	#			self.addAlign(g, p1_uniqueID, zonePoint1)
-
-	def addAlign(self, g, pointName, (zoneName, isTopZone)):
-		newAlign = {}
-		if isTopZone:
-			newAlign['code'] = 'alignt'
-		else:
-			newAlign['code'] = 'alignb'
-		newAlign['point'] = pointName
-		newAlign['zone'] = zoneName
-		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
-
-	def zoneAt(self, y):
-		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
-			zoneName, isTop, yStart, yEnd = zoneData(item)
-			if HF.inInterval(y, (yStart, yEnd)):
-				return (zoneName, isTop)
-				return None
 
 	#def findSiblings(self, g):
 	#	touchedPoints = self.findTouchedPoints(g)
@@ -495,7 +494,6 @@ class AutoHinting():
 	#					continue
 	#				self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
 
-
 	#def findTouchedPoints(self, g):
 	#	touchedPoints = sets.Set()
 	#	for command in self.TTHToolInstance.glyphTTHCommands:
@@ -506,10 +504,8 @@ class AutoHinting():
 	#			if n in command: touchedPoints.add((command[n], axis))
 	#	return touchedPoints
 
-
 	#def hintWidth(self, g):
 	#	pass
-
 
 	#def autoAlignToZones(self, g):
 
@@ -636,11 +632,16 @@ class AutoHinting():
 		cgX = makeGroups(g, self.ital, X=True) # for X auto-hinting
 		#printGroups(cgX, 'X')
 		#printGroups(cgY, 'Y')
+		# we mark point in Y groups that have at least one stem attached to them:
 		self.markStems(stems, cgY)
+		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
 		nonZones = self.handleZones(g, cgY)
 		contoursX, groupsX = cgX
 		contoursY, groupsY = cgY
+		# now we actually insert the stem, as double or single links, in X and Y
 		self.applyStems(stems, contoursX, contoursY)
+		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
 		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
+		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
 		self.handleNonZones(nonZones, cgY, isHorizontal=True)
 
