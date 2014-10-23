@@ -1169,7 +1169,6 @@ class TTHTool(BaseEventTool):
 
 	def popoverOpened(self, sender):
 		self.popOverIsOpened = True
-		UpdateCurrentGlyphView()
 
 	def popoverClosed(self, sender):
 		self.popOverIsOpened = False
@@ -1323,7 +1322,7 @@ class TTHTool(BaseEventTool):
 		y += offsetY
 		self.popover = Popover((100, 100))
 		self.popover.bind("did show", self.popoverOpened)
-		self.popover.bind("will close", self.popoverClosed)
+		self.popover.bind("did close", self.popoverClosed)
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
 		else:
@@ -2653,10 +2652,15 @@ class TTHTool(BaseEventTool):
 			selectedShadow.setShadowColor_(selectedColor)
 			selectedShadow.setShadowOffset_((0, 0))
 			selectedShadow.setShadowBlurRadius_(10)
+			
+			selectedContext = NSGraphicsContext.currentContext()
+			selectedContext.saveGraphicsState()
 
 			selectedShadow.set()
 			selectedColor.set()
 			selectedPath.fill()
+
+			selectedContext.restoreGraphicsState()
 
 		thePath = NSBezierPath.bezierPath()
 		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x, y), (width, height)), 3*scale, 3*scale)
