@@ -2751,10 +2751,10 @@ class TTHTool(BaseEventTool):
 		path.fill()
 
 	def drawAlign(self, scale, pointID, angle, cmdIndex):
-
 		color = arrowColor
-		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-			color = inactiveColor
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				color = inactiveColor
 
 		x = None
 		y = None
@@ -2841,8 +2841,10 @@ class TTHTool(BaseEventTool):
 
 	def drawLink(self, scale, startPoint, endPoint, stemName, cmdIndex):
 	 	color = linkColor
-	 	if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-			color = inactiveColor
+	 	if cmdIndex != None:
+		 	if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				color = inactiveColor
+	
 	 	textColor = whiteColor
 
 	 	start_end_diff = difference(startPoint, endPoint)
@@ -2874,10 +2876,10 @@ class TTHTool(BaseEventTool):
 				text += '_' + extension
 			elif stemName != None:
 				color = stemColor
-				if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-					color = inactiveColor
+				if cmdIndex != None:
+				 	if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+						color = inactiveColor
 				textColor = blackColor
-
 				text += '_' + stemName
 
 		self.drawLinkArrow(scale, startPoint, endPoint, color)
@@ -2889,8 +2891,9 @@ class TTHTool(BaseEventTool):
 
 	def drawDoubleLinkDragging(self, scale, startPoint, endPoint, cmdIndex):
 		color = doublinkColor
-		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-			color = inactiveColor
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				color = inactiveColor
 
 		start_end_diff = difference(startPoint, endPoint)
 	 	dx, dy = start_end_diff[0]/2, start_end_diff[1]/2
@@ -2979,8 +2982,9 @@ class TTHTool(BaseEventTool):
 
 	def drawInterpolate(self, scale, startPoint, endPoint, middlePoint, cmdIndex):
 		color = interpolatecolor
-		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-			color = inactiveColor
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				color = inactiveColor
 
 		start_middle_diff = difference(startPoint, middlePoint)
 		dx, dy = start_middle_diff[0]/2, start_middle_diff[1]/2
@@ -3076,8 +3080,9 @@ class TTHTool(BaseEventTool):
 
 
 	def drawDelta(self, scale, point, value, cmdIndex, color):
-		if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
-			color = inactiveColor
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				color = inactiveColor
 
 		path = NSBezierPath.bezierPath()
 	 	path.moveToPoint_((point[0], point[1]))
