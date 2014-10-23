@@ -35,27 +35,47 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	finalDeltasV = []
 
 	for TTHCommand in glyphTTHCommands:
+		if 'point'in TTHCommand:
+			if TTHCommand['point'] not in pointNameToUniqueID and TTHCommand['point'] not in ['lsb', 'rsb']:
+				print 'problem with point', TTHCommand['point'], 'in glyph', g.name
+				#glyphTTHCommands.remove(TTHCommand)
+				continue
+		if 'point1' in TTHCommand:
+			if TTHCommand['point1'] not in pointNameToUniqueID and TTHCommand['point1'] not in ['lsb', 'rsb']:
+				print 'problem with point', TTHCommand['point1'], 'in glyph', g.name
+				#glyphTTHCommands.remove(TTHCommand)
+				continue
+		if 'point2' in TTHCommand:
+			if TTHCommand['point2'] not in pointNameToUniqueID and TTHCommand['point2'] not in ['lsb', 'rsb']:
+				print 'problem with point', TTHCommand['point2'], 'in glyph', g.name
+				#glyphTTHCommands.remove(TTHCommand)
+				continue
+
+		if TTHCommand['active'] == 'false':
+			continue
 		if TTHCommand['code'] == 'alignt' or TTHCommand['code'] == 'alignb':
 			if TTHCommand['point'] == 'lsb':
 				pointIndex = lsbIndex
 			elif TTHCommand['point'] == 'rsb':
 				pointIndex = rsbIndex
 			else:
-				pointUniqueID = pointNameToUniqueID[TTHCommand['point']]
-				pointIndex = pointNameToIndex[TTHCommand['point']]
-			zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
-			alignToZone = [
-					'PUSHW[ ] 0',
-					'RCVT[ ]',
-					'IF[ ]',
-					'PUSHW[ ] ' + str(pointIndex),
-					'MDAP[1]',
-					'ELSE[ ]',
-					'PUSHW[ ] ' + str(pointIndex) + ' ' + str(zoneCV),
-					'MIAP[0]',
-					'EIF[ ]'
-					]
-			y_instructions.extend(alignToZone)
+				if TTHCommand['point'] in pointNameToIndex:
+					pointIndex = pointNameToIndex[TTHCommand['point']]
+			
+			if 'zone' in TTHCommand:
+				zoneCV = tt_tables.zone_to_cvt[TTHCommand['zone']]
+				alignToZone = [
+						'PUSHW[ ] 0',
+						'RCVT[ ]',
+						'IF[ ]',
+						'PUSHW[ ] ' + str(pointIndex),
+						'MDAP[1]',
+						'ELSE[ ]',
+						'PUSHW[ ] ' + str(pointIndex) + ' ' + str(zoneCV),
+						'MIAP[0]',
+						'EIF[ ]'
+						]
+				y_instructions.extend(alignToZone)
 
 		if TTHCommand['code'] == 'alignh' or TTHCommand['code'] == 'alignv':
 			if TTHCommand['point'] == 'lsb':

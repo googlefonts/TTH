@@ -241,9 +241,9 @@ class Automation():
 			#stemPitch = float(self.tthtm.UPM)/width
 			roundedStem = HF.roundbase(width, roundFactor_Jumps)
 			if roundedStem != 0:
-				stemPitch = float(self.tthtm.UPM)/roundedStem
+				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/roundedStem
 			else:
-				stemPitch = float(self.tthtm.UPM)/width
+				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/width
 				# FIXME maybe, here we should juste skip this width and 'continue'?
 			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
@@ -260,7 +260,7 @@ class Automation():
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
 
 	def addStem(self, isHorizontal, stemName, width, px1, px2, px3, px4, px5, px6):
-		if stemName in self.tthtm.stems:
+		if stemName in self.TTHToolInstance.c_fontModel.stems:
 			return
 		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
 		if isHorizontal:
@@ -303,7 +303,7 @@ class Automation():
 
 
 	def addZone(self, zoneName, ID, position, width, delta='0@0'):
-		if zoneName in self.tthtm.zones:
+		if zoneName in self.TTHToolInstance.c_fontModel.zones:
 			return
 		deltaDict = self.TTHToolInstance.deltaDictFromString(delta)
 
@@ -383,7 +383,7 @@ class AutoHinting():
 		else:
 			detectedWidth = abs(p1.shearedPos[0] - p2.shearedPos[0])
 		candidatesList = []
-		for stemName, stem in self.tthtm.stems.iteritems():
+		for stemName, stem in self.TTHToolInstance.c_fontModel.stems.iteritems():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
 			if abs(w - detectedWidth) <= detectedWidth*0.25:
@@ -420,25 +420,25 @@ class AutoHinting():
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 
-	def attachLinksToZones(self, g):
-		for command in self.TTHToolInstance.glyphTTHCommands:
-			if command['code'] != 'doublev': continue
-			p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
-			p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
-			p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
-			p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
-			zonePoint1 = self.zoneAt(p1_y)
-			zonePoint2 = self.zoneAt(p2_y)
-			if zonePoint1 == None and zonePoint2 == None: continue
-			command['code'] = 'singlev'
-			if zonePoint2 != None:
-				p2 = command['point2']
-				p1 = command['point1']
-				command['point1'] = p2 # swap the points
-				command['point2'] = p1
-				self.addAlign(g, p2_uniqueID, zonePoint2)
-			else: # elif zonePoint1 != None:
-				self.addAlign(g, p1_uniqueID, zonePoint1)
+	#def attachLinksToZones(self, g):
+	#	for command in self.TTHToolInstance.glyphTTHCommands:
+	#		if command['code'] != 'doublev': continue
+	#		p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
+	#		p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
+	#		p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
+	#		p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
+	#		zonePoint1 = self.zoneAt(p1_y)
+	#		zonePoint2 = self.zoneAt(p2_y)
+	#		if zonePoint1 == None and zonePoint2 == None: continue
+	#		command['code'] = 'singlev'
+	#		if zonePoint2 != None:
+	#			p2 = command['point2']
+	#			p1 = command['point1']
+	#			command['point1'] = p2 # swap the points
+	#			command['point2'] = p1
+	#			self.addAlign(g, p2_uniqueID, zonePoint2)
+	#		else: # elif zonePoint1 != None:
+	#			self.addAlign(g, p1_uniqueID, zonePoint1)
 
 	def addAlign(self, g, pointName, (zoneName, isTopZone)):
 		newAlign = {}
@@ -451,104 +451,104 @@ class AutoHinting():
 		self.TTHToolInstance.glyphTTHCommands.append(newAlign)
 
 	def zoneAt(self, y):
-		for item in self.tthtm.zones.iteritems():
+		for item in self.TTHToolInstance.c_fontModel.zones.iteritems():
 			zoneName, isTop, yStart, yEnd = zoneData(item)
 			if HF.inInterval(y, (yStart, yEnd)):
 				return (zoneName, isTop)
 				return None
 
-	def findSiblings(self, g):
-		touchedPoints = self.findTouchedPoints(g)
-		touchedPointsNames_X = []
-		touchedPointsNames_Y = []
-		for name, axis in touchedPoints:
-			if axis == 'X':
-				touchedPointsNames_X.append(name)
-			else:
-				touchedPointsNames_Y.append(name)
+	#def findSiblings(self, g):
+	#	touchedPoints = self.findTouchedPoints(g)
+	#	touchedPointsNames_X = []
+	#	touchedPointsNames_Y = []
+	#	for name, axis in touchedPoints:
+	#		if axis == 'X':
+	#			touchedPointsNames_X.append(name)
+	#		else:
+	#			touchedPointsNames_Y.append(name)
 
-		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
-		for t_pointName, axis in touchedPoints:
-			(p_x, p_y) = self.TTHToolInstance.pointONNameToContSeg[t_pointName]
-			for onPt, (cidx, sidx) in hPoints:
-				h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
+	#	hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
+	#	for t_pointName, axis in touchedPoints:
+	#		(p_x, p_y) = self.TTHToolInstance.pointONNameToContSeg[t_pointName]
+	#		for onPt, (cidx, sidx) in hPoints:
+	#			h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
 
-				# Find prev and next ON points
-				contour = g[cidx]
-				prev_h_Point = contour[sidx-1].onCurve
-				prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(prev_h_Point)]
-				next_h_Point = contour[(sidx+1)%len(contour)].onCurve
-				next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(next_h_Point)]
+	#			# Find prev and next ON points
+	#			contour = g[cidx]
+	#			prev_h_Point = contour[sidx-1].onCurve
+	#			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(prev_h_Point)]
+	#			next_h_Point = contour[(sidx+1)%len(contour)].onCurve
+	#			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(next_h_Point)]
 
-				if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
-				if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
-				if axis == 'Y' and abs(onPt.pos.y - p_y) <= 2 and h_pointName != t_pointName and (HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)):
-					if prev_h_Point.x == p_x or next_h_Point.x == p_x:
-						continue
-					if (prev_h_Point.x < onPt.pos.x and prev_h_Point.y == onPt.pos.y) or (next_h_Point.x < onPt.pos.x and next_h_Point.y == onPt.pos.y):
-						continue
-					self.addSingleLink(t_pointName, h_pointName, isHorizontal=False)
-				if axis == 'X' and abs(HF.shearPoint(onPt.pos, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(onPt.inAngle-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(onPt.outAngle-self.ital, self.tthtm.angleTolerance)):
-					if prev_h_Point.y == p_y or next_h_Point.y == p_y:
-						continue
-					if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
-						continue
-					self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
-
-
-	def findTouchedPoints(self, g):
-		touchedPoints = sets.Set()
-		for command in self.TTHToolInstance.glyphTTHCommands:
-			axis = 'X'
-			if command['code'][-1] in ['t', 'b', 'v']:
-				axis = 'Y'
-			for n in ('point', 'point1', 'point2'):
-				if n in command: touchedPoints.add((command[n], axis))
-		return touchedPoints
+	#			if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
+	#			if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
+	#			if axis == 'Y' and abs(onPt.pos.y - p_y) <= 2 and h_pointName != t_pointName and (HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)):
+	#				if prev_h_Point.x == p_x or next_h_Point.x == p_x:
+	#					continue
+	#				if (prev_h_Point.x < onPt.pos.x and prev_h_Point.y == onPt.pos.y) or (next_h_Point.x < onPt.pos.x and next_h_Point.y == onPt.pos.y):
+	#					continue
+	#				self.addSingleLink(t_pointName, h_pointName, isHorizontal=False)
+	#			if axis == 'X' and abs(HF.shearPoint(onPt.pos, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(onPt.inAngle-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(onPt.outAngle-self.ital, self.tthtm.angleTolerance)):
+	#				if prev_h_Point.y == p_y or next_h_Point.y == p_y:
+	#					continue
+	#				if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
+	#					continue
+	#				self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
 
 
-	def hintWidth(self, g):
-		pass
+	#def findTouchedPoints(self, g):
+	#	touchedPoints = sets.Set()
+	#	for command in self.TTHToolInstance.glyphTTHCommands:
+	#		axis = 'X'
+	#		if command['code'][-1] in ['t', 'b', 'v']:
+	#			axis = 'Y'
+	#		for n in ('point', 'point1', 'point2'):
+	#			if n in command: touchedPoints.add((command[n], axis))
+	#	return touchedPoints
 
 
-	def autoAlignToZones(self, g):
+	#def hintWidth(self, g):
+	#	pass
 
-		touchedPoints = self.findTouchedPoints(g)
-		touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
-		zones = [zoneData(item) for item in self.tthtm.zones.iteritems()]
-		hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
+	#def autoAlignToZones(self, g):
 
-		for onPt, (cidx, sidx) in hPoints:
-			contour = g[cidx]
-			prev_h_Point = HF.pointToPair(contour[sidx-1].onCurve)
-			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[prev_h_Point]
-			next_h_Point = HF.pointToPair(contour[(sidx+1)%len(contour)].onCurve)
-			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
+	#	touchedPoints = self.findTouchedPoints(g)
+	#	touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
 
-			neighborsAreAlreadyAligned = \
-				(prev_h_Point[1] == onPt.pos.y and prev_h_PointName in touchedPointsNames) or \
-				(next_h_Point[1] == onPt.pos.y and next_h_PointName in touchedPointsNames)
-			angleIsOkay = \
-				HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or \
-				HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)
+	#	zones = [zoneData(item) for item in self.TTHToolInstance.c_fontModel.zones.iteritems()]
+	#	hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
 
-			if neighborsAreAlreadyAligned or (not angleIsOkay): continue
+	#	for onPt, (cidx, sidx) in hPoints:
+	#		contour = g[cidx]
+	#		prev_h_Point = HF.pointToPair(contour[sidx-1].onCurve)
+	#		prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[prev_h_Point]
+	#		next_h_Point = HF.pointToPair(contour[(sidx+1)%len(contour)].onCurve)
+	#		next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
 
-			pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
-			for (zoneName, isTop, y_start, y_end) in zones:
-				if not HF.inInterval(onPt.pos.y, (y_start, y_end)): continue
-				newAlign = {}
-				if isTop:
-					newAlign['code'] = 'alignt'
-				else:
-					newAlign['code'] = 'alignb'
-				newAlign['point'] = pointName
-				newAlign['zone'] = zoneName
+	#		neighborsAreAlreadyAligned = \
+	#			(prev_h_Point[1] == onPt.pos.y and prev_h_PointName in touchedPointsNames) or \
+	#			(next_h_Point[1] == onPt.pos.y and next_h_PointName in touchedPointsNames)
+	#		angleIsOkay = \
+	#			HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or \
+	#			HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)
 
-				if pointName not in touchedPointsNames:
-					self.TTHToolInstance.glyphTTHCommands.append(newAlign)
-					touchedPointsNames.append(pointName)
+	#		if neighborsAreAlreadyAligned or (not angleIsOkay): continue
+
+	#		pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
+	#		for (zoneName, isTop, y_start, y_end) in zones:
+	#			if not HF.inInterval(onPt.pos.y, (y_start, y_end)): continue
+	#			newAlign = {}
+	#			if isTop:
+	#				newAlign['code'] = 'alignt'
+	#			else:
+	#				newAlign['code'] = 'alignb'
+	#			newAlign['point'] = pointName
+	#			newAlign['zone'] = zoneName
+
+	#			if pointName not in touchedPointsNames:
+	#				self.TTHToolInstance.glyphTTHCommands.append(newAlign)
+	#				touchedPointsNames.append(pointName)
 
 	def handleZones(self, g, (contours, groups)):
 		# First, handle groups in zones
@@ -614,13 +614,12 @@ class AutoHinting():
 			if leader != None: self.addLinksInGroup(leader, comps, contours, isHorizontal)
 
 	def autohint(self, g):
-		if self.tthtm.f.info.italicAngle != None:
-			self.ital = - self.tthtm.f.info.italicAngle
+		if self.TTHToolInstance.c_fontModel.f.info.italicAngle != None:
+			self.ital = - self.TTHToolInstance.c_fontModel.f.info.italicAngle
 		else:
 			self.ital = 0
 
-		self.tthtm.setGlyph(g)
-		self.TTHToolInstance.resetglyph()
+		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 
 		roundFactor_Stems = 1 #self.tthtm.roundFactor_Stems
