@@ -127,8 +127,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
-		self.wTools.DeltaRangeText = TextBox((-116, 42, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1ComboBox = ComboBox((-76, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRangeText = TextBox((-120, 42, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange1ComboBoxCallback)
 		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange2ComboBoxCallback)
@@ -588,8 +588,15 @@ class programWindow(object):
 		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
+
+		# sliderCell = SliderListCell(-8, 8)
+		# sliderCell.setAllowsTickMarkValuesOnly_(True)
+		# sliderCell.setNumberOfTickMarks_(17)
+
+
 		columnDescriptions = [
 			{"title": "index", "width": 30, "editable": False}, 
+			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True),
 			{"title": "code", "editable": False}, 
 			{"title": "point", "editable": False},
 			{"title": "point1", "editable": False}, 
@@ -598,10 +605,10 @@ class programWindow(object):
 			{"title": "round", "editable": False}, 
 			{"title": "stem", "editable": False}, 
 			{"title": "zone", "editable": False},
+			#dict(title='delta', cell=sliderCell, width=90, editable=True),
 			{"title": "delta", "editable": False}, 
 			{"title": "ppm1", "editable": False}, 
-			{"title": "ppm2", "editable": False},
-			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True)
+			{"title": "ppm2", "editable": False}
 			]
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
 					columnDescriptions=columnDescriptions,
@@ -637,13 +644,16 @@ class programWindow(object):
 		self.lock = True
 		updatedCommands = []
 		g = self.TTHToolInstance.getGlyph()
-		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']
+		g.prepareUndo('Edit Program')
+		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2']
 		for commandUI in sender.get():
-			command = dict([(k,commandUI[k]) for k in keys of k in commandUI[k] != ''])
+			command = { k : str(commandUI[k]) for k in keys if commandUI[k] != '' }
 			if commandUI['active'] == 1:
 				command['active'] = 'true'
 			else:
 				command['active'] = 'false'
+			if commandUI['delta'] != '':
+				command['delta'] = str(int(commandUI['delta']))
 
 			updatedCommands.append(command)
 
@@ -652,6 +662,9 @@ class programWindow(object):
 		self.TTHToolInstance.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
 			self.TTHToolInstance.refreshGlyph(g)
+
+		g.performUndo()
+
 		self.lock = False
 
 
@@ -667,7 +680,7 @@ class programWindow(object):
 				c[key] = (c[key] == 'true')
 		self.i = 0
 		for command in self.commands:
-			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:
+			for key in ['index', 'code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:
 				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
 

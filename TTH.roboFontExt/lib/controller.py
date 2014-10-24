@@ -530,9 +530,9 @@ class TTHTool(BaseEventTool):
 			size = 9
 
 		self.tthtm.setSize(size)
-		sizeIndex = self.getSizeListIndex(self.tthtm.PPM_Size)
+		#sizeIndex = self.getSizeListIndex(self.tthtm.PPM_Size)
 		#self.toolsWindow.wTools.PPEMSizePopUpButton.set(sizeIndex)
-		#self.toolsWindow.wTools.PPEMSizeEditText.set(self.tthtm.PPM_Size)
+		self.toolsWindow.wTools.PPEMSizeComboBox.set(self.tthtm.PPM_Size)
 
 		self.tthtm.resetPitch(self.c_fontModel.UPM)
 
@@ -1368,17 +1368,18 @@ class TTHTool(BaseEventTool):
 		self.PPMSizesList = [str(i) for i in range(9, 73)]
 
 		self.popover.DeltaRangeText = TextBox((10, 32, 40, 15), "Range:", sizeStyle = "small")
-		self.popover.DeltaRange1ComboBox = ComboBox((-76, 30, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.popover.DeltaRange1ComboBox = ComboBox((-80, 30, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange1ComboBoxCallback)
 		self.popover.DeltaRange2ComboBox = ComboBox((-43, 30, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange2ComboBoxCallback)
+		self.popover.DeltaRange1ComboBox.set(str(self.selectedCommand['ppm1']))
+		self.popover.DeltaRange2ComboBox.set(str(self.selectedCommand['ppm2']))
 
 		self.popover.DeltaOffsetText = TextBox((10, 50, 50, 15), "Offset:", sizeStyle = "small")
 		self.popover.DeltaOffsetSlider = Slider((10, 65, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
 		self.popover.DeltaOffsetSlider.set(int(self.selectedCommand['delta']) + 8)
-		self.popover.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
-		self.popover.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
+
 
 		self.popover.prevButton = ImageButton((10, -20, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPointPrevCallback, sizeStyle='small')
 		self.popover.movePointText = TextBox((72, -22, 60, 15), "Move Point", sizeStyle = "small")
@@ -1420,8 +1421,11 @@ class TTHTool(BaseEventTool):
 
 		g = self.getGlyph()
 		g.prepareUndo('Change Delta Range')
-		self.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
+		self.changeDeltaRange(sender.get(), self.selectedCommand['ppm2'])
 		self.selectedCommand['ppm1'] = str(self.tthtm.deltaRange1)
+		self.selectedCommand['ppm2'] = str(self.tthtm.deltaRange2)
+		self.popover.DeltaRange1ComboBox.set(str(self.tthtm.deltaRange1))
+		self.popover.DeltaRange2ComboBox.set(str(self.tthtm.deltaRange2))
 		self.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph(g)
@@ -1439,8 +1443,11 @@ class TTHTool(BaseEventTool):
 
 		g = self.getGlyph()
 		g.prepareUndo('Change Delta Range')
-		self.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
+		self.changeDeltaRange(self.selectedCommand['ppm1'], sender.get())
 		self.selectedCommand['ppm2'] = str(self.tthtm.deltaRange2)
+		self.selectedCommand['ppm1'] = str(self.tthtm.deltaRange1)
+		self.popover.DeltaRange1ComboBox.set(str(self.tthtm.deltaRange1))
+		self.popover.DeltaRange2ComboBox.set(str(self.tthtm.deltaRange2))
 		self.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
 			self.refreshGlyph(g)
