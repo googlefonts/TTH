@@ -15,6 +15,7 @@ from vanilla import *
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 import tempfile
 import time
+import sets
 
 import TTHToolModel
 import tt_tables
@@ -331,6 +332,8 @@ class TTHTool(BaseEventTool):
 		self.isInterpolating = False
 
 		self.shiftDown = 0
+		self.optionDown = 0
+
 		self.popOverIsOpened = False
 		self.commandsChecked = False
 
@@ -1028,6 +1031,7 @@ class TTHTool(BaseEventTool):
 
 	def keyUp(self, event):
 		self.shiftDown = 0
+		self.optionDown = 0
 
 	def keyDown(self, event):
 
@@ -1128,6 +1132,8 @@ class TTHTool(BaseEventTool):
 	def mouseDown(self, point, clickCount):
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
+		if self.getModifiers()['optionDown'] != 0:
+			self.optionDown = 1
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
@@ -1190,7 +1196,7 @@ class TTHTool(BaseEventTool):
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
 		g.performUndo()
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 	def popoverZoneCheckBoxCallback(self, sender):
 		g = self.getGlyph()
@@ -1237,12 +1243,12 @@ class TTHTool(BaseEventTool):
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
 		g.performUndo()
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 	def reassignSelectedCommand(self, oldCommand):
-		for command in self.glyphTTHCommands:
+		for cmdIndex, command in enumerate(self.glyphTTHCommands):
 			if command == oldCommand:
-				return command
+				return cmdIndex, command
 
 	def popoverPointNextCallback(self, sender):
 		g = self.getGlyph()
@@ -1257,7 +1263,7 @@ class TTHTool(BaseEventTool):
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popoverPointPrevCallback(self, sender):
@@ -1271,7 +1277,7 @@ class TTHTool(BaseEventTool):
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popoverPoint2NextCallback(self, sender):
@@ -1291,7 +1297,7 @@ class TTHTool(BaseEventTool):
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popoverPoint2PrevCallback(self, sender):
@@ -1309,7 +1315,7 @@ class TTHTool(BaseEventTool):
 		self.writeGlyphFLTTProgram(g)
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popOverSimple(self, point):
@@ -1431,7 +1437,7 @@ class TTHTool(BaseEventTool):
 			self.refreshGlyph(g)
 		g.performUndo()
 
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 	def AlignmentZonePopUpButtonCallback(self, sender):
 		g = self.getGlyph()
@@ -1452,7 +1458,23 @@ class TTHTool(BaseEventTool):
 			self.refreshGlyph(g)
 		g.performUndo()
 
-		self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def findTouchedPoints(self, g):
+		touchedPoints = sets.Set()
+		for command in self.glyphTTHCommands:
+			axis = 'X'
+			if command['code'][-1] in ['t', 'b', 'v']:
+				axis = 'Y'
+			for n in ('point', 'point1', 'point2'):
+				if n in command: touchedPoints.add((command[n], axis))
+		return touchedPoints
+
+	def openPopOver(self, point):
+			if self.selectedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
+				self.popOverAlign(point)
+			else:
+				self.popOverSimple(point)
 
 
 	def mouseUp(self, point):
@@ -1460,15 +1482,15 @@ class TTHTool(BaseEventTool):
 			self.p_selectionCursor = (int(point.x), int(point.y))
 			if self.popOverIsOpened == False:
 				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
+				self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
 				if self.commandClicked != None and not self.popOverIsOpened:
-					if self.glyphTTHCommands[self.commandClicked]['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
-						self.popOverAlign(point)
-					else:
-						self.popOverSimple(point)
-
+					self.openPopOver(point)
 
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
+		if self.getModifiers()['optionDown'] != 0:
+			self.optionDown = 1
+
 		if self.tthtm.showPreviewInGlyphWindow == 1:
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
@@ -1622,7 +1644,7 @@ class TTHTool(BaseEventTool):
 			g = self.getGlyph()
 			g.prepareUndo("New Command")
 			if newCommand['code'] in ['singleh', 'singlev']:
-				touchedPoints = AutoHinting(self).findTouchedPoints(self.getGlyph())
+				touchedPoints = self.findTouchedPoints(g)
 				newAlign = {}
 				newAlign['point'] = newCommand['point1']
 				if newCommand['code'] == 'singleh':
@@ -1651,6 +1673,10 @@ class TTHTool(BaseEventTool):
 			if self.tthtm.alwaysRefresh == 1:
 				self.refreshGlyph(g)
 			g.performUndo()
+
+			if self.optionDown == 1:
+				self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(newCommand)
+				self.openPopOver(point)
 
 		self.endPoint = None
 		self.startPoint = None
