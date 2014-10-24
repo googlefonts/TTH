@@ -583,6 +583,7 @@ class programWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
+		self.lock = False
 
 		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
 		self.wProgram.bind("close", self.programWindowWillClose)
@@ -631,32 +632,14 @@ class programWindow(object):
 		# print sender.getSelection()
 
 	def editCallback(self, sender):
+		if self.lock or (sender.getSelection() == []):
+			return
+		self.lock = True
 		updatedCommands = []
 		g = self.TTHToolInstance.getGlyph()
+		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2']
 		for commandUI in sender.get():
-			command = {}
-			if commandUI['code'] != '':
-				command['code'] = commandUI['code']
-			if commandUI['point'] != '':
-				command['point'] = commandUI['point']
-			if commandUI['point1'] != '':
-				command['point1'] = commandUI['point1']
-			if commandUI['point2'] != '':
-				command['point2'] = commandUI['point2']
-			if commandUI['align'] != '':
-				command['align'] = commandUI['align']
-			if commandUI['round'] != '':
-				command['round'] = commandUI['round']
-			if commandUI['stem'] != '':
-				command['stem'] = commandUI['stem']
-			if commandUI['zone'] != '':
-				command['zone'] = commandUI['zone']
-			if commandUI['delta'] != '':
-				command['delta'] = commandUI['delta']
-			if commandUI['ppm1'] != '':
-				command['ppm1'] = commandUI['ppm1']
-			if commandUI['ppm2'] != '':
-				command['ppm2'] = commandUI['ppm2']
+			command = dict([(k,commandUI[k]) for k in keys of k in commandUI[k] != ''])
 			if commandUI['active'] == 1:
 				command['active'] = 'true'
 			else:
@@ -667,8 +650,9 @@ class programWindow(object):
 		self.TTHToolInstance.glyphTTHCommands = updatedCommands
 
 		self.TTHToolInstance.updateGlyphProgram(g)
-		# if self.tthtm.alwaysRefresh == 1:
-		# 	self.TTHToolInstance.refreshGlyph(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.TTHToolInstance.refreshGlyph(g)
+		self.lock = False
 
 
 	def updateProgramList(self, commands):
