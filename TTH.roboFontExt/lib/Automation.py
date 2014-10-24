@@ -573,10 +573,9 @@ class AutoHinting():
 			nbComps = len(comps)
 			cont, seg = comps[0][0]
 			hd = contours[cont][seg]
-			startName = hd.pos.name
 			hd.touched = True
 			# add align
-			self.addAlign(g, startName, zoneInfo)
+			self.addAlign(g, hd.pos.name, zoneInfo)
 			# add single links
 			self.addLinksInGroup((0,0), comps, contours, True)
 		return nonZonePositions
@@ -586,14 +585,13 @@ class AutoHinting():
 		if i > 0: comps[0], comps[i] = comps[i], comps[0]
 		if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
 		cont, seg = comps[0][0]
-		hd = contours[cont][seg]
-		startName = hd.pos.name
+		startName = contours[cont][seg].pos.name
 		for comp in comps[1:]:
 			cont, seg = comp[0]
 			hd = contours[cont][seg]
-			endName = hd.pos.name
+			if hd.touched: continue
 			hd.touched = True
-			self.addSingleLink(startName, endName, isHorizontal)
+			self.addSingleLink(startName, hd.pos.name, isHorizontal)
 
 	def handleNonZones(self, nonZonePositions, (contours, groups), isHorizontal):
 		for pos in nonZonePositions:
@@ -639,8 +637,8 @@ class AutoHinting():
 		# now we actually insert the stem, as double or single links, in X and Y
 		self.applyStems(stems[0], contoursX, False)
 		self.applyStems(stems[1], contoursY, True)
-		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
-		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
+		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
+		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
 		self.handleNonZones(nonZones, cgY, isHorizontal=True)
 
