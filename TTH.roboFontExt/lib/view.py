@@ -118,7 +118,7 @@ class toolsWindow(BaseWindowController):
 		self.wTools.RoundDistanceCheckBox.show(False)
 
 		self.wTools.DeltaOffsetText = TextBox((10, 42, 50, 15), "Offset:", sizeStyle = "mini")
-		self.wTools.DeltaOffsetSlider = Slider((10, 55, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+		self.wTools.DeltaOffsetSlider = Slider((10, 57, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
 		self.wTools.DeltaOffsetEditText = EditText((60, 40, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaOffsetEditTextCallback)
@@ -127,16 +127,16 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
-		self.wTools.DeltaRangeText = TextBox((100, 42, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1EditText = EditText((-70, 40, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaRange1EditTextCallback)
-		self.wTools.DeltaRange2EditText = EditText((-40, 40, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaRange2EditTextCallback)
+		self.wTools.DeltaRangeText = TextBox((-116, 42, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1ComboBox = ComboBox((-76, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+				callback=self.DeltaRange1ComboBoxCallback)
+		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+				callback=self.DeltaRange2ComboBoxCallback)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
-		self.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
-		self.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
+		self.wTools.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
+		self.wTools.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
 
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
@@ -265,8 +265,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 	def DoubleLinkSettings(self):
@@ -279,8 +279,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 	def AlignSettings(self):
@@ -295,8 +295,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 	def InterpolationSettings(self):
@@ -311,8 +311,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 	def DeltaSettings(self):
@@ -325,8 +325,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(True)
 		self.wTools.DeltaOffsetSlider.show(True)
 		self.wTools.DeltaRangeText.show(True)
-		self.wTools.DeltaRange1EditText.show(True)
-		self.wTools.DeltaRange2EditText.show(True)
+		self.wTools.DeltaRange1ComboBox.show(True)
+		self.wTools.DeltaRange2ComboBox.show(True)
 		self.wTools.DeltaOffsetEditText.show(True)
 
 	def SelectionSettings(self):
@@ -339,8 +339,8 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaRangeText.show(False)
-		self.wTools.DeltaRange1EditText.show(False)
-		self.wTools.DeltaRange2EditText.show(False)
+		self.wTools.DeltaRange1ComboBox.show(False)
+		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 	# def PPEMSizeEditTextCallback(self, sender):
@@ -388,11 +388,29 @@ class toolsWindow(BaseWindowController):
 	def DeltaOffsetEditTextCallback(self, sender):
 		self.TTHToolInstance.changeDeltaOffset(sender.get())
 
-	def DeltaRange1EditTextCallback(self, sender):
+	def DeltaRange1ComboBoxCallback(self, sender):
+		size = sender.get()
+		try:
+			int(size)
+		except:
+			size = self.tthtm.deltaRange1
+			sender.set(size)
 		self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
 
-	def DeltaRange2EditTextCallback(self, sender):
+	def DeltaRange2ComboBoxCallback(self, sender):
+		size = sender.get()
+		try:
+			int(size)
+		except:
+			size = self.tthtm.deltaRange2
+			sender.set(size)
 		self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
+
+	# def DeltaRange1EditTextCallback(self, sender):
+	# 	self.TTHToolInstance.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
+
+	# def DeltaRange2EditTextCallback(self, sender):
+	# 	self.TTHToolInstance.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
 
 
 	def axisSegmentedButtonCallback(self, sender):
@@ -569,12 +587,23 @@ class programWindow(object):
 		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
 		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
+		columnDescriptions = [
+			{"title": "index", "width": 30, "editable": False}, 
+			{"title": "code", "editable": False}, 
+			{"title": "point", "editable": False},
+			{"title": "point1", "editable": False}, 
+			{"title": "point2", "editable": False}, 
+			{"title": "align", "editable": False},
+			{"title": "round", "editable": False}, 
+			{"title": "stem", "editable": False}, 
+			{"title": "zone", "editable": False},
+			{"title": "delta", "editable": False}, 
+			{"title": "ppm1", "editable": False}, 
+			{"title": "ppm2", "editable": False},
+			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True)
+			]
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
-					columnDescriptions=[{"title": "index", "width": 30, "editable": False}, {"title": "code", "editable": False}, {"title": "point", "editable": False},
-				{"title": "point1", "editable": False}, {"title": "point2", "editable": False}, {"title": "align", "editable": False},
-				{"title": "round", "editable": False}, {"title": "stem", "editable": False}, {"title": "zone", "editable": False},
-				{"title": "delta", "editable": False}, {"title": "ppm1", "editable": False}, {"title": "ppm2", "editable": False},
-				{"title": "active", "editable": False}],
+					columnDescriptions=columnDescriptions,
 					enableDelete=False, 
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
@@ -602,7 +631,45 @@ class programWindow(object):
 		# print sender.getSelection()
 
 	def editCallback(self, sender):
-		pass
+		updatedCommands = []
+		g = self.TTHToolInstance.getGlyph()
+		for commandUI in sender.get():
+			command = {}
+			if commandUI['code'] != '':
+				command['code'] = commandUI['code']
+			if commandUI['point'] != '':
+				command['point'] = commandUI['point']
+			if commandUI['point1'] != '':
+				command['point1'] = commandUI['point1']
+			if commandUI['point2'] != '':
+				command['point2'] = commandUI['point2']
+			if commandUI['align'] != '':
+				command['align'] = commandUI['align']
+			if commandUI['round'] != '':
+				command['round'] = commandUI['round']
+			if commandUI['stem'] != '':
+				command['stem'] = commandUI['stem']
+			if commandUI['zone'] != '':
+				command['zone'] = commandUI['zone']
+			if commandUI['delta'] != '':
+				command['delta'] = commandUI['delta']
+			if commandUI['ppm1'] != '':
+				command['ppm1'] = commandUI['ppm1']
+			if commandUI['ppm2'] != '':
+				command['ppm2'] = commandUI['ppm2']
+			if commandUI['active'] == 1:
+				command['active'] = 'true'
+			else:
+				command['active'] = 'false'
+
+			updatedCommands.append(command)
+
+		self.TTHToolInstance.glyphTTHCommands = updatedCommands
+
+		self.TTHToolInstance.updateGlyphProgram(g)
+		# if self.tthtm.alwaysRefresh == 1:
+		# 	self.TTHToolInstance.refreshGlyph(g)
+
 
 	def updateProgramList(self, commands):
 		self.commands =  [dict(c) for c in commands]
@@ -612,6 +679,8 @@ class programWindow(object):
 			if key == 'index':
 				c[key] = self.i
 				self.i += 1
+			if key == 'active':
+				c[key] = (c[key] == 'true')
 		self.i = 0
 		for command in self.commands:
 			for key in ['index', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:

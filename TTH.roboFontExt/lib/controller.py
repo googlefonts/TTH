@@ -748,10 +748,13 @@ class TTHTool(BaseEventTool):
 		except ValueError:
 			value2 = 9
 
+		if value2 < value1:
+			value2 = value1
+
 		self.tthtm.setDeltaRange1(value1)
-		self.toolsWindow.wTools.DeltaRange1EditText.set(self.tthtm.deltaRange1)
+		self.toolsWindow.wTools.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
 		self.tthtm.setDeltaRange2(value2)
-		self.toolsWindow.wTools.DeltaRange2EditText.set(self.tthtm.deltaRange2)
+		self.toolsWindow.wTools.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
 
 	def changeAlwaysRefresh(self, valueBool):
 		self.tthtm.setAlwaysRefresh(valueBool)
@@ -1329,17 +1332,121 @@ class TTHTool(BaseEventTool):
 		self.popover = Popover((100, 100))
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
+		
+		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
 		else:
 			commandState = "Inactive"
 		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
-		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 
 		self.popOverIsOpened = True
 		UpdateCurrentGlyphView()
 		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+	def popOverDelta(self, point):
+		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+		view = self.getNSView()
+		offsetX, offsetY = view.offset()
+		x = point.x
+		y = point.y
+		x += offsetX
+		y += offsetY
+		self.popover = Popover((200, 110))
+		self.popover.bind("did show", self.popoverOpened)
+		self.popover.bind("did close", self.popoverClosed)
+		
+		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
+		if self.selectedCommand['active'] == 'true':
+			commandState = "Active"
+		else:
+			commandState = "Inactive"
+		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
+
+		self.PPMSizesList = [str(i) for i in range(9, 73)]
+
+		self.popover.DeltaRangeText = TextBox((10, 32, 40, 15), "Range:", sizeStyle = "small")
+		self.popover.DeltaRange1ComboBox = ComboBox((-76, 30, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+				callback=self.DeltaRange1ComboBoxCallback)
+		self.popover.DeltaRange2ComboBox = ComboBox((-43, 30, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+				callback=self.DeltaRange2ComboBoxCallback)
+
+		self.popover.DeltaOffsetText = TextBox((10, 50, 50, 15), "Offset:", sizeStyle = "small")
+		self.popover.DeltaOffsetSlider = Slider((10, 65, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+				callback=self.DeltaOffsetSliderCallback)
+		self.popover.DeltaOffsetSlider.set(int(self.selectedCommand['delta']) + 8)
+		self.popover.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
+		self.popover.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
+
+		self.popover.prevButton = ImageButton((10, -20, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPointPrevCallback, sizeStyle='small')
+		self.popover.movePointText = TextBox((72, -22, 60, 15), "Move Point", sizeStyle = "small")
+		self.popover.nextButton = ImageButton((-20, -20, 10, 10), imageObject=imgNext, bordered=False, callback=self.popoverPointNextCallback, sizeStyle='small')
+
+		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
+		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+	def DeltaOffsetSliderCallback(self, sender):
+		g = self.getGlyph()
+		self.changeDeltaOffset(int(sender.get() - 8))
+		if self.tthtm.deltaOffset == 0:
+			g.prepareUndo('Remove Delta')
+			self.glyphTTHCommands.remove(self.selectedCommand)
+			self.popover.close()
+			self.updateGlyphProgram(g)
+			if self.tthtm.alwaysRefresh == 1:
+				self.refreshGlyph(g)
+			g.performUndo()
+		else:
+			g.prepareUndo('Change Delta Offset')
+			self.selectedCommand['delta'] = str(self.tthtm.deltaOffset)
+
+			self.updateGlyphProgram(g)
+			if self.tthtm.alwaysRefresh == 1:
+				self.refreshGlyph(g)
+			g.performUndo()
+
+			self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def DeltaRange1ComboBoxCallback(self, sender):
+		size = sender.get()
+		try:
+			int(size)
+		except:
+			size = self.tthtm.deltaRange1
+			sender.set(size)
+
+		g = self.getGlyph()
+		g.prepareUndo('Change Delta Range')
+		self.changeDeltaRange(sender.get(), self.tthtm.deltaRange2)
+		self.selectedCommand['ppm1'] = str(self.tthtm.deltaRange1)
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def DeltaRange2ComboBoxCallback(self, sender):
+		size = sender.get()
+		try:
+			int(size)
+		except:
+			size = self.tthtm.deltaRange2
+			sender.set(size)
+
+		g = self.getGlyph()
+		g.prepareUndo('Change Delta Range')
+		self.changeDeltaRange(self.tthtm.deltaRange1, sender.get())
+		self.selectedCommand['ppm2'] = str(self.tthtm.deltaRange2)
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
 	def popOverAlign(self, point):
@@ -1353,6 +1460,7 @@ class TTHTool(BaseEventTool):
 		self.popover = Popover((200, 110))
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
+
 		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
@@ -1363,12 +1471,13 @@ class TTHTool(BaseEventTool):
 
 		if self.selectedCommand['code'] in ['alignt', 'alignb']:
 			commandToZone = 'Aligned to Zone'
-		else:
+		elif self.selectedCommand['code'] == 'alignv':
 			commandToZone = 'Not Aligned to Zone'
 
-		self.popover.zoneTitle = TextBox((10, 34, -30, 20), commandToZone, sizeStyle='small')
-		self.popover.zoneCheckBox = CheckBox((-20, 35, 10, 10), "", callback=self.popoverZoneCheckBoxCallback, sizeStyle='small')
-		self.popover.zoneCheckBox.set(self.selectedCommand['code'] in ['alignt', 'alignb'])
+		if self.selectedCommand['code'][-1] != 'h':
+			self.popover.zoneTitle = TextBox((10, 34, -30, 20), commandToZone, sizeStyle='small')
+			self.popover.zoneCheckBox = CheckBox((-20, 35, 10, 10), "", callback=self.popoverZoneCheckBoxCallback, sizeStyle='small')
+			self.popover.zoneCheckBox.set(self.selectedCommand['code'] in ['alignt', 'alignb'])
 
 		self.alignmentUI = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
@@ -1473,6 +1582,8 @@ class TTHTool(BaseEventTool):
 	def openPopOver(self, point):
 			if self.selectedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
 				self.popOverAlign(point)
+			elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fveltah']:
+				self.popOverDelta(point)
 			else:
 				self.popOverSimple(point)
 
@@ -1482,9 +1593,10 @@ class TTHTool(BaseEventTool):
 			self.p_selectionCursor = (int(point.x), int(point.y))
 			if self.popOverIsOpened == False:
 				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
-				self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
-				if self.commandClicked != None and not self.popOverIsOpened:
-					self.openPopOver(point)
+				if self.commandClicked != None:
+					self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+					if self.commandClicked != None and not self.popOverIsOpened:
+						self.openPopOver(point)
 
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
