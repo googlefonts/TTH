@@ -794,6 +794,16 @@ class TTHTool(BaseEventTool):
 			else:
 				self.tthtm.stemsListX.append(name)
 
+	def makeStemsListsPopUpMenuPopOver(self):
+		self.popOverStemsListX = ['None']
+		self.popOverStemsListY = ['None']
+
+		for name, stem in self.c_fontModel.stems.iteritems():
+			if stem['horizontal'] == True:
+				self.popOverStemsListY.append(name)
+			else:
+				self.popOverStemsListX.append(name)
+
 #============== Fonctions for zones
 
 	def deltaDictFromString(self, s):
@@ -1269,6 +1279,63 @@ class TTHTool(BaseEventTool):
 		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 
+	def popoverPoint1PrevCallback(self, sender):
+		g = self.getGlyph()
+		
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point1']:
+				prevPoint = self.listOfUniqueID_On[i-1]
+				self.selectedCommand['point1'] = prevPoint
+				break
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def popoverPoint1NextCallback(self, sender):
+		g = self.getGlyph()
+		contourLen = len(self.listOfUniqueID_On)
+
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point1']:
+				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				self.selectedCommand['point1'] = nextPoint
+				break
+		UpdateCurrentGlyphView()
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def popoverPoint2PrevCallback(self, sender):
+		g = self.getGlyph()
+		
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point2']:
+				prevPoint = self.listOfUniqueID_On[i-1]
+				self.selectedCommand['point2'] = prevPoint
+				break
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def popoverPoint2NextCallback(self, sender):
+		g = self.getGlyph()
+		contourLen = len(self.listOfUniqueID_On)
+
+		for i, ID in enumerate(self.listOfUniqueID_On):
+			if ID == self.selectedCommand['point2']:
+				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				self.selectedCommand['point2'] = nextPoint
+				break
+		UpdateCurrentGlyphView()
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+
 	def popoverPointPrevCallback(self, sender):
 		g = self.getGlyph()
 		
@@ -1281,45 +1348,6 @@ class TTHTool(BaseEventTool):
 		self.updateGlyphProgram(g)
 		self.refreshGlyph(g)
 		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
-
-
-	def popoverPoint2NextCallback(self, sender):
-		g = self.getGlyph()
-		contourLen = len(self.listOfUniqueID_On)
-
-		for i, ID in enumerate(self.listOfUniqueID_On):
-			if ID == self.selectedCommand['point2']:
-				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
-				if nextPoint != self.selectedCommand['point1']:
-					self.selectedCommand['point2'] = nextPoint
-					break
-				else:
-					self.selectedCommand['point2'] = self.listOfUniqueID_On[(i+2) % contourLen]
-					break
-		UpdateCurrentGlyphView()
-		self.writeGlyphFLTTProgram(g)
-		self.updateGlyphProgram(g)
-		self.refreshGlyph(g)
-		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
-
-
-	def popoverPoint2PrevCallback(self, sender):
-		g = self.getGlyph()
-		
-		for i, ID in enumerate(self.listOfUniqueID_On):
-			if ID == self.selectedCommand['point2']:
-				prevPoint = self.listOfUniqueID_On[i-1]
-				if prevPoint != self.selectedCommand['point1']:
-					self.selectedCommand['point2'] = prevPoint
-					break
-				else:
-					self.selectedCommand['point2'] = self.listOfUniqueID_On[i-2]
-					break
-		self.writeGlyphFLTTProgram(g)
-		self.updateGlyphProgram(g)
-		self.refreshGlyph(g)
-		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
-
 
 	def popOverSimple(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
@@ -1344,6 +1372,137 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = True
 		UpdateCurrentGlyphView()
 		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+	def popOverSingle(self, point):
+		self.makeStemsListsPopUpMenuPopOver()
+		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+		view = self.getNSView()
+		offsetX, offsetY = view.offset()
+		x = point.x
+		y = point.y
+		x += offsetX
+		y += offsetY
+		self.popover = Popover((200, 130))
+		self.popover.bind("did show", self.popoverOpened)
+		self.popover.bind("did close", self.popoverClosed)
+		
+		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
+		if self.selectedCommand['active'] == 'true':
+			commandState = "Active"
+		else:
+			commandState = "Inactive"
+		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
+
+		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
+		self.popover.RoundDistanceCheckBox = CheckBox((-20, 33, 10, 10), "", sizeStyle = "small",
+				callback=self.RoundDistanceCheckBoxCallback)
+		self.popover.RoundDistanceCheckBox.set('round' in self.selectedCommand)
+
+		if self.selectedCommand['code'][-1] == 'v':
+			self.stemTypeList = self.popOverStemsListY
+		else:
+			self.stemTypeList = self.popOverStemsListX
+
+		self.popover.StemTypeText = TextBox((10, 52, 40, 15), "Stem:", sizeStyle = "small")
+		self.popover.StemTypePopUpButton = PopUpButton((50, 50, -10, 16),
+				self.stemTypeList, sizeStyle = "mini",
+				callback=self.StemTypePopUpButtonCallback)
+
+		self.popover.StemTypePopUpButton.set(self.findStemIndexPopOver())
+		self.popover.StemTypeText.show('round' not in self.selectedCommand)
+		self.popover.StemTypePopUpButton.show('round' not in self.selectedCommand)
+
+		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
+
+		self.popover.AlignmentTypeText = TextBox((10, 72, 40, 15), "Align:", sizeStyle = "small")
+		self.popover.AlignmentTypePopUpButton = PopUpButton((50, 70, -10, 16),
+				self.alignmentTypeListDisplay, sizeStyle = "mini",
+				callback=self.AlignmentTypePopUpButtonCallback)
+
+		self.popover.AlignmentTypePopUpButton.set(self.findAlignIndexPopOver())
+		self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+
+		self.popover.prev1Button = ImageButton((10, -35, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPoint1PrevCallback, sizeStyle='small')
+		self.popover.movePoint1Text = TextBox((65, -37, 80, 15), "Move Point 1", sizeStyle = "small")
+		self.popover.next1Button = ImageButton((-20, -35, 10, 10), imageObject=imgNext, bordered=False, callback=self.popoverPoint1NextCallback, sizeStyle='small')
+
+		self.popover.prev2Button = ImageButton((10, -20, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPoint2PrevCallback, sizeStyle='small')
+		self.popover.movePoint2Text = TextBox((65, -22, 80, 15), "Move Point 2", sizeStyle = "small")
+		self.popover.next2Button = ImageButton((-20, -20, 10, 10), imageObject=imgNext, bordered=False, callback=self.popoverPoint2NextCallback, sizeStyle='small')
+
+		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
+		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+	def findStemIndexPopOver(self):
+		if 'stem' in self.selectedCommand:
+			for index, stem in enumerate(self.stemTypeList):
+				if stem == self.selectedCommand['stem']:
+					return index
+		return 0
+
+	def findAlignIndexPopOver(self):
+		if 'align' in self.selectedCommand:
+			for index, align in enumerate(self.alignmentTypeList):
+				if align == self.selectedCommand['align']:
+					return index
+		return 0
+
+	def StemTypePopUpButtonCallback(self, sender):
+
+		g = self.getGlyph()
+		g.prepareUndo('Change Stem')
+		if sender.get() != 0:
+			self.selectedCommand['stem'] = self.stemTypeList[sender.get()]
+		else:
+			if 'stem' in self.selectedCommand:
+				del self.selectedCommand['stem']
+			self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
+
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+		self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+
+
+	def RoundDistanceCheckBoxCallback(self, sender):
+
+		g = self.getGlyph()
+		if sender.get() == 1:
+			g.prepareUndo('Round Distance')
+			self.selectedCommand['round'] = 'true'
+			if 'stem' in self.selectedCommand:
+				del self.selectedCommand['stem']
+			if 'align' in self.selectedCommand:
+				del self.selectedCommand['align']
+		else:
+			g.prepareUndo('Do Not Round Distance')
+			del self.selectedCommand['round']
+			if self.stemTypeList[self.popover.StemTypePopUpButton.get()] != 'None':
+				self.selectedCommand['stem'] = self.stemTypeList[self.popover.StemTypePopUpButton.get()]
+			else:
+				self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
+			
+
+		self.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
+		g.performUndo()
+
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+		self.popover.StemTypeText.show('round' not in self.selectedCommand)
+		self.popover.StemTypePopUpButton.show('round' not in self.selectedCommand)
+		self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
 	def popOverDelta(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
@@ -1391,7 +1550,7 @@ class TTHTool(BaseEventTool):
 
 	def DeltaOffsetSliderCallback(self, sender):
 		g = self.getGlyph()
-		self.changeDeltaOffset(int(sender.get() - 8))
+		#self.changeDeltaOffset(int(sender.get() - 8))
 		if self.tthtm.deltaOffset == 0:
 			g.prepareUndo('Remove Delta')
 			self.glyphTTHCommands.remove(self.selectedCommand)
@@ -1591,6 +1750,8 @@ class TTHTool(BaseEventTool):
 				self.popOverAlign(point)
 			elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fveltah']:
 				self.popOverDelta(point)
+			elif self.selectedCommand['code'] in ['singlev', 'singleh']:
+				self.popOverSingle(point)
 			else:
 				self.popOverSimple(point)
 

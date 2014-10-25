@@ -636,7 +636,12 @@ class programWindow(object):
 
 	def selectionCallback(self, sender):
 		pass
-		# print sender.getSelection()
+		# if sender.getSelection() != []:
+		# 	self.TTHToolInstance.popOverIsOpened = True
+		# 	self.TTHToolInstance.commandClicked = sender.getSelection()[0]
+		# 	self.TTHToolInstance.selectedCommand = self.TTHToolInstance.glyphTTHCommands[self.TTHToolInstance.commandClicked]
+		# 	UpdateCurrentGlyphView()
+		#print sender.getSelection()
 
 	def editCallback(self, sender):
 		if self.lock or (sender.getSelection() == []):
