@@ -487,7 +487,8 @@ class previewWindow(object):
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
 		# self.view.setAutoresizingMask_(NSViewMinXMargin | NSViewMaxXMargin | NSViewMinYMargin | NSViewMaxYMargin)
-		self.wPreview.previewEditText = EditText((10, 10, -10, 22),
+		self.previewList = ['HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase]
+		self.wPreview.previewEditText = ComboBox((10, 10, -10, 22), self.previewList,
 				callback=self.previewEditTextCallback)
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
 

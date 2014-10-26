@@ -368,12 +368,12 @@ class SheetControlValues(object):
 		self.setGaspRangesListUI()
 
 		w.gaspBox.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
-		w.gaspBox.rangeEditText = EditText((32, -32, 30, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
+		w.gaspBox.rangeEditText = EditText((32, -32, 40, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
 		w.gaspBox.rangeEditText.set(8)
-		w.gaspBox.GAA_PopUpButton = CheckBox((67, -34, 90, 22), "Gray AntiAlias", value=False, sizeStyle = "small")
-		w.gaspBox.GF_PopUpButton = CheckBox((163, -34, 60, 22), "GridFit", value=False, sizeStyle = "small")
-		w.gaspBox.SGF_PopUpButton = CheckBox((223, -34, 80, 22), "Sym. GridFit", value=False, sizeStyle = "small")
-		w.gaspBox.SS_PopUpButton = CheckBox((313, -34, 100, 22), "Sym. Smoothing", value=False, sizeStyle = "small")
+		w.gaspBox.GAA_PopUpButton = CheckBox((77, -34, 90, 22), "Gray AntiAlias", value=False, sizeStyle = "small")
+		w.gaspBox.GF_PopUpButton = CheckBox((173, -34, 60, 22), "GridFit", value=False, sizeStyle = "small")
+		w.gaspBox.SGF_PopUpButton = CheckBox((233, -34, 80, 22), "Sym. GridFit", value=False, sizeStyle = "small")
+		w.gaspBox.SS_PopUpButton = CheckBox((323, -34, 100, 22), "Sym. Smoothing", value=False, sizeStyle = "small")
 		w.gaspBox.buttonAddRange = SquareButton((-32, -32, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddRangeCallback)
 		w.gaspBox.show(0)
 
@@ -404,7 +404,7 @@ class SheetControlValues(object):
 			GF = rangeUI['GF'] * 1
 			GAA = rangeUI['GAA'] * 2
 			SGF = rangeUI['SGF'] * 4
-			SS = rangeUI['SS'] * 4
+			SS = rangeUI['SS'] * 8
 			self.c_fontModel.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 
 	def gaspRangeEditTextCallback(self, sender):
