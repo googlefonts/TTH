@@ -1559,7 +1559,8 @@ class TTHTool(BaseEventTool):
 			if 'stem' in self.selectedCommand:
 				del self.selectedCommand['stem']
 			if hasattr(self.popover, 'AlignmentTypePopUpButton'):
-				self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
+				if self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()] != 'None':
+					self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
 
 		self.updateGlyphProgram(g)
 		if self.tthtm.alwaysRefresh == 1:
@@ -1590,7 +1591,8 @@ class TTHTool(BaseEventTool):
 			if self.stemTypeList[self.popover.StemTypePopUpButton.get()] != 'None':
 				self.selectedCommand['stem'] = self.stemTypeList[self.popover.StemTypePopUpButton.get()]
 			elif hasattr(self.popover, 'AlignmentTypePopUpButton'):
-				self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
+				if self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()] != 'None':
+					self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
 			
 
 		self.updateGlyphProgram(g)
