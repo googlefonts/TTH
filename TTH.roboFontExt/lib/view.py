@@ -24,15 +24,15 @@ buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 buttonSelectionPath = ExtensionBundle("TTH").get("buttonSelection")
 
-defaultKeyStub = "com.sansplomb.TTH."
-defaultKeyToolsWindowPosSize = defaultKeyStub + "toolsWindowPosSize"
-defaultKeyPreviewWindowPosSize = defaultKeyStub + "previewWindowPosSize"
-defaultKeyProgramWindowPosSize = defaultKeyStub + "programWindowPosSize"
-defaultKeyAssemblyWindowPosSize = defaultKeyStub + "assemblyWindowPosSize"
+DefaultKeyStub = "com.sansplomb.TTH."
+defaultKeyToolsWindowPosSize = DefaultKeyStub + "toolsWindowPosSize"
+defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
+defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
+defaultKeyAssemblyWindowPosSize = DefaultKeyStub + "assemblyWindowPosSize"
 
-defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
-defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
-defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
+defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
+defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
+defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 
 class toolsWindow(BaseWindowController):
@@ -40,8 +40,6 @@ class toolsWindow(BaseWindowController):
 		BaseWindowController.__init__(self)
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
-
-		self.autohinting = Automation.AutoHinting(self.TTHToolInstance)
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']
@@ -162,7 +160,7 @@ class toolsWindow(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Auto-hint Glyph",
+			"Auto-hinting",
 			NSMenuItem.separatorItem(),
 			"Monochrome",
 			"Grayscale",
@@ -191,7 +189,7 @@ class toolsWindow(BaseWindowController):
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
 		if gearOption == 1:
-			self.autoGlyphCallback()
+			self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolInstance)
 
 		if gearOption == 3:
 			self.TTHToolInstance.changeBitmapPreview("Monochrome")
@@ -232,15 +230,6 @@ class toolsWindow(BaseWindowController):
 		if self.tthtm.assemblyWindowOpened == 0:
 			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
 			self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
-
-	def autoGlyphCallback(self):
-		g = self.TTHToolInstance.getGlyph()
-		g.prepareUndo("Auto-hint Glyph")
-		self.autohinting.autohint(g)
-		self.TTHToolInstance.updateGlyphProgram(g)
-		if self.tthtm.alwaysRefresh == 1:
-			self.TTHToolInstance.refreshGlyph(g)
-		g.performUndo()
 
 
 	def refreshButtonCallback(self, sender):
@@ -458,19 +447,6 @@ class toolsWindow(BaseWindowController):
 		if sender.get() == 6:
 			self.SelectionSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Selection')
-
-
-	def AutoFontButtonCallback(self, sender):
-		progress = self.startProgress(u'Auto-hinting Font…')
-		progress.setTickCount(len(self.tthtm.f))
-		for g in self.TTHToolInstance.c_fontModel.f:
-			g.prepareUndo("Auto-hint Font")
-			self.autohinting.autohint(g)
-			self.TTHToolInstance.updateGlyphProgram()
-			g.performUndo()
-			progress.update()
-		self.TTHToolInstance.resetFonts()
-		progress.close()
 
 class previewWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
@@ -721,6 +697,50 @@ class assemblyWindow(object):
 
 	def updateAssemblyList(self, assembly):
 		self.wAssembly.assemblyList.set(assembly)
+
+class SheetAutoHinting(object):
+
+	def __init__(self, parent, controller):
+		self.controller = controller
+		self.c_fontModel = controller.c_fontModel
+		self.model = controller.tthtm
+
+		self.autohinting = Automation.AutoHinting(self.controller)
+
+		self.w = Sheet((300, 150), parentWindow=parent)
+
+		self.w.autohintFontButton = Button((120, -64, 100, 22), "Auto-hint Font", sizeStyle = "small", callback=self.autoHintFontCallBack)
+		self.w.autohintGlyphButton = Button((10, -64, 100, 22), "Auto-hint Glyph", sizeStyle = "small", callback=self.autoHintGlyphCallBack)
+		self.w.bar = ProgressBar((10, -29, -80, 16))
+		self.w.bar.show(0)
+		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
+		self.w.open()
+
+
+	def closeButtonCallback(self, sender):
+		self.w.close()
+
+	def autoHintGlyphCallBack(self, sender):
+		g = self.controller.getGlyph()
+		g.prepareUndo("Auto-hint Glyph")
+		self.autohinting.autohint(g)
+		self.controller.updateGlyphProgram(g)
+		if self.model.alwaysRefresh == 1:
+			self.controller.refreshGlyph(g)
+		g.performUndo()
+
+	def autoHintFontCallBack(self, sender):
+		self.w.bar.show(1)
+		self.w.bar.set(0)
+		increment = 100.0/len(self.c_fontModel.f)
+		for g in self.c_fontModel.f:
+			g.prepareUndo("Auto-hint Glyph")
+			self.autohinting.autohint(g)
+			self.controller.updateGlyphProgram(g)
+			g.performUndo()
+			self.w.bar.increment(increment)
+		self.w.bar.show(0)
+		self.controller.resetFont()
 
 
 reload(CV)

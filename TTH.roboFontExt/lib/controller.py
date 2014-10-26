@@ -578,7 +578,7 @@ class TTHTool(BaseEventTool):
 		if self.doneGeneratingPartialFont == False:
 			return
 		self.c_fontModel.setBitmapPreview(preview)
-		self.c_fontModel.textRenderer = TR.TextRenderer(self.c_fontModel.partialtempfontpath, preview)
+		self.c_fontModel.textRenderer = TR.TextRenderer(self.c_fontModel.partialtempfontpath, self.c_fontModel.bitmapPreviewSelection)
 		#previewIndex = self.getPreviewListIndex(preview)
 		#self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
@@ -1060,27 +1060,27 @@ class TTHTool(BaseEventTool):
 
 		elif event.characters() == 'o':
 			if self.tthtm.showOutline == 1:
-				self.tthtm.showOutline = 0
+				self.tthtm.setShowOutline(0)
 			else:
-				self.tthtm.showOutline = 1
+				self.tthtm.setShowOutline(1)
 			UpdateCurrentGlyphView()
 		elif event.characters() == 'B':
 			if self.tthtm.showBitmap == 1:
-				self.tthtm.showBitmap = 0
+				self.tthtm.setShowBitmap(0)
 			else:
-				self.tthtm.showBitmap = 1
+				self.tthtm.setShowBitmap(1)
 			UpdateCurrentGlyphView()
 		elif event.characters() == 'G':
 			if self.tthtm.showGrid == 1:
-				self.tthtm.showGrid = 0
+				self.tthtm.setShowGrid(0)
 			else:
-				self.tthtm.showGrid = 1
+				self.tthtm.setShowGrid(1)
 			UpdateCurrentGlyphView()
 		elif event.characters() == 'c':
 			if self.tthtm.showCenterPixel == 1:
-				self.tthtm.showCenterPixel = 0
+				self.tthtm.setShowCenterPixels(0)
 			else:
-				self.tthtm.showCenterPixel = 1
+				self.tthtm.setShowCenterPixels(1)
 			UpdateCurrentGlyphView()
 		elif event.characters() == 'S':
 			if self.tthtm.selectedAxis == 'Y':
@@ -1124,6 +1124,7 @@ class TTHTool(BaseEventTool):
 			for index, bitmapPreview in enumerate(bitmapPreviewList):
 				if bitmapPreview == self.c_fontModel.bitmapPreviewSelection:
 					i = index
+					break
 
 			if self.c_fontModel.bitmapPreviewSelection == bitmapPreviewList[2]:
 				self.changeBitmapPreview(bitmapPreviewList[0])
@@ -1133,12 +1134,12 @@ class TTHTool(BaseEventTool):
 
 		elif event.characters() == 'P':
 			if self.tthtm.showPreviewInGlyphWindow == 1:
-				self.tthtm.showPreviewInGlyphWindow = 0
+				self.tthtm.setShowPreviewInGlyphWindow(0)
 				if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
 					self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
 					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
 			else:
-				self.tthtm.showPreviewInGlyphWindow = 1
+				self.tthtm.setShowPreviewInGlyphWindow(1)
 				UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):

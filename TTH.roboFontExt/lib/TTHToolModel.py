@@ -7,19 +7,27 @@ import TextRenderer as TR
 
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
-defaultKeyStub = "com.sansplomb.TTH."
-defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
-defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
-defaultKeyAssemblyWindowVisibility = defaultKeyStub + "assemblyWindowVisibility"
+DefaultKeyStub = "com.sansplomb.TTH."
+defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
+defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
+defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
-defaultKeyCurrentPPMSize = defaultKeyStub + "currentPPMSize"
-defaultKeySelectedAxis = defaultKeyStub + "selectedAxis"
-defaultKeyPreviewFrom = defaultKeyStub + "previewFrom"
-defaultKeyPreviewTo = defaultKeyStub + "previewTo"
+defaultKeyCurrentPPMSize = DefaultKeyStub + "currentPPMSize"
+defaultKeySelectedAxis = DefaultKeyStub + "selectedAxis"
+defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
+defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
+
+defaultKeyAlwaysRefresh = DefaultKeyStub + "alwaysRefresh"
+defaultKeyShowOutline = DefaultKeyStub + "showOutline"
+defaultKeyShowBitmap = DefaultKeyStub + "showBitmap"
+defaultKeyShowGrid = DefaultKeyStub + "showGrid"
+defaultKeyShowCenterPixels = DefaultKeyStub + "showCenterPixels"
+defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow "
 
 # ======================================================================
 
 FL_tth_key = "com.fontlab.v2.tth"
+SP_tth_key = "com.sansplomb.tth"
 gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 
 # ======================================================================
@@ -29,18 +37,10 @@ class fontModel():
 		self.f = font
 		self.UPM = font.info.unitsPerEm
 
-		self.bitmapPreviewSelection = 'Monochrome'
+		self.SP_tth_lib = HF.getOrPutDefault(self.f.lib, SP_tth_key, {})
+		self.bitmapPreviewSelection = HF.getOrPutDefault(self.SP_tth_lib, "bitmapPreviewSelection", 'Monochrome')
 
 		self.setControlValues()
-
-		# tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
-		# self.zones = self.getOrPutDefault(tth_lib, "zones", {})
-		# self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-		# self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 72)
-		# self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 64)
-		# self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
-		# self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-		# self.gasp_ranges = HF.getOrPutDefault(gasp_key, {})
 
 		self.textRenderer = None
 
@@ -64,7 +64,7 @@ class fontModel():
 
 	def setBitmapPreview(self, preview):
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
-			self.bitmapPreviewSelection = preview
+			self.bitmapPreviewSelection = self.SP_tth_lib["bitmapPreviewSelection"] = preview
 
 	def setControlValues(self):
 		try:
@@ -191,12 +191,12 @@ class TTHToolModel():
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.requiredGlyphsForPartialTempFont = set()
 		self.requiredGlyphsForPartialTempFont.add('space')
-		self.alwaysRefresh = 1
-		self.showOutline = 0
-		self.showBitmap = 0
-		self.showGrid = 0
-		self.showCenterPixel = 0
-		self.showPreviewInGlyphWindow = 1
+		self.alwaysRefresh = getExtensionDefault(defaultKeyAlwaysRefresh, fallback=1)
+		self.showOutline = getExtensionDefault(defaultKeyShowOutline, fallback=0)
+		self.showBitmap = getExtensionDefault(defaultKeyShowBitmap, fallback=0)
+		self.showGrid = getExtensionDefault(defaultKeyShowGrid, fallback=0)
+		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
+		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
 		self.roundFactor_Stems = 15
 		self.roundFactor_Jumps = 20
@@ -219,6 +219,30 @@ class TTHToolModel():
 	def setAssemblyWindowVisible(self, valueBool):
 		self.assemblyWindowVisible = 1
 		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.assemblyWindowVisible)
+
+	def setAlwaysRefresh(self, valueBool):
+		self.alwaysRefresh = valueBool
+		setExtensionDefault(defaultKeyAlwaysRefresh, valueBool)
+
+	def setShowOutline(self, valueBool):
+		self.showOutline = valueBool
+		setExtensionDefault(defaultKeyShowOutline, valueBool)
+
+	def setShowBitmap(self, valueBool):
+		self.showBitmap = valueBool
+		setExtensionDefault(defaultKeyShowBitmap, valueBool)
+
+	def setShowGrid(self, valueBool):
+		self.showGrid = valueBool
+		setExtensionDefault(defaultKeyShowGrid, valueBool)
+
+	def setShowCenterPixels(self, valueBool):
+		self.showCenterPixel = valueBool
+		setExtensionDefault(defaultKeyShowCenterPixels, 0)
+
+	def setShowPreviewInGlyphWindow(self, valueBool):
+		self.showPreviewInGlyphWindow = valueBool
+		setExtensionDefault(defaultKeyShowPreviewInGlyphWindow, valueBool)
 
 	def setSize(self, size):
 		self.PPM_Size = int(size)
