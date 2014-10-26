@@ -419,14 +419,22 @@ class SheetControlValues(object):
 		GF = self.w.gaspBox.GF_PopUpButton.get() * 1
 		GAA = self.w.gaspBox.GAA_PopUpButton.get() * 2
 		SGF = self.w.gaspBox.SGF_PopUpButton.get() * 4
-		SS = self.w.gaspBox.SS_PopUpButton.get() * 4
+		SS = self.w.gaspBox.SS_PopUpButton.get() * 8
 
 		self.c_fontModel.gasp_ranges[gasp_range] = GF + GAA + SGF + SS
 		self.setGaspRangesListUI()
 
 
 	def buttonRemoveRangeCallback(self, sender):
-		print 'remove range'
+		UI = self.w.gaspBox.gaspSettingsList
+		selection = UI.getSelection()
+		UI.setSelection([])
+		selected = [UI[i]['range'] for i in selection]
+		self.lock = True
+		for sel in selected:
+			del self.c_fontModel.gasp_ranges[sel]
+		self.setGaspRangesListUI()
+		self.lock = False
 
 	def setGaspRangesListUI(self):
 		self.gaspRangesListUI = []
@@ -467,6 +475,7 @@ class SheetControlValues(object):
 
 			self.gaspRangesListUI.append(gaspUI)
 
+		self.gaspRangesListUI.sort(key=lambda x: int(x["range"]))
 		self.w.gaspBox.gaspSettingsList.set(self.gaspRangesListUI)
 
 	def controlsSegmentedButtonCallback(self, sender):
@@ -493,7 +502,7 @@ class SheetControlValues(object):
 			self.w.stemBox.show(0)
 			self.w.generalBox.show(0)
 			self.w.gaspBox.show(1)
-			self.w.resize(505, 200)
+			self.w.resize(505, 220)
 			
 
 	def autoZoneButtonCallback(self, sender):
