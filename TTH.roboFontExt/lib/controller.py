@@ -1508,8 +1508,8 @@ class TTHTool(BaseEventTool):
 				callback=self.StemTypePopUpButtonCallback)
 
 		self.popover.StemTypePopUpButton.set(self.findStemIndexPopOver())
-		self.popover.StemTypeText.show('round' not in self.selectedCommand)
-		self.popover.StemTypePopUpButton.show('round' not in self.selectedCommand)
+		#self.popover.StemTypeText.show('round' not in self.selectedCommand)
+		self.popover.StemTypePopUpButton.enable('round' not in self.selectedCommand)
 
 		self.alignmentTypeListDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
 		self.alignmentTypeList = ['None', 'round', 'left', 'right', 'center', 'double']
@@ -1520,13 +1520,8 @@ class TTHTool(BaseEventTool):
 				callback=self.AlignmentTypePopUpButtonCallback)
 
 		self.popover.AlignmentTypePopUpButton.set(self.findAlignIndexPopOver())
-		self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-		self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-		
-		if not self.popover.AlignmentTypePopUpButton.isVisible() and not self.popover.StemTypePopUpButton.isVisible():
-			self.popover.resize(200, 90)
-		elif not self.popover.AlignmentTypePopUpButton.isVisible():
-				self.popover.resize(200, 110)
+		#self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		self.popover.AlignmentTypePopUpButton.enable(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
 
 		self.popover.prev1Button = ImageButton((10, -35, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPoint1PrevCallback, sizeStyle='small')
@@ -1575,16 +1570,10 @@ class TTHTool(BaseEventTool):
 
 		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
-		if hasattr(self.popover, 'AlignmentTypeText'):
-			self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		# if hasattr(self.popover, 'AlignmentTypeText'):
+		# 	self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 		if hasattr(self.popover, 'AlignmentTypePopUpButton'):
-			self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-
-		if hasattr(self, 'AlignmentTypePopUpButton'):
-			if not self.popover.AlignmentTypePopUpButton.isVisible():
-				self.popover.resize(200, 110)
-			else:
-				self.popover.resize(200, 130)
+			self.popover.AlignmentTypePopUpButton.enable(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
 
 	def RoundDistanceCheckBoxCallback(self, sender):
@@ -1597,6 +1586,7 @@ class TTHTool(BaseEventTool):
 				del self.selectedCommand['stem']
 			if 'align' in self.selectedCommand:
 				del self.selectedCommand['align']
+
 		else:
 			g.prepareUndo('Do Not Round Distance')
 			del self.selectedCommand['round']
@@ -1614,18 +1604,11 @@ class TTHTool(BaseEventTool):
 
 		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
-		self.popover.StemTypeText.show('round' not in self.selectedCommand)
-		self.popover.StemTypePopUpButton.show('round' not in self.selectedCommand)
+		#self.popover.StemTypeText.show('round' not in self.selectedCommand)
+		self.popover.StemTypePopUpButton.enable('round' not in self.selectedCommand)
 		if hasattr(self.popover, 'AlignmentTypeText'):
-			self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-			self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-		if hasattr(self, 'AlignmentTypePopUpButton'):
-			if self.popover.StemTypePopUpButton.isVisible() and self.popover.AlignmentTypePopUpButton.isVisible():
-				self.popover.resize(200, 130)
-		elif self.popover.StemTypePopUpButton.isVisible():
-			self.popover.resize(200, 110)
-		else:
-			self.popover.resize(200, 90)
+			#self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+			self.popover.AlignmentTypePopUpButton.enable(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
 
 	def popOverDelta(self, point):
