@@ -22,14 +22,19 @@ def contourSegmentIterator(g):
 
 class HintingData(object):
 	def __init__(self, on, sh, ina, outa, cont, seg):
-		self.pos = on
+		self.pos        = on
 		self.shearedPos = sh
-		self.inAngle = ina
-		self.outAngle = outa
-		self.inStemY = False
-		self.touched = False
-		self.cont= cont # contour number
-		self.seg = seg # segment number
+		self.inAngle    = ina
+		self.outAngle   = outa
+		self.inStem     = False
+		self.touched    = False
+		self.cont       = cont # contour number
+		self.seg        = seg  # segment number
+	def nextOn(self, contours):
+		contour = contours[self.cont]
+		return contour[(self.seg+1)%len(contour)]
+	def prevOn(self, contours):
+		return contours[self.cont][self.seg-1]
 
 def makeHintingData(g, ital, (cidx, sidx)):
 	"""Compute data relevant to hinting for the ON point in the
@@ -48,7 +53,7 @@ def makeHintingData(g, ital, (cidx, sidx)):
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
 	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx)
 
-def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, tolerance):
+def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	def addStemToList(src, tgt, angle, existingStems):
@@ -58,13 +63,11 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 		stem = (src, tgt, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
 		if HF.isHorizontal_withTolerance(angle, tolerance) and not existingStems['h']:
-			yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, stem))
 		## if they are vertical, treat the stem on the X axis
 		elif HF.isVertical_withTolerance(angle, tolerance) and not existingStems['v']: # the angle is already sheared to counter italic
-			xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, stem))
@@ -75,7 +78,7 @@ def makeStemsList(g, italicAngle, minStemX, minStemY, maxStemX, maxStemY, roundF
 
 	def hasWhite(wc, source, target):
 		if wc[0] == None:
-			wc[0] = hasSomeWhite(source, target, g, maxStemX, maxStemY)
+			wc[0] = hasSomeWhite(source, target, g, xBound[1], yBound[1])
 		return wc[0]
 
 	hPoints = [makeHintingData(g, italicAngle, contSeg) for contSeg in contourSegmentIterator(g)]
@@ -130,18 +133,17 @@ def makeGroups(g, ital, X, autoh):
 	for c in g:
 		contours.append([])
 	byPos = {}
+	angle = 0.0
+	if X: angle = 90.0
 	# make a copy of all contours with hinting data
 	# and groups the ON points having the same 'proj' coordinate (sheared X or Y)
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
 		pos = int(round(proj(hd.shearedPos)))
-
-		# fuse zones
-		if not X:
-			zd = autoh.zoneAt(pos)
-			if None != zd: pos = zd[2]
-
+		goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle, angle, autoh.tthtm.angleTolerance) \
+			or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
+		if not goodAngle: continue
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
@@ -195,6 +197,9 @@ class Automation():
 		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
 		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
 
+		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
+
 		if font.info.italicAngle != None:
 			ital = - font.info.italicAngle
 		else:
@@ -204,7 +209,7 @@ class Automation():
 			print "WARNING: glyph 'O' missing, unable to calculate stems"
 			return
 		g = font['O']
-		(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, roundFactor_Stems, self.tthtm.angleTolerance)
+		(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 
 		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
 
@@ -215,8 +220,7 @@ class Automation():
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
-			(XStems, YStems) = makeStemsList(g, ital, minStemX, minStemY, maxStemX, maxStemY, \
-					roundFactor_Stems, self.tthtm.angleTolerance)
+			(XStems, YStems) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 			XStems = [stem[2][0] for stem in XStems]
 			YStems = [stem[2][1] for stem in YStems]
 			stemsValuesXList.extend(XStems)
@@ -352,10 +356,9 @@ class AutoHinting():
 		return (newX, newY)
 
 	def markStems(self, stems, (contoursY, groupsY)):
-		sx, sy = stems
-		for (stem, stemName) in sy:
+		for (stem, stemName) in stems:
 			for i in range(2):
-				contoursY[stem[i].cont][stem[i].seg].inStemY = True
+				contoursY[stem[i].cont][stem[i].seg].inStem = True
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -402,6 +405,7 @@ class AutoHinting():
 		if stemName != "":
 			command['stem'] = stemName
 		self.TTHToolInstance.glyphTTHCommands.append(command)
+		return command
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
 		if stemName == None:
@@ -434,115 +438,18 @@ class AutoHinting():
 			if HF.inInterval(y, (yStart, yEnd)):
 				return zd
 
-	#def attachLinksToZones(self, g):
-	#	for command in self.TTHToolInstance.glyphTTHCommands:
-	#		if command['code'] != 'doublev': continue
-	#		p1_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point1']]
-	#		p1_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p1_uniqueID][1]
-	#		p2_uniqueID = self.TTHToolInstance.pointNameToUniqueID[command['point2']]
-	#		p2_y = self.TTHToolInstance.pointUniqueIDToCoordinates[p2_uniqueID][1]
-	#		zonePoint1 = self.zoneAt(p1_y)
-	#		zonePoint2 = self.zoneAt(p2_y)
-	#		if zonePoint1 == None and zonePoint2 == None: continue
-	#		command['code'] = 'singlev'
-	#		if zonePoint2 != None:
-	#			p2 = command['point2']
-	#			p1 = command['point1']
-	#			command['point1'] = p2 # swap the points
-	#			command['point2'] = p1
-	#			self.addAlign(g, p2_uniqueID, zonePoint2)
-	#		else: # elif zonePoint1 != None:
-	#			self.addAlign(g, p1_uniqueID, zonePoint1)
-
-	#def findSiblings(self, g):
-	#	touchedPoints = self.findTouchedPoints(g)
-	#	touchedPointsNames_X = []
-	#	touchedPointsNames_Y = []
-	#	for name, axis in touchedPoints:
-	#		if axis == 'X':
-	#			touchedPointsNames_X.append(name)
-	#		else:
-	#			touchedPointsNames_Y.append(name)
-
-	#	hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
-	#	for t_pointName, axis in touchedPoints:
-	#		(p_x, p_y) = self.TTHToolInstance.pointONNameToContSeg[t_pointName]
-	#		for onPt, (cidx, sidx) in hPoints:
-	#			h_pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
-
-	#			# Find prev and next ON points
-	#			contour = g[cidx]
-	#			prev_h_Point = contour[sidx-1].onCurve
-	#			prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(prev_h_Point)]
-	#			next_h_Point = contour[(sidx+1)%len(contour)].onCurve
-	#			next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(next_h_Point)]
-
-	#			if (axis == 'X' and h_pointName in touchedPointsNames_X): continue
-	#			if (axis == 'Y' and h_pointName in touchedPointsNames_Y): continue
-	#			if axis == 'Y' and abs(onPt.pos.y - p_y) <= 2 and h_pointName != t_pointName and (HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)):
-	#				if prev_h_Point.x == p_x or next_h_Point.x == p_x:
-	#					continue
-	#				if (prev_h_Point.x < onPt.pos.x and prev_h_Point.y == onPt.pos.y) or (next_h_Point.x < onPt.pos.x and next_h_Point.y == onPt.pos.y):
-	#					continue
-	#				self.addSingleLink(t_pointName, h_pointName, isHorizontal=False)
-	#			if axis == 'X' and abs(HF.shearPoint(onPt.pos, self.ital)[0] - HF.shearPair((p_x, p_y), self.ital)[0]) <= 2 and h_pointName != t_pointName and (HF.isVertical_withTolerance(onPt.inAngle-self.ital, self.tthtm.angleTolerance) or HF.isVertical_withTolerance(onPt.outAngle-self.ital, self.tthtm.angleTolerance)):
-	#				if prev_h_Point.y == p_y or next_h_Point.y == p_y:
-	#					continue
-	#				if (prev_h_Point.y < onPt.pos.y and prev_h_Point.x == onPt.pos.x) or (next_h_Point.y < onPt.pos.y and next_h_Point.x == onPt.pos.x):
-	#					continue
-	#				self.addSingleLink(t_pointName, h_pointName, isHorizontal=True)
-
-	#def findTouchedPoints(self, g):
-	#	touchedPoints = sets.Set()
-	#	for command in self.TTHToolInstance.glyphTTHCommands:
-	#		axis = 'X'
-	#		if command['code'][-1] in ['t', 'b', 'v']:
-	#			axis = 'Y'
-	#		for n in ('point', 'point1', 'point2'):
-	#			if n in command: touchedPoints.add((command[n], axis))
-	#	return touchedPoints
-
-	#def hintWidth(self, g):
-	#	pass
-
-	#def autoAlignToZones(self, g):
-
-	#	touchedPoints = self.findTouchedPoints(g)
-	#	touchedPointsNames = [name for name,axis in touchedPoints if axis == 'Y']
-
-	#	zones = [zoneData(item) for item in self.TTHToolInstance.c_fontModel.zones.iteritems()]
-	#	hPoints = [(makeHintingData(g, self.ital, contSeg), contSeg) for contSeg in contourSegmentIterator(g)]
-
-	#	for onPt, (cidx, sidx) in hPoints:
-	#		contour = g[cidx]
-	#		prev_h_Point = HF.pointToPair(contour[sidx-1].onCurve)
-	#		prev_h_PointName = self.TTHToolInstance.pointCoordinatesToName[prev_h_Point]
-	#		next_h_Point = HF.pointToPair(contour[(sidx+1)%len(contour)].onCurve)
-	#		next_h_PointName = self.TTHToolInstance.pointCoordinatesToName[next_h_Point]
-
-	#		neighborsAreAlreadyAligned = \
-	#			(prev_h_Point[1] == onPt.pos.y and prev_h_PointName in touchedPointsNames) or \
-	#			(next_h_Point[1] == onPt.pos.y and next_h_PointName in touchedPointsNames)
-	#		angleIsOkay = \
-	#			HF.isHorizontal_withTolerance(onPt.inAngle, self.tthtm.angleTolerance) or \
-	#			HF.isHorizontal_withTolerance(onPt.outAngle, self.tthtm.angleTolerance)
-
-	#		if neighborsAreAlreadyAligned or (not angleIsOkay): continue
-
-	#		pointName = self.TTHToolInstance.pointCoordinatesToName[HF.pointToPair(onPt.pos)]
-	#		for (zoneName, isTop, y_start, y_end) in zones:
-	#			if not HF.inInterval(onPt.pos.y, (y_start, y_end)): continue
-	#			newAlign = {}
-	#			if isTop:
-	#				newAlign['code'] = 'alignt'
-	#			else:
-	#				newAlign['code'] = 'alignb'
-	#			newAlign['point'] = pointName
-	#			newAlign['zone'] = zoneName
-
-	#			if pointName not in touchedPointsNames:
-	#				self.TTHToolInstance.glyphTTHCommands.append(newAlign)
-	#				touchedPointsNames.append(pointName)
+	def putALeaderFirst(self, comps, contours):
+		leader = None
+		for i,comp in enumerate(comps):
+			if leader != None: break
+			for j, (cont, seg) in enumerate(comp):
+				if contours[cont][seg].inStem:
+					leader = i,j
+					break
+		if leader == None: return
+		i,j = leader
+		if i > 0: comps[0], comps[i] = comps[i], comps[0]
+		if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
 
 	def handleZones(self, g, (contours, groups)):
 		# First, handle groups in zones
@@ -554,20 +461,7 @@ class AutoHinting():
 				nonZonePositions.append(pos)
 				continue
 
-			leader = None
-			for i,comp in enumerate(comps):
-				if leader != None: break
-				for j, (cont, seg) in enumerate(comp):
-					if contours[cont][seg].inStemY:
-						leader = i,j
-						break
-			if leader == None:
-				leader = 0,0
-			else:
-				i,j = leader
-				if i > 0: comps[0], comps[i] = comps[i], comps[0]
-				if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
-			#print "At pos", pos,", leader is", comps[0][0]
+			self.putALeaderFirst(comps, contours)
 
 			zoneName, isTop, _, _ = zoneInfo
 			nbComps = len(comps)
@@ -605,6 +499,45 @@ class AutoHinting():
 						leader = i,j
 			if leader != None: self.addLinksInGroup(leader, comps, contours, isHorizontal)
 
+	def autoHintY(self, g, stems):
+		cgY = makeGroups(g, self.ital, False, self) # for Y auto-hinting
+		#printGroups(cgY, 'Y')
+		# we mark point in Y groups that have at least one stem attached to them:
+		self.markStems(stems, cgY)
+		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
+		nonZones = self.handleZones(g, cgY)
+		contoursY, groupsY = cgY
+		# now we actually insert the stems, as double or single links, in Y
+		self.applyStems(stems, contoursY, True)
+		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
+		self.handleNonZones(nonZones, cgY, isHorizontal=True)
+		
+	def autoHintX(self, g, stems):
+		cg = makeGroups(g, self.ital, True, self) # for X auto-hinting
+		#printGroups(cg, 'X')
+		contours, groups = cg
+		if len(groups) == 0: return
+
+		abscissas = sorted(groups.keys())
+		# find rightmost cont/seg
+		left, right = abscissas[0], abscissas[-1]
+		self.putALeaderFirst(groups[left],  contours)
+		self.putALeaderFirst(groups[right], contours)
+		c,s = groups[left][0][0]
+		leftmost = contours[c][s]
+		c,s = groups[right][0][0]
+		rightmost = contours[c][s]
+		self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
+		self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
+		leftmost.touched = rightmost.touched = True
+		self.addLinksInGroup((0,0), groups[left], contours, False)
+		self.addLinksInGroup((0,0), groups[right], contours, False)
+		# now we actually insert the stems, as double or single links, in X
+		self.applyStems(stems, contours, False)
+		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
+		self.handleNonZones(abscissas[1:-1], cg, isHorizontal=False)
+
+
 	def autohint(self, g):
 		if self.TTHToolInstance.c_fontModel.f.info.italicAngle != None:
 			self.ital = - self.TTHToolInstance.c_fontModel.f.info.italicAngle
@@ -619,26 +552,12 @@ class AutoHinting():
 		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
 		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
 		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
+		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
-		stems = self.filterStems(makeStemsList(g, self.ital, \
-				minStemX, minStemY, maxStemX, maxStemY, \
-				roundFactor_Stems, self.tthtm.angleTolerance))
+		stems = self.filterStems(makeStemsList(g, self.ital,
+				xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance))
 
-		cgY = makeGroups(g, self.ital, False, self) # for Y auto-hinting
-		cgX = makeGroups(g, self.ital, True, self) # for X auto-hinting
-		#printGroups(cgX, 'X')
-		#printGroups(cgY, 'Y')
-		# we mark point in Y groups that have at least one stem attached to them:
-		self.markStems(stems, cgY)
-		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
-		nonZones = self.handleZones(g, cgY)
-		contoursX, groupsX = cgX
-		contoursY, groupsY = cgY
-		# now we actually insert the stem, as double or single links, in X and Y
-		self.applyStems(stems[0], contoursX, False)
-		self.applyStems(stems[1], contoursY, True)
-		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
-		self.handleNonZones(groupsX.keys(), cgX, isHorizontal=False)
-		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
-		self.handleNonZones(nonZones, cgY, isHorizontal=True)
+		self.autoHintY(g, stems[1])
+		self.autoHintX(g, stems[0])
 
