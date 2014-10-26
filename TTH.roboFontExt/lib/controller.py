@@ -1875,7 +1875,7 @@ class TTHTool(BaseEventTool):
 
 
 	def mouseUp(self, point):
-		if self.tthtm.selectedHintingTool == 'Selection':
+		if self.tthtm.selectedHintingTool == 'Selection' or self.optionDown:
 			self.p_selectionCursor = (int(point.x), int(point.y))
 			if self.popOverIsOpened == False:
 				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
@@ -2422,132 +2422,135 @@ class TTHTool(BaseEventTool):
 
 		else:
 			self.menuAction = NSMenu.alloc().init()
-
-			alignmentCallBack_Closest = callbackAlignment(self, 'round')
-			alignmentCallBack_Left = callbackAlignment(self, 'left')
-			alignmentCallBack_Right = callbackAlignment(self, 'right')
-			alignmentCallBack_Center = callbackAlignment(self, 'center')
-			alignmentCallBack_Double = callbackAlignment(self, 'double')
+			clickedCommand = self.glyphTTHCommands[self.commandRightClicked]
 
 			items = []
 			items.append(('Delete Command', self.deleteCommandCallback))
 
-			clickedCommand = self.glyphTTHCommands[self.commandRightClicked]
-
-			if clickedCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
-				deltaValues = []
-				for value in range(-8, 0):
-					valueContext = str(value)
-					if str(value) == str(clickedCommand['delta']):
-						valueContext = u"✓ " + str(value)
-					deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
-				for value in range(1, 9):
-					valueContext = str(value)
-					if str(value) == str(clickedCommand['delta']):
-						valueContext = u"✓ " + str(value)
-					deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
-				items.append(("Delta Offset", deltaValues))
-
-				deltaPPM1 = []
-				for value in range(9, int(clickedCommand['ppm2'])+1):
-					valueContext = str(value)
-					if str(value) == str(clickedCommand['ppm1']):
-						valueContext = u"✓ " + str(value)
-					deltaPPM1.append((valueContext, callbackSetDeltaPPM1(self, value)))
-				items.append(("Delta PPM1", deltaPPM1))
-
-				deltaPPM2 = []
-				for value in range(int(clickedCommand['ppm1']), 72):
-					valueContext = str(value)
-					if str(value) == str(clickedCommand['ppm2']):
-						valueContext = u"✓ " + str(value)
-					deltaPPM2.append((valueContext, callbackSetDeltaPPM2(self, value)))
-				items.append(("Delta PPM2", deltaPPM2))
 
 
-			if clickedCommand['code'] in ['interpolateh', 'interpolatev']:
+			# alignmentCallBack_Closest = callbackAlignment(self, 'round')
+			# alignmentCallBack_Left = callbackAlignment(self, 'left')
+			# alignmentCallBack_Right = callbackAlignment(self, 'right')
+			# alignmentCallBack_Center = callbackAlignment(self, 'center')
+			# alignmentCallBack_Double = callbackAlignment(self, 'double')
+
 			
-				doNotAlignContext = 'Do Not Align to Grid'
-				closestContext = "Closest Pixel Edge"
-				leftContext = "Left/Bottom Edge"
-				rightContext = "Right/Top Edge"
-				centerContext = "Center of Pixel"
-				doubleContext = "Double Grid"
-				if 'align' in clickedCommand:
-					if clickedCommand['align'] == 'round':
-						closestContext = u"✓ Closest Pixel Edge"
-					elif clickedCommand['align'] == 'left':
-						leftContext = u"✓ Left/Bottom Edge"
-					elif clickedCommand['align'] == 'right':
-						rightContext = u"✓ Right/Top Edge"
-					elif clickedCommand['align'] == 'center':
-						centerContext = u"✓ Center of Pixel"
-					elif clickedCommand['align'] == 'double':
-						doubleContext = u"✓ Double Grid"
-				else:
-					doNotAlignContext = u'✓Do Not Align to Grid'
 
-				alignments = [
-							(doNotAlignContext, self.dontAlignCallBack),
-							(closestContext, alignmentCallBack_Closest),
-							(leftContext, alignmentCallBack_Left),
-							(rightContext, alignmentCallBack_Right),
-							(centerContext, alignmentCallBack_Center),
-							(doubleContext, alignmentCallBack_Double)
-							]
+			# if clickedCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
+			# 	deltaValues = []
+			# 	for value in range(-8, 0):
+			# 		valueContext = str(value)
+			# 		if str(value) == str(clickedCommand['delta']):
+			# 			valueContext = u"✓ " + str(value)
+			# 		deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
+			# 	for value in range(1, 9):
+			# 		valueContext = str(value)
+			# 		if str(value) == str(clickedCommand['delta']):
+			# 			valueContext = u"✓ " + str(value)
+			# 		deltaValues.append((valueContext, callbackSetDeltaValue(self, value)))
+			# 	items.append(("Delta Offset", deltaValues))
 
-				items.append(("Align Destination Position", alignments))
+			# 	deltaPPM1 = []
+			# 	for value in range(9, int(clickedCommand['ppm2'])+1):
+			# 		valueContext = str(value)
+			# 		if str(value) == str(clickedCommand['ppm1']):
+			# 			valueContext = u"✓ " + str(value)
+			# 		deltaPPM1.append((valueContext, callbackSetDeltaPPM1(self, value)))
+			# 	items.append(("Delta PPM1", deltaPPM1))
 
-
-			if clickedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
-
-				closestContext = "Closest Pixel Edge"
-				leftContext = "Left/Bottom Edge"
-				rightContext = "Right/Top Edge"
-				centerContext = "Center of Pixel"
-				doubleContext = "Double Grid"
-				if 'align' in clickedCommand:
-					if clickedCommand['align'] == 'round':
-						closestContext = u"✓ Closest Pixel Edge"
-					elif clickedCommand['align'] == 'left':
-						leftContext = u"✓ Left/Bottom Edge"
-					elif clickedCommand['align'] == 'right':
-						rightContext = u"✓ Right/Top Edge"
-					elif clickedCommand['align'] == 'center':
-						centerContext = u"✓ Center of Pixel"
-					elif clickedCommand['align'] == 'double':
-						doubleContext = u"✓ Double Grid"
-
-				zonesListItems = []
-
-				for zoneName in self.c_fontModel.zones:
-					zoneContext = zoneName
-					if 'zone' in clickedCommand:
-						if zoneName == clickedCommand['zone']:
-							zoneContext = u'✓ ' + str(zoneName) # FIXME: useless conversion from string to string
-					self.zoneAlignmentCallBack = callbackZoneAlignment(self, zoneName)
-					zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
-				#items.append(("Attach to Zone", zonesListItems))
+			# 	deltaPPM2 = []
+			# 	for value in range(int(clickedCommand['ppm1']), 72):
+			# 		valueContext = str(value)
+			# 		if str(value) == str(clickedCommand['ppm2']):
+			# 			valueContext = u"✓ " + str(value)
+			# 		deltaPPM2.append((valueContext, callbackSetDeltaPPM2(self, value)))
+			# 	items.append(("Delta PPM2", deltaPPM2))
 
 
-				alignments = [
-							(closestContext, alignmentCallBack_Closest),
-							(leftContext, alignmentCallBack_Left),
-							(rightContext, alignmentCallBack_Right),
-							(centerContext, alignmentCallBack_Center),
-							(doubleContext, alignmentCallBack_Double),
-							("Attach to Zone", zonesListItems)
-							]
-				if clickedCommand['code'] == 'alignh':
-					alignments = [
-							(closestContext, alignmentCallBack_Closest),
-							(leftContext, alignmentCallBack_Left),
-							(rightContext, alignmentCallBack_Right),
-							(centerContext, alignmentCallBack_Center),
-							(doubleContext, alignmentCallBack_Double),
-							]
+			# if clickedCommand['code'] in ['interpolateh', 'interpolatev']:
+			
+			# 	doNotAlignContext = 'Do Not Align to Grid'
+			# 	closestContext = "Closest Pixel Edge"
+			# 	leftContext = "Left/Bottom Edge"
+			# 	rightContext = "Right/Top Edge"
+			# 	centerContext = "Center of Pixel"
+			# 	doubleContext = "Double Grid"
+			# 	if 'align' in clickedCommand:
+			# 		if clickedCommand['align'] == 'round':
+			# 			closestContext = u"✓ Closest Pixel Edge"
+			# 		elif clickedCommand['align'] == 'left':
+			# 			leftContext = u"✓ Left/Bottom Edge"
+			# 		elif clickedCommand['align'] == 'right':
+			# 			rightContext = u"✓ Right/Top Edge"
+			# 		elif clickedCommand['align'] == 'center':
+			# 			centerContext = u"✓ Center of Pixel"
+			# 		elif clickedCommand['align'] == 'double':
+			# 			doubleContext = u"✓ Double Grid"
+			# 	else:
+			# 		doNotAlignContext = u'✓Do Not Align to Grid'
 
-				items.append(("Alignment Type", alignments))
+			# 	alignments = [
+			# 				(doNotAlignContext, self.dontAlignCallBack),
+			# 				(closestContext, alignmentCallBack_Closest),
+			# 				(leftContext, alignmentCallBack_Left),
+			# 				(rightContext, alignmentCallBack_Right),
+			# 				(centerContext, alignmentCallBack_Center),
+			# 				(doubleContext, alignmentCallBack_Double)
+			# 				]
+
+			# 	items.append(("Align Destination Position", alignments))
+
+
+			# if clickedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
+
+			# 	closestContext = "Closest Pixel Edge"
+			# 	leftContext = "Left/Bottom Edge"
+			# 	rightContext = "Right/Top Edge"
+			# 	centerContext = "Center of Pixel"
+			# 	doubleContext = "Double Grid"
+			# 	if 'align' in clickedCommand:
+			# 		if clickedCommand['align'] == 'round':
+			# 			closestContext = u"✓ Closest Pixel Edge"
+			# 		elif clickedCommand['align'] == 'left':
+			# 			leftContext = u"✓ Left/Bottom Edge"
+			# 		elif clickedCommand['align'] == 'right':
+			# 			rightContext = u"✓ Right/Top Edge"
+			# 		elif clickedCommand['align'] == 'center':
+			# 			centerContext = u"✓ Center of Pixel"
+			# 		elif clickedCommand['align'] == 'double':
+			# 			doubleContext = u"✓ Double Grid"
+
+			# 	zonesListItems = []
+
+			# 	for zoneName in self.c_fontModel.zones:
+			# 		zoneContext = zoneName
+			# 		if 'zone' in clickedCommand:
+			# 			if zoneName == clickedCommand['zone']:
+			# 				zoneContext = u'✓ ' + str(zoneName) # FIXME: useless conversion from string to string
+			# 		self.zoneAlignmentCallBack = callbackZoneAlignment(self, zoneName)
+			# 		zonesListItems.append((zoneContext, self.zoneAlignmentCallBack))
+			# 	#items.append(("Attach to Zone", zonesListItems))
+
+
+			# 	alignments = [
+			# 				(closestContext, alignmentCallBack_Closest),
+			# 				(leftContext, alignmentCallBack_Left),
+			# 				(rightContext, alignmentCallBack_Right),
+			# 				(centerContext, alignmentCallBack_Center),
+			# 				(doubleContext, alignmentCallBack_Double),
+			# 				("Attach to Zone", zonesListItems)
+			# 				]
+			# 	if clickedCommand['code'] == 'alignh':
+			# 		alignments = [
+			# 				(closestContext, alignmentCallBack_Closest),
+			# 				(leftContext, alignmentCallBack_Left),
+			# 				(rightContext, alignmentCallBack_Right),
+			# 				(centerContext, alignmentCallBack_Center),
+			# 				(doubleContext, alignmentCallBack_Double),
+			# 				]
+
+			# 	items.append(("Alignment Type", alignments))
 
 
 			if clickedCommand['code'] in ['doubleh', 'doublev']:
@@ -2555,30 +2558,30 @@ class TTHTool(BaseEventTool):
 					items.append(('Convert to Single Link', self.convertToSinglehCallback))
 				else:
 					items.append(('Convert to Single Link', self.convertToSinglevCallback))
-				if 'stem' in clickedCommand:
-					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
-				else:
-					distances = []
+				# if 'stem' in clickedCommand:
+				# 	distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
+				# else:
+				# 	distances = []
 
-				stemsHorizontal = []
-				stemsVertical = []
+				# stemsHorizontal = []
+				# stemsVertical = []
 
-				for name, stem in self.c_fontModel.stems.iteritems():
-					if stem['horizontal'] == True:
-						stemsHorizontal.append(name)
-					else:
-						stemsVertical.append(name)
+				# for name, stem in self.c_fontModel.stems.iteritems():
+				# 	if stem['horizontal'] == True:
+				# 		stemsHorizontal.append(name)
+				# 	else:
+				# 		stemsVertical.append(name)
 
-				if self.tthtm.selectedAxis == 'X':
-					stems = stemsVertical
-				else:
-					stems = stemsHorizontal
+				# if self.tthtm.selectedAxis == 'X':
+				# 	stems = stemsVertical
+				# else:
+				# 	stems = stemsHorizontal
 
-				for i in stems:
-					self.distanceCallback = callbackDistance(self, i)
-					distances.append((i, self.distanceCallback))
+				# for i in stems:
+				# 	self.distanceCallback = callbackDistance(self, i)
+				# 	distances.append((i, self.distanceCallback))
 
-				items.append(("Distance Alignment", distances))
+				# items.append(("Distance Alignment", distances))
 
 
 
@@ -2588,74 +2591,74 @@ class TTHTool(BaseEventTool):
 					items.append(('Convert to Double Link', self.convertToDoublehCallback))
 				else:
 					items.append(('Convert to Double Link', self.convertToDoublevCallback))
-				if 'round' not in clickedCommand:
-					items.append(('Round Distance', self.roundDistanceCallback))
-				else:
-					items.append((u'✓ Round Distance', self.dontRoundDistanceCallback))
+				# if 'round' not in clickedCommand:
+				# 	items.append(('Round Distance', self.roundDistanceCallback))
+				# else:
+				# 	items.append((u'✓ Round Distance', self.dontRoundDistanceCallback))
 
-				stemsHorizontal = []
-				stemsVertical = []
+				# stemsHorizontal = []
+				# stemsVertical = []
 
-				for name, stem in self.c_fontModel.stems.iteritems():
-					if stem['horizontal'] == True:
-						stemsHorizontal.append(name)
-					else:
-						stemsVertical.append(name)
+				# for name, stem in self.c_fontModel.stems.iteritems():
+				# 	if stem['horizontal'] == True:
+				# 		stemsHorizontal.append(name)
+				# 	else:
+				# 		stemsVertical.append(name)
 
-				if self.tthtm.selectedAxis == 'X':
-					stems = stemsVertical
-				else:
-					stems = stemsHorizontal
+				# if self.tthtm.selectedAxis == 'X':
+				# 	stems = stemsVertical
+				# else:
+				# 	stems = stemsHorizontal
 
 
-				if 'stem' in clickedCommand:
-					distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
-					for i in stems:
-						self.distanceCallback = callbackDistance(self, i)
-						if clickedCommand['stem'] == i:
-							stemContext = u'✓ ' + str(i)
-						else:
-							stemContext = str(i)
-						distances.append((stemContext, self.distanceCallback))
-				else:
-					distances = [(u'✓ Do Not Link to Stem', self.dontLinkToStemCallBack)]
-					for i in stems:
-						self.distanceCallback = callbackDistance(self, i)
-						distances.append((i, self.distanceCallback))
+				# if 'stem' in clickedCommand:
+				# 	distances = [('Do Not Link to Stem', self.dontLinkToStemCallBack)]
+				# 	for i in stems:
+				# 		self.distanceCallback = callbackDistance(self, i)
+				# 		if clickedCommand['stem'] == i:
+				# 			stemContext = u'✓ ' + str(i)
+				# 		else:
+				# 			stemContext = str(i)
+				# 		distances.append((stemContext, self.distanceCallback))
+				# else:
+				# 	distances = [(u'✓ Do Not Link to Stem', self.dontLinkToStemCallBack)]
+				# 	for i in stems:
+				# 		self.distanceCallback = callbackDistance(self, i)
+				# 		distances.append((i, self.distanceCallback))
 
 				
-				items.append(("Distance Alignment", distances))
+				# items.append(("Distance Alignment", distances))
 
-				doNotAlignContext = 'Do Not Align to Grid'
-				closestContext = "Closest Pixel Edge"
-				leftContext = "Left/Bottom Edge"
-				rightContext = "Right/Top Edge"
-				centerContext = "Center of Pixel"
-				doubleContext = "Double Grid"
-				if 'align' in clickedCommand:
-					if clickedCommand['align'] == 'round':
-						closestContext = u"✓ Closest Pixel Edge"
-					elif clickedCommand['align'] == 'left':
-						leftContext = u"✓ Left/Bottom Edge"
-					elif clickedCommand['align'] == 'right':
-						rightContext = u"✓ Right/Top Edge"
-					elif clickedCommand['align'] == 'center':
-						centerContext = u"✓ Center of Pixel"
-					elif clickedCommand['align'] == 'double':
-						doubleContext = u"✓ Double Grid"
-				else:
-					doNotAlignContext = u'✓ Do Not Align to Grid'
+				# doNotAlignContext = 'Do Not Align to Grid'
+				# closestContext = "Closest Pixel Edge"
+				# leftContext = "Left/Bottom Edge"
+				# rightContext = "Right/Top Edge"
+				# centerContext = "Center of Pixel"
+				# doubleContext = "Double Grid"
+				# if 'align' in clickedCommand:
+				# 	if clickedCommand['align'] == 'round':
+				# 		closestContext = u"✓ Closest Pixel Edge"
+				# 	elif clickedCommand['align'] == 'left':
+				# 		leftContext = u"✓ Left/Bottom Edge"
+				# 	elif clickedCommand['align'] == 'right':
+				# 		rightContext = u"✓ Right/Top Edge"
+				# 	elif clickedCommand['align'] == 'center':
+				# 		centerContext = u"✓ Center of Pixel"
+				# 	elif clickedCommand['align'] == 'double':
+				# 		doubleContext = u"✓ Double Grid"
+				# else:
+				# 	doNotAlignContext = u'✓ Do Not Align to Grid'
 
-				alignments = [
-							(doNotAlignContext, self.dontAlignCallBack),
-							(closestContext, alignmentCallBack_Closest),
-							(leftContext, alignmentCallBack_Left),
-							(rightContext, alignmentCallBack_Right),
-							(centerContext, alignmentCallBack_Center),
-							(doubleContext, alignmentCallBack_Double)
-							]
+				# alignments = [
+				# 			(doNotAlignContext, self.dontAlignCallBack),
+				# 			(closestContext, alignmentCallBack_Closest),
+				# 			(leftContext, alignmentCallBack_Left),
+				# 			(rightContext, alignmentCallBack_Right),
+				# 			(centerContext, alignmentCallBack_Center),
+				# 			(doubleContext, alignmentCallBack_Double)
+				# 			]
 
-				items.append(("Align Destination Position", alignments))
+				# items.append(("Align Destination Position", alignments))
 
 
 

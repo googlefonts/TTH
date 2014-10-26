@@ -186,7 +186,7 @@ class TTHToolModel():
 		self.centralWindowPosSize = (10, 30, 150, 135)
 		self.programWindowPosSize = (10, -300, -10, 300)
 		self.assemblyWindowPosSize = (10, 150, 150, -400)
-		self.previewString = 'HH/?HH/?OO/?OO/?'
+		self.previewString = ''
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.requiredGlyphsForPartialTempFont = set()
