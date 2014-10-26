@@ -1522,6 +1522,12 @@ class TTHTool(BaseEventTool):
 		self.popover.AlignmentTypePopUpButton.set(self.findAlignIndexPopOver())
 		self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 		self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		
+		if not self.popover.AlignmentTypePopUpButton.isVisible() and not self.popover.StemTypePopUpButton.isVisible():
+			self.popover.resize(200, 90)
+		elif not self.popover.AlignmentTypePopUpButton.isVisible():
+				self.popover.resize(200, 110)
+
 
 		self.popover.prev1Button = ImageButton((10, -35, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPoint1PrevCallback, sizeStyle='small')
 		self.popover.movePoint1Text = TextBox((65, -37, 80, 15), "Move Point 1", sizeStyle = "small")
@@ -1574,6 +1580,12 @@ class TTHTool(BaseEventTool):
 		if hasattr(self.popover, 'AlignmentTypePopUpButton'):
 			self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
+		if hasattr(self, 'AlignmentTypePopUpButton'):
+			if not self.popover.AlignmentTypePopUpButton.isVisible():
+				self.popover.resize(200, 110)
+			else:
+				self.popover.resize(200, 130)
+
 
 	def RoundDistanceCheckBoxCallback(self, sender):
 
@@ -1592,7 +1604,7 @@ class TTHTool(BaseEventTool):
 				self.selectedCommand['stem'] = self.stemTypeList[self.popover.StemTypePopUpButton.get()]
 			elif hasattr(self.popover, 'AlignmentTypePopUpButton'):
 				if self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()] != 'None':
-					self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]
+					self.selectedCommand['align'] = self.alignmentTypeList[self.popover.AlignmentTypePopUpButton.get()]	
 			
 
 		self.updateGlyphProgram(g)
@@ -1606,8 +1618,15 @@ class TTHTool(BaseEventTool):
 		self.popover.StemTypePopUpButton.show('round' not in self.selectedCommand)
 		if hasattr(self.popover, 'AlignmentTypeText'):
 			self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
-		if hasattr(self.popover, 'AlignmentTypePopUpButton'):
 			self.popover.AlignmentTypePopUpButton.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
+		if hasattr(self, 'AlignmentTypePopUpButton'):
+			if self.popover.StemTypePopUpButton.isVisible() and self.popover.AlignmentTypePopUpButton.isVisible():
+				self.popover.resize(200, 130)
+		elif self.popover.StemTypePopUpButton.isVisible():
+			self.popover.resize(200, 110)
+		else:
+			self.popover.resize(200, 90)
+
 
 	def popOverDelta(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
