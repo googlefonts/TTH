@@ -6,6 +6,8 @@ from AppKit import *
 import string
 from HelperFunc import roundbase
 
+from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
+
 import tt_tables
 import TTHintAsm
 import Automation
@@ -353,27 +355,25 @@ class SheetControlValues(object):
 		w.stemBox.AutoStemProgressBar.show(0)
 		w.stemBox.show(0)
 
-		yesNoButton = PopUpButtonListCell(["Yes", "No"])
-		self.gaspRangesList = [{"range": "7", "GAA": "Yes", "GF": "Yes", "SGF": "Yes", "SS": "Yes"} ]
-
+		self.gaspRangesListUI = []
 		w.gaspBox = Box((10, 19, -10, -40))
-		w.gaspBox.gaspSettingsList = List((10, 10, -10, -32), self.gaspRangesList,
+		w.gaspBox.gaspSettingsList = List((10, 10, -10, -32), self.gaspRangesListUI,
 			columnDescriptions=[{"title": "Range", "width": 50, "key": "range", "editable": True}, 
-								{"title": "Gray AntiAlias", "key": "GAA", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
-								{"title": "GridFit", "key": "GF", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
-								{"title": "Sym. GridFit", "key": "SGF", "editable": True, "binding": "selectedValue", "cell": yesNoButton},
-								{"title": "Sym. Smoothing", "key": "SS", "editable": True, "binding": "selectedValue", "cell": yesNoButton}],
+								{"title": "Gray AntiAlias", "key": "GAA", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "GridFit", "key": "GF", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "Sym. GridFit", "key": "SGF", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "Sym. Smoothing", "key": "SS", "editable": True, "cell": CheckBoxListCell()}],
 			editCallback = self.gaspSettingsList_EditCallBack )
+
+		self.setGaspRangesListUI()
+
 		w.gaspBox.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
-		w.gaspBox.rangeEditText = EditText((32, -32, 56, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
-		w.gaspBox.GAA_PopUpButton = PopUpButton((98, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.GAA_PopUpButton.getNSPopUpButton().setBordered_(False)
-		w.gaspBox.GF_PopUpButton = PopUpButton((183, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.GF_PopUpButton.getNSPopUpButton().setBordered_(False)
-		w.gaspBox.SGF_PopUpButton = PopUpButton((273, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.SGF_PopUpButton.getNSPopUpButton().setBordered_(False)
-		w.gaspBox.SS_PopUpButton = PopUpButton((363, -34, 60, 22), ["Yes", "No"], sizeStyle = "small")
-		w.gaspBox.SS_PopUpButton.getNSPopUpButton().setBordered_(False)
+		w.gaspBox.rangeEditText = EditText((32, -32, 30, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
+		w.gaspBox.rangeEditText.set(8)
+		w.gaspBox.GAA_PopUpButton = CheckBox((67, -34, 90, 22), "Gray AntiAlias", value=False, sizeStyle = "small")
+		w.gaspBox.GF_PopUpButton = CheckBox((163, -34, 60, 22), "GridFit", value=False, sizeStyle = "small")
+		w.gaspBox.SGF_PopUpButton = CheckBox((223, -34, 80, 22), "Sym. GridFit", value=False, sizeStyle = "small")
+		w.gaspBox.SS_PopUpButton = CheckBox((313, -34, 100, 22), "Sym. Smoothing", value=False, sizeStyle = "small")
 		w.gaspBox.buttonAddRange = SquareButton((-32, -32, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddRangeCallback)
 		w.gaspBox.show(0)
 
@@ -399,16 +399,75 @@ class SheetControlValues(object):
 
 
 	def gaspSettingsList_EditCallBack(self, sender):
-		print sender.get()
+		self.c_fontModel.gasp_ranges = {}
+		for rangeUI in sender.get():
+			GF = rangeUI['GF'] * 1
+			GAA = rangeUI['GAA'] * 2
+			SGF = rangeUI['SGF'] * 4
+			SS = rangeUI['SS'] * 4
+			self.c_fontModel.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 
 	def gaspRangeEditTextCallback(self, sender):
-		print sender.get()
+		try:
+			value = int(sender.get())
+		except ValueError:
+			value = 8
+			sender.set(8)
 
 	def buttonAddRangeCallback(self, sender):
-		print "add range"
+		gasp_range = str(self.w.gaspBox.rangeEditText.get())
+		GF = self.w.gaspBox.GF_PopUpButton.get() * 1
+		GAA = self.w.gaspBox.GAA_PopUpButton.get() * 2
+		SGF = self.w.gaspBox.SGF_PopUpButton.get() * 4
+		SS = self.w.gaspBox.SS_PopUpButton.get() * 4
+
+		self.c_fontModel.gasp_ranges[gasp_range] = GF + GAA + SGF + SS
+		self.setGaspRangesListUI()
+
 
 	def buttonRemoveRangeCallback(self, sender):
 		print 'remove range'
+
+	def setGaspRangesListUI(self):
+		self.gaspRangesListUI = []
+
+		for gaspRange, value in self.c_fontModel.gasp_ranges.iteritems():
+			if value == 0:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": False, "SGF": False, "SS": False}
+			elif value == 1:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": True, "SGF": False, "SS": False}
+			elif value == 2:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": False, "SGF": False, "SS": False}
+			elif value == 3:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": True, "SGF": False, "SS": False}
+			elif value == 4:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": False, "SGF": True, "SS": False}
+			elif value == 5:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": True, "SGF": True, "SS": False}
+			elif value == 6:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": False, "SGF": True, "SS": False}
+			elif value == 7:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": True, "SGF": True, "SS": False}
+			elif value == 8:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": False, "SGF": False, "SS": True}
+			elif value == 9:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": True, "SGF": False, "SS": True}
+			elif value == 10:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": False, "SGF": False, "SS": True}
+			elif value == 11:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": True, "SGF": False, "SS": True}
+			elif value == 12:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": False, "SGF": True, "SS": True}
+			elif value == 13:
+				gaspUI = {"range": str(gaspRange), "GAA": False, "GF": True, "SGF": True, "SS": True}
+			elif value == 14:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": False, "SGF": True, "SS": True}
+			elif value == 15:
+				gaspUI = {"range": str(gaspRange), "GAA": True, "GF": True, "SGF": True, "SS": True}
+
+			self.gaspRangesListUI.append(gaspUI)
+
+		self.w.gaspBox.gaspSettingsList.set(self.gaspRangesListUI)
 
 	def controlsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
@@ -435,7 +494,7 @@ class SheetControlValues(object):
 			self.w.generalBox.show(0)
 			self.w.gaspBox.show(1)
 			self.w.resize(505, 200)
-
+			
 
 	def autoZoneButtonCallback(self, sender):
 		self.automation.autoZones(self.c_fontModel.f)
@@ -453,6 +512,7 @@ class SheetControlValues(object):
 		self.controller.changeStemSnap(self.c_fontModel.f, self.w.generalBox.editTextStemSnap.get())
 		self.controller.changeAlignppm(self.c_fontModel.f, self.w.generalBox.editTextAlignment.get())
 		self.controller.changeCodeppm(self.c_fontModel.f, self.w.generalBox.editTextInstructions.get())
+		tt_tables.writegasp(self.c_fontModel.f, self.c_fontModel.gasp_ranges)
 		self.controller.resetFont()
 		self.controller.updateGlyphProgram(self.controller.getGlyph())
 		self.controller.refreshGlyph(self.controller.getGlyph())

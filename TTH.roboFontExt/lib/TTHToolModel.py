@@ -5,6 +5,8 @@ import HelperFunc as HF
 import tempfile
 import TextRenderer as TR
 
+from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
+
 defaultKeyStub = "com.sansplomb.TTH."
 defaultKeyPreviewWindowVisibility = defaultKeyStub + "previewWindowVisibility"
 defaultKeyProgramWindowVisibility = defaultKeyStub + "programWindowVisibility"
@@ -18,6 +20,7 @@ defaultKeyPreviewTo = defaultKeyStub + "previewTo"
 # ======================================================================
 
 FL_tth_key = "com.fontlab.v2.tth"
+gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 
 # ======================================================================
 
@@ -28,13 +31,16 @@ class fontModel():
 
 		self.bitmapPreviewSelection = 'Monochrome'
 
-		tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
-		self.zones = self.getOrPutDefault(tth_lib, "zones", {})
-		self.stems = self.getOrPutDefault(tth_lib, "stems", {})
-		self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 72)
-		self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 64)
-		self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
-		self.stems = self.getOrPutDefault(tth_lib, "stems", {})
+		self.setControlValues()
+
+		# tth_lib = self.getOrPutDefault(self.f.lib, FL_tth_key, {})
+		# self.zones = self.getOrPutDefault(tth_lib, "zones", {})
+		# self.stems = self.getOrPutDefault(tth_lib, "stems", {})
+		# self.codeppm	= self.getOrPutDefault(tth_lib, "codeppm", 72)
+		# self.alignppm	= self.getOrPutDefault(tth_lib, "alignppm", 64)
+		# self.stemsnap	= self.getOrPutDefault(tth_lib, "stemsnap", 17)
+		# self.stems = self.getOrPutDefault(tth_lib, "stems", {})
+		# self.gasp_ranges = HF.getOrPutDefault(gasp_key, {})
 
 		self.textRenderer = None
 
@@ -63,12 +69,15 @@ class fontModel():
 	def setControlValues(self):
 		try:
 			tth_lib = HF.getOrPutDefault(self.f.lib, FL_tth_key, {})
+
 			self.zones = HF.getOrPutDefault(tth_lib, "zones", {})
 			self.stems = HF.getOrPutDefault(tth_lib, "stems", {})
 			self.codeppm	= HF.getOrPutDefault(tth_lib, "codeppm", 72)
 			self.alignppm	= HF.getOrPutDefault(tth_lib, "alignppm", 64)
 			self.stemsnap	= HF.getOrPutDefault(tth_lib, "stemsnap", 17)
 			self.stems = HF.getOrPutDefault(tth_lib, "stems", {})
+
+			self.gasp_ranges = HF.getOrPutDefault(self.f.lib, gasp_key, {})
 		except:
 			print "ERROR: can't set font's control values"
 			pass

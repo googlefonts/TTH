@@ -2698,7 +2698,7 @@ class TTHTool(BaseEventTool):
 
 		tt_tables.writeCVTandPREP(f, self.c_fontModel.UPM, self.c_fontModel.alignppm, self.c_fontModel.stems, self.c_fontModel.zones, self.c_fontModel.codeppm)
 		tt_tables.writeFPGM(f)
-		tt_tables.writegasp(f, self.c_fontModel.codeppm)
+		tt_tables.writegasp(f, self.c_fontModel.gasp_ranges)
 
 		for g in f:
 			self.glyphTTHCommands = self.readGlyphFLTTProgram(g)

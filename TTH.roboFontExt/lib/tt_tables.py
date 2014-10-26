@@ -9,27 +9,34 @@ stem_to_cvt = {}
 zone_to_cvt = {}
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
-
-def writegasp(f, codeppm):
-	try:
-		lower = str(f.info.openTypeHeadLowestRecPPEM - 1)
-	except:
-		lower = "7"
-
-	try:
-		stopgridfit = str(codeppm)
-	except:
-		stopgridfit = "72"
-
-	gasp_ranges = {
-		lower:				GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
-		"20":				GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT,
-		stopgridfit:		GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT + GASP_SYMMETRIC_SMOOTHING, # com.fontlab.v2.tth[codeppm]
-		"65535":			GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING,
-	}
-
+def writegasp(f, gasp_ranges):
 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
 
+
+# def writegasp(f, codeppm):
+# 	try:
+# 		lower = str(f.info.openTypeHeadLowestRecPPEM - 1)
+# 	except:
+# 		lower = "7"
+
+# 	try:
+# 		stopgridfit = str(codeppm)
+# 	except:
+# 		stopgridfit = "72"
+
+# 	gasp_ranges = {
+# 		lower:				GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
+# 		"20":				GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT,
+# 		stopgridfit:		GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT + GASP_SYMMETRIC_SMOOTHING, # com.fontlab.v2.tth[codeppm]
+# 		"65535":			GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING
+# 	}
+
+# 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
+
+	# print "GASP_SYMMETRIC_GRIDFIT", GASP_SYMMETRIC_GRIDFIT
+	# print "GASP_SYMMETRIC_SMOOTHING", GASP_SYMMETRIC_SMOOTHING
+	# print "GASP_DOGRAY", GASP_DOGRAY
+	# print "GASP_GRIDFIT", GASP_GRIDFIT
 
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 	
