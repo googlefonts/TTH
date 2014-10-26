@@ -1395,8 +1395,8 @@ class TTHTool(BaseEventTool):
 			commandState = "Inactive"
 		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
 
-		self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
-		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
+		self.alignmentTypeListDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
+		self.alignmentTypeList = ['None', 'round', 'left', 'right', 'center', 'double']
 
 		self.popover.AlignmentTypeText = TextBox((10, 32, 40, 15), "Align:", sizeStyle = "small")
 		self.popover.AlignmentTypePopUpButton = PopUpButton((50, 30, -10, 16),
@@ -1657,6 +1657,7 @@ class TTHTool(BaseEventTool):
 		if self.tthtm.deltaOffset == 0:
 			g.prepareUndo('Remove Delta')
 			self.glyphTTHCommands.remove(self.selectedCommand)
+			self.selectedCommand = None
 			self.popover.close()
 			self.updateGlyphProgram(g)
 			if self.tthtm.alwaysRefresh == 1:
@@ -1680,6 +1681,8 @@ class TTHTool(BaseEventTool):
 		except:
 			size = self.tthtm.deltaRange1
 			sender.set(size)
+		if self.selectedCommand == None:
+			return
 
 		g = self.getGlyph()
 		g.prepareUndo('Change Delta Range')
@@ -1702,6 +1705,8 @@ class TTHTool(BaseEventTool):
 		except:
 			size = self.tthtm.deltaRange2
 			sender.set(size)
+		if self.selectedCommand == None:
+			return
 
 		g = self.getGlyph()
 		g.prepareUndo('Change Delta Range')
@@ -1853,7 +1858,7 @@ class TTHTool(BaseEventTool):
 	def openPopOver(self, point):
 			if self.selectedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
 				self.popOverAlign(point)
-			elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fveltah']:
+			elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
 				self.popOverDelta(point)
 			elif self.selectedCommand['code'] in ['singlev', 'singleh']:
 				self.popOverSingle(point)
@@ -1872,8 +1877,9 @@ class TTHTool(BaseEventTool):
 				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
 				if self.commandClicked != None:
 					self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+					pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
 					if self.commandClicked != None and not self.popOverIsOpened:
-						self.openPopOver(point)
+						self.openPopOver(pointLabel)
 
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
@@ -2065,6 +2071,7 @@ class TTHTool(BaseEventTool):
 
 			if self.optionDown == 1:
 				self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(newCommand)
+				#pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
 				self.openPopOver(point)
 
 		self.endPoint = None
@@ -3220,7 +3227,6 @@ class TTHTool(BaseEventTool):
 				self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
 			else:
 				self.commandLabelPos[cmdIndex] = ((x + 10*scale, y - 20*scale), (width, height))
-
 
 	def drawArrowAtPoint_FromPoint_WithScale(self, endPoint, fromPoint, scale):
 		r = 10
