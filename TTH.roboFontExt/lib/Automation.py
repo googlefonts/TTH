@@ -30,6 +30,7 @@ class HintingData(object):
 		self.touched    = False
 		self.cont       = cont # contour number
 		self.seg        = seg  # segment number
+		self.leader     = None # who is my leader?
 	def nextOn(self, contours):
 		contour = contours[self.cont]
 		return contour[(self.seg+1)%len(contour)]
@@ -56,21 +57,24 @@ def makeHintingData(g, ital, (cidx, sidx)):
 def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
 	stemsListX_temp = []
 	stemsListY_temp = []
-	def addStemToList(src, tgt, angle, existingStems):
+	def addStemToList(src, tgt, angle0, angle1, existingStems):
 		dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
-		stem = (src, tgt, c_distance)
 		## if they are horizontal, treat the stem on the Y axis
-		if HF.isHorizontal_withTolerance(angle, tolerance) and not existingStems['h']:
+		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
+		    HF.isHorizontal_withTolerance(angle1, tolerance) and
+                    not existingStems['h'] ) :
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
-				stemsListY_temp.append((hypoth, stem))
+				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
 		## if they are vertical, treat the stem on the X axis
-		elif HF.isVertical_withTolerance(angle, tolerance) and not existingStems['v']: # the angle is already sheared to counter italic
+		elif(HF.isVertical_withTolerance(angle0, tolerance) and
+		     HF.isVertical_withTolerance(angle1, tolerance) and
+                    not existingStems['v'] ) : # the angle is already sheared to counter italic
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
-				stemsListX_temp.append((hypoth, stem))
+				stemsListX_temp.append((hypoth, (src, tgt, c_distance[0])))
 		else:
 		## Here, the angle of the stem is more diagonal
 		# ... do something here with diagonal
@@ -90,35 +94,21 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
 					(src.inAngle,tgt.outAngle), (src.outAngle,tgt.inAngle)]:
 				if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
 					if hasWhite(wc, src.pos, tgt.pos): break
-					addStemToList(src, tgt, sa, existingStems)
+					addStemToList(src, tgt, sa, ta, existingStems)
 	# avoid duplicates, filters temporary stems
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
-	stemsListX = []
-	stemsListY = []
-	references = []
-	for (hypoth, stem) in stemsListY_temp:
-		sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].pos.y, y, 0.025))
-		targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].pos.y, y, 0.025))
-		if sourceAbsent or targetAbsent:
-			stemsListY.append(stem)
-		if sourceAbsent:
-			references.append(stem[0].pos.y)
-		if targetAbsent:
-			references.append(stem[1].pos.y)
-
-	references = []
-	for (hypoth, stem) in stemsListX_temp:
-		sourceAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[0].shearedPos[0], x, 0.025))
-		targetAbsent = not HF.exists(references, lambda x: HF.approxEqual(stem[1].shearedPos[0], x, 0.025))
-		if sourceAbsent or targetAbsent:
-			stemsListX.append(stem)
-		if sourceAbsent:
-			references.append(stem[0].shearedPos[0])
-		if targetAbsent:
-			references.append(stem[1].shearedPos[0])
-
-	return (stemsListX, stemsListY)
+	stemsLists = ([], [])
+	for i, stems in enumerate([stemsListX_temp, stemsListY_temp]):
+		references = sets.Set()
+		for (hypoth, stem) in stems:
+			sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].shearedPos[i], y, 0.025))
+			targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].shearedPos[i], y, 0.025))
+			if sourceAbsent or targetAbsent:
+				stemsLists[i].append(stem)
+			if sourceAbsent: references.add(stem[0].shearedPos[i])
+			if targetAbsent: references.add(stem[1].shearedPos[i])
+	return stemsLists
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -196,7 +186,6 @@ class Automation():
 		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
 		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
 		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
-
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
@@ -211,7 +200,10 @@ class Automation():
 		g = font['O']
 		(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 
-		maxStemX = maxStemY = max([stem[2][0] for stem in O_stemsListX])
+		maxStemX = maxStemY = max([stem[2] for stem in O_stemsListX])
+
+		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -221,8 +213,8 @@ class Automation():
 		for name in string.ascii_letters:
 			g = font[name]
 			(XStems, YStems) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
-			XStems = [stem[2][0] for stem in XStems]
-			YStems = [stem[2][1] for stem in YStems]
+			XStems = [stem[2] for stem in XStems]
+			YStems = [stem[2] for stem in YStems]
 			stemsValuesXList.extend(XStems)
 			stemsValuesYList.extend(YStems)
 			progressBar.increment(tick)
@@ -363,20 +355,20 @@ class AutoHinting():
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
 			src, tgt = stem[0], stem[1]
-			hd0 = contours[src.cont][src.seg]
-			hd1 = contours[tgt.cont][tgt.seg]
-			if hd0.touched and hd1.touched: continue
-			if not (hd0.touched or hd1.touched):
+			src = contours[src.cont][src.seg].leader
+			tgt = contours[tgt.cont][tgt.seg].leader
+			if src.touched and tgt.touched: continue
+			if not (src.touched or tgt.touched):
 				self.addDoubleLink(src, tgt, stemName, isHorizontal)
-				hd0.touched = True
-				hd1.touched = True
+				src.touched = True
+				tgt.touched = True
 				continue
-			if hd0.touched:
+			if src.touched:
 				self.addSingleLink(src.pos.name, tgt.pos.name, isHorizontal, stemName)
-				hd1.touched = True
+				tgt.touched = True
 			else:
 				self.addSingleLink(tgt.pos.name, src.pos.name, isHorizontal, stemName)
-				hd0.touched = True
+				src.touched = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
@@ -441,15 +433,19 @@ class AutoHinting():
 	def putALeaderFirst(self, comps, contours):
 		leader = None
 		for i,comp in enumerate(comps):
-			if leader != None: break
+			compLeader = None
 			for j, (cont, seg) in enumerate(comp):
-				if contours[cont][seg].inStem:
-					leader = i,j
-					break
+				if contours[cont][seg].inStem and compLeader == None:
+					compLeader = j
+					if leader == None:
+						leader = i
+				if compLeader != None: break
+			if compLeader == None: compLeader = 0
+			if compLeader > 0: comp[compLeader], comp[0] = comp[0], comp[compLeader]
+			c0,s0 = comp[0]
+			for c,s in comp: contours[c][s].leader = contours[c0][s0]
 		if leader == None: return
-		i,j = leader
-		if i > 0: comps[0], comps[i] = comps[i], comps[0]
-		if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
+		if leader > 0: comps[0], comps[leader] = comps[leader], comps[0]
 
 	def handleZones(self, g, (contours, groups)):
 		# First, handle groups in zones
@@ -460,9 +456,6 @@ class AutoHinting():
 			if None == zoneInfo:
 				nonZonePositions.append(pos)
 				continue
-
-			self.putALeaderFirst(comps, contours)
-
 			zoneName, isTop, _, _ = zoneInfo
 			nbComps = len(comps)
 			cont, seg = comps[0][0]
@@ -471,16 +464,14 @@ class AutoHinting():
 			# add align
 			self.addAlign(g, hd.pos.name, zoneInfo)
 			# add single links
-			self.addLinksInGroup((0,0), comps, contours, True)
+			self.addLinksInGroup(0, comps, contours, True)
 		return nonZonePositions
 
 	def addLinksInGroup(self, leader, comps, contours, isHorizontal):
-		i,j = leader
-		if i > 0: comps[0], comps[i] = comps[i], comps[0]
-		if j > 0: comps[0][0], comps[0][j] = comps[0][j], comps[0][0]
 		cont, seg = comps[0][0]
 		startName = contours[cont][seg].pos.name
-		for comp in comps[1:]:
+		for i, comp in enumerate(comps):
+			if i == leader: continue
 			cont, seg = comp[0]
 			hd = contours[cont][seg]
 			if hd.touched: continue
@@ -496,37 +487,39 @@ class AutoHinting():
 				for j, (cont, seg) in enumerate(comp):
 					if leader != None: break
 					if contours[cont][seg].touched:
-						leader = i,j
+						leader = i#,j
 			if leader != None: self.addLinksInGroup(leader, comps, contours, isHorizontal)
 
 	def autoHintY(self, g, stems):
-		cgY = makeGroups(g, self.ital, False, self) # for Y auto-hinting
-		#printGroups(cgY, 'Y')
+		cg = makeGroups(g, self.ital, False, self) # for Y auto-hinting
+		#printGroups(cg, 'Y')
 		# we mark point in Y groups that have at least one stem attached to them:
-		self.markStems(stems, cgY)
+		self.markStems(stems, cg)
+		contours, groups = cg
+		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
-		nonZones = self.handleZones(g, cgY)
-		contoursY, groupsY = cgY
+		nonZones = self.handleZones(g, cg)
 		# now we actually insert the stems, as double or single links, in Y
-		self.applyStems(stems, contoursY, True)
+		self.applyStems(stems, contours, True)
 		# put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
-		self.handleNonZones(nonZones, cgY, isHorizontal=True)
-		
+		self.handleNonZones(nonZones, cg, isHorizontal=True)
+
 	def autoHintX(self, g, stems):
 		cg = makeGroups(g, self.ital, True, self) # for X auto-hinting
 		#printGroups(cg, 'X')
+		# we mark point in X groups that have at least one stem attached to them:
+		self.markStems(stems, cg)
 		contours, groups = cg
+		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		if len(groups) == 0: return
 
 		abscissas = sorted(groups.keys())
 		# find rightmost cont/seg
 		left, right = abscissas[0], abscissas[-1]
-		self.putALeaderFirst(groups[left],  contours)
-		self.putALeaderFirst(groups[right], contours)
 		c,s = groups[left][0][0]
-		leftmost = contours[c][s]
+		leftmost = contours[c][s].leader
 		c,s = groups[right][0][0]
-		rightmost = contours[c][s]
+		rightmost = contours[c][s].leader
 		self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
 		self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
 		leftmost.touched = rightmost.touched = True
