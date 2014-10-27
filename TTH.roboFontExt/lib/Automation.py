@@ -521,6 +521,7 @@ class AutoHinting():
 		c,s = groups[right][0][0]
 		rightmost = contours[c][s].leader
 		self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
+		self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
 		self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
 		leftmost.touched = rightmost.touched = True
 		self.addLinksInGroup((0,0), groups[left], contours, False)
