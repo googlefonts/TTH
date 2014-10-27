@@ -333,6 +333,8 @@ class TTHTool(BaseEventTool):
 		self.shiftDown = 0
 		self.optionDown = 0
 
+		self.commandClicked = None
+
 		self.popOverIsOpened = False
 		self.commandsChecked = False
 
@@ -2074,10 +2076,9 @@ class TTHTool(BaseEventTool):
 				self.refreshGlyph(g)
 			g.performUndo()
 
+
 			if self.optionDown == 1:
 				self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(newCommand)
-				#pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
-				self.openPopOver(point)
 
 		self.endPoint = None
 		self.startPoint = None
@@ -3752,6 +3753,11 @@ class TTHTool(BaseEventTool):
 	
 		if self.commandsChecked:
 			self.drawCommands(scale, self.glyphTTHCommands)
+
+			if self.optionDown == 1 and self.commandClicked !=None:
+				self.pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
+				self.openPopOver(self.pointLabel)
+				self.commandClicked = None
 
 		#self.sortOverlapingLabels(self.glyphTTHCommands)
 

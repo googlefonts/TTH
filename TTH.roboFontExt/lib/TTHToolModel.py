@@ -22,7 +22,7 @@ defaultKeyShowOutline = DefaultKeyStub + "showOutline"
 defaultKeyShowBitmap = DefaultKeyStub + "showBitmap"
 defaultKeyShowGrid = DefaultKeyStub + "showGrid"
 defaultKeyShowCenterPixels = DefaultKeyStub + "showCenterPixels"
-defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow "
+defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 
 # ======================================================================
 
