@@ -1887,6 +1887,7 @@ class TTHTool(BaseEventTool):
 					pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
 					if self.commandClicked != None and not self.popOverIsOpened:
 						self.openPopOver(pointLabel)
+						self.commandClicked = None
 
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
@@ -2076,8 +2077,7 @@ class TTHTool(BaseEventTool):
 				self.refreshGlyph(g)
 			g.performUndo()
 
-
-			if self.optionDown == 1:
+			if self.optionDown == 1 and not self.popOverIsOpened:
 				self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(newCommand)
 
 		self.endPoint = None
@@ -3754,7 +3754,7 @@ class TTHTool(BaseEventTool):
 		if self.commandsChecked:
 			self.drawCommands(scale, self.glyphTTHCommands)
 
-			if self.optionDown == 1 and self.commandClicked !=None:
+			if self.optionDown == 1 and self.commandClicked !=None and not self.popOverIsOpened:
 				self.pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
 				self.openPopOver(self.pointLabel)
 				self.commandClicked = None
