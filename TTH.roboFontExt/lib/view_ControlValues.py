@@ -315,6 +315,8 @@ class StemView(object):
 class SheetControlValues(object):
 
 	def __init__(self, baseWindow, parent, model, controller):
+		self.lock = False
+		self.oldRangeValue = None
 		self.c_fontModel = controller.c_fontModel
 		self.controller = controller
 		self.baseWindow = baseWindow
@@ -363,7 +365,8 @@ class SheetControlValues(object):
 								{"title": "GridFit", "key": "GF", "editable": True, "cell": CheckBoxListCell()},
 								{"title": "Sym. GridFit", "key": "SGF", "editable": True, "cell": CheckBoxListCell()},
 								{"title": "Sym. Smoothing", "key": "SS", "editable": True, "cell": CheckBoxListCell()}],
-			editCallback = self.gaspSettingsList_EditCallBack )
+			editCallback = self.gaspSettingsList_EditCallBack,
+			selectionCallback = self.gaspSettingsList_SelectionCallback)
 
 		self.setGaspRangesListUI()
 
@@ -397,8 +400,34 @@ class SheetControlValues(object):
 		self.topZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=True))
 		self.bottomZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=False))
 
+	def gaspSettingsList_SelectionCallback(self, sender):
+		if sender.getSelection() == []:
+			return
+		selectedRow = sender.getSelection()[0]
+		self.oldRangeValue = sender[selectedRow]['range']
 
 	def gaspSettingsList_EditCallBack(self, sender):
+		if self.lock or (sender.getSelection() == []):
+			return
+		self.lock = True
+		edited = sender.getEditedColumnAndRow()
+		key = None
+		rangeValue = None
+		if edited == (-1, -1):
+			self.lock = False
+			return
+		if edited[0] == 0:
+			key = 'range'
+		if key == None:
+			self.lock = False
+			return
+		
+		rangeValue = sender[edited[1]][key]
+		try:
+			sender[edited[1]][key] = int(rangeValue)
+		except:
+			sender[edited[1]][key] = self.oldRangeValue
+
 		self.c_fontModel.gasp_ranges = {}
 		for rangeUI in sender.get():
 			GF = rangeUI['GF'] * 1
@@ -406,6 +435,7 @@ class SheetControlValues(object):
 			SGF = rangeUI['SGF'] * 4
 			SS = rangeUI['SS'] * 8
 			self.c_fontModel.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
+		self.lock = False
 
 	def gaspRangeEditTextCallback(self, sender):
 		try:
