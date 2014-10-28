@@ -674,7 +674,10 @@ class assemblyWindow(object):
 		self.assemblyList = []
 
 		self.wAssembly = FloatingWindow(getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize), "Assembly", minSize=(150, 100))
-		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList)
+		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList,
+					columnDescriptions=[{"title": "Assembly", "width": 150, "editable": False}],
+					showColumnTitles=False
+					)
 
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
 		self.tthtm.assemblyWindowOpened = 1
@@ -696,7 +699,13 @@ class assemblyWindow(object):
 		setExtensionDefault(defaultKeyAssemblyWindowPosSize, self.tthtm.assemblyWindowPosSize)
 
 	def updateAssemblyList(self, assembly):
-		self.wAssembly.assemblyList.set(assembly)
+		assemlblyDictList = []
+		for a in assembly:
+			assemblyDict = {}
+			assemblyDict["Assembly"] = a
+			assemlblyDictList.append(assemblyDict)
+
+		self.wAssembly.assemblyList.set(assemlblyDictList)
 
 class SheetAutoHinting(object):
 
