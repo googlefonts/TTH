@@ -407,27 +407,11 @@ class SheetControlValues(object):
 		self.oldRangeValue = sender[selectedRow]['range']
 
 	def gaspSettingsList_EditCallBack(self, sender):
+		edited = sender.getEditedColumnAndRow()
+
 		if self.lock or (sender.getSelection() == []):
 			return
 		self.lock = True
-		edited = sender.getEditedColumnAndRow()
-		key = None
-		rangeValue = None
-		if edited == (-1, -1):
-			self.lock = False
-			return
-		if edited[0] == 0:
-			key = 'range'
-		if key == None:
-			self.lock = False
-			return
-		
-		rangeValue = sender[edited[1]][key]
-		try:
-			sender[edited[1]][key] = int(rangeValue)
-		except:
-			sender[edited[1]][key] = self.oldRangeValue
-
 		self.c_fontModel.gasp_ranges = {}
 		for rangeUI in sender.get():
 			GF = rangeUI['GF'] * 1
@@ -436,6 +420,20 @@ class SheetControlValues(object):
 			SS = rangeUI['SS'] * 8
 			self.c_fontModel.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 		self.lock = False
+
+		if edited == (-1, -1):
+			return
+		self.lock = True
+		key = 'range'
+		rangeValue = None
+		
+		rangeValue = sender[edited[1]][key]
+		try:
+			sender[edited[1]][key] = int(rangeValue)
+		except:
+			sender[edited[1]][key] = self.oldRangeValue
+		self.lock = False
+		
 
 	def gaspRangeEditTextCallback(self, sender):
 		try:
