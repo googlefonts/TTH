@@ -344,13 +344,23 @@ class AutoHinting():
 		for stem in g_stemsListX:
 			name = self.guessStemForDistance(stem[0], stem[1], False)
 			if None != name:
-				newX.append((stem,name))
+				newX.append((stem, name))
 		return (newX, newY)
 
-	def markStems(self, stems, (contoursY, groupsY)):
+	def markStemsAndFindLeftRight(self, stems, contours):
+		l, r, lx, rx = None, None, 0.0, 0.0
 		for (stem, stemName) in stems:
 			for i in range(2):
-				contoursY[stem[i].cont][stem[i].seg].inStem = True
+				hd = contours[stem[i].cont][stem[i].seg]
+				hd.inStem = True
+				pos = hd.shearedPos[0]
+				if l == None or pos < lx:
+					l = hd; lx = pos
+				if r == None or rx < pos:
+					r = hd; rx = pos
+		lx = int(round(lx))
+		rx = int(round(rx))
+		return (lx, l), (rx, r)
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -492,10 +502,10 @@ class AutoHinting():
 
 	def autoHintY(self, g, stems):
 		cg = makeGroups(g, self.ital, False, self) # for Y auto-hinting
+		contours, groups = cg
 		#printGroups(cg, 'Y')
 		# we mark point in Y groups that have at least one stem attached to them:
-		self.markStems(stems, cg)
-		contours, groups = cg
+		_, _ = self.markStemsAndFindLeftRight(stems, contours)
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
 		nonZones = self.handleZones(g, cg)
@@ -507,19 +517,12 @@ class AutoHinting():
 	def autoHintX(self, g, stems):
 		cg = makeGroups(g, self.ital, True, self) # for X auto-hinting
 		#printGroups(cg, 'X')
-		# we mark point in X groups that have at least one stem attached to them:
-		self.markStems(stems, cg)
 		contours, groups = cg
+		# we mark point in X groups that have at least one stem attached to them:
+		(left, leftmost), (right, rightmost) = self.markStemsAndFindLeftRight(stems, contours)
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		if len(groups) == 0: return
 
-		abscissas = sorted(groups.keys())
-		# find rightmost cont/seg
-		left, right = abscissas[0], abscissas[-1]
-		c,s = groups[left][0][0]
-		leftmost = contours[c][s].leader
-		c,s = groups[right][0][0]
-		rightmost = contours[c][s].leader
 		self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
 		self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
 		self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
@@ -529,6 +532,9 @@ class AutoHinting():
 		# now we actually insert the stems, as double or single links, in X
 		self.applyStems(stems, contours, False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
+		abscissas = sorted(groups.keys())
+		for x in left,right:
+			if x in abscissas: abscissas.remove(x)
 		self.handleNonZones(abscissas[1:-1], cg, isHorizontal=False)
 
 
@@ -541,17 +547,12 @@ class AutoHinting():
 		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 
-		roundFactor_Stems = 1 #self.tthtm.roundFactor_Stems
-		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
-		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
-		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
-		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
-		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
-		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
+		xBound = self.tthtm.minStemX, self.tthtm.maxStemX
+		yBound = self.tthtm.minStemY, self.tthtm.maxStemY
 
-		stems = self.filterStems(makeStemsList(g, self.ital,
-				xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance))
+		stems = makeStemsList(g, self.ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
+		stems = self.filterStems(stems)
 
-		self.autoHintY(g, stems[1])
 		self.autoHintX(g, stems[0])
+		self.autoHintY(g, stems[1])
 
