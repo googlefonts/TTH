@@ -85,9 +85,12 @@ class TextRenderer(object):
 		if self.face == None:
 			return
 		org = self.pen
-		for index in idxes:
-			self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
-			self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
+		try:
+			for index in idxes:
+				self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
+				self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
+		except:
+			pass
 		return (self.pen[0] - org[0], self.pen[1] - org[1])
 
 	def names_to_indices(self, names):
@@ -155,25 +158,36 @@ class TextRenderer(object):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
 
-	def drawOutline(self, scale, pitch, char):
-		paths = self.getBezierPath(scale, pitch, char)
+	def drawOutline(self, scale, paths):
 		if paths is None:
 			return
-
 		self.outlinecolor.set()
 		for p  in paths:
 			p.setLineWidth_(scale*2)
 			p.stroke()
 
-	def getBezierPath(self, scale, pitch, char):
+	def drawOutlineOfChar(self, scale, pitch, char):
+		self.drawOutline(scale, self.getBezierPathOfChar(scale, pitch, char))
+
+	def drawOutlineOfName(self, scale, pitch, name):
+		self.drawOutline(scale, self.getBezierPathOfName(scale, pitch, name))
+
+	def getBezierPathOfName(self, scale, pitch, name):
+		index = self.face.get_name_index(name)
+		return self.getBezierPath(scale, pitch, index)
+
+	def getBezierPathOfChar(self, scale, pitch, char):
 		index = self.face.get_char_index(char)
+		return self.getBezierPath(scale, pitch, index)
+
+	def getBezierPath(self, scale, pitch, index):
 		try:
 			return self.cache.bezier_paths[index]
 		except:
 			pass
 		#print outline.contours
 
-		(contours, points, itags) = self.get_char_contours_points_and_tags(char)
+		(contours, points, itags) = self.get_glyph_contours_points_and_tags(index)
 		if len(contours) == 0:
 			return None
 		adaptedOutline_points = [(int(pitch*p[0]/64), int(pitch*p[1]/64)) for p in points]

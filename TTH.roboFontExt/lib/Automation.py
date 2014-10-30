@@ -348,7 +348,7 @@ class AutoHinting():
 		return (newX, newY)
 
 	def markStemsAndFindLeftRight(self, stems, contours):
-		l, r, lx, rx = None, None, 0.0, 0.0
+		l, r, lx, rx = None, None, 100000.0, 100000.0
 		for (stem, stemName) in stems:
 			for i in range(2):
 				hd = contours[stem[i].cont][stem[i].seg]
@@ -528,8 +528,8 @@ class AutoHinting():
 			self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
 			self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
 			leftmost.touched = rightmost.touched = True
-		self.addLinksInGroup((0,0), groups[left], contours, False)
-		self.addLinksInGroup((0,0), groups[right], contours, False)
+			self.addLinksInGroup((0,0), groups[left], contours, False)
+			self.addLinksInGroup((0,0), groups[right], contours, False)
 		# now we actually insert the stems, as double or single links, in X
 		self.applyStems(stems, contours, False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')

@@ -43,19 +43,18 @@ class PreviewInGlyphWindow(NSView):
 
 		self.clickableSizesGlyphWindow = {}
 
-		if self.TTHToolInstance.getGlyph() == None:
-			return
-		if self.TTHToolInstance.getGlyph().unicode == None:
-			return
+		glyph = self.TTHToolInstance.getGlyph()
+		if glyph == None: return
 		tr = self.TTHToolInstance.c_fontModel.textRenderer
 		advance = 40
+		glyphname = [glyph.name]
 		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
 
 			self.clickableSizesGlyphWindow[(advance, 20)] = size
 
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 40))
-			delta_pos = tr.render_text(unichr(self.TTHToolInstance.getGlyph().unicode))
+			delta_pos = tr.render_named_glyph_list(glyphname)
 			
 			if size == self.TTHToolInstance.tthtm.PPM_Size:
 				color = redColor
@@ -67,5 +66,5 @@ class PreviewInGlyphWindow(NSView):
 		tr.set_cur_size(self.TTHToolInstance.tthtm.PPM_Size)
 		tr.set_pen((40, 110))
 		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
-		delta_pos = tr.render_text_with_scale_and_alpha(unichr(self.TTHToolInstance.getGlyph().unicode), scale, 1)
+		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
 

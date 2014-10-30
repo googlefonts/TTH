@@ -3552,9 +3552,9 @@ class TTHTool(BaseEventTool):
 				self.commandLabelPos[cmdIndex] = ((point[0] - 10*scale, point[1] - 10*scale), (width, height))
 			
 
-	def drawSideBearings(self, scale, char):
+	def drawSideBearings(self, scale, name):
 		try:
-			xPos = self.tthtm.pitch * self.c_fontModel.textRenderer.get_char_advance(char)[0] / 64
+			xPos = self.tthtm.pitch * self.c_fontModel.textRenderer.get_name_advance(name)[0] / 64
 		except:
 			return
 		pathX = NSBezierPath.bezierPath()
@@ -3592,11 +3592,11 @@ class TTHTool(BaseEventTool):
 			output = output + splitText(sp[0], udata)
 			for i in range(1,nbsp):
 				sub = sp[i].split(' ', 1)
-				output.append(sub[0])
-				output = output + splitText(sub[1], udata)
+				output.append(str(sub[0]))
+				if len(sub) > 1:
+					output = output + splitText(sub[1], udata)
 			output.append(curGlyphName)
 		output = output[:-1]
-		print output
 		return (output, curGlyphName)
 
 	def drawPreviewWindow(self):
@@ -3687,8 +3687,6 @@ class TTHTool(BaseEventTool):
 		g = self.getGlyph()
 		if g == None or self.doneGeneratingPartialFont == False:
 			return
-		if g.unicode == None:
-			return
 
 		# if self.tthtm.selectedAxis == 'X':
 		# 	text = u'⬌'
@@ -3702,12 +3700,12 @@ class TTHTool(BaseEventTool):
 
 		self.drawZones(scale)
 
-		curChar = unichr(g.unicode)
-		self.c_fontModel.textRenderer.set_cur_size(self.tthtm.PPM_Size)
-		self.c_fontModel.textRenderer.set_pen((0, 0))
-
+		tr = self.c_fontModel.textRenderer
+		tr.set_cur_size(self.tthtm.PPM_Size)
+		tr.set_pen((0, 0))
+		
 		if self.tthtm.showBitmap == 1:
-			self.c_fontModel.textRenderer.render_text_with_scale_and_alpha(curChar, self.tthtm.pitch, 0.4)
+			tr.render_named_glyph_list([g.name], self.tthtm.pitch, 0.4)
 
 		if self.tthtm.showGrid == 1:
 			self.drawGrid(scale, self.tthtm.pitch)
@@ -3716,8 +3714,8 @@ class TTHTool(BaseEventTool):
 			self.drawCenterPixel(scale, self.tthtm.pitch)
 
 		if self.tthtm.showOutline == 1:
-			self.c_fontModel.textRenderer.drawOutline(scale, self.tthtm.pitch, curChar)
-			self.drawSideBearings(scale, curChar)
+			tr.drawOutlineOfName(scale, self.tthtm.pitch, g.name)
+			self.drawSideBearings(scale, g.name)
 
 
 	def draw(self, scale):
