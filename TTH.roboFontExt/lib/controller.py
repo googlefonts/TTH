@@ -3670,7 +3670,7 @@ class TTHTool(BaseEventTool):
 			
 			tr.set_cur_size(size)
 			tr.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
-			delta_pos = tr.render_indexed_glyph_list(glyphs)
+			delta_pos = tr.render_named_glyph_list([curGlyphName])
 			advance += delta_pos[0] + 5
 			advanceWidthCurrentGlyph = advance
 
