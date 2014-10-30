@@ -523,10 +523,11 @@ class AutoHinting():
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		if len(groups) == 0: return
 
-		self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
-		self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
-		self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
-		leftmost.touched = rightmost.touched = True
+		if leftmost != None and rightmost != None:
+			self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
+			self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
+			self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
+			leftmost.touched = rightmost.touched = True
 		self.addLinksInGroup((0,0), groups[left], contours, False)
 		self.addLinksInGroup((0,0), groups[right], contours, False)
 		# now we actually insert the stems, as double or single links, in X
@@ -550,7 +551,7 @@ class AutoHinting():
 		xBound = self.tthtm.minStemX, self.tthtm.maxStemX
 		yBound = self.tthtm.minStemY, self.tthtm.maxStemY
 
-		stems = makeStemsList(g, self.ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
+		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance)
 		stems = self.filterStems(stems)
 
 		self.autoHintX(g, stems[0])

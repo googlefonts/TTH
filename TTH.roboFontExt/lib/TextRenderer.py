@@ -81,6 +81,16 @@ class TextRenderer(object):
 	def render_text(self, text):
 		return self.render_text_with_scale_and_alpha(text, 1, 1.0)
 
+	def render_named_glyph_list(self, nameList, scale, alpha):
+		if self.face == None:
+			return
+		org = self.pen
+		for name in nameList:
+			index = self.face.get_name_index(name)
+			self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
+			self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
+		return (self.pen[0] - org[0], self.pen[1] - org[1])
+
 	def get_advance(self, index):
 		return self.cache.advances[index]
 
