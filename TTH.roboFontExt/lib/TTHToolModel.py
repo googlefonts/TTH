@@ -155,6 +155,7 @@ class TTHToolModel():
 
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
 		self.pitch = 1000/self.PPM_Size
+		self.fPitch = 1000.0/self.PPM_Size
 		self.selectedAxis = getExtensionDefault(defaultKeySelectedAxis, fallback='X')
 
 		self.selectedHintingTool = 'Align'
@@ -258,6 +259,7 @@ class TTHToolModel():
 
 	def resetPitch(self, UPM):
 		self.pitch = UPM/self.PPM_Size
+                self.fPitch = float(UPM)/self.PPM_Size
 
 	def setAxis(self, axis):
 		if axis in ['X', 'Y']:

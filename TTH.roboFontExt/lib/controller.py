@@ -3705,16 +3705,16 @@ class TTHTool(BaseEventTool):
 		tr.set_pen((0, 0))
 		
 		if self.tthtm.showBitmap == 1:
-			tr.render_named_glyph_list([g.name], self.tthtm.pitch, 0.4)
+			tr.render_named_glyph_list([g.name], self.tthtm.fPitch, 0.4)
 
 		if self.tthtm.showGrid == 1:
-			self.drawGrid(scale, self.tthtm.pitch)
+			self.drawGrid(scale, self.tthtm.fPitch)
 
 		if self.tthtm.showCenterPixel == 1:
-			self.drawCenterPixel(scale, self.tthtm.pitch)
+			self.drawCenterPixel(scale, self.tthtm.fPitch)
 
 		if self.tthtm.showOutline == 1:
-			tr.drawOutlineOfName(scale, self.tthtm.pitch, g.name)
+			tr.drawOutlineOfName(scale, self.tthtm.fPitch, g.name)
 			self.drawSideBearings(scale, g.name)
 
 
