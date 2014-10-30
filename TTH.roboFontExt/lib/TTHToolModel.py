@@ -259,7 +259,7 @@ class TTHToolModel():
 
 	def resetPitch(self, UPM):
 		self.pitch = UPM/self.PPM_Size
-                self.fPitch = float(UPM)/self.PPM_Size
+		self.fPitch = float(UPM)/self.PPM_Size
 
 	def setAxis(self, axis):
 		if axis in ['X', 'Y']:
