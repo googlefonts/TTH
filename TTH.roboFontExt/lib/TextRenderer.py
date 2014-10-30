@@ -81,21 +81,30 @@ class TextRenderer(object):
 	def render_text(self, text):
 		return self.render_text_with_scale_and_alpha(text, 1, 1.0)
 
-	def render_named_glyph_list(self, nameList, scale, alpha):
+	def render_indexed_glyph_list(self, idxes, scale=1, alpha=1.0):
 		if self.face == None:
 			return
 		org = self.pen
-		for name in nameList:
-			index = self.face.get_name_index(name)
+		for index in idxes:
 			self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
 			self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
 		return (self.pen[0] - org[0], self.pen[1] - org[1])
+
+	def names_to_indices(self, names):
+		return [self.face.get_name_index(name) for name in names]
+
+	def render_named_glyph_list(self, nameList, scale=1, alpha=1.0):
+		indices = self.names_to_indices(nameList)
+		return self.render_indexed_glyph_list(indices, scale, alpha)
 
 	def get_advance(self, index):
 		return self.cache.advances[index]
 
 	def get_char_advance(self, char):
 		return self.get_advance(self.face.get_char_index(char))
+
+	def get_name_advance(self, name):
+		return self.get_advance(self.face.get_name_index(name))
 
 	def get_glyph_contours_points_and_tags(self, index):
 		if index not in self.cache.contours_points_and_tags:

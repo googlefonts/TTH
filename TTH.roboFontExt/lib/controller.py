@@ -319,7 +319,6 @@ class TTHTool(BaseEventTool):
 		# self.partialtempfontpath = temp.name
 		# temp.close()
 
-		self.previewText = ''
 		self.movingMouse = None
 
 		self.cachedPathes = {'grid':None, 'centers':None}
@@ -2803,10 +2802,9 @@ class TTHTool(BaseEventTool):
 			unicodeToNameDict[g.unicode] = g.name
 		return unicodeToNameDict
 
-	def defineGlyphsForPartialTempFont(self, text, curGlyphString):
-		def addGlyph(s, c):
+	def defineGlyphsForPartialTempFont(self, text, curGlyphName):
+		def addGlyph(s, name):
 			try:
-				name = self.unicodeToNameDict[ord(c)]
 				s.add(name)
 				for component in self.c_fontModel.f[name].components:
 					s.add(component.baseGlyph)
@@ -2814,9 +2812,9 @@ class TTHTool(BaseEventTool):
 				#print("WARNING: character "+c+" is not in the font...")
 				pass
 		glyphSet = set()
-		addGlyph(glyphSet, curGlyphString)
-		for c in text:
-			addGlyph(glyphSet, c)
+		addGlyph(glyphSet, curGlyphName)
+		for name in text:
+			addGlyph(glyphSet, name)
 		return glyphSet
 
 	def generatePartialTempFont(self):
@@ -3575,30 +3573,31 @@ class TTHTool(BaseEventTool):
 
 	def prepareText(self):
 		g = self.getGlyph()
+		unicodeToName = CurrentFont().getCharacterMapping()
+
 		if g == None:
-			return (' ', ' ')
-		if g.unicode == None:
-			print 'Glyph %s must have Unicode value to be hinted' % g.name
-			return (' ', ' ')
+			curGlyphName = ''
+		else:
+			curGlyphName = g.name
 
-		curGlyphString = unichr(g.unicode)
+		texts = self.tthtm.previewString.split('/?')
 
-		# replace @ by current glyph
-		#text = self.previewWindow.previewString.replace('@', curGlyphString)
-		text = self.tthtm.previewString.replace('/?', curGlyphString)
+		udata = self.c_fontModel.f.naked().unicodeData
 
-		# replace /name pattern
-		sp = text.split('/')
-		nbsp = len(sp)
-		for i in range(1,nbsp):
-			sub = sp[i].split(' ', 1)
-			if sub[0] in self.c_fontModel.f:
-				sp[i] = unichr(self.c_fontModel.f[sub[0]].unicode) + (' '.join(sub[1:]))
-			else:
-				sp[i] = ''
-		text = ''.join(sp)
-		self.previewText = text
-		return (text, curGlyphString)
+		output = []
+		for text in texts:
+			# replace /name pattern
+			sp = text.split('/')
+			nbsp = len(sp)
+			output = output + splitText(sp[0], udata)
+			for i in range(1,nbsp):
+				sub = sp[i].split(' ', 1)
+				output.append(sub[0])
+				output = output + splitText(sub[1], udata)
+			output.append(curGlyphName)
+		output = output[:-1]
+		print output
+		return (output, curGlyphName)
 
 	def drawPreviewWindow(self):
 		if self.ready == False:
@@ -3608,25 +3607,28 @@ class TTHTool(BaseEventTool):
 
 		self.clickableSizes= {}
 
-		if not self.c_fontModel.textRenderer:
+		tr = self.c_fontModel.textRenderer
+		if not tr:
 			return
 
 		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
 		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
-		(text, curGlyphString) = self.prepareText()
+		(namedGlyphList, curGlyphName) = self.prepareText()
+		glyphs = tr.names_to_indices(namedGlyphList)
+		curGlyph = tr.names_to_indices([curGlyphName])[0]
 		# render user string
-		self.c_fontModel.textRenderer.set_cur_size(self.tthtm.PPM_Size)
+		tr.set_cur_size(self.tthtm.PPM_Size)
 
-		self.c_fontModel.textRenderer.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
-		self.c_fontModel.textRenderer.render_text(text)
+		tr.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
+		tr.render_indexed_glyph_list(glyphs)
 
 		self.clickableGlyphs = {}
 		pen = (20, self.tthtm.previewWindowPosSize[3] - 250)
-		for c in text:
-			adv = self.c_fontModel.textRenderer.get_char_advance(c)
+		for name in namedGlyphList:
+			adv = tr.get_name_advance(name)
 			newpen = pen[0]+int(adv[0]/64), pen[1]+int(adv[1]/64)
 			rect = (pen[0], pen[1], newpen[0], pen[1]+self.tthtm.PPM_Size)
-			self.clickableGlyphs[rect] = splitText(c, self.c_fontModel.f.naked().unicodeData)
+			self.clickableGlyphs[rect] = name
 			pen = newpen
 
 		# render user string at various sizes
@@ -3642,15 +3644,15 @@ class TTHTool(BaseEventTool):
 			elif text != '':
 				self.drawPreviewSize(displaysize, x-20, y, blackColor)
 
-			self.c_fontModel.textRenderer.set_cur_size(size)
-			self.c_fontModel.textRenderer.set_pen((x, y))
-			self.c_fontModel.textRenderer.render_text(text)
+			tr.set_cur_size(size)
+			tr.set_pen((x, y))
+			tr.render_indexed_glyph_list(glyphs)
 			y -= size + 1
 			if y < 0:
-				width, height = self.c_fontModel.textRenderer.pen
+				width, height = tr.pen
 				x = width+40
 				y = self.tthtm.previewWindowPosSize[3] - 310
-				advanceWidthUserString = self.c_fontModel.textRenderer.get_pen()[0]
+				advanceWidthUserString = tr.get_pen()[0]
 
 
 		# render current glyph at various sizes
@@ -3666,9 +3668,9 @@ class TTHTool(BaseEventTool):
 			else:
 				self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.blackColor())
 			
-			self.c_fontModel.textRenderer.set_cur_size(size)
-			self.c_fontModel.textRenderer.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
-			delta_pos = self.c_fontModel.textRenderer.render_text(curGlyphString)
+			tr.set_cur_size(size)
+			tr.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
+			delta_pos = tr.render_indexed_glyph_list(glyphs)
 			advance += delta_pos[0] + 5
 			advanceWidthCurrentGlyph = advance
 
