@@ -143,13 +143,14 @@ def makeGroups(g, ital, X, autoh):
 	groups = {}
 	lastPos = -10000
 	for pos, pts in byPos:
-		if pos - lastPos < 5:
+		if pos - lastPos < 10:
 			pos = lastPos
 			components = groups[pos]
 		else:
 			components = []
 			lastPos = pos
 		for _, (cont,seg) in pts:
+			contours[cont][seg].group = pos
 			if components == []:
 				components.append([(cont,seg)])
 				continue
@@ -366,9 +367,7 @@ class AutoHinting():
 					l = hd; lx = pos
 				if r == None or rx < pos:
 					r = hd; rx = pos
-		lx = int(round(lx))
-		rx = int(round(rx))
-		return (lx, l), (rx, r)
+		return l, r
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -527,7 +526,7 @@ class AutoHinting():
 		contours, groups = cg
 		#printGroups(cg, 'X')
 		# we mark point in X groups that have at least one stem attached to them:
-		(left, leftmost), (right, rightmost) = self.markStemsAndFindLeftRight(stems, contours)
+		leftmost, rightmost = self.markStemsAndFindLeftRight(stems, contours)
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		if len(groups) == 0: return
 
@@ -536,13 +535,13 @@ class AutoHinting():
 			self.addSingleLink(rightmost.name, 'rsb', False, "")['round'] = 'true'
 			self.addSingleLink(rightmost.name, leftmost.name, False, "")['round'] = 'true'
 			leftmost.touched = rightmost.touched = True
-			self.addLinksInGroup((0,0), groups[left], contours, False)
-			self.addLinksInGroup((0,0), groups[right], contours, False)
+			self.addLinksInGroup((0,0), groups[leftmost.group], contours, False)
+			self.addLinksInGroup((0,0), groups[rightmost.group], contours, False)
 		# now we actually insert the stems, as double or single links, in X
 		self.applyStems(stems, contours, False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
 		abscissas = sorted(groups.keys())
-		for x in left,right:
+		for x in leftmost.group,rightmost.group:
 			if x in abscissas: abscissas.remove(x)
 		self.handleNonZones(abscissas[1:-1], cg, isHorizontal=False)
 
