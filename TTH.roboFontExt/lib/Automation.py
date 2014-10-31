@@ -29,6 +29,7 @@ class HintingData(object):
 		self.outAngle   = outa
 		self.inStem     = False
 		self.touched    = False
+		self.group      = None
 		self.cont       = cont # contour number
 		self.seg        = seg  # segment number
 		self.leader     = None # who is my leader?
@@ -543,7 +544,7 @@ class AutoHinting():
 		abscissas = sorted(groups.keys())
 		for x in leftmost.group,rightmost.group:
 			if x in abscissas: abscissas.remove(x)
-		self.handleNonZones(abscissas[1:-1], cg, isHorizontal=False)
+		self.handleNonZones(abscissas, cg, isHorizontal=False)
 
 
 	def autohint(self, g):
