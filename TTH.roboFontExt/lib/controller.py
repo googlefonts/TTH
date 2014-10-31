@@ -3781,7 +3781,8 @@ class TTHTool(BaseEventTool):
 			frame.origin.x = 0
 			subView.setFrame_(frame)
 			if drawPreview:
-				self.previewInGlyphWindow[name].drawRect_(((0,0),(0,0)))
+				pass
+				#self.previewInGlyphWindow[name].drawRect_(((0,0),(0,0)))
 
 	# def sortOverlapingLabels(self, commands):
 	# 	#self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
