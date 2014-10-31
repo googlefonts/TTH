@@ -337,6 +337,10 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = False
 		self.commandsChecked = False
 
+		self.point1 = None
+		self.point = None
+		self.point2 = None
+
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
 		for f in AllFonts():
