@@ -379,6 +379,18 @@ class TTHTool(BaseEventTool):
 			self.previewInGlyphWindow[name].removeFromSuperview()
 			del self.previewInGlyphWindow[name]
 
+	def createPreviewInGlyphWindow(self):
+		name = self.c_fontModel.f.fileName
+		if name in self.previewInGlyphWindow: return
+		superview = self.getNSView().enclosingScrollView().superview()
+		newView = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+		superview.addSubview_(newView)
+		frame = superview.frame()
+		frame.size.width -= 30
+		frame.origin.x = 0
+		newView.setFrame_(frame)
+		self.previewInGlyphWindow[name] = newView
+
 	def becomeActive(self):
 		if checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
@@ -1131,14 +1143,7 @@ class TTHTool(BaseEventTool):
 				self.tthtm.setShowPreviewInGlyphWindow(0)
 			else:
 				self.tthtm.setShowPreviewInGlyphWindow(1)
-				superview = self.getNSView().enclosingScrollView().superview()
-				newView = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-				superview.addSubview_(newView)
-				frame = superview.frame()
-				frame.size.width -= 30
-				frame.origin.x = 0
-				newView.setFrame_(frame)
-				self.previewInGlyphWindow[model.f.fileName] = newView
+				self.createPreviewInGlyphWindow()
 			UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):
@@ -3758,14 +3763,21 @@ class TTHTool(BaseEventTool):
 		#self.sortOverlapingLabels(self.glyphTTHCommands)
 
 		# update the size of the waterfall subview
-		filename = self.c_fontModel.f.fileName
-		if filename in self.previewInGlyphWindow:
-			subView = self.previewInGlyphWindow[filename]
+		name = self.c_fontModel.f.fileName
+		drawPreview = False
+		if name not in self.previewInGlyphWindow:
+			if self.tthtm.showPreviewInGlyphWindow == 1:
+				self.createPreviewInGlyphWindow()
+				drawPreview = True
+		if name in self.previewInGlyphWindow:
+			subView = self.previewInGlyphWindow[name]
 			superview = self.getNSView().enclosingScrollView().superview()
 			frame = superview.frame()
 			frame.size.width -= 30
 			frame.origin.x = 0
 			subView.setFrame_(frame)
+			if drawPreview:
+				self.previewInGlyphWindow[name].drawRect_(((0,0),(0,0)))
 
 	# def sortOverlapingLabels(self, commands):
 	# 	#self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
