@@ -1127,21 +1127,23 @@ class TTHTool(BaseEventTool):
 			self.changeBitmapPreview(bitmapPreviewList[(i+1)%3])
 
 		elif event.characters() == 'P':
+			model = self.c_fontModel
 			if self.tthtm.showPreviewInGlyphWindow == 1:
 				self.tthtm.setShowPreviewInGlyphWindow(0)
-				if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
-					self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
-					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
+				if model.f.fileName in self.previewInGlyphWindow:
+					if self.previewInGlyphWindow[model.f.fileName] != None
+						self.previewInGlyphWindow[model.f.fileName].removeFromSuperview()
+					self.previewInGlyphWindow[model.f.fileName] = None
 			else:
 				self.tthtm.setShowPreviewInGlyphWindow(1)
 				superview = self.getNSView().enclosingScrollView().superview()
 				newView = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = newView
+				self.previewInGlyphWindow[model.f.fileName] = newView
 				superview.addSubview_(newView)
 				frame = superview.frame()
 				frame.size.width -= 30
 				frame.origin.x = 0
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
+				self.previewInGlyphWindow[model.f.fileName].setFrame_(frame)
 			UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):
