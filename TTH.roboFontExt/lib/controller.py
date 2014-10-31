@@ -576,10 +576,11 @@ class TTHTool(BaseEventTool):
 	# 	return previewIndex
 
 	def changeBitmapPreview(self, preview):
-		if self.doneGeneratingPartialFont == False:
-			return
-		self.c_fontModel.setBitmapPreview(preview)
-		self.c_fontModel.textRenderer = TR.TextRenderer(self.c_fontModel.partialtempfontpath, self.c_fontModel.bitmapPreviewSelection)
+		if not self.doneGeneratingPartialFont: return
+		model = self.c_fontModel
+		if model.bitmapPreviewSelection == preview: return
+		model.setBitmapPreview(preview)
+		model.textRenderer = TR.TextRenderer(model.partialtempfontpath, model.bitmapPreviewSelection)
 		#previewIndex = self.getPreviewListIndex(preview)
 		#self.centralWindow.wCentral.BitmapPreviewPopUpButton.set(previewIndex)
 
@@ -1121,17 +1122,9 @@ class TTHTool(BaseEventTool):
 
 		elif event.characters() == 'p':
 			bitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
-			i = 0
-			for index, bitmapPreview in enumerate(bitmapPreviewList):
-				if bitmapPreview == self.c_fontModel.bitmapPreviewSelection:
-					i = index
-					break
-
-			if self.c_fontModel.bitmapPreviewSelection == bitmapPreviewList[2]:
-				self.changeBitmapPreview(bitmapPreviewList[0])
-			else:
-				self.changeBitmapPreview(bitmapPreviewList[i+1])
-			
+			model = self.c_fontModel
+			i = bitmapPreviewList.index(model.bitmapPreviewSelection)
+			self.changeBitmapPreview(bitmapPreviewList[(i+1)%3])
 
 		elif event.characters() == 'P':
 			if self.tthtm.showPreviewInGlyphWindow == 1:
@@ -1141,7 +1134,15 @@ class TTHTool(BaseEventTool):
 					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
 			else:
 				self.tthtm.setShowPreviewInGlyphWindow(1)
-				UpdateCurrentGlyphView()
+				superview = self.getNSView().enclosingScrollView().superview()
+				newView = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = newView
+				superview.addSubview_(newView)
+				frame = superview.frame()
+				frame.size.width -= 30
+				frame.origin.x = 0
+				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
+			UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):
 		if self.popOverIsOpened:
@@ -3761,19 +3762,17 @@ class TTHTool(BaseEventTool):
 
 		#self.sortOverlapingLabels(self.glyphTTHCommands)
 
-		if self.tthtm.showPreviewInGlyphWindow == 1 and not self.messageInFront:
-			superview = self.getNSView().enclosingScrollView().superview()
-			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
-				if self.previewInGlyphWindow[self.c_fontModel.f.fileName] == None:
-					self.previewInGlyphWindow[self.c_fontModel.f.fileName] = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-					superview.addSubview_(self.previewInGlyphWindow[self.c_fontModel.f.fileName])
-				
+		# update the size of the waterfall subview
+		filename = self.c_fontModel.f.fileName
+		if filename in self.previewInGlyphWindow:
+			subView = self.previewInGlyphWindow[filename]
+			if subView != None:
+				superview = self.getNSView().enclosingScrollView().superview()
 				frame = superview.frame()
 				frame.size.width -= 30
 				frame.origin.x = 0
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName].setFrame_(frame)
-				#self.previewInGlyphWindow.setNeedsDisplay_(True)
-	
+				subView.setFrame_(frame)
+
 	# def sortOverlapingLabels(self, commands):
 	# 	#self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
 	# 	for cmdIndex1, c1 in enumerate(commands):
