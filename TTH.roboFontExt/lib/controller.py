@@ -373,6 +373,12 @@ class TTHTool(BaseEventTool):
 		
 	###############
 
+	def deletePreviewInGlyphWindow(self):
+		name = self.c_fontModel.f.fileName
+		if name in self.previewInGlyphWindow:
+			self.previewInGlyphWindow[name].removeFromSuperview()
+			del self.previewInGlyphWindow[name]
+
 	def becomeActive(self):
 		if checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
@@ -381,15 +387,11 @@ class TTHTool(BaseEventTool):
 		 	#Dialogs.Message("INFO:\nPreferences changed to\n'Draw with Quadratic (TrueType) curves'")
 			#self.messageInFront = False
 		self.resetFont(createWindows=True)
-		self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
+		self.deletePreviewInGlyphWindow()
 		self.updatePartialFont()
 
 	def becomeInactive(self):
-		if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
-			if self.tthtm.showPreviewInGlyphWindow == 1 and self.previewInGlyphWindow[self.c_fontModel.f.fileName] != None:
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName].removeFromSuperview()
-				self.previewInGlyphWindow[self.c_fontModel.f.fileName] = None
-
+		self.deletePreviewInGlyphWindow()
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		if self.tthtm.programWindowOpened == 1:
@@ -428,11 +430,7 @@ class TTHTool(BaseEventTool):
 	def fontResignCurrent(self, font):
 		if self.fontClosed:
 			return
-		if font.fileName in self.previewInGlyphWindow:
-			if self.previewInGlyphWindow[font.fileName] != None:
-				self.previewInGlyphWindow[font.fileName].removeFromSuperview()
-				self.previewInGlyphWindow[font.fileName] = None
-
+		self.deletePreviewInGlyphWindow()
 		self.resetFont(createWindows=False)
 
 	def fontBecameCurrent(self, font):
@@ -474,7 +472,7 @@ class TTHTool(BaseEventTool):
 		else:
 			print "ERROR: A font was opened that I already knew about"
 
-		self.previewInGlyphWindow[key] = None
+		self.deletePreviewInGlyphWindow()
 
 		self.toolsWindow.wTools.show()
 		if self.tthtm.programWindowOpened == 1:
@@ -1128,22 +1126,19 @@ class TTHTool(BaseEventTool):
 
 		elif event.characters() == 'P':
 			model = self.c_fontModel
+			self.deletePreviewInGlyphWindow()
 			if self.tthtm.showPreviewInGlyphWindow == 1:
 				self.tthtm.setShowPreviewInGlyphWindow(0)
-				if model.f.fileName in self.previewInGlyphWindow:
-					if self.previewInGlyphWindow[model.f.fileName] != None
-						self.previewInGlyphWindow[model.f.fileName].removeFromSuperview()
-					self.previewInGlyphWindow[model.f.fileName] = None
 			else:
 				self.tthtm.setShowPreviewInGlyphWindow(1)
 				superview = self.getNSView().enclosingScrollView().superview()
 				newView = preview.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
-				self.previewInGlyphWindow[model.f.fileName] = newView
 				superview.addSubview_(newView)
 				frame = superview.frame()
 				frame.size.width -= 30
 				frame.origin.x = 0
-				self.previewInGlyphWindow[model.f.fileName].setFrame_(frame)
+				newView.setFrame_(frame)
+				self.previewInGlyphWindow[model.f.fileName] = newView
 			UpdateCurrentGlyphView()
 
 	def mouseDown(self, point, clickCount):
@@ -1900,10 +1895,11 @@ class TTHTool(BaseEventTool):
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
 
-			if self.c_fontModel.f.fileName in self.previewInGlyphWindow:
-				for i in self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow:
+			fname = self.c_fontModel.f.fileName
+			if fname in self.previewInGlyphWindow:
+				for i in self.previewInGlyphWindow[fname].clickableSizesGlyphWindow:
 					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-						self.changeSize(self.previewInGlyphWindow[self.c_fontModel.f.fileName].clickableSizesGlyphWindow[i])
+						self.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
 
 		self.p_cursor = (int(point.x), int(point.y))
 		self.endPoint = self.isOnPoint(self.p_cursor)
@@ -2681,10 +2677,7 @@ class TTHTool(BaseEventTool):
 
 		f = self.c_fontModel.f
 
-		if f.fileName in self.previewInGlyphWindow:
-			if self.previewInGlyphWindow[f.fileName] != None:
-				self.previewInGlyphWindow[f.fileName].removeFromSuperview()
-				self.previewInGlyphWindow[f.fileName] = None
+		self.deletePreviewInGlyphWindow()
 		self.c_fontModel.setUPM(f.info.unitsPerEm)
 		if checkSegmentType(f) == False:
 			self.messageInFront = True
@@ -3768,12 +3761,11 @@ class TTHTool(BaseEventTool):
 		filename = self.c_fontModel.f.fileName
 		if filename in self.previewInGlyphWindow:
 			subView = self.previewInGlyphWindow[filename]
-			if subView != None:
-				superview = self.getNSView().enclosingScrollView().superview()
-				frame = superview.frame()
-				frame.size.width -= 30
-				frame.origin.x = 0
-				subView.setFrame_(frame)
+			superview = self.getNSView().enclosingScrollView().superview()
+			frame = superview.frame()
+			frame.size.width -= 30
+			frame.origin.x = 0
+			subView.setFrame_(frame)
 
 	# def sortOverlapingLabels(self, commands):
 	# 	#self.commandLabelPos[cmdIndex] = ((x + 10*scale, y + 20*scale), (width, height))
