@@ -22,22 +22,22 @@ class ZoneView(object):
 		self.controller = controller
 		self.UIZones = UIZones
 		self.zonesTitle = TextBox((10, height-24, -10, 14), title, sizeStyle = "small")
-		self.box = Box((10, height, -10, 152))
+		self.box = Box((10, height, -10, 142))
 		# put the title as a sub-widget of the zones window
 		controller.w.zoneBox.__setattr__(ID + 'ZoneViewTitle', self.zonesTitle)
 		# put the box as a sub-widget of the zones window
 		controller.w.zoneBox.__setattr__(ID + 'ZoneViewBox', self.box)
 		box = self.box
-		box.zones_List = List((0, 0, -0, 120), self.UIZones,
+		box.zones_List = List((0, 0, -0, -22), self.UIZones,
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
 					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
 			editCallback = self.UIZones_EditCallBack )
-		box.buttonRemoveZone = SquareButton((0, 120, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
-		box.editTextZoneName = EditText(    (22, 120, 160, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
-		box.editTextZonePosition = EditText(    (182, 120, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
-		box.editTextZoneWidth = EditText(    (237, 120, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
-		box.editTextZoneDelta = EditText(    (292, 120, 135, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
-		box.buttonAddZone     = SquareButton((-22, 120, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
+		box.buttonRemoveZone = SquareButton((0, -22, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
+		box.editTextZoneName = EditText(    (22, -22, 160, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
+		box.editTextZonePosition = EditText(    (182, -22, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneWidth = EditText(    (237, -22, 55, 22), sizeStyle = "small", callback=self.editTextZoneIntegerCallback)
+		box.editTextZoneDelta = EditText(    (292, -22, 135, 22), sizeStyle = "small", callback=self.editTextZoneDummyCallback)
+		box.buttonAddZone     = SquareButton((-22, -22, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
 
 	def set(self, uiZones):
 		self.UIZones = uiZones
@@ -131,34 +131,34 @@ class StemView(object):
 		self.controller = controller
 		self.isHorizontal = isHorizontal
 		self.UIStems = stemsList
-		titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
-		box = Box((10, height, -10, 152))
-		self.box = box
+		self.titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
+		self.box = Box((10, height, -10, 152))
+		box = self.box
 		prefix = "vertical"
 		if self.isHorizontal:
 			prefix = "horizontal"
 		# put the title as a sub-widget of the zones window
-		controller.w.stemBox.__setattr__(prefix + 'StemViewTitle', titlebox)
+		controller.w.stemBox.__setattr__(prefix + 'StemViewTitle', self.titlebox)
 		# put the box as a sub-widget of the zones window
 		controller.w.stemBox.__setattr__(prefix + 'StemViewBox', box)
 
-		box.stemsList = List((0, 0, -0, 120 ), stemsList,
+		box.stemsList = List((0, 0, -0, -22), stemsList,
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Width", "editable": True},
 				{"title": "1 px", "editable": True}, {"title": "2 px", "editable": True},
 				{"title": "3 px", "editable": True}, {"title": "4 px", "editable": True},
 				{"title": "5 px", "editable": True}, {"title": "6 px", "editable": True}], 
 			editCallback = self.stemsList_editCallback)
-		box.buttonRemoveStem = SquareButton((0, 120, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveCallback)
-		box.editTextStemName = EditText((22, 120, 128, 22), sizeStyle = "small", callback=self.editTextDummyCallback)
-		box.editTextStemWidth = EditText((150, 120, 80, 22), sizeStyle = "small", callback=self.editTextWidthCallback)
+		box.buttonRemoveStem = SquareButton((0, -22, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveCallback)
+		box.editTextStemName = EditText((22, -22, 128, 22), sizeStyle = "small", callback=self.editTextDummyCallback)
+		box.editTextStemWidth = EditText((150, -22, 80, 22), sizeStyle = "small", callback=self.editTextWidthCallback)
 
-		box.editTextStem1px = EditText((230, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.editTextStem2px = EditText((263, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.editTextStem3px = EditText((296, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.editTextStem4px = EditText((329, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.editTextStem5px = EditText((362, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.editTextStem6px = EditText((395, 120, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
-		box.buttonAddStem = SquareButton((-22, 120, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddCallback)
+		box.editTextStem1px = EditText((230, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.editTextStem2px = EditText((263, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.editTextStem3px = EditText((296, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.editTextStem4px = EditText((329, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.editTextStem5px = EditText((362, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.editTextStem6px = EditText((395, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		box.buttonAddStem = SquareButton((-22, -22, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddCallback)
 
 	def set(self, uiStems):
 		self.UIStems = uiStems
@@ -320,7 +320,7 @@ class SheetControlValues(object):
 		self.c_fontModel = controller.c_fontModel
 		self.controller = controller
 		self.baseWindow = baseWindow
-		self.w = Sheet((505, 480), parentWindow=parent)
+		self.w = Sheet((505, 480), minSize=(505, 220), maxSize=(505, 1000), parentWindow=parent)
 		self.automation = Automation.Automation(self, self.controller)
 		w = self.w
 		w.generalBox = Box((10, 19, -10, -40))
@@ -345,14 +345,15 @@ class SheetControlValues(object):
 
 
 		w.zoneBox = Box((10, 19, -10, -40))
+		(left, top, width, height) = self.w.getPosSize()
 		self.topZoneView = ZoneView(self, 34, "Top zones", 'top', self.c_fontModel.buildUIZonesList(buildTop=True))
-		self.bottomZoneView = ZoneView(self, 220, "Bottom zones", 'bottom', self.c_fontModel.buildUIZonesList(buildTop=False))
+		self.bottomZoneView = ZoneView(self, height-260, "Bottom zones", 'bottom', self.c_fontModel.buildUIZonesList(buildTop=False))
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		w.stemBox = Box((10, 19, -10, -40))
 		self.horizontalStemView	= StemView(self, 34, "Y Stems", True, self.c_fontModel.buildStemsUIList(True))
 		self.verticalStemView	= StemView(self, 220, "X Stems", False, self.c_fontModel.buildStemsUIList(False))
-		w.stemBox.autoStemButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
+		w.stemBox.autoStemButton = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 		w.stemBox.AutoStemProgressBar = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
 		w.stemBox.AutoStemProgressBar.show(0)
 		w.stemBox.show(0)
@@ -385,7 +386,28 @@ class SheetControlValues(object):
 
 		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.closeButton = Button((-70, -32, 60, 22), "OK", sizeStyle = "small", callback=self.closeButtonCallback)
+
+		w.bind("resize", self.sheetResizing)
 		w.open()
+
+	def sheetResizing(self, sender):
+		(left, top, width, height) = self.w.getPosSize()
+		self.w.zoneBox.autoZoneButton.setPosSize((-80, -30, 70, 20))
+		self.w.stemBox.autoStemButton.setPosSize((-80, -30, 70, 20))
+
+		self.topZoneView.box.setPosSize((10, 34, -10, height-(height/2.0)-94))
+		self.topZoneView.box.zones_List.setPosSize((0, 0, -0, -22))
+		self.bottomZoneView.box.setPosSize((10, height-(height/2.0)-20, -10, height*(112/480)-50))
+		self.bottomZoneView.box.zones_List.setPosSize((0, 0, -0, -22))
+
+		self.bottomZoneView.zonesTitle.setPosSize((10, height-(height/2.0)-44, -10, 14))
+
+		self.horizontalStemView.box.setPosSize((10, 34, -10, height-(height/2.0)-94))
+		self.horizontalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
+		self.verticalStemView.box.setPosSize((10, height-(height/2.0)-20, -10, height*(112/480)-50))
+		self.verticalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
+		self.verticalStemView.titlebox.setPosSize((10, height-(height/2.0)-44, -10, 14))
+		
 
 	def resetGeneralBox(self):
 		self.w.generalBox.editTextStemSnap.set(self.c_fontModel.stemsnap)
@@ -524,7 +546,7 @@ class SheetControlValues(object):
 			self.w.stemBox.show(0)
 			self.w.generalBox.show(1)
 			self.w.gaspBox.show(0)
-			self.w.resize(505, 150)
+			self.w.resize(505, 220)
 		if sender.get() == 3:
 			self.w.zoneBox.show(0)
 			self.w.stemBox.show(0)
