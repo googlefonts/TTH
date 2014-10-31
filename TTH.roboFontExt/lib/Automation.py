@@ -377,9 +377,9 @@ class AutoHinting():
 			tgt = contours[tgt.cont][tgt.seg].leader
 			if src.touched and tgt.touched: continue
 			if not (src.touched or tgt.touched):
-				self.addDoubleLink(src, tgt, stemName, isHorizontal)
-				src.touched = True
-				tgt.touched = True
+				# self.addDoubleLink(src, tgt, stemName, isHorizontal)
+				# src.touched = True
+				# tgt.touched = True
 				continue
 			if src.touched:
 				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)

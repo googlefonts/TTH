@@ -1276,11 +1276,11 @@ class TTHTool(BaseEventTool):
 
 	def popoverPointNextCallback(self, sender):
 		g = self.getGlyph()
-		contourLen = len(self.listOfUniqueID_On)
+		contourLen = len(self.listOfNames_On)
 
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point']:
-				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				nextPoint = self.listOfNames_On[(i+1) % contourLen]
 				self.selectedCommand['point'] = nextPoint
 				break
 		UpdateCurrentGlyphView()
@@ -1293,9 +1293,9 @@ class TTHTool(BaseEventTool):
 	def popoverPoint1PrevCallback(self, sender):
 		g = self.getGlyph()
 		
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point1']:
-				prevPoint = self.listOfUniqueID_On[i-1]
+				prevPoint = self.listOfNames_On[i-1]
 				self.selectedCommand['point1'] = prevPoint
 				break
 		self.writeGlyphFLTTProgram(g)
@@ -1305,11 +1305,11 @@ class TTHTool(BaseEventTool):
 
 	def popoverPoint1NextCallback(self, sender):
 		g = self.getGlyph()
-		contourLen = len(self.listOfUniqueID_On)
+		contourLen = len(self.listOfNames_On)
 
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point1']:
-				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				nextPoint = self.listOfNames_On[(i+1) % contourLen]
 				self.selectedCommand['point1'] = nextPoint
 				break
 		UpdateCurrentGlyphView()
@@ -1321,9 +1321,9 @@ class TTHTool(BaseEventTool):
 	def popoverPoint2PrevCallback(self, sender):
 		g = self.getGlyph()
 		
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point2']:
-				prevPoint = self.listOfUniqueID_On[i-1]
+				prevPoint = self.listOfNames_On[i-1]
 				self.selectedCommand['point2'] = prevPoint
 				break
 		self.writeGlyphFLTTProgram(g)
@@ -1333,11 +1333,11 @@ class TTHTool(BaseEventTool):
 
 	def popoverPoint2NextCallback(self, sender):
 		g = self.getGlyph()
-		contourLen = len(self.listOfUniqueID_On)
+		contourLen = len(self.listOfNames_On)
 
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point2']:
-				nextPoint = self.listOfUniqueID_On[(i+1) % contourLen]
+				nextPoint = self.listOfNames_On[(i+1) % contourLen]
 				self.selectedCommand['point2'] = nextPoint
 				break
 		UpdateCurrentGlyphView()
@@ -1350,9 +1350,9 @@ class TTHTool(BaseEventTool):
 	def popoverPointPrevCallback(self, sender):
 		g = self.getGlyph()
 		
-		for i, ID in enumerate(self.listOfUniqueID_On):
+		for i, ID in enumerate(self.listOfNames_On):
 			if ID == self.selectedCommand['point']:
-				prevPoint = self.listOfUniqueID_On[i-1]
+				prevPoint = self.listOfNames_On[i-1]
 				self.selectedCommand['point'] = prevPoint
 				break
 		self.writeGlyphFLTTProgram(g)
@@ -2782,7 +2782,7 @@ class TTHTool(BaseEventTool):
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(g)
-		self.listOfUniqueID_On = self.makePoitnlistOfUniqueID_On(g)
+		self.listOfNames_On = self.makePointlistOfNames_On(g)
 		#print 'full temp font loaded'
 		self.ready = True
 		if self.tthtm.previewWindowOpened == 1:
@@ -2897,15 +2897,15 @@ class TTHTool(BaseEventTool):
 					pointNameToUniqueID[uniqueID] = uniqueID
 		return pointNameToUniqueID
 
-	def makePoitnlistOfUniqueID_On(self, g):
-		listOfUniqueID_On = []
+	def makePointlistOfNames_On(self, g):
+		listOfNames_On = []
 		for contour in g:
 			for point in contour.points:
 				if point.type != 'offCurve':
-					uniqueID = point.naked().uniqueID
-					listOfUniqueID_On.append(uniqueID)
+					name = point.name.split(',')[0]
+					listOfNames_On.append(name)
 
-		return listOfUniqueID_On
+		return listOfNames_On
 
 	def makePointUniqueIDToCoordinatesDict(self, g):
 		pointUniqueIDToCoordinates = {}
