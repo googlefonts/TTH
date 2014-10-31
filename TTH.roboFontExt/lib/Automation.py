@@ -23,6 +23,7 @@ def contourSegmentIterator(g):
 class HintingData(object):
 	def __init__(self, on, sh, ina, outa, cont, seg):
 		self.pos        = on
+		self.name 		= on.name.split(',')[0]
 		self.shearedPos = sh
 		self.inAngle    = ina
 		self.outAngle   = outa
@@ -374,10 +375,10 @@ class AutoHinting():
 				tgt.touched = True
 				continue
 			if src.touched:
-				self.addSingleLink(src.pos.name, tgt.pos.name, isHorizontal, stemName)
+				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
 				tgt.touched = True
 			else:
-				self.addSingleLink(tgt.pos.name, src.pos.name, isHorizontal, stemName)
+				self.addSingleLink(tgt.name, src.name, isHorizontal, stemName)
 				src.touched = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
@@ -417,8 +418,8 @@ class AutoHinting():
 			newCommand['code'] = 'doublev'
 		else:
 			newCommand['code'] = 'doubleh'
-		newCommand['point1'] = p1.pos.name#self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-		newCommand['point2'] = p2.pos.name#self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+		newCommand['point1'] = p1.name#self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
+		newCommand['point2'] = p2.name#self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
 		newCommand['stem'] = stemName
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
@@ -472,21 +473,21 @@ class AutoHinting():
 			hd = contours[cont][seg]
 			hd.touched = True
 			# add align
-			self.addAlign(g, hd.pos.name, zoneInfo)
+			self.addAlign(g, hd.name, zoneInfo)
 			# add single links
 			self.addLinksInGroup(0, comps, contours, True)
 		return nonZonePositions
 
 	def addLinksInGroup(self, leader, comps, contours, isHorizontal):
 		cont, seg = comps[0][0]
-		startName = contours[cont][seg].pos.name
+		startName = contours[cont][seg].name
 		for i, comp in enumerate(comps):
 			if i == leader: continue
 			cont, seg = comp[0]
 			hd = contours[cont][seg]
 			if hd.touched: continue
 			hd.touched = True
-			self.addSingleLink(startName, hd.pos.name, isHorizontal)
+			self.addSingleLink(startName, hd.name, isHorizontal)
 
 	def handleNonZones(self, nonZonePositions, (contours, groups), isHorizontal):
 		for pos in nonZonePositions:
@@ -524,9 +525,9 @@ class AutoHinting():
 		if len(groups) == 0: return
 
 		if leftmost != None and rightmost != None:
-			self.addSingleLink('lsb', rightmost.pos.name, False, "")['round'] = 'true'
-			self.addSingleLink(rightmost.pos.name, 'rsb', False, "")['round'] = 'true'
-			self.addSingleLink(rightmost.pos.name, leftmost.pos.name, False, "")['round'] = 'true'
+			self.addSingleLink('lsb', rightmost.name, False, "")['round'] = 'true'
+			self.addSingleLink(rightmost.name, 'rsb', False, "")['round'] = 'true'
+			self.addSingleLink(rightmost.name, leftmost.name, False, "")['round'] = 'true'
 			leftmost.touched = rightmost.touched = True
 			self.addLinksInGroup((0,0), groups[left], contours, False)
 			self.addLinksInGroup((0,0), groups[right], contours, False)
