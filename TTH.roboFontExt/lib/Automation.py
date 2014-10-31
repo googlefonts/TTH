@@ -23,7 +23,7 @@ def contourSegmentIterator(g):
 class HintingData(object):
 	def __init__(self, on, sh, ina, outa, cont, seg):
 		self.pos        = on
-		self.name 		= on.name.split(',')[0]
+		self.name       = on.name.split(',')[0]
 		self.shearedPos = sh
 		self.inAngle    = ina
 		self.outAngle   = outa
@@ -64,15 +64,15 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
 		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
 		## if they are horizontal, treat the stem on the Y axis
 		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
-		    HF.isHorizontal_withTolerance(angle1, tolerance) and
-                    not existingStems['h'] ) :
+			HF.isHorizontal_withTolerance(angle1, tolerance) and
+			not existingStems['h'] ) :
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
 		## if they are vertical, treat the stem on the X axis
 		elif(HF.isVertical_withTolerance(angle0, tolerance) and
-		     HF.isVertical_withTolerance(angle1, tolerance) and
-                    not existingStems['v'] ) : # the angle is already sheared to counter italic
+			HF.isVertical_withTolerance(angle1, tolerance) and
+			not existingStems['v'] ) : # the angle is already sheared to counter italic
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, (src, tgt, c_distance[0])))
@@ -139,9 +139,16 @@ def makeGroups(g, ital, X, autoh):
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
 	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]# if len(v) > 1]
+	byPos.sort()
 	groups = {}
+	lastPos = -10000
 	for pos, pts in byPos:
-		components = []
+		if pos - lastPos < 5:
+			pos = lastPos
+			components = groups[pos]
+		else:
+			components = []
+			lastPos = pos
 		for _, (cont,seg) in pts:
 			if components == []:
 				components.append([(cont,seg)])
@@ -517,8 +524,8 @@ class AutoHinting():
 
 	def autoHintX(self, g, stems):
 		cg = makeGroups(g, self.ital, True, self) # for X auto-hinting
-		#printGroups(cg, 'X')
 		contours, groups = cg
+		#printGroups(cg, 'X')
 		# we mark point in X groups that have at least one stem attached to them:
 		(left, leftmost), (right, rightmost) = self.markStemsAndFindLeftRight(stems, contours)
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
