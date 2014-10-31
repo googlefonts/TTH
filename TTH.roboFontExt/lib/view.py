@@ -26,7 +26,6 @@ buttonSelectionPath = ExtensionBundle("TTH").get("buttonSelection")
 
 DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyToolsWindowPosSize = DefaultKeyStub + "toolsWindowPosSize"
-defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
 defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
 defaultKeyAssemblyWindowPosSize = DefaultKeyStub + "assemblyWindowPosSize"
 
@@ -458,7 +457,7 @@ class previewWindow(object):
 
 		#self.viewSize = self.tthtm.previewWindowViewSize
 
-		self.wPreview = FloatingWindow(getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=self.tthtm.previewWindowPosSize), "Preview", minSize=(350, 200))
+		self.wPreview = FloatingWindow(self.tthtm.previewWindowPosSize, "Preview", minSize=(350, 200))
 		# self.view = preview.PreviewArea.alloc().init_withTTHToolInstance(self.TTHToolInstance)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))
@@ -469,7 +468,7 @@ class previewWindow(object):
 		self.wPreview.previewEditText.set(self.tthtm.previewString)
 
 		self.wPreview.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize= self.tthtm.previewWindowViewSize)
-		self.previewWindowMovedorResized(None)
+
 
 		self.wPreview.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
 		self.wPreview.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
@@ -523,9 +522,11 @@ class previewWindow(object):
 		setExtensionDefault(defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
 
 	def previewWindowMovedorResized(self, sender):
-		self.tthtm.previewWindowPosSize = self.wPreview.getPosSize()
-		self.wPreview.view.getNSView().setFrame_(((0, 0), (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-90)))
-		setExtensionDefault(defaultKeyPreviewWindowPosSize, self.tthtm.previewWindowPosSize)
+		self.tthtm.setPreviewWindowPosSize(self.wPreview.getPosSize())
+		canvasSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-90)
+		self.tthtm.setPreviewWindowViewSize(canvasSize)
+		self.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
+		
 		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		# self.view.setFrame_(((0, 0), self.viewSize))
 		# self.view.setFrameOrigin_((0, 10*(self.viewSize[1]/2)))

@@ -341,6 +341,8 @@ class TTHTool(BaseEventTool):
 		self.point = None
 		self.point2 = None
 
+		self.selectedCommand = None
+
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
 		for f in AllFonts():
@@ -1158,6 +1160,19 @@ class TTHTool(BaseEventTool):
 			self.shiftDown = 1
 		if self.getModifiers()['optionDown'] != 0:
 			self.optionDown = 1
+		self.p_selectionCursor = (int(point.x), int(point.y))
+
+		if self.popOverIsOpened == False:
+			self.commandClicked = self.isOnCommand(self.p_selectionCursor)
+			if self.tthtm.selectedHintingTool == 'Selection' or self.optionDown:
+				if self.commandClicked != None and not self.popOverIsOpened:
+					self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
+					pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
+					self.openPopOver(pointLabel)
+		else:
+			self.selectedCommand = None
+			self.commandClicked = None
+
 		self.p_cursor = (int(point.x), int(point.y))
 		self.startPoint = self.isOnPoint(self.p_cursor)
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
@@ -1869,31 +1884,23 @@ class TTHTool(BaseEventTool):
 		return touchedPoints
 
 	def openPopOver(self, point):
-			if self.selectedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
-				self.popOverAlign(point)
-			elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-				self.popOverDelta(point)
-			elif self.selectedCommand['code'] in ['singlev', 'singleh']:
-				self.popOverSingle(point)
-			elif self.selectedCommand['code'] in ['doublev', 'doubleh']:
-				self.popOverDouble(point)
-			elif self.selectedCommand['code'] in ['interpolatev', 'interpolateh']:
-				self.popOverInterpolate(point)
-			else:
-				self.popOverSimple(point)
+		if self.selectedCommand == None:
+			return
+		if self.selectedCommand['code'] in ['alignh', 'alignv', 'alignt', 'alignb']:
+			self.popOverAlign(point)
+		elif self.selectedCommand['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+			self.popOverDelta(point)
+		elif self.selectedCommand['code'] in ['singlev', 'singleh']:
+			self.popOverSingle(point)
+		elif self.selectedCommand['code'] in ['doublev', 'doubleh']:
+			self.popOverDouble(point)
+		elif self.selectedCommand['code'] in ['interpolatev', 'interpolateh']:
+			self.popOverInterpolate(point)
+		else:
+			self.popOverSimple(point)
 
 
 	def mouseUp(self, point):
-		if self.tthtm.selectedHintingTool == 'Selection' or self.optionDown:
-			self.p_selectionCursor = (int(point.x), int(point.y))
-			if self.popOverIsOpened == False:
-				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
-				if self.commandClicked != None:
-					self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
-					pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
-					if self.commandClicked != None and not self.popOverIsOpened:
-						self.openPopOver(pointLabel)
-						self.commandClicked = None
 
 		if self.getModifiers()['shiftDown'] != 0:
 			self.shiftDown = 1
@@ -2413,6 +2420,7 @@ class TTHTool(BaseEventTool):
 	def rightMouseDown(self, point, event):
 		self.p_cursor = (int(point.x), int(point.y))
 		self.commandRightClicked = self.isOnCommand(self.p_cursor)
+
 		separator = NSMenuItem.separatorItem()
 		#print 'command point:', self.commandRightClicked
 		if self.commandRightClicked == None:

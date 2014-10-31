@@ -542,8 +542,9 @@ class AutoHinting():
 		self.applyStems(stems, contours, False)
 		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
 		abscissas = sorted(groups.keys())
-		for x in leftmost.group,rightmost.group:
-			if x in abscissas: abscissas.remove(x)
+		if leftmost != None and rightmost != None:
+			for x in leftmost.group,rightmost.group:
+				if x in abscissas: abscissas.remove(x)
 		self.handleNonZones(abscissas, cg, isHorizontal=False)
 
 

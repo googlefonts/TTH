@@ -24,6 +24,9 @@ defaultKeyShowGrid = DefaultKeyStub + "showGrid"
 defaultKeyShowCenterPixels = DefaultKeyStub + "showCenterPixels"
 defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 
+defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
+defaultKeyPreviewWindowViewSize = DefaultKeyStub + "previewWindowViewSize"
+
 # ======================================================================
 
 FL_tth_key = "com.fontlab.v2.tth"
@@ -180,9 +183,9 @@ class TTHToolModel():
 		self.assemblyWindowVisible = getExtensionDefault(defaultKeyAssemblyWindowVisibility, fallback=0)
 
 
-		self.previewWindowPosSize = (-510, 30, 500, 600)
+		self.previewWindowPosSize = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=(-510, 30, 500, 600))
 		#self.previewWindowViewSize = (self.previewWindowPosSize[2]-35, self.previewWindowPosSize[3]-105)
-		self.previewWindowViewSize = (465, 495)
+		self.previewWindowViewSize = getExtensionDefault(defaultKeyPreviewWindowViewSize, fallback=(500, 510))
 		self.toolsWindowPosSize = (170, 30, 265, 95)
 		self.centralWindowPosSize = (10, 30, 150, 135)
 		self.programWindowPosSize = (10, -300, -10, 300)
@@ -208,6 +211,14 @@ class TTHToolModel():
 		self.maxStemY = 1000
 
 		self.angleTolerance = 10.0
+
+	def setPreviewWindowViewSize(self, size):
+		self.previewWindowViewSize = size
+		setExtensionDefault(defaultKeyPreviewWindowViewSize, size)
+
+	def setPreviewWindowPosSize(self, posSize):
+		self.previewWindowPosSize = posSize
+		setExtensionDefault(defaultKeyPreviewWindowPosSize, self.previewWindowPosSize)
 
 	def setPreviewWindowVisible(self, valueBool):
 		self.previewWindowVisible = 1
