@@ -3660,12 +3660,13 @@ class TTHTool(BaseEventTool):
 			tr.set_cur_size(size)
 			tr.set_pen((x, y))
 			tr.render_indexed_glyph_list(glyphs)
+			advanceWidthUserString = tr.get_pen()[0]
 			y -= size + 1
 			if y < 0:
 				width, height = tr.pen
 				x = width+40
 				y = self.tthtm.previewWindowPosSize[3] - 310
-				advanceWidthUserString = tr.get_pen()[0]
+				
 
 
 		# render current glyph at various sizes
@@ -3688,12 +3689,17 @@ class TTHTool(BaseEventTool):
 			advanceWidthCurrentGlyph = advance
 
 
-		self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+		#self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
 
-		if advanceWidthCurrentGlyph > self.tthtm.previewWindowViewSize[0] and advanceWidthUserString > advanceWidthCurrentGlyph:
-			self.tthtm.previewWindowViewSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
-		else:
-			self.tthtm.previewWindowViewSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
+		if self.tthtm.previewWindowViewSize < advanceWidthUserString or self.tthtm.previewWindowViewSize < advanceWidthCurrentGlyph:
+			if advanceWidthUserString > advanceWidthCurrentGlyph:
+				canvasSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+				self.tthtm.setPreviewWindowViewSize(canvasSize)
+				self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
+			# else:
+			# 	canvasSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
+			# 	self.tthtm.setPreviewWindowViewSize(canvasSize)
+			# 	self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
 				
 
 	def drawBackground(self, scale):
