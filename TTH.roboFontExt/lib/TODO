@@ -2,6 +2,17 @@
 For v0.6 :
 ==============================
 
+panneau des préférences
+------------------------------
+Export/import des commandes
+Import/Export Glyphs Commands, Zones, Stems.
+------------------------------
+Compiler l'assembleur depuis le menu extensions de RoboFont directement sans lancer TTH
+------------------------------
+Faire le rasteriser sensitive stem control
+Avec l'instruction getinfo
+------------------------------
+Optimiser l'assembleur pour le rendre plus compact plus leger (utiliser les Reference Points)
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
@@ -9,15 +20,9 @@ y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
 au dessus de 700 % environ
 ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
 ------------------------------
-il faut aussi optimiser le code assembly pour qu'il soit plus leger (utiliser les Reference Points)
-------------------------------
-Auto Zones et Auto Stems, import Blues. Auto-Harmonize Stems.
+import Blues. Auto-Harmonize Stems.
 ------------------------------
 AutoHinting, ou Educated Guessing
-------------------------------
-Import/Export Glyphs Commands, Zones, Stems.
-------------------------------
-GASP table editable
 ------------------------------
 A preferences pannel
 
@@ -25,6 +30,8 @@ A preferences pannel
 Done:
 ==============================
 
+GASP table editable
+------------------------------
 Escape mode for Interpolation
 ------------------------------
 des fleches au bout des DoubleLinks et des Interpolates
