@@ -40,7 +40,7 @@ def writegasp(f, gasp_ranges):
 
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 	
-	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 10
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 11
 
 	table_CVT = []
 
@@ -553,6 +553,25 @@ def writeFPGM(f):
 	'ENDF[ ]'
 	]
 	table_FPGM.extend(FPGM_9)
+	#A function to ckeck if the rasterizer is SubPixel
+	FPGM_10 = [
+	'PUSHW[ ] 10',
+	'FDEF[ ]',
+		'PUSHW[ ] 1',
+		'GETINFO[ ]',
+		'PUSHW[ ] 37',
+		'GTEQ[ ] ',
+		'IF[ ]',
+			'PUSHW[ ] 64',
+			'GETINFO[ ]',
+			'PUSHW[ ] 8192',
+			'AND[ ]',
+		'ELSE[ ]',
+			'PUSHB[ ] 0',
+		'EIF[ ]'
+	'ENDF[ ]'
+	]
+	table_FPGM.extend(FPGM_10)
 
 	# print table_FPGM
 	f.lib['com.robofont.robohint.fpgm'] = table_FPGM

@@ -118,8 +118,8 @@ class fontModel():
 	def buildUIZoneDict(self, zone, name):
 		c_zoneDict = {}
 		c_zoneDict['Name'] = name
-		c_zoneDict['Position'] = zone['position']
-		c_zoneDict['Width'] = zone['width']
+		c_zoneDict['Position'] = int(zone['position'])
+		c_zoneDict['Width'] = int(zone['width'])
 		deltaString = ''
 		if 'delta' in zone:
 			count = 0
@@ -143,7 +143,7 @@ class fontModel():
 	def buildStemUIDict(self, stem, name):
 		c_stemDict = {}
 		c_stemDict['Name'] = name
-		c_stemDict['Width'] = stem['width']
+		c_stemDict['Width'] = int(stem['width'])
 		invDico = self.invertedDictionary(stem['round'])
 		for i in range(1,7):
 			c_stemDict[str(i)+' px'] = HF.getOrDefault(invDico, i, '0')
