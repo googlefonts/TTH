@@ -553,19 +553,20 @@ def writeFPGM(f):
 	'ENDF[ ]'
 	]
 	table_FPGM.extend(FPGM_9)
-	#A function to ckeck if the rasterizer is SubPixel
+	#A function to ckeck if the rasterizer is SubPixel/Grayscale
 	FPGM_10 = [
 	'PUSHW[ ] 10',
 	'FDEF[ ]',
 		'PUSHW[ ] 1',
 		'GETINFO[ ]',
 		'PUSHW[ ] 37',
-		'GTEQ[ ] ',
+		'LTEQ[ ] ',
 		'IF[ ]',
-			'PUSHW[ ] 64',
+			'PUSHW[ ] 32',
 			'GETINFO[ ]',
-			'PUSHW[ ] 8192',
+			'PUSHW[ ] 4096',
 			'AND[ ]',
+			#'PUSHB[ ] 1',
 		'ELSE[ ]',
 			'PUSHB[ ] 0',
 		'EIF[ ]'
