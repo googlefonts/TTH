@@ -299,8 +299,10 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			if 'stem' in TTHCommand:
 				stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 				singleLink2 = [
-								'PUSHB[ ] 10',
+								'PUSHB[ ] 11',
 								'CALL[ ]',
+								'PUSHB[ ] 2',
+								'EQ[ ]'
 								'IF[ ]',
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[10000]',
