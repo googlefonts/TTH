@@ -123,7 +123,13 @@ class TextRenderer(object):
 		# it
 		if index not in self.cache.images:
 			self.face.set_pixel_sizes(0, int(self.curSize))
-			self.face.load_glyph(index, FT.FT_LOAD_DEFAULT)
+			if self.render_mode == FT.FT_RENDER_MODE_NORMAL:
+				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_NORMAL)
+			elif self.render_mode == FT.FT_RENDER_MODE_MONO:
+				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_MONO)
+			elif self.render_mode == FT.FT_RENDER_MODE_LCD:
+				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_LCD)
+
 			result = self.slot.get_glyph() # this returns a copy
 			self.cache.images[index] = result
 			self.cache.advances[index] = (self.slot.advance.x, self.slot.advance.y)

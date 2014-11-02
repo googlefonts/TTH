@@ -299,15 +299,15 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			if 'stem' in TTHCommand:
 				stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 				singleLink2 = [
-								# 'PUSHB[ ] 10',
-								# 'CALL[ ]',
-								# 'IF[ ]',
-								# 	'PUSHW[ ] ' + str(point2Index),
-								# 	'MDRP[10000]',
-								# 'ELSE[ ]',
+								'PUSHB[ ] 10',
+								'CALL[ ]',
+								'IF[ ]',
+									'PUSHW[ ] ' + str(point2Index),
+									'MDRP[10000]',
+								'ELSE[ ]',
 									'PUSHW[ ] ' + str(point2Index) + ' ' + str(stemCV),
 									'MIRP[10100]',
-								#'EIF[ ]'
+								'EIF[ ]'
 								]
 				RP1 = RP0 = RP2 = point2Index
 				if point2UniqueID not in touchedPoints:

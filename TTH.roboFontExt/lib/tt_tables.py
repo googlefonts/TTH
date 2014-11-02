@@ -566,7 +566,6 @@ def writeFPGM(f):
 			'GETINFO[ ]',
 			'PUSHW[ ] 4096',
 			'AND[ ]',
-			#'PUSHB[ ] 1',
 		'ELSE[ ]',
 			'PUSHB[ ] 0',
 		'EIF[ ]'
