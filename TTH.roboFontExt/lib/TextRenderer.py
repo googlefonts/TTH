@@ -52,6 +52,15 @@ class TextRenderer(object):
 			self.render_mode = FT.FT_RENDER_MODE_LCD
 			self.render_func = drawBitmapSubPixelColor
 
+		self.load_mode = FT.FT_LOAD_DEFAULT
+		#self.load_mode = FT.FT_LOAD_RENDER
+		if renderMode == 'Monochrome':
+			self.load_mode = self.load_mode | FT.FT_LOAD_TARGET_MONO
+		elif renderMode == 'Subpixel':
+			self.load_mode = self.load_mode | FT.FT_LOAD_TARGET_LCD
+		else:
+			self.load_mode = self.load_mode | FT.FT_LOAD_TARGET_NORMAL
+
 	def set_pen(self, p):
 		self.pen = p
 
@@ -123,12 +132,7 @@ class TextRenderer(object):
 		# it
 		if index not in self.cache.images:
 			self.face.set_pixel_sizes(0, int(self.curSize))
-			if self.render_mode == FT.FT_RENDER_MODE_NORMAL:
-				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_NORMAL)
-			elif self.render_mode == FT.FT_RENDER_MODE_MONO:
-				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_MONO)
-			elif self.render_mode == FT.FT_RENDER_MODE_LCD:
-				self.face.load_glyph(index, FT.FT_LOAD_RENDER | FT.FT_LOAD_TARGET_LCD)
+			self.face.load_glyph(index, self.load_mode)
 
 			result = self.slot.get_glyph() # this returns a copy
 			self.cache.images[index] = result
