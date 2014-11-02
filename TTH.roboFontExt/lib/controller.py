@@ -2409,7 +2409,7 @@ class TTHTool(BaseEventTool):
 	def updateGlyphProgram(self, g):
 		self.prepareCommands(g)
 		self.writeGlyphFLTTProgram(g)
-		TTHintAsm.writeAssembly(g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+		TTHintAsm.writeAssembly(self, g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 	def refreshGlyph(self, g):
 		self.updatePartialFont() # to update the newly modified current glyph
@@ -2725,7 +2725,7 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands = self.readGlyphFLTTProgram(g)
 			if self.glyphTTHCommands != None:
 				self.prepareCommands(g)
-				TTHintAsm.writeAssembly(g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+				TTHintAsm.writeAssembly(self, g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
 
 		#self.generateFullTempFont()
 		#self.tthtm.setGlyph(self.getGlyph())
@@ -2852,6 +2852,11 @@ class TTHTool(BaseEventTool):
 				tempFont.lib['com.robofont.robohint.prep'] = self.c_fontModel.f.lib['com.robofont.robohint.prep']
 			if 'com.robofont.robohint.fpgm' in self.c_fontModel.f.lib:
 				tempFont.lib['com.robofont.robohint.fpgm'] = self.c_fontModel.f.lib['com.robofont.robohint.fpgm']
+			if 'com.robofont.robohint.gasp' in self.c_fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.gasp'] = self.c_fontModel.f.lib['com.robofont.robohint.gasp']
+			if 'com.robofont.robohint.maxp.maxStorage' in self.c_fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.maxp.maxStorage'] = self.c_fontModel.f.lib['com.robofont.robohint.maxp.maxStorage']
+
 
 			for gName in self.tthtm.requiredGlyphsForPartialTempFont:
 				tempFont.newGlyph(gName)

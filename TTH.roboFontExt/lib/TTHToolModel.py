@@ -202,6 +202,8 @@ class TTHToolModel():
 		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
+		self.deactivateStemWhenGrayScale = False
+
 		self.roundFactor_Stems = 15
 		self.roundFactor_Jumps = 20
 

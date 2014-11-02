@@ -9,11 +9,12 @@ import tt_tables
 #			pointIndex += 1
 #	return None
 
-def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
+def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 	if g == None:
 		return
 
 	assembly = []
+
 	g.lib['com.robofont.robohint.assembly'] = []
 	if glyphTTHCommands == []:
 		return
@@ -159,13 +160,25 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 				if TTHCommand['stem'] in tt_tables.stem_to_cvt:
 					stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 					double = [
-							'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
-						'CALL[ ]'
+							'PUSHB[ ] 0',
+							'RS[ ]',
+							'PUSHB[ ] 0',
+							'EQ[ ]',
+							'IF[ ]',
+								'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
+								'CALL[ ]'
+							'EIF[ ]',
 							]
 			else:
 				double = [
-						'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
-					'CALL[ ]'
+						'PUSHB[ ] 0',
+						'RS[ ]',
+						'PUSHB[ ] 0',
+						'EQ[ ]',
+						'IF[ ]',
+							'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
+							'CALL[ ]'
+						'EIF[ ]',
 						]
 			if TTHCommand['code'] == 'doubleh':
 				x_instructions.extend(double)
@@ -299,10 +312,8 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 			if 'stem' in TTHCommand:
 				stemCV = tt_tables.stem_to_cvt[TTHCommand['stem']]
 				singleLink2 = [
-								'PUSHB[ ] 11',
-								'CALL[ ]',
-								'PUSHB[ ] 2',
-								'EQ[ ]'
+								'PUSHB[ ] 0',
+								'RS[ ]',
 								'IF[ ]',
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[10000]',
@@ -483,6 +494,18 @@ def writeAssembly(g, glyphTTHCommands, pointNameToUniqueID, pointNameToIndex):
 				finalDeltasV.extend(middleDeltas)
 
 	##############################	
+	if TTHToolInstance.tthtm.deactivateStemWhenGrayScale == True:
+		assembly.extend([
+					'PUSHB[ ] 10',
+					'CALL[ ]'
+						])
+	else:
+		assembly.extend([
+					'PUSHB[ ] 0',
+					'PUSHB[ ] 0',
+					'WS[ ]'
+						])
+
 	assembly.extend(x_instructions)
 	assembly.extend(y_instructions)
 	assembly.extend(['IUP[0]', 'IUP[1]'])
