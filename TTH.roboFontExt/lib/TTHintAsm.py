@@ -315,8 +315,13 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 								'PUSHB[ ] 0',
 								'RS[ ]',
 								'IF[ ]',
+									'PUSHW[ ] ' + str(point1Index),
+									'SRP2[ ]',
 									'PUSHW[ ] ' + str(point2Index),
-									'MDRP[10000]',
+									'SHP[0]',
+
+									# 'PUSHW[ ] ' + str(point2Index),
+									# 'MDRP[10000]',
 								'ELSE[ ]',
 									'PUSHW[ ] ' + str(point2Index) + ' ' + str(stemCV),
 									'MIRP[10100]',
@@ -494,7 +499,7 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 				finalDeltasV.extend(middleDeltas)
 
 	##############################	
-	if TTHToolInstance.tthtm.deactivateStemWhenGrayScale == True:
+	if TTHToolInstance.c_fontModel.deactivateStemWhenGrayScale == True:
 		assembly.extend([
 					'PUSHB[ ] 10',
 					'CALL[ ]'

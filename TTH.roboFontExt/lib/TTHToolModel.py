@@ -53,6 +53,8 @@ class fontModel():
 		temp.close()
 		self.doneGeneratingPartialFont = False
 
+		self.deactivateStemWhenGrayScale = True
+
 	def setFont(self, font):
 		self.f = font
 
@@ -201,8 +203,6 @@ class TTHToolModel():
 		self.showGrid = getExtensionDefault(defaultKeyShowGrid, fallback=0)
 		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
-
-		self.deactivateStemWhenGrayScale = False
 
 		self.roundFactor_Stems = 15
 		self.roundFactor_Jumps = 20
