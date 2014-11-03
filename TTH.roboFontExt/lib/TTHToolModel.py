@@ -53,7 +53,7 @@ class fontModel():
 		temp.close()
 		self.doneGeneratingPartialFont = False
 
-		self.deactivateStemWhenGrayScale = True
+		self.deactivateStemWhenGrayScale = HF.getOrPutDefault(self.SP_tth_lib, "deactivateStemWhenGrayScale", False)
 
 	def setFont(self, font):
 		self.f = font
@@ -66,6 +66,9 @@ class fontModel():
 			self.UPM = font.info.unitsPerEm
 			return self.UPM
 		return None
+
+	def setDeactivateStemWhenGrayScale(self, valueBool):
+		self.deactivateStemWhenGrayScale = valueBool
 
 	def setBitmapPreview(self, preview):
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:

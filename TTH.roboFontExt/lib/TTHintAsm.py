@@ -166,7 +166,7 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 							'EQ[ ]',
 							'IF[ ]',
 								'PUSHW[ ] ' + str(point2Index) + ' ' +  str(stemCV) + ' ' + str(point1Index) + ' 4',
-								'CALL[ ]'
+								'CALL[ ]',
 							'EIF[ ]',
 							]
 			else:
@@ -177,7 +177,7 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 						'EQ[ ]',
 						'IF[ ]',
 							'PUSHW[ ] ' + str(point2Index) + ' ' + str(point1Index) + ' 3',
-							'CALL[ ]'
+							'CALL[ ]',
 						'EIF[ ]',
 						]
 			if TTHCommand['code'] == 'doubleh':

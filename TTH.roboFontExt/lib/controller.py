@@ -3691,17 +3691,17 @@ class TTHTool(BaseEventTool):
 			advance += delta_pos[0] + 5
 			advanceWidthCurrentGlyph = advance
 
-		#self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2]-35, self.tthtm.previewWindowViewSize[1])
+		self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowViewSize[1])
 
-		# if self.tthtm.previewWindowViewSize < advanceWidthUserString or self.tthtm.previewWindowViewSize < advanceWidthCurrentGlyph:
-		# 	if advanceWidthUserString > advanceWidthCurrentGlyph:
-		# 		canvasSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
-		# 		self.tthtm.setPreviewWindowViewSize(canvasSize)
-		# 		self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
-		# 	else:
-		# 		canvasSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
-		# 		self.tthtm.setPreviewWindowViewSize(canvasSize)
-		# 		self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
+		if self.tthtm.previewWindowViewSize[0] < advanceWidthUserString or self.tthtm.previewWindowViewSize[0] < advanceWidthCurrentGlyph:
+			if advanceWidthUserString > advanceWidthCurrentGlyph:
+				canvasSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
+				self.tthtm.setPreviewWindowViewSize(canvasSize)
+				#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
+			else:
+				canvasSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
+				self.tthtm.setPreviewWindowViewSize(canvasSize)
+				#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
 				
 
 	def drawBackground(self, scale):

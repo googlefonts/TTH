@@ -327,6 +327,7 @@ class SheetControlValues(object):
 		w.generalBox.StemSnapTitle= TextBox((10, 10, 250, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "small")
 		w.generalBox.AlignmentTitle= TextBox((10, 32, 250, 22), "Stop zone alignment above (ppEm)", sizeStyle = "small")
 		w.generalBox.InstructionsTitle= TextBox((10, 54, 250, 22), "Do not execute instructions above (ppEm)", sizeStyle = "small")
+		w.generalBox.DeactivateStemsWhenGrayscaleTitle= TextBox((10, 76, 250, 22), "Deactivate stems when grayscale", sizeStyle = "small")
 
 		w.generalBox.editTextStemSnap = EditText((-40, 10, 30, 17), sizeStyle = "small", callback=self.editTextStemSnapCallback)
 		w.generalBox.editTextStemSnap.set(self.c_fontModel.stemsnap)
@@ -334,6 +335,7 @@ class SheetControlValues(object):
 		w.generalBox.editTextAlignment.set(self.c_fontModel.alignppm)
 		w.generalBox.editTextInstructions = EditText((-40, 54, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
 		w.generalBox.editTextInstructions.set(self.c_fontModel.codeppm)
+		w.generalBox.checkBoxDeactivateStemsWhenGrayscale = CheckBox((-40, 76, 30, 22), "", callback=self.checkBoxDeactivateStemsWhenGrayscaleCallback, value=False, sizeStyle = "small")
 		w.generalBox.show(0)
 
 		controlsSegmentDescriptions = [
@@ -421,6 +423,9 @@ class SheetControlValues(object):
 	def resetZoneBox(self):
 		self.topZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=True))
 		self.bottomZoneView.set(self.c_fontModel.buildUIZonesList(buildTop=False))
+
+	def checkBoxDeactivateStemsWhenGrayscaleCallback(self, sender):
+		self.controller.c_fontModel.setDeactivateStemWhenGrayScale(sender.get())
 
 	def gaspSettingsList_SelectionCallback(self, sender):
 		if sender.getSelection() == []:
