@@ -335,7 +335,7 @@ class SheetControlValues(object):
 		w.generalBox.editTextAlignment.set(self.c_fontModel.alignppm)
 		w.generalBox.editTextInstructions = EditText((-40, 54, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
 		w.generalBox.editTextInstructions.set(self.c_fontModel.codeppm)
-		w.generalBox.checkBoxDeactivateStemsWhenGrayscale = CheckBox((-40, 76, 30, 22), "", callback=self.checkBoxDeactivateStemsWhenGrayscaleCallback, value=False, sizeStyle = "small")
+		w.generalBox.checkBoxDeactivateStemsWhenGrayscale = CheckBox((-40, 76, 30, 22), "", callback=self.checkBoxDeactivateStemsWhenGrayscaleCallback, value=(self.controller.c_fontModel.deactivateStemWhenGrayScale == True), sizeStyle = "small")
 		w.generalBox.show(0)
 
 		controlsSegmentDescriptions = [
@@ -580,6 +580,7 @@ class SheetControlValues(object):
 		self.controller.resetFont()
 		self.controller.updateGlyphProgram(self.controller.getGlyph())
 		self.controller.refreshGlyph(self.controller.getGlyph())
+		self.controller.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 	def editTextStemSnapCallback(self, sender):
 		try:

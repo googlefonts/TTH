@@ -115,7 +115,7 @@ class toolsWindow(BaseWindowController):
 		self.wTools.RoundDistanceCheckBox.show(False)
 
 		self.wTools.DeltaOffsetText = TextBox((10, 42, 50, 15), "Offset:", sizeStyle = "mini")
-		self.wTools.DeltaOffsetSlider = Slider((10, 57, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
 		self.wTools.DeltaOffsetEditText = EditText((60, 40, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaOffsetEditTextCallback)

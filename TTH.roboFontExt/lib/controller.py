@@ -1217,6 +1217,8 @@ class TTHTool(BaseEventTool):
 
 	def popoverClosed(self, sender):
 		self.popOverIsOpened = False
+		self.selectedCommand = None
+		self.commandClicked = None
 		UpdateCurrentGlyphView()
 
 	def popoverStateCheckBoxCallback(self, sender):

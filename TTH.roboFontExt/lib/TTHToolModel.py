@@ -68,7 +68,7 @@ class fontModel():
 		return None
 
 	def setDeactivateStemWhenGrayScale(self, valueBool):
-		self.deactivateStemWhenGrayScale = valueBool
+		self.deactivateStemWhenGrayScale = self.SP_tth_lib["deactivateStemWhenGrayScale"] = valueBool
 
 	def setBitmapPreview(self, preview):
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
