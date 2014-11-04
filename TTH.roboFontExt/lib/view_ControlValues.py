@@ -327,7 +327,7 @@ class SheetControlValues(object):
 		w.generalBox.StemSnapTitle= TextBox((10, 10, 250, 22), "Stem snap precision (/16th of pixel)", sizeStyle = "small")
 		w.generalBox.AlignmentTitle= TextBox((10, 32, 250, 22), "Stop zone alignment above (ppEm)", sizeStyle = "small")
 		w.generalBox.InstructionsTitle= TextBox((10, 54, 250, 22), "Do not execute instructions above (ppEm)", sizeStyle = "small")
-		w.generalBox.DeactivateStemsWhenGrayscaleTitle= TextBox((10, 76, 250, 22), "Deactivate stems when grayscale", sizeStyle = "small")
+		w.generalBox.DeactivateStemsWhenGrayscaleTitle= TextBox((10, 76, 250, 22), "Deactivate stems when grayscale and subpixel", sizeStyle = "small")
 
 		w.generalBox.editTextStemSnap = EditText((-40, 10, 30, 17), sizeStyle = "small", callback=self.editTextStemSnapCallback)
 		w.generalBox.editTextStemSnap.set(self.c_fontModel.stemsnap)
