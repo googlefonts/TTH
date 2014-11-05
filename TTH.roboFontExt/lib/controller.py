@@ -1389,7 +1389,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1413,7 +1413,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1458,7 +1458,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1467,7 +1467,7 @@ class TTHTool(BaseEventTool):
 		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
 
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
-		self.popover.RoundDistanceCheckBox = CheckBox((-20, 33, 10, 10), "", sizeStyle = "small",
+		self.popover.RoundDistanceCheckBox = CheckBox((-23, 26, 22, 22), "", sizeStyle = "small",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.popover.RoundDistanceCheckBox.set('round' in self.selectedCommand)
 
@@ -1510,7 +1510,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1519,7 +1519,7 @@ class TTHTool(BaseEventTool):
 		self.popover.stateTitle = TextBox((10, 14, -30, 20), commandState, sizeStyle='small')
 
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
-		self.popover.RoundDistanceCheckBox = CheckBox((-20, 33, 10, 10), "", sizeStyle = "small",
+		self.popover.RoundDistanceCheckBox = CheckBox((-23, 26, 22, 22), "", sizeStyle = "small",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.popover.RoundDistanceCheckBox.set('round' in self.selectedCommand)
 
@@ -1649,7 +1649,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1765,7 +1765,7 @@ class TTHTool(BaseEventTool):
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 
-		self.popover.stateCheckBox = CheckBox((-20, 15, 10, 10), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
+		self.popover.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.popoverStateCheckBoxCallback, sizeStyle='small')
 		self.popover.stateCheckBox.set(self.selectedCommand['active'] == 'true')
 		if self.selectedCommand['active'] == 'true':
 			commandState = "Active"
@@ -1780,7 +1780,7 @@ class TTHTool(BaseEventTool):
 
 		if self.selectedCommand['code'][-1] != 'h':
 			self.popover.zoneTitle = TextBox((10, 34, -30, 20), commandToZone, sizeStyle='small')
-			self.popover.zoneCheckBox = CheckBox((-20, 35, 10, 10), "", callback=self.popoverZoneCheckBoxCallback, sizeStyle='small')
+			self.popover.zoneCheckBox = CheckBox((-23, 28, 22, 22), "", callback=self.popoverZoneCheckBoxCallback, sizeStyle='small')
 			self.popover.zoneCheckBox.set(self.selectedCommand['code'] in ['alignt', 'alignb'])
 
 		self.alignmentUI = ['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid']
