@@ -586,7 +586,9 @@ class programWindow(object):
 			#dict(title='delta', cell=sliderCell, width=90, editable=True),
 			{"title": "delta", "editable": False}, 
 			{"title": "ppm1", "editable": False}, 
-			{"title": "ppm2", "editable": False}
+			{"title": "ppm2", "editable": False},
+			{"title": "gray", "editable": False},
+			{"title": "mono", "editable": False}
 			]
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
 					columnDescriptions=columnDescriptions,
@@ -628,7 +630,7 @@ class programWindow(object):
 		updatedCommands = []
 		g = self.TTHToolInstance.getGlyph()
 		g.prepareUndo('Edit Program')
-		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2']
+		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'gray', 'mono']
 		for commandUI in sender.get():
 			command = { k : str(commandUI[k]) for k in keys if commandUI[k] != '' }
 			if commandUI['active'] == 1:

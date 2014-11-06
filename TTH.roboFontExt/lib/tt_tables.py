@@ -567,12 +567,10 @@ def writeFPGM(f):
 			'GETINFO[ ]',
 			'PUSHW[ ] '+str(2**12),
 			'AND[ ]',
+			# 'PUSHB[ ] 0',
 		'ELSE[ ]',
 			'PUSHB[ ] 0',
 		'EIF[ ]',
-		'PUSHB[ ] 0',
-		'SWAP[ ]',
-		'WS[ ]',
 	'ENDF[ ]'
 	]
 	table_FPGM.extend(FPGM_10)

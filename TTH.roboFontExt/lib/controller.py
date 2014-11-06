@@ -1645,7 +1645,7 @@ class TTHTool(BaseEventTool):
 		y = point.y
 		x += offsetX
 		y += offsetY
-		self.popover = Popover((200, 110))
+		self.popover = Popover((200, 160))
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1672,6 +1672,13 @@ class TTHTool(BaseEventTool):
 				callback=self.DeltaOffsetSliderCallback)
 		self.popover.DeltaOffsetSlider.set(int(self.selectedCommand['delta']) + 8)
 
+		self.popover.monoTitle = TextBox((10, 90, -30, 20), 'Monochrome', sizeStyle='small')
+		self.popover.monoCheckBox = CheckBox((-23, 84, 22, 22), "", callback=self.popoverMonoCheckBoxCallback, sizeStyle='small')
+		self.popover.monoCheckBox.set(self.selectedCommand['mono'] == 'true')
+
+		self.popover.grayTitle = TextBox((10, 110, -30, 20), 'Grayscale & Subpixel', sizeStyle='small')
+		self.popover.grayCheckBox = CheckBox((-23, 104, 22, 22), "", callback=self.popoverGrayCheckBoxCallback, sizeStyle='small')
+		self.popover.grayCheckBox.set(self.selectedCommand['gray'] == 'true')
 
 		self.popover.prevButton = ImageButton((10, -20, 10, 10), imageObject=imgPrev, bordered=False, callback=self.popoverPointPrevCallback, sizeStyle='small')
 		self.popover.movePointText = TextBox((72, -22, 60, 15), "Move Point", sizeStyle = "small")
@@ -1680,6 +1687,36 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = True
 		UpdateCurrentGlyphView()
 		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+
+	def popoverGrayCheckBoxCallback(self, sender):
+		g = self.getGlyph()
+		if sender.get() == 0:
+			g.prepareUndo("Deactivate Delta for Grayscale and Subpixel")
+			self.selectedCommand['gray'] = 'false'
+		else:
+			g.prepareUndo("Activate Delta for Grayscale and Subpixel")
+			self.selectedCommand['gray'] = 'true'
+
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		g.performUndo()
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
+
+	def popoverMonoCheckBoxCallback(self, sender):
+		g = self.getGlyph()
+		if sender.get() == 0:
+			g.prepareUndo("Deactivate Delta for Monochrome")
+			self.selectedCommand['mono'] = 'false'
+		else:
+			g.prepareUndo("Activate Delta for Monochrome")
+			self.selectedCommand['mono'] = 'true'
+
+		self.writeGlyphFLTTProgram(g)
+		self.updateGlyphProgram(g)
+		self.refreshGlyph(g)
+		g.performUndo()
+		self.commandClicked, self.selectedCommand = self.reassignSelectedCommand(self.selectedCommand)
 
 	def DeltaOffsetSliderCallback(self, sender):
 		g = self.getGlyph()
@@ -2966,6 +3003,11 @@ class TTHTool(BaseEventTool):
 			self.glyphTTHCommands.append(child.attrib)
 			if 'active' not in child.attrib:
 				child.attrib['active'] = 'true'
+			if child.attrib['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+				if 'gray' not in child.attrib:
+					child.attrib['gray'] = 'true'
+				if 'mono' not in child.attrib:
+					child.attrib['mono'] = 'true'
 		return self.glyphTTHCommands
 
 	def writeGlyphFLTTProgram(self, g):
@@ -2976,6 +3018,11 @@ class TTHTool(BaseEventTool):
 			com = ET.SubElement(root, 'ttc')
 			if 'active' not in command:
 				command['active'] = 'true'
+			if command['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+				if 'gray' not in command:
+					command['gray'] = 'true'
+				if 'mono' not in command:
+					command['mono'] = 'true'
 			com.attrib = command
 		text = ET.tostring(root)
 		g.lib['com.fontlab.ttprogram'] = Data(text)

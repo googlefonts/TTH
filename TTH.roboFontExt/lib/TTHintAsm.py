@@ -315,11 +315,6 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 								'PUSHB[ ] 0',
 								'RS[ ]',
 								'IF[ ]',
-									# 'PUSHW[ ] ' + str(point1Index),
-									# 'SRP2[ ]',
-									# 'PUSHW[ ] ' + str(point2Index),
-									# 'SHP[0]',
-
 									'PUSHW[ ] ' + str(point2Index),
 									'MDRP[10000]',
 								'ELSE[ ]',
@@ -426,9 +421,28 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 				y_instructions.extend(singleLink)
 
 
-
+		deltaNoCondition = False
 		if TTHCommand['code'] in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
-			middleDeltas = []
+			if TTHCommand['gray'] == 'true' and TTHCommand['mono'] == 'true':
+				middleDeltas = []
+				deltaNoCondition = True
+			elif TTHCommand['gray'] == 'false' and TTHCommand['mono'] == 'true':
+				middleDeltas = [
+							'PUSHB[ ] 1',
+							'RS[ ]',
+							'PUSHB[ ] 0',
+							'EQ[ ]',
+							'IF[ ]',
+							]
+			elif TTHCommand['gray'] == 'true' and TTHCommand['mono'] == 'false':
+				middleDeltas = [
+							'PUSHB[ ] 1',
+							'RS[ ]',
+							'IF[ ]',
+							]
+			else:
+				continue
+
 			if TTHCommand['point'] == 'lsb':
 				pointIndex = lsbIndex
 			elif TTHCommand['point'] == 'rsb':
@@ -487,6 +501,9 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 				deltaPString += ' ' + str(len(deltasP3))
 				middleDeltas.append(deltaPString)
 				middleDeltas.append('DELTAP3[ ]')
+			
+			if not deltaNoCondition:
+				middleDeltas.append('EIF[ ]')
 
 			if TTHCommand['code'] == 'mdeltah':
 				x_instructions.extend(middleDeltas)
@@ -502,7 +519,10 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 	if TTHToolInstance.c_fontModel.deactivateStemWhenGrayScale == True:
 		assembly.extend([
 					'PUSHB[ ] 10',
-					'CALL[ ]'
+					'CALL[ ]',
+					'PUSHB[ ] 0',
+					'SWAP[ ]',
+					'WS[ ]',
 						])
 	else:
 		assembly.extend([
@@ -510,6 +530,13 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 					'PUSHB[ ] 0',
 					'WS[ ]'
 						])
+	assembly.extend([
+					'PUSHB[ ] 10',
+					'CALL[ ]',
+					'PUSHB[ ] 1',
+					'SWAP[ ]',
+					'WS[ ]',
+					])
 
 	assembly.extend(x_instructions)
 	assembly.extend(y_instructions)
