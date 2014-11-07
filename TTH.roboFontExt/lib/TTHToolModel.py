@@ -226,15 +226,15 @@ class TTHToolModel():
 		setExtensionDefault(defaultKeyPreviewWindowPosSize, self.previewWindowPosSize)
 
 	def setPreviewWindowVisible(self, valueBool):
-		self.previewWindowVisible = 1
+		self.previewWindowVisible = valueBool
 		setExtensionDefault(defaultKeyPreviewWindowVisibility, self.previewWindowVisible)
 
 	def setProgramWindowVisible(self, valueBool):
-		self.programWindowVisible = 1
+		self.programWindowVisible = valueBool
 		setExtensionDefault(defaultKeyProgramWindowVisibility, self.programWindowVisible)
 
 	def setAssemblyWindowVisible(self, valueBool):
-		self.assemblyWindowVisible = 1
+		self.assemblyWindowVisible = valueBool
 		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.assemblyWindowVisible)
 
 	def setAlwaysRefresh(self, valueBool):
