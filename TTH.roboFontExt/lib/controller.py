@@ -323,7 +323,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
-		self.previewWindow = None
+		self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
@@ -413,14 +413,11 @@ class TTHTool(BaseEventTool):
 		self.deletePreviewInGlyphWindow()
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
+		self.previewWindow.hide()
 		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.closeProgram()
 			self.tthtm.programWindowVisible = 1
 			setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.closePreview()
-			self.tthtm.previewWindowVisible = 1
-			setExtensionDefault(view.defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.closeAssembly()
 			self.tthtm.assemblyWindowVisible = 1
@@ -477,8 +474,7 @@ class TTHTool(BaseEventTool):
 		self.toolsWindow.wTools.hide()
 		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.wProgram.hide()
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.wPreview.hide()
+		self.previewWindow.hide()
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.hide()
 		self.fontClosed = True
@@ -494,10 +490,9 @@ class TTHTool(BaseEventTool):
 		self.deletePreviewInGlyphWindow()
 
 		self.toolsWindow.wTools.show()
+		self.previewWindow.showOrHide()
 		if self.tthtm.programWindowOpened == 1:
 			self.programWindow.wProgram.show()
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.wPreview.show()
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.show()
 
@@ -524,12 +519,12 @@ class TTHTool(BaseEventTool):
 	def getSize(self):
 		return self.tthtm.PPM_Size
 
-	def setPreviewSize(self, size):
+	def cleanPreviewSize(self, size):
 		try:
 			size = int(size)
 		except ValueError:
 			size = 9
-
+		if size < 8: return 8
 		return size
 
 	def changePreviewSize(self, FromSize, ToSize):
@@ -537,8 +532,6 @@ class TTHTool(BaseEventTool):
 			FromSize = ToSize
 		self.tthtm.setPreviewFrom(FromSize)
 		self.tthtm.setPreviewTo(ToSize)
-		self.previewWindow.wPreview.DisplayFromEditText.set(FromSize)
-		self.previewWindow.wPreview.DisplayToEditText.set(ToSize)
 
 	def changeSize(self, size):
 		try:
@@ -558,8 +551,8 @@ class TTHTool(BaseEventTool):
 		self.cachedScale = None
 
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
+		if self.previewWindow.isVisible():
+			self.previewWindow.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
 	def changeAxis(self, axis):
@@ -603,8 +596,8 @@ class TTHTool(BaseEventTool):
 
 		if self.getGlyph() == None:
 			return
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
+		if self.previewWindow.isVisible():
+			self.previewWindow.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
 	def getHintingToolIndex(self, hintingTool):
@@ -2746,9 +2739,7 @@ class TTHTool(BaseEventTool):
 
 		if createWindows:
 			self.toolsWindow = view.toolsWindow(self)
-			if self.tthtm.previewWindowOpened == 0 and self.tthtm.previewWindowVisible == 1:
-				self.previewWindow = view.previewWindow(self, self.tthtm)
-				setExtensionDefault(view.defaultKeyPreviewWindowVisibility, self.tthtm.previewWindowVisible)
+			self.previewWindow.showOrHide()
 			if self.tthtm.programWindowOpened == 0 and self.tthtm.programWindowVisible == 1:
 				setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
 				self.programWindow = view.programWindow(self, self.tthtm)
@@ -2790,7 +2781,6 @@ class TTHTool(BaseEventTool):
 		self.changeDeltaOffset(self.tthtm.deltaOffset)
 		self.changeDeltaRange(self.tthtm.deltaRange1, self.tthtm.deltaRange2)
 
-		#self.showHidePreviewWindow(self.tthtm.previewWindowOpened)
 
 	def updatePartialFontIfNeeded(self):
 		"""Re-create the partial font if new glyphs are required."""
@@ -2833,8 +2823,8 @@ class TTHTool(BaseEventTool):
 		self.listOfNames_On = self.makePointlistOfNames_On(g)
 		#print 'full temp font loaded'
 		self.ready = True
-		if self.tthtm.previewWindowOpened == 1:
-			self.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
+		if self.previewWindow.isVisible():
+			self.previewWindow.setNeedsDisplay()
 
 		self.p_glyphList = ([(0, 0), (g.width, 0)])
 		self.pOff_glyphList = []
@@ -3677,19 +3667,20 @@ class TTHTool(BaseEventTool):
 		if not tr:
 			return
 
-		advanceWidthUserString = self.tthtm.previewWindowViewSize[0]
-		advanceWidthCurrentGlyph = self.tthtm.previewWindowViewSize[0]
+		advanceWidthUserString = 0
+		advanceWidthCurrentGlyph = 0
 		(namedGlyphList, curGlyphName) = self.prepareText()
 		glyphs = tr.names_to_indices(namedGlyphList)
 		curGlyph = tr.names_to_indices([curGlyphName])[0]
 		# render user string
 		tr.set_cur_size(self.tthtm.PPM_Size)
 
-		tr.set_pen((20, self.tthtm.previewWindowPosSize[3] - 250))
+		ps = self.previewWindow.window().getPosSize()
+		tr.set_pen((20, ps[3] - 250))
 		tr.render_indexed_glyph_list(glyphs)
 
 		self.clickableGlyphs = {}
-		pen = (20, self.tthtm.previewWindowPosSize[3] - 250)
+		pen = (20, ps[3] - 250)
 		for name in namedGlyphList:
 			adv = tr.get_name_advance(name)
 			newpen = pen[0]+int(adv[0]/64), pen[1]+int(adv[1]/64)
@@ -3698,7 +3689,7 @@ class TTHTool(BaseEventTool):
 			pen = newpen
 
 		# render user string at various sizes
-		y = self.tthtm.previewWindowPosSize[3] - 310
+		y = ps[3] - 310
 		x = 30
 		for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 
@@ -3718,38 +3709,33 @@ class TTHTool(BaseEventTool):
 			if y < 0:
 				width, height = tr.pen
 				x = width+40
-				y = self.tthtm.previewWindowPosSize[3] - 310
+				y = ps[3] - 310
 
 		# render current glyph at various sizes
 		advance = 10
 		
 		for size in range(self.tthtm.previewFrom, self.tthtm.previewTo+1, 1):
 
-			self.clickableSizes[(advance, self.tthtm.previewWindowPosSize[3] - 200)] = size
+			self.clickableSizes[(advance, ps[3] - 200)] = size
 
 			displaysize = str(size)
 			if size == self.tthtm.PPM_Size:
-				self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.redColor())
+				self.drawPreviewSize(displaysize, advance, ps[3] - 200, NSColor.redColor())
 			else:
-				self.drawPreviewSize(displaysize, advance, self.tthtm.previewWindowPosSize[3] - 200, NSColor.blackColor())
+				self.drawPreviewSize(displaysize, advance, ps[3] - 200, NSColor.blackColor())
 			
 			tr.set_cur_size(size)
-			tr.set_pen((advance, self.tthtm.previewWindowPosSize[3] - 165))
+			tr.set_pen((advance, ps[3] - 165))
 			delta_pos = tr.render_named_glyph_list([curGlyphName])
 			advance += delta_pos[0] + 5
 			advanceWidthCurrentGlyph = advance
 
-		self.tthtm.previewWindowViewSize = (self.tthtm.previewWindowPosSize[2], self.tthtm.previewWindowViewSize[1])
+		width = ps[2]
+		newWidth = max(advanceWidthUserString, advanceWidthCurrentGlyph)
 
-		if self.tthtm.previewWindowViewSize[0] < advanceWidthUserString or self.tthtm.previewWindowViewSize[0] < advanceWidthCurrentGlyph:
-			if advanceWidthUserString > advanceWidthCurrentGlyph:
-				canvasSize = (advanceWidthUserString, self.tthtm.previewWindowViewSize[1])
-				self.tthtm.setPreviewWindowViewSize(canvasSize)
-				#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
-			else:
-				canvasSize = (advanceWidthCurrentGlyph, self.tthtm.previewWindowViewSize[1])
-				self.tthtm.setPreviewWindowViewSize(canvasSize)
-				#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
+		if width < newWidth:
+			self.previewWindow.resizeView((newWidth, ps[3]))
+			#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
 				
 
 	def drawBackground(self, scale):
