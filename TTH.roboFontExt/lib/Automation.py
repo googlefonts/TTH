@@ -210,7 +210,10 @@ class Automation():
 		g = font['O']
 		(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 
-		maxStemX = maxStemY = max([stem[2] for stem in O_stemsListX])
+		if O_stemsListX == None:
+			maxStemX = maxStemY = 250
+		else:
+			maxStemX = maxStemY = max([stem[2] for stem in O_stemsListX])
 
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
@@ -462,7 +465,7 @@ class AutoHinting():
 			if compLeader == None: compLeader = 0
 			if compLeader > 0: comp[compLeader], comp[0] = comp[0], comp[compLeader]
 			c0,s0 = comp[0]
-			for c,s in comp: contours[c][s].leaderComp = contours[c0][s0]
+			for c,s in comp: contours[c][s].leader = contours[c0][s0]
 		if leaderComp != None:
 			if leaderComp > 0: comps[0], comps[leaderComp] = comps[leaderComp], comps[0]
 		for c in contours:

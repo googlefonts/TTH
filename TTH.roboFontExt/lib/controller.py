@@ -323,6 +323,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
+		self.previewWindow = None
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
@@ -3201,8 +3202,6 @@ class TTHTool(BaseEventTool):
 
 
 	def drawPreviewSize(self, title, x, y, color):
-		#currentview = self.previewWindow.view
-
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
 			NSForegroundColorAttributeName : color,
