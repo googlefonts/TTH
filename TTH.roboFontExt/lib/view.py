@@ -528,9 +528,7 @@ class PreviewWindow(TTHWindow):
 		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
 			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
 
-		win.open()
 		win.hide()
-
 		self.setWindow(win)
 
 	def setNeedsDisplay(self):

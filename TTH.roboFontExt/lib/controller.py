@@ -323,7 +323,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
-		self.previewWindow = None
+		self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
@@ -2739,8 +2739,6 @@ class TTHTool(BaseEventTool):
 
 		if createWindows:
 			self.toolsWindow = view.toolsWindow(self)
-			if self.previewWindow == None:
-				self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
 			self.previewWindow.showOrHide()
 			if self.tthtm.programWindowOpened == 0 and self.tthtm.programWindowVisible == 1:
 				setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
