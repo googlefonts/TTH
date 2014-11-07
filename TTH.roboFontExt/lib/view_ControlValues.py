@@ -320,6 +320,7 @@ class SheetControlValues(object):
 		self.c_fontModel = controller.c_fontModel
 		self.controller = controller
 		self.baseWindow = baseWindow
+		self.model = model
 		self.w = Sheet((505, 480), minSize=(505, 220), maxSize=(505, 1000), parentWindow=parent)
 		self.automation = Automation.Automation(self, self.controller)
 		w = self.w
@@ -580,7 +581,8 @@ class SheetControlValues(object):
 		self.controller.resetFont()
 		self.controller.updateGlyphProgram(self.controller.getGlyph())
 		self.controller.refreshGlyph(self.controller.getGlyph())
-		self.controller.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
+		if self.model.previewWindowOpened == 1:
+			self.controller.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
 
 	def editTextStemSnapCallback(self, sender):
 		try:

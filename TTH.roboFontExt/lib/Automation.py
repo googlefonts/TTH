@@ -462,7 +462,7 @@ class AutoHinting():
 			if compLeader == None: compLeader = 0
 			if compLeader > 0: comp[compLeader], comp[0] = comp[0], comp[compLeader]
 			c0,s0 = comp[0]
-			for c,s in comp: contours[c][s].leaderComp = contours[c0][s0]
+			for c,s in comp: contours[c][s].leader = contours[c0][s0]
 		if leaderComp != None:
 			if leaderComp > 0: comps[0], comps[leaderComp] = comps[leaderComp], comps[0]
 		for c in contours:
