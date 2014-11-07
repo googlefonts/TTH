@@ -363,6 +363,7 @@ class AutoHinting():
 			for i in range(2):
 				hd = contours[stem[i].cont][stem[i].seg]
 				hd.inStem = True
+				if hd.group == None: continue
 				pos = hd.shearedPos[0]
 				if l == None or pos < lx:
 					l = hd; lx = pos
@@ -449,21 +450,25 @@ class AutoHinting():
 				return zd
 
 	def putALeaderFirst(self, comps, contours):
-		leader = None
+		leaderComp = None
 		for i,comp in enumerate(comps):
 			compLeader = None
 			for j, (cont, seg) in enumerate(comp):
 				if contours[cont][seg].inStem and compLeader == None:
 					compLeader = j
-					if leader == None:
-						leader = i
+					if leaderComp == None:
+						leaderComp = i
 				if compLeader != None: break
 			if compLeader == None: compLeader = 0
 			if compLeader > 0: comp[compLeader], comp[0] = comp[0], comp[compLeader]
 			c0,s0 = comp[0]
-			for c,s in comp: contours[c][s].leader = contours[c0][s0]
-		if leader == None: return
-		if leader > 0: comps[0], comps[leader] = comps[leader], comps[0]
+			for c,s in comp: contours[c][s].leaderComp = contours[c0][s0]
+		if leaderComp != None:
+			if leaderComp > 0: comps[0], comps[leaderComp] = comps[leaderComp], comps[0]
+		for c in contours:
+			for s in c:
+				if s.leader == None:
+					s.leader = s
 
 	def handleZones(self, g, (contours, groups)):
 		# First, handle groups in zones
