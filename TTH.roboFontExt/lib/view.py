@@ -504,9 +504,7 @@ class PreviewWindow(TTHWindow):
 				callback=self.previewEditTextCallback)
 		win.previewEditText.set(self.tthtm.previewString)
 
-		ps = defaultPosSize
-		cs = (ps[2], ps[3]-90)
-		win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = cs)
+		win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.canvasSize)
 
 
 		win.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")

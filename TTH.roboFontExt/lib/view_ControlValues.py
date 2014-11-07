@@ -581,8 +581,7 @@ class SheetControlValues(object):
 		self.controller.resetFont()
 		self.controller.updateGlyphProgram(self.controller.getGlyph())
 		self.controller.refreshGlyph(self.controller.getGlyph())
-		if self.model.previewWindowOpened == 1:
-			self.controller.previewWindow.wPreview.view.getNSView().setNeedsDisplay_(True)
+		self.controller.previewWindow.setNeedsDisplay()
 
 	def editTextStemSnapCallback(self, sender):
 		try:
