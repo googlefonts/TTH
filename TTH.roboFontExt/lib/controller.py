@@ -323,6 +323,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
+		self.programWindow = view.ProgramWindow(self, (10, -300, -10, 300))
 		self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
@@ -414,10 +415,7 @@ class TTHTool(BaseEventTool):
 		#self.centralWindow.closeCentral()
 		self.toolsWindow.closeTools()
 		self.previewWindow.hide()
-		if self.tthtm.programWindowOpened == 1:
-			self.programWindow.closeProgram()
-			self.tthtm.programWindowVisible = 1
-			setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
+		self.programWindow.hide()
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.closeAssembly()
 			self.tthtm.assemblyWindowVisible = 1
@@ -472,9 +470,8 @@ class TTHTool(BaseEventTool):
 			return
 		#self.centralWindow.wCentral.hide()
 		self.toolsWindow.wTools.hide()
-		if self.tthtm.programWindowOpened == 1:
-			self.programWindow.wProgram.hide()
 		self.previewWindow.hide()
+		self.programWindow.hide()
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.hide()
 		self.fontClosed = True
@@ -491,8 +488,7 @@ class TTHTool(BaseEventTool):
 
 		self.toolsWindow.wTools.show()
 		self.previewWindow.showOrHide()
-		if self.tthtm.programWindowOpened == 1:
-			self.programWindow.wProgram.show()
+		self.programWindow.showOrHide()
 		if self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.wAssembly.show()
 
@@ -2740,9 +2736,7 @@ class TTHTool(BaseEventTool):
 		if createWindows:
 			self.toolsWindow = view.toolsWindow(self)
 			self.previewWindow.showOrHide()
-			if self.tthtm.programWindowOpened == 0 and self.tthtm.programWindowVisible == 1:
-				setExtensionDefault(view.defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
-				self.programWindow = view.programWindow(self, self.tthtm)
+			self.programWindow.showOrHide()
 			if self.tthtm.assemblyWindowOpened == 0 and self.tthtm.assemblyWindowVisible == 1:
 				setExtensionDefault(view.defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
 				self.assemblyWindow = view.assemblyWindow(self, self.tthtm)
@@ -2806,10 +2800,12 @@ class TTHTool(BaseEventTool):
 			return
 		glyphTTHCommands = self.readGlyphFLTTProgram(g)
 
-		if glyphTTHCommands != None and self.tthtm.programWindowOpened == 1:
-			self.programWindow.updateProgramList(glyphTTHCommands)
-		elif self.tthtm.programWindowOpened == 1:
-			self.programWindow.updateProgramList([])
+		if self.programWindow.isVisible():
+			if glyphTTHCommands != None:
+				self.programWindow.updateProgramList(glyphTTHCommands)
+			else:
+				self.programWindow.updateProgramList([])
+			self.programWindow.setNeedsDisplay()
 
 		if 'com.robofont.robohint.assembly' in g.lib and self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])
@@ -3734,7 +3730,8 @@ class TTHTool(BaseEventTool):
 		newWidth = max(advanceWidthUserString, advanceWidthCurrentGlyph)
 
 		if width < newWidth:
-			self.previewWindow.resizeView((newWidth, ps[3]))
+			ps = ps[0], ps[1], newWidth, ps[3]
+			self.previewWindow.resizeView(ps)
 			#self.previewWindow.wPreview.view.getNSView().setFrame_(((0, 0), canvasSize))
 				
 

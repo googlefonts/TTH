@@ -25,14 +25,14 @@ buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
 buttonSelectionPath = ExtensionBundle("TTH").get("buttonSelection")
 
 DefaultKeyStub = "com.sansplomb.TTH."
+
 defaultKeyToolsWindowPosSize = DefaultKeyStub + "toolsWindowPosSize"
+defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
 defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
 defaultKeyAssemblyWindowPosSize = DefaultKeyStub + "assemblyWindowPosSize"
 
-defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
-defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
-
 defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
+defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 class toolsWindow(BaseWindowController):
@@ -202,7 +202,6 @@ class toolsWindow(BaseWindowController):
 			self.showPreviewCallback()
 		if gearOption == 8:
 			self.showProgramCallback()
-			self.tthtm.setProgramWindowVisible(1)
 		if gearOption == 9:
 			self.showAssemblyCallback()
 			self.tthtm.setAssemblyWindowVisible(1)
@@ -218,9 +217,8 @@ class toolsWindow(BaseWindowController):
 		self.TTHToolInstance.previewWindow.show()
 
 	def showProgramCallback(self):
-		if self.tthtm.programWindowOpened == 0:
-			self.TTHToolInstance.programWindow = programWindow(self.TTHToolInstance, self.tthtm)
-			self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
+		self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
+		self.TTHToolInstance.programWindow.show()
 
 	def showAssemblyCallback(self):
 		if self.tthtm.assemblyWindowOpened == 0:
@@ -444,13 +442,15 @@ class toolsWindow(BaseWindowController):
 			self.SelectionSettings()
 			self.TTHToolInstance.changeSelectedHintingTool('Selection')
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class TTHWindow(object):
 	def __init__(self, defaultPosSize, posSizeKey, visibilityKey):
-		self.window_         = None
-		self.defaultPosSize_ = defaultPosSize
-		self.posSizeKey_     = posSizeKey
-		self.visibilityKey_  = visibilityKey
-		#print type(self), "super-created."
+		self.window_          = None
+		self.defaultPosSize_  = defaultPosSize
+		self.posSizeKey_      = posSizeKey
+		self.visibilityKey_   = visibilityKey
+		self.windowWasOpened_ = False
 	def window(self):
 		return self.window_
 	def setWindow(self, w):
@@ -466,46 +466,49 @@ class TTHWindow(object):
 		return self.window().isVisible()
 	def showOrHide(self):
 		if 1 == getExtensionDefault(self.visibilityKey_, fallback=0):
+			if not self.windowWasOpened_:
+				self.windowWasOpened_ = True
+				self.window().open()
 			self.window().show()
 		else:
 			self.window().hide()
 	def show(self):
-		self.window_.show()
 		setExtensionDefault(self.visibilityKey_, 1)
+		self.showOrHide()
 	def hide(self):
-		self.window_.hide()
-	def close(self):
-		pass#self.window_.close()
+		self.window().hide()
 	def setNeedsDisplay(self):
-		self.window_.getNSView().setNeedsDisplay_(True)
+		self.window().getNSView().setNeedsDisplay_(True)
+
 	# callbacks
 	def shouldClose(self, sender):
 		self.hide()
 		setExtensionDefault(self.visibilityKey_, 0)
 		return False
 	def movedOrResized(self, sender):
-		setExtensionDefault(self.posSizeKey_, self.window_.getPosSize())
+		#print "TTHWindow::movedOrResized called"
+		setExtensionDefault(self.posSizeKey_, self.window().getPosSize())
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class PreviewWindow(TTHWindow):
 	def __init__(self, TTHToolInstance, defaultPosSize):
 		super(PreviewWindow, self).__init__(defaultPosSize, defaultKeyPreviewWindowPosSize, defaultKeyPreviewWindowVisibility)
-		#print type(self), "created."
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
 		self.FromSize = self.tthtm.previewFrom
 		self.ToSize = self.tthtm.previewTo
 
-		self.canvasSize = (defaultPosSize[2], defaultPosSize[3]-90)
-		win = FloatingWindow(defaultPosSize, "Preview", minSize=(350, 200))
+		ps = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=defaultPosSize)
+		win = FloatingWindow(ps, "Preview", minSize=(350, 200))
 
 		previewList = ['HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase]
 		win.previewEditText = ComboBox((10, 10, -10, 22), previewList,
 				callback=self.previewEditTextCallback)
 		win.previewEditText.set(self.tthtm.previewString)
 
-		win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.canvasSize)
-
+		win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 
 		win.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
 		win.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
@@ -518,8 +521,8 @@ class PreviewWindow(TTHWindow):
 		win.DisplayToEditText.set(self.ToSize)
 		win.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
-		win.bind("move", self.previewWindowMovedorResized)
-		win.bind("resize", self.previewWindowMovedorResized)
+		win.bind("move", self.movedOrResizedCallback)
+		win.bind("resize", self.movedOrResizedCallback)
 		
 		for i in string.lowercase:
 			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
@@ -528,8 +531,10 @@ class PreviewWindow(TTHWindow):
 		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
 			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
 
-		win.hide()
-		self.setWindow(win)
+		self.setWindow(win) # this will not rebind the events, since they are already bound.
+
+	def calculateCanvasSize(self, winPosSize):
+		return (winPosSize[2], winPosSize[3]-90)
 
 	def setNeedsDisplay(self):
 		self.window().view.getNSView().setNeedsDisplay_(True)
@@ -550,15 +555,13 @@ class PreviewWindow(TTHWindow):
 
 	def draw(self):
 		self.TTHToolInstance.drawPreviewWindow()
+	
+	def resizeView(self, posSize):
+		self.window().view.getNSView().setFrame_(((0, 0), self.calculateCanvasSize(posSize)))
 
-	def resizeView(self, size):
-		self.canvasSize = (size[0], size[1]-90)
-		self.window().view.getNSView().setFrame_(((0, 0), self.canvasSize))
-
-	def previewWindowMovedorResized(self, sender):
+	def movedOrResizedCallback(self, sender):
 		super(PreviewWindow, self).movedOrResized(sender)
-		ps = self.window().getPosSize()
-		self.resizeView((ps[0], ps[3]))
+		self.resizeView(self.window().getPosSize())
 	
 		# self.viewSize = (self.tthtm.previewWindowViewSize[0], self.tthtm.previewWindowPosSize[3]-110)
 		# self.view.setFrame_(((0, 0), self.viewSize))
@@ -601,20 +604,17 @@ class PreviewWindow(TTHWindow):
 		self.TTHToolInstance.changePreviewSize(self.FromSize, self.ToSize)
 		self.setNeedsDisplay()
 
-class programWindow(object):
-	def __init__(self, TTHToolInstance, tthtm):
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+class ProgramWindow(TTHWindow):
+	def __init__(self, TTHToolInstance, defaultPosSize):
+		super(ProgramWindow, self).__init__(defaultPosSize, defaultKeyProgramWindowPosSize, defaultKeyProgramWindowVisibility)
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 		self.lock = False
 
-		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
-		self.wProgram.bind("close", self.programWindowWillClose)
-		self.programList = []
-
-		# sliderCell = SliderListCell(-8, 8)
-		# sliderCell.setAllowsTickMarkValuesOnly_(True)
-		# sliderCell.setNumberOfTickMarks_(17)
-
+		ps = getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=defaultPosSize)
+		win = FloatingWindow(ps, "Program", minSize=(600, 80))
 
 		columnDescriptions = [
 			{"title": "index", "width": 30, "editable": False}, 
@@ -634,29 +634,15 @@ class programWindow(object):
 			{"title": "gray", "editable": False},
 			{"title": "mono", "editable": False}
 			]
-		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
+		self.programList = []
+		win.programList = List((0, 0, -0, -0), self.programList, 
 					columnDescriptions=columnDescriptions,
 					enableDelete=False, 
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
-		self.tthtm.programWindowOpened = 1
-		self.wProgram.bind("close", self.programWindowWillClose)
-		self.wProgram.bind("move", self.programWindowMovedorResized)
-		self.wProgram.bind("resize", self.programWindowMovedorResized)
-		self.wProgram.open()
 
-	def closeProgram(self):
-		self.wProgram.close()
-
-	def programWindowWillClose(self, sender):
-		self.tthtm.programWindowOpened = 0
-		self.tthtm.programWindowVisible = 0
-		setExtensionDefault(defaultKeyProgramWindowVisibility, self.tthtm.programWindowVisible)
-
-	def programWindowMovedorResized(self, sender):
-		self.tthtm.programWindowPosSize = self.wProgram.getPosSize()
-		setExtensionDefault(defaultKeyProgramWindowPosSize, self.tthtm.programWindowPosSize)
+		self.setWindow(win) # this will not rebind the events, since they are already bound.
 
 	def selectionCallback(self, sender):
 		pass
@@ -711,7 +697,9 @@ class programWindow(object):
 		for command in self.commands:
 			for key in ['index', 'code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:
 				putIfNotThere(command, key)
-		self.wProgram.programList.set(self.commands)
+		self.window().programList.set(self.commands)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class assemblyWindow(object):
 	def __init__(self, TTHToolInstance, tthtm):
@@ -753,6 +741,8 @@ class assemblyWindow(object):
 			assemlblyDictList.append(assemblyDict)
 
 		self.wAssembly.assemblyList.set(assemlblyDictList)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class SheetAutoHinting(object):
 

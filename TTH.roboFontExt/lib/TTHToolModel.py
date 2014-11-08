@@ -8,8 +8,6 @@ import TextRenderer as TR
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
 DefaultKeyStub = "com.sansplomb.TTH."
-defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
-defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 defaultKeyCurrentPPMSize = DefaultKeyStub + "currentPPMSize"
@@ -175,16 +173,11 @@ class TTHToolModel():
 		self.deltaRange1 = 9
 		self.deltaRange2 = 9
 
-		self.programWindowOpened = 0
-		self.programWindowVisible = getExtensionDefault(defaultKeyProgramWindowVisibility, fallback=0)
-
 		self.assemblyWindowOpened = 0
 		self.assemblyWindowVisible = getExtensionDefault(defaultKeyAssemblyWindowVisibility, fallback=0)
 
 
 		self.toolsWindowPosSize = (170, 30, 265, 95)
-		self.centralWindowPosSize = (10, 30, 150, 135)
-		self.programWindowPosSize = (10, -300, -10, 300)
 		self.assemblyWindowPosSize = (10, 150, 150, -400)
 		self.previewString = '/?'
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
@@ -207,10 +200,6 @@ class TTHToolModel():
 		self.maxStemY = 1000
 
 		self.angleTolerance = 10.0
-
-	def setProgramWindowVisible(self, valueBool):
-		self.programWindowVisible = valueBool
-		setExtensionDefault(defaultKeyProgramWindowVisibility, self.programWindowVisible)
 
 	def setAssemblyWindowVisible(self, valueBool):
 		self.assemblyWindowVisible = valueBool
