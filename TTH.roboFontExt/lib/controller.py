@@ -324,7 +324,9 @@ class TTHTool(BaseEventTool):
 		self.cachedPathes = {'grid':None, 'centers':None}
 
 		self.programWindow = view.ProgramWindow(self, (10, -300, -10, 300))
+		self.programWindow.hide()
 		self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
+		self.previewWindow.hide()
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
@@ -2805,7 +2807,6 @@ class TTHTool(BaseEventTool):
 				self.programWindow.updateProgramList(glyphTTHCommands)
 			else:
 				self.programWindow.updateProgramList([])
-			self.programWindow.setNeedsDisplay()
 
 		if 'com.robofont.robohint.assembly' in g.lib and self.tthtm.assemblyWindowOpened == 1:
 			self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])

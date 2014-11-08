@@ -455,14 +455,16 @@ class TTHWindow(object):
 		return self.window_
 	def setWindow(self, w):
 		self.window_ = w
-		ps = getExtensionDefault(self.posSizeKey_, fallback=self.defaultPosSize_)
-		setExtensionDefault(self.posSizeKey_, ps)
-		w.setPosSize(ps)
+		#ps = getExtensionDefault(self.posSizeKey_, fallback=self.defaultPosSize_)
+		#setExtensionDefault(self.posSizeKey_, ps)
 		w.bind("move", self.movedOrResized)
 		w.bind("resize", self.movedOrResized)
 		w.bind("should close", self.shouldClose)
+		self.windowWasOpened_ = True
+		w.open()
 
 	def isVisible(self):
+		if not self.windowWasOpened_: return False
 		return self.window().isVisible()
 	def showOrHide(self):
 		if 1 == getExtensionDefault(self.visibilityKey_, fallback=0):
@@ -471,22 +473,26 @@ class TTHWindow(object):
 				self.window().open()
 			self.window().show()
 		else:
+			if not self.windowWasOpened_: return
 			self.window().hide()
 	def show(self):
 		setExtensionDefault(self.visibilityKey_, 1)
 		self.showOrHide()
 	def hide(self):
+		if not self.windowWasOpened_: return
 		self.window().hide()
 	def setNeedsDisplay(self):
-		self.window().getNSView().setNeedsDisplay_(True)
+		if not self.windowWasOpened_: return
+		self.window().getNSWindow().setViewsNeedDisplay_(True)
 
 	# callbacks
 	def shouldClose(self, sender):
+		if not self.windowWasOpened_: return
 		self.hide()
 		setExtensionDefault(self.visibilityKey_, 0)
 		return False
 	def movedOrResized(self, sender):
-		#print "TTHWindow::movedOrResized called"
+		if not self.windowWasOpened_: return
 		setExtensionDefault(self.posSizeKey_, self.window().getPosSize())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -521,8 +527,6 @@ class PreviewWindow(TTHWindow):
 		win.DisplayToEditText.set(self.ToSize)
 		win.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
-		win.bind("move", self.movedOrResizedCallback)
-		win.bind("resize", self.movedOrResizedCallback)
 		
 		for i in string.lowercase:
 			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
@@ -531,6 +535,8 @@ class PreviewWindow(TTHWindow):
 		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
 			self.tthtm.requiredGlyphsForPartialTempFont.add(i)
 
+		win.bind("move", self.movedOrResizedCallback)
+		win.bind("resize", self.movedOrResizedCallback)
 		self.setWindow(win) # this will not rebind the events, since they are already bound.
 
 	def calculateCanvasSize(self, winPosSize):
