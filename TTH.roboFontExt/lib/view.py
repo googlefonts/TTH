@@ -115,7 +115,7 @@ class toolsWindow(BaseWindowController):
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
 
-		self.wTools.DeltaOffsetText = TextBox((10, 40, 40, 15), "Offset:", sizeStyle = "mini")
+		self.wTools.DeltaOffsetText = TextBox((10, 38, 40, 15), "Offset:", sizeStyle = "mini")
 		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
 		self.wTools.DeltaOffsetEditText = EditText((50, 38, 30, 15), sizeStyle = "mini", 
@@ -136,14 +136,14 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
 
-		self.wTools.DeltaMonochromeText = TextBox((90, 40, 40, 15), "Mono:", sizeStyle = "mini")
+		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
 		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 40, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaMonochromeCheckBoxCallback)
 		self.wTools.DeltaMonochromeText.show(False)
 		self.wTools.DeltaMonochromeCheckBox.show(False)
 		self.wTools.DeltaMonochromeCheckBox.set(self.tthtm.deltaMonoBool)
 
-		self.wTools.DeltaGrayText = TextBox((150, 40, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
+		self.wTools.DeltaGrayText = TextBox((150, 38, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
 		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 40, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaGrayCheckBoxCallback)
 		self.wTools.DeltaGrayText.show(False)
