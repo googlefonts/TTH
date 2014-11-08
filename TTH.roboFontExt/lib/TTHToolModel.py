@@ -174,6 +174,8 @@ class TTHToolModel():
 		self.deltaOffset = 0
 		self.deltaRange1 = 9
 		self.deltaRange2 = 9
+		self.deltaMonoBool = 1
+		self.deltaGrayBool = 1
 
 		self.programWindowOpened = 0
 		self.programWindowVisible = getExtensionDefault(defaultKeyProgramWindowVisibility, fallback=0)
@@ -292,6 +294,12 @@ class TTHToolModel():
 
 	def setDeltaRange2(self, value):
 		self.deltaRange2 = int(value)
+
+	def setDeltaMono(self, valueBool):
+		self.deltaMonoBool = valueBool
+
+	def setDeltaGray(self, valueBool):
+		self.deltaGrayBool = valueBool
 
 	def setPreviewString(self, previewString):
 		self.previewString = previewString

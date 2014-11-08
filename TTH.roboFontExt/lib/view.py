@@ -115,26 +115,40 @@ class toolsWindow(BaseWindowController):
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
 
-		self.wTools.DeltaOffsetText = TextBox((10, 42, 50, 15), "Offset:", sizeStyle = "mini")
+		self.wTools.DeltaOffsetText = TextBox((10, 40, 40, 15), "Offset:", sizeStyle = "mini")
 		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
-		self.wTools.DeltaOffsetEditText = EditText((60, 40, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaOffsetEditText = EditText((50, 38, 30, 15), sizeStyle = "mini", 
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaOffsetEditText.set(self.tthtm.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
-		self.wTools.DeltaRangeText = TextBox((-120, 42, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRangeText = TextBox((-120, 57, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 55, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange1ComboBoxCallback)
-		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 40, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 55, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange2ComboBoxCallback)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaRange1ComboBox.set(self.tthtm.deltaRange1)
 		self.wTools.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
+
+		self.wTools.DeltaMonochromeText = TextBox((90, 40, 40, 15), "Mono:", sizeStyle = "mini")
+		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 40, 15, 15), "", sizeStyle = "mini",
+				callback=self.DeltaMonochromeCheckBoxCallback)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaMonochromeCheckBox.set(self.tthtm.deltaMonoBool)
+
+		self.wTools.DeltaGrayText = TextBox((150, 40, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
+		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 40, 15, 15), "", sizeStyle = "mini",
+				callback=self.DeltaGrayCheckBoxCallback)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
+		self.wTools.DeltaGrayCheckBox.set(self.tthtm.deltaGrayBool)
 
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
@@ -253,6 +267,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
 
 	def DoubleLinkSettings(self):
 		self.wTools.AlignmentTypeText.show(False)
@@ -267,6 +285,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
 
 	def AlignSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeAlign = self.alignmentTypeList[0]
@@ -283,6 +305,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
 
 	def InterpolationSettings(self):
 		self.TTHToolInstance.selectedAlignmentTypeLink = self.alignmentTypeListLink[0]
@@ -299,6 +325,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
 
 	def DeltaSettings(self):
 		self.wTools.AlignmentTypeText.show(False)
@@ -313,6 +343,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(True)
 		self.wTools.DeltaRange2ComboBox.show(True)
 		self.wTools.DeltaOffsetEditText.show(True)
+		self.wTools.DeltaMonochromeText.show(True)
+		self.wTools.DeltaMonochromeCheckBox.show(True)
+		self.wTools.DeltaGrayText.show(True)
+		self.wTools.DeltaGrayCheckBox.show(True)
 
 	def SelectionSettings(self):
 		self.wTools.AlignmentTypeText.show(False)
@@ -327,6 +361,10 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
+		self.wTools.DeltaMonochromeText.show(False)
+		self.wTools.DeltaMonochromeCheckBox.show(False)
+		self.wTools.DeltaGrayText.show(False)
+		self.wTools.DeltaGrayCheckBox.show(False)
 
 	# def PPEMSizeEditTextCallback(self, sender):
 	# 	self.TTHToolInstance.changeSize(sender.get())
@@ -366,6 +404,12 @@ class toolsWindow(BaseWindowController):
 
 	def RoundDistanceCheckBoxCallback(self, sender):
 		self.TTHToolInstance.changeRoundBool(sender.get())
+
+	def DeltaMonochromeCheckBoxCallback(self, sender):
+		self.TTHToolInstance.changeDeltaMono(sender.get())
+
+	def DeltaGrayCheckBoxCallback(self, sender):
+		self.TTHToolInstance.changeDeltaGray(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
 		self.TTHToolInstance.changeDeltaOffset(int(sender.get() - 8))

@@ -735,6 +735,15 @@ class TTHTool(BaseEventTool):
 		self.tthtm.setRoundBool(roundBool)
 		self.toolsWindow.wTools.RoundDistanceCheckBox.set(self.tthtm.roundBool)
 
+	def changeDeltaMono(self, valueBool):
+		self.tthtm.setDeltaMono(valueBool)
+		self.toolsWindow.wTools.DeltaMonochromeCheckBox.set(self.tthtm.deltaMonoBool)
+
+	def changeDeltaGray(self, valueBool):
+		self.tthtm.setDeltaGray(valueBool)
+		self.toolsWindow.wTools.DeltaGrayCheckBox.set(self.tthtm.deltaGrayBool)
+
+
 	def changeDeltaOffset(self, offset):
 		try:
 			offset = int(offset)
@@ -2079,6 +2088,15 @@ class TTHTool(BaseEventTool):
 				newCommand['ppm1'] = str(self.tthtm.deltaRange1)
 				newCommand['ppm2'] = str(self.tthtm.deltaRange2)
 				newCommand['delta'] = str(self.tthtm.deltaOffset)
+				if self.tthtm.deltaMonoBool == 1:
+					newCommand['mono'] = 'true'
+				else:
+					newCommand['mono'] = 'false'
+				if self.tthtm.deltaGrayBool == 1:
+					newCommand['gray'] = 'true'
+				else:
+					newCommand['gray'] = 'false'
+
 				if self.tthtm.selectedHintingTool == 'Middle Delta':
 					if self.tthtm.selectedAxis == 'X':
 						newCommand['code'] = 'mdeltah'
