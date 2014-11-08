@@ -652,7 +652,6 @@ class programWindow(object):
 		self.lock = False
 
 		self.wProgram = FloatingWindow(getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=self.tthtm.programWindowPosSize), "Program", minSize=(600, 80))
-		self.wProgram.bind("close", self.programWindowWillClose)
 		self.programList = []
 
 		# sliderCell = SliderListCell(-8, 8)
@@ -675,8 +674,8 @@ class programWindow(object):
 			{"title": "delta", "editable": False}, 
 			{"title": "ppm1", "editable": False}, 
 			{"title": "ppm2", "editable": False},
-			{"title": "gray", "editable": False},
-			{"title": "mono", "editable": False}
+			{"title": "mono", "editable": False},
+			{"title": "gray", "editable": False}
 			]
 		self.wProgram.programList = List((0, 0, -0, -0), self.programList, 
 					columnDescriptions=columnDescriptions,
@@ -718,7 +717,7 @@ class programWindow(object):
 		updatedCommands = []
 		g = self.TTHToolInstance.getGlyph()
 		g.prepareUndo('Edit Program')
-		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'gray', 'mono']
+		keys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'mono', 'gray']
 		for commandUI in sender.get():
 			command = { k : str(commandUI[k]) for k in keys if commandUI[k] != '' }
 			if commandUI['active'] == 1:
@@ -753,7 +752,7 @@ class programWindow(object):
 				c[key] = (c[key] == 'true')
 		self.i = 0
 		for command in self.commands:
-			for key in ['index', 'code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active']:
+			for key in ['index', 'code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'delta', 'ppm1', 'ppm2', 'active', 'mono', 'gray']:
 				putIfNotThere(command, key)
 		self.wProgram.programList.set(self.commands)
 
@@ -769,8 +768,6 @@ class assemblyWindow(object):
 					columnDescriptions=[{"title": "Assembly", "width": 150, "editable": False}],
 					showColumnTitles=False
 					)
-
-		self.wAssembly.bind("close", self.assemblyWindowWillClose)
 		self.tthtm.assemblyWindowOpened = 1
 		self.wAssembly.bind("close", self.assemblyWindowWillClose)
 		self.wAssembly.bind("move", self.assemblyWindowMovedorResized)
