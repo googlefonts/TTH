@@ -2149,6 +2149,8 @@ class TTHTool(BaseEventTool):
 		B_isInterpolate = B['code'] in ['interpolateh', 'interpolatev']
 		A_isMiddleDelta = A['code'] in ['mdeltah', 'mdeltav']
 		B_isMiddleDelta = B['code'] in ['mdeltah', 'mdeltav']
+		A_isFinalDelta = A['code'] in ['fdeltah', 'fdeltav']
+		B_isFinalDelta = B['code'] in ['fdeltah', 'fdeltav']
 
 		if A_isAlign and B_isAlign:
 			if A['point'] == B['point']:
@@ -2214,6 +2216,34 @@ class TTHTool(BaseEventTool):
 				order = ba
 			elif A['point'] == B['point']:
 				order = ab
+		elif A_isMiddleDelta and B_isMiddleDelta:
+			if (A['mono'] == 'true' and A['gray'] == 'true') and (B['mono'] == 'false' or B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'true' and B['gray'] == 'true') and (A['mono'] == 'false' or A['gray'] == 'false'):
+				order = ba
+			elif (A['mono'] == 'true' and A['gray'] == 'false') and (B['mono'] == 'false' or B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'true' and B['gray'] == 'false') and (A['mono'] == 'false' or A['gray'] == 'false'):
+				order = ba
+			elif (A['mono'] == 'false' and A['gray'] == 'true') and (B['mono'] == 'false' and B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'false' and B['gray'] == 'true') and (A['mono'] == 'false' and A['gray'] == 'false'):
+				order = ba
+		elif A_isFinalDelta and B_isFinalDelta:
+			if (A['mono'] == 'true' and A['gray'] == 'true') and (B['mono'] == 'false' or B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'true' and B['gray'] == 'true') and (A['mono'] == 'false' or A['gray'] == 'false'):
+				order = ba
+			elif (A['mono'] == 'true' and A['gray'] == 'false') and (B['mono'] == 'false' or B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'true' and B['gray'] == 'false') and (A['mono'] == 'false' or A['gray'] == 'false'):
+				order = ba
+			elif (A['mono'] == 'false' and A['gray'] == 'true') and (B['mono'] == 'false' and B['gray'] == 'false'):
+				order = ab
+			elif (B['mono'] == 'false' and B['gray'] == 'true') and (A['mono'] == 'false' and A['gray'] == 'false'):
+				order = ba
+
+
 		if order == ab:
 			return (True, False)
 		elif order == ba:
