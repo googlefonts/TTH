@@ -2187,9 +2187,6 @@ class TTHTool(BaseEventTool):
 		elif A_isAlign and B_isMiddleDelta:
 			if A['point'] == B['point']:
 				order = ab
-		elif A_isMiddleDelta and B_isMiddleDelta:
-			if A['point'] == B['point']:
-				order = 'BUG'
 		elif A_isMiddleDelta and B_isAlign:
 			if A['point'] == B['point']:
 				order = ba
@@ -2216,33 +2213,38 @@ class TTHTool(BaseEventTool):
 				order = ba
 			elif A['point'] == B['point']:
 				order = ab
-		elif A_isMiddleDelta and B_isMiddleDelta:
-			if (A['mono'] == 'true' and A['gray'] == 'true') and (B['mono'] == 'false' or B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'true' and B['gray'] == 'true') and (A['mono'] == 'false' or A['gray'] == 'false'):
-				order = ba
-			elif (A['mono'] == 'true' and A['gray'] == 'false') and (B['mono'] == 'false' or B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'true' and B['gray'] == 'false') and (A['mono'] == 'false' or A['gray'] == 'false'):
-				order = ba
-			elif (A['mono'] == 'false' and A['gray'] == 'true') and (B['mono'] == 'false' and B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'false' and B['gray'] == 'true') and (A['mono'] == 'false' and A['gray'] == 'false'):
-				order = ba
-		elif A_isFinalDelta and B_isFinalDelta:
-			if (A['mono'] == 'true' and A['gray'] == 'true') and (B['mono'] == 'false' or B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'true' and B['gray'] == 'true') and (A['mono'] == 'false' or A['gray'] == 'false'):
-				order = ba
-			elif (A['mono'] == 'true' and A['gray'] == 'false') and (B['mono'] == 'false' or B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'true' and B['gray'] == 'false') and (A['mono'] == 'false' or A['gray'] == 'false'):
-				order = ba
-			elif (A['mono'] == 'false' and A['gray'] == 'true') and (B['mono'] == 'false' and B['gray'] == 'false'):
-				order = ab
-			elif (B['mono'] == 'false' and B['gray'] == 'true') and (A['mono'] == 'false' and A['gray'] == 'false'):
-				order = ba
+		elif (A_isMiddleDelta and B_isMiddleDelta) or (A_isFinalDelta and B_isFinalDelta):
+			if (A['mono'] == 'true' and A['gray'] == 'true'):
+				if (B['mono'] == 'true' and B['gray'] == 'false'):
+					order = ab
+				elif (B['mono'] == 'false' and B['gray'] == 'true'):
+					order = ab
+				elif (B['mono'] == 'false' and B['gray'] == 'false'):
+					order = ab
 
+			elif (A['mono'] == 'true' and A['gray'] == 'false'):
+				if (B['mono'] == 'true' and B['gray'] == 'true'):
+					order = ba
+				elif (B['mono'] == 'false' and B['gray'] == 'true'):
+					order = ab
+				elif (B['mono'] == 'false' and B['gray'] == 'false'):
+					order = ab
+
+			elif (A['mono'] == 'false' and A['gray'] == 'true'):
+				if (B['mono'] == 'true' and B['gray'] == 'true'):
+					order = ba
+				elif (B['mono'] == 'true' and B['gray'] == 'false'):
+					order = ba
+				elif (B['mono'] == 'false' and B['gray'] == 'false'):
+					order = ab
+
+			elif (A['mono'] == 'false' and A['gray'] == 'false'):
+				if (B['mono'] == 'true' and B['gray'] == 'true'):
+					order = ba
+				elif (B['mono'] == 'true' and B['gray'] == 'false'):
+					order = ba
+				elif (B['mono'] == 'false' and B['gray'] == 'true'):
+					order = ba
 
 		if order == ab:
 			return (True, False)
