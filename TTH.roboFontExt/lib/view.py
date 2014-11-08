@@ -204,7 +204,6 @@ class toolsWindow(BaseWindowController):
 			self.showProgramCallback()
 		if gearOption == 9:
 			self.showAssemblyCallback()
-			self.tthtm.setAssemblyWindowVisible(1)
 
 		if gearOption == 11:
 			self.controlValuesCallback()
@@ -217,13 +216,12 @@ class toolsWindow(BaseWindowController):
 		self.TTHToolInstance.previewWindow.show()
 
 	def showProgramCallback(self):
-		self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
 		self.TTHToolInstance.programWindow.show()
+		self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
 
 	def showAssemblyCallback(self):
-		if self.tthtm.assemblyWindowOpened == 0:
-			self.TTHToolInstance.assemblyWindow = assemblyWindow(self.TTHToolInstance, self.tthtm)
-			self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
+		self.TTHToolInstance.assemblyWindow.show()
+		self.TTHToolInstance.resetglyph(self.TTHToolInstance.getGlyph())
 
 
 	def refreshButtonCallback(self, sender):
@@ -450,49 +448,38 @@ class TTHWindow(object):
 		self.defaultPosSize_  = defaultPosSize
 		self.posSizeKey_      = posSizeKey
 		self.visibilityKey_   = visibilityKey
-		self.windowWasOpened_ = False
+	def __del__(self):
+		if self.window_ != None:
+			self.window_.close()
 	def window(self):
 		return self.window_
 	def setWindow(self, w):
 		self.window_ = w
-		#ps = getExtensionDefault(self.posSizeKey_, fallback=self.defaultPosSize_)
-		#setExtensionDefault(self.posSizeKey_, ps)
 		w.bind("move", self.movedOrResized)
 		w.bind("resize", self.movedOrResized)
 		w.bind("should close", self.shouldClose)
-		self.windowWasOpened_ = True
-		w.open()
 
 	def isVisible(self):
-		if not self.windowWasOpened_: return False
 		return self.window().isVisible()
 	def showOrHide(self):
 		if 1 == getExtensionDefault(self.visibilityKey_, fallback=0):
-			if not self.windowWasOpened_:
-				self.windowWasOpened_ = True
-				self.window().open()
 			self.window().show()
 		else:
-			if not self.windowWasOpened_: return
 			self.window().hide()
 	def show(self):
 		setExtensionDefault(self.visibilityKey_, 1)
 		self.showOrHide()
 	def hide(self):
-		if not self.windowWasOpened_: return
 		self.window().hide()
 	def setNeedsDisplay(self):
-		if not self.windowWasOpened_: return
 		self.window().getNSWindow().setViewsNeedDisplay_(True)
 
 	# callbacks
 	def shouldClose(self, sender):
-		if not self.windowWasOpened_: return
 		self.hide()
 		setExtensionDefault(self.visibilityKey_, 0)
-		return False
+		return False # which means, no please don't close the window
 	def movedOrResized(self, sender):
-		if not self.windowWasOpened_: return
 		setExtensionDefault(self.posSizeKey_, self.window().getPosSize())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -707,37 +694,20 @@ class ProgramWindow(TTHWindow):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-class assemblyWindow(object):
-	def __init__(self, TTHToolInstance, tthtm):
+class AssemblyWindow(TTHWindow):
+	def __init__(self, TTHToolInstance, defaultPosSize):
+		super(AssemblyWindow, self).__init__(defaultPosSize, defaultKeyAssemblyWindowPosSize, defaultKeyAssemblyWindowVisibility)
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
 
 		self.assemblyList = []
 
-		self.wAssembly = FloatingWindow(getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=self.tthtm.assemblyWindowPosSize), "Assembly", minSize=(150, 100))
-		self.wAssembly.assemblyList = List((0, 0, -0, -0), self.assemblyList,
+		ps = getExtensionDefault(defaultKeyAssemblyWindowPosSize, fallback=defaultPosSize)
+		win = FloatingWindow(ps, "Assembly", minSize=(150, 100))
+		win.assemblyList = List((0, 0, -0, -0), self.assemblyList,
 					columnDescriptions=[{"title": "Assembly", "width": 150, "editable": False}],
-					showColumnTitles=False
-					)
-
-		self.wAssembly.bind("close", self.assemblyWindowWillClose)
-		self.tthtm.assemblyWindowOpened = 1
-		self.wAssembly.bind("close", self.assemblyWindowWillClose)
-		self.wAssembly.bind("move", self.assemblyWindowMovedorResized)
-		self.wAssembly.bind("resize", self.assemblyWindowMovedorResized)
-		self.wAssembly.open()
-
-	def closeAssembly(self):
-		self.wAssembly.close()
-
-	def assemblyWindowWillClose(self, sender):
-		self.tthtm.assemblyWindowOpened = 0
-		self.tthtm.assemblyWindowVisible = 0
-		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
-
-	def assemblyWindowMovedorResized(self, sender):
-		self.tthtm.assemblyWindowPosSize = self.wAssembly.getPosSize()
-		setExtensionDefault(defaultKeyAssemblyWindowPosSize, self.tthtm.assemblyWindowPosSize)
+					showColumnTitles=False)
+		self.setWindow(win)
 
 	def updateAssemblyList(self, assembly):
 		assemlblyDictList = []
@@ -745,8 +715,7 @@ class assemblyWindow(object):
 			assemblyDict = {}
 			assemblyDict["Assembly"] = a
 			assemlblyDictList.append(assemblyDict)
-
-		self.wAssembly.assemblyList.set(assemlblyDictList)
+		self.window().assemblyList.set(assemlblyDictList)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -8,7 +8,6 @@ import TextRenderer as TR
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
 DefaultKeyStub = "com.sansplomb.TTH."
-defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 defaultKeyCurrentPPMSize = DefaultKeyStub + "currentPPMSize"
 defaultKeySelectedAxis = DefaultKeyStub + "selectedAxis"
@@ -173,12 +172,7 @@ class TTHToolModel():
 		self.deltaRange1 = 9
 		self.deltaRange2 = 9
 
-		self.assemblyWindowOpened = 0
-		self.assemblyWindowVisible = getExtensionDefault(defaultKeyAssemblyWindowVisibility, fallback=0)
-
-
 		self.toolsWindowPosSize = (170, 30, 265, 95)
-		self.assemblyWindowPosSize = (10, 150, 150, -400)
 		self.previewString = '/?'
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
@@ -200,10 +194,6 @@ class TTHToolModel():
 		self.maxStemY = 1000
 
 		self.angleTolerance = 10.0
-
-	def setAssemblyWindowVisible(self, valueBool):
-		self.assemblyWindowVisible = valueBool
-		setExtensionDefault(defaultKeyAssemblyWindowVisibility, self.assemblyWindowVisible)
 
 	def setAlwaysRefresh(self, valueBool):
 		self.alwaysRefresh = valueBool

@@ -315,18 +315,13 @@ class TTHTool(BaseEventTool):
 		self.tthtm = tthtm
 		self.startPoint = None
 
-		# temp = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		# self.partialtempfontpath = temp.name
-		# temp.close()
-
 		self.movingMouse = None
 
 		self.cachedPathes = {'grid':None, 'centers':None}
 
-		self.programWindow = view.ProgramWindow(self, (10, -300, -10, 300))
-		self.programWindow.hide()
-		self.previewWindow = view.PreviewWindow(self, (-510, 30, 500, 600))
-		self.previewWindow.hide()
+		self.programWindow  = view.ProgramWindow(self, (10, -300, -10, 300))
+		self.previewWindow  = view.PreviewWindow(self, (-510, 30, 500, 600))
+		self.assemblyWindow = view.AssemblyWindow(self, (10, 150, 150, -400))
 		self.previewInGlyphWindow = {}
 		self.messageInFront = False
 		self.drawingPreferencesChanged = False
@@ -418,11 +413,7 @@ class TTHTool(BaseEventTool):
 		self.toolsWindow.closeTools()
 		self.previewWindow.hide()
 		self.programWindow.hide()
-		if self.tthtm.assemblyWindowOpened == 1:
-			self.assemblyWindow.closeAssembly()
-			self.tthtm.assemblyWindowVisible = 1
-			setExtensionDefault(view.defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
-
+		self.assemblyWindow.hide()
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
 			#self.messageInFront = True
@@ -474,8 +465,7 @@ class TTHTool(BaseEventTool):
 		self.toolsWindow.wTools.hide()
 		self.previewWindow.hide()
 		self.programWindow.hide()
-		if self.tthtm.assemblyWindowOpened == 1:
-			self.assemblyWindow.wAssembly.hide()
+		self.assemblyWindow.hide()
 		self.fontClosed = True
 
 	def fontDidOpen(self, font):
@@ -491,8 +481,7 @@ class TTHTool(BaseEventTool):
 		self.toolsWindow.wTools.show()
 		self.previewWindow.showOrHide()
 		self.programWindow.showOrHide()
-		if self.tthtm.assemblyWindowOpened == 1:
-			self.assemblyWindow.wAssembly.show()
+		self.assemblyWindow.showOrHide()
 
 		self.resetFont(createWindows=False)
 		self.updatePartialFont()
@@ -2739,9 +2728,7 @@ class TTHTool(BaseEventTool):
 			self.toolsWindow = view.toolsWindow(self)
 			self.previewWindow.showOrHide()
 			self.programWindow.showOrHide()
-			if self.tthtm.assemblyWindowOpened == 0 and self.tthtm.assemblyWindowVisible == 1:
-				setExtensionDefault(view.defaultKeyAssemblyWindowVisibility, self.tthtm.assemblyWindowVisible)
-				self.assemblyWindow = view.assemblyWindow(self, self.tthtm)
+			self.assemblyWindow.showOrHide()
 
 
 		tt_tables.writeCVTandPREP(f, self.c_fontModel.UPM, self.c_fontModel.alignppm, self.c_fontModel.stems, self.c_fontModel.zones, self.c_fontModel.codeppm)
@@ -2808,10 +2795,11 @@ class TTHTool(BaseEventTool):
 			else:
 				self.programWindow.updateProgramList([])
 
-		if 'com.robofont.robohint.assembly' in g.lib and self.tthtm.assemblyWindowOpened == 1:
-			self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])
-		elif self.tthtm.assemblyWindowOpened == 1:
-			self.assemblyWindow.updateAssemblyList([])
+		if self.assemblyWindow.isVisible():
+			if 'com.robofont.robohint.assembly' in g.lib:
+				self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])
+			else:
+				self.assemblyWindow.updateAssemblyList([])
 
 		self.commandLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(g)
