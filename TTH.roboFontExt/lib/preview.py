@@ -65,6 +65,6 @@ class PreviewInGlyphWindow(NSView):
 
 		tr.set_cur_size(self.TTHToolInstance.tthtm.PPM_Size)
 		tr.set_pen((40, 110))
-		scale = ceil(120/float(self.TTHToolInstance.tthtm.PPM_Size))
+		scale = 170.0/self.TTHToolInstance.tthtm.PPM_Size
 		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
 
