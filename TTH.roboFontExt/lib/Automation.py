@@ -68,14 +68,14 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, 
 		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
 			HF.isHorizontal_withTolerance(angle1, tolerance) and
 			not existingStems['h'] ) :
-			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
+			if HF.inInterval(c_distance[1], yBound):# and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
 		## if they are vertical, treat the stem on the X axis
 		elif(HF.isVertical_withTolerance(angle0, tolerance) and
 			HF.isVertical_withTolerance(angle1, tolerance) and
 			not existingStems['v'] ) : # the angle is already sheared to counter italic
-			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
+			if HF.inInterval(c_distance[0], xBound):# and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, (src, tgt, c_distance[0])))
 		else:
@@ -399,6 +399,7 @@ class AutoHinting():
 	def beautifulStem(self, stem, contours):
 		hd0 = contours[stem[0].cont][stem[0].seg]
 		hd1 = contours[stem[1].cont][stem[1].seg]
+		#print hd0.inAngle, hd0.outAngle, hd1.inAngle, hd1.outAngle
 		return (HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd0.outAngle, 1.0)
 		    and HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd1.inAngle, 1.0)
 		    and HF.closeAngleModulo180_withTolerance(hd1.inAngle, hd1.outAngle, 1.0))
@@ -411,7 +412,7 @@ class AutoHinting():
 			group0 = src.group
 			group1 = tgt.group
 			beautiful = self.beautifulStem(stem, contours)
-			#print "(",group0, group1,src.pos,tgt.pos,")",
+			#print "(",group0, group1,src.pos,tgt.pos,beautiful,")"
 			if group0 == None or group1 == None: continue
 			coll = None
 			for c in collections:
@@ -423,11 +424,11 @@ class AutoHinting():
 			coll.add(group0, beautiful)
 			coll.add(group1, beautiful)
 		collections.sort(key=lambda c: c.minPos)
-		print "Collections:"
-		for coll in collections:
-			for p in coll.positions:
-				print p,
-			print " >|< "
+		#print "Collections:"
+		#for coll in collections:
+		#	for p in coll.positions:
+		#		print p,
+		#	print " >|< "
 		return collections
 
 	def findLeftRight(self, collections):
@@ -453,6 +454,7 @@ class AutoHinting():
 			j -= 1
 		col = collections[j]
 		nicePositions = sorted(col.nicePositions)
+		#print "Right, positions", col.positions
 		#print "Right, nicePositions", nicePositions
 		rightmost = None
 		l = len(nicePositions)
@@ -565,8 +567,8 @@ class AutoHinting():
 			newCommand['code'] = 'doublev'
 		else:
 			newCommand['code'] = 'doubleh'
-		newCommand['point1'] = p1.name#self.TTHToolInstance.pointCoordinatesToName[(p1.x, p1.y)]
-		newCommand['point2'] = p2.name#self.TTHToolInstance.pointCoordinatesToName[(p2.x, p2.y)]
+		newCommand['point1'] = p1.name
+		newCommand['point2'] = p2.name
 		newCommand['stem'] = stemName
 		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
@@ -723,7 +725,7 @@ class AutoHinting():
 
 		xBound = self.tthtm.minStemX, maxStemX
 		yBound = self.tthtm.minStemY, maxStemY
-		print "(minStemX, maxStemX) = ", xBound
+		#print "(minStemX, maxStemX) = ", xBound
 
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
 		stems = self.filterStems(stems)
