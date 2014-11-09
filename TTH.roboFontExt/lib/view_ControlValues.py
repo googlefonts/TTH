@@ -194,6 +194,7 @@ class StemView(object):
 			sender[sel]['4 px'] = self.UIStems[sel]['4 px']
 			sender[sel]['5 px'] = self.UIStems[sel]['5 px']
 			sender[sel]['6 px'] = self.UIStems[sel]['6 px']
+			self.lock = False
 			return
 
 		if oldStemName != newStemName:
