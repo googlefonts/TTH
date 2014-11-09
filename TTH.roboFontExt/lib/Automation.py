@@ -464,7 +464,7 @@ class AutoHinting():
 		print "findLeftRight returns", ret
 		return ret
 
-	def processCollection(self, coll, groups, contours, isHorizontal):
+	def processCollection(self, coll, groups, contours, interpolatePossible, bounds, isHorizontal):
 		remainingPositions = sorted(coll.positions - coll.processedPositions)
 		if coll.leaderPos == None:
 			if len(coll.nicePositions)>0:
@@ -476,10 +476,10 @@ class AutoHinting():
 				self.addLinksInGroup(0, groups[coll.leaderPos], contours, isHorizontal)
 		cont,seg = groups[coll.leaderPos][0][0]
 		lead = contours[cont][seg].leader
+		if len(remainingPositions) == len(coll.positions) and interpolatePossible:
+			leftmost, rightmost = bounds
+			self.addInterpolate(leftmost, lead, rightmost, isHorizontal)
 		lead.touched = True
-		if len(remainingPositions) == len(coll.positions):
-			# Here we should add some interpolation to anchor the collection
-			pass
 		while len(remainingPositions)>0:
 			pos = remainingPositions.pop()
 			coll.processedPositions.add(pos)
@@ -543,6 +543,19 @@ class AutoHinting():
 			command['stem'] = stemName
 		self.TTHToolInstance.glyphTTHCommands.append(command)
 		return command
+
+	def addInterpolate(self, p1, p, p2, isHorizontal):
+		newCommand = {}
+		if isHorizontal:
+			newCommand['code'] = 'interpolatev'
+		else:
+			newCommand['code'] = 'interpolateh'
+		newCommand['point1'] = p1.name
+		newCommand['point2'] = p2.name
+		newCommand['point'] = p.name
+		newCommand['align'] = 'round'
+		if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+			self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
 		if stemName == None:
@@ -666,6 +679,7 @@ class AutoHinting():
 		lci,lmi, rci,rmi = self.findLeftRight(collections)
 		leftColl = collections[lci]
 		rightColl = collections[rci]
+		bounds = None
 
 		if rmi != None:
 			rightColl.leaderPos = rmi
@@ -676,11 +690,12 @@ class AutoHinting():
 			self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
 			rightmost.touched = True
 			self.addLinksInGroup(0, groups[rightmost.group], contours, False)
-			self.processCollection(rightColl, groups, contours, False)
+			self.processCollection(rightColl, groups, contours, False, None, isHorizontal=False)
 			if lmi != None and lci != rci:
 				leftColl.processedPositions.add(lmi)
 				cont, seg = groups[lmi][0][0]
 				leftmost = contours[cont][seg].leader
+				bounds = leftmost, rightmost
 				stemName = self.guessStemForDistance(leftmost, rightmost, False)
 				link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
 				if stemName == None:
@@ -688,10 +703,12 @@ class AutoHinting():
 				leftmost.touched = True
 				self.addLinksInGroup(0, groups[leftmost.group], contours, False)
 				leftColl.leaderPos = lmi
-				self.processCollection(leftColl, groups, contours, False)
+				self.processCollection(leftColl, groups, contours, False, None, isHorizontal=False)
+		interpolatePossible = (lmi != None) and (rmi != None) and (lci != rci)
 		for coll in collections:
 			if len(coll.processedPositions) < len(coll.positions):
-				self.processCollection(coll, groups, contours, False)
+				self.processCollection(coll, groups, contours, \
+						interpolatePossible, bounds, isHorizontal=False)
 
 	def autohint(self, g):
 		font = self.TTHToolInstance.c_fontModel.f
