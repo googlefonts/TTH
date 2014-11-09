@@ -1,6 +1,5 @@
 import math
 import string
-import sets
 import HelperFunc as HF
 reload(HF)
 
@@ -32,7 +31,9 @@ class HintingData(object):
 		self.group      = None
 		self.cont       = cont # contour number
 		self.seg        = seg  # segment number
-		self.leader     = None # who is my leader?
+		self.leader     = None # who is my leader? (only leaders take part
+		# in hinting commands, each component of a group has exactly one
+		# leader)
 	def nextOn(self, contours):
 		contour = contours[self.cont]
 		return contour[(self.seg+1)%len(contour)]
@@ -56,7 +57,7 @@ def makeHintingData(g, ital, (cidx, sidx)):
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
 	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx)
 
-def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
+def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	def addStemToList(src, tgt, angle0, angle1, existingStems):
@@ -92,17 +93,21 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance):
 		for tgt in hPoints[gidx+1:]:
 			existingStems = {'h':False, 'v':False, 'd':False}
 			wc = [None]
-			for (sa,ta) in [(src.inAngle,tgt.inAngle), (src.outAngle,tgt.outAngle),
-					(src.inAngle,tgt.outAngle), (src.outAngle,tgt.inAngle)]:
-				if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
-					if hasWhite(wc, src.pos, tgt.pos): break
-					addStemToList(src, tgt, sa, ta, existingStems)
-	# avoid duplicates, filters temporary stems
+			for sa in (src.inAngle, src.outAngle):
+				for ta in (tgt.inAngle, tgt.outAngle):
+					if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
+						if hasWhite(wc, src.pos, tgt.pos): break
+						addStemToList(src, tgt, sa, ta, existingStems)
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
+	if not dedup: # dedup means de-duplications
+		stemsX = [stem for (hypoth, stem) in stemsListX_temp]
+		stemsY = [stem for (hypoth, stem) in stemsListY_temp]
+		return (stemsX, stemsY)
+	# avoid duplicates, filters temporary stems
 	stemsLists = ([], [])
 	for i, stems in enumerate([stemsListX_temp, stemsListY_temp]):
-		references = sets.Set()
+		references = set()
 		for (hypoth, stem) in stems:
 			sourceAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[0].shearedPos[i], y, 0.025))
 			targetAbsent = not HF.exists(references, lambda y: HF.approxEqual(stem[1].shearedPos[i], y, 0.025))
@@ -132,10 +137,10 @@ def makeGroups(g, ital, X, autoh):
 	for contseg in contourSegmentIterator(g):
 		hd = makeHintingData(g, ital, contseg)
 		contours[contseg[0]].append(hd)
-		pos = int(round(proj(hd.shearedPos)))
 		goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle, angle, autoh.tthtm.angleTolerance) \
 			or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
 		if not goodAngle: continue
+		pos = int(round(proj(hd.shearedPos)))
 		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
 
@@ -180,6 +185,30 @@ def printGroups((contours, groups), axis):
 			print "}",
 		print ""
 
+def computeMaxStemOnO(tthtm, font):
+	roundFactor_Stems = tthtm.roundFactor_Stems
+	roundFactor_Jumps = tthtm.roundFactor_Jumps
+	minStemX = HF.roundbase(tthtm.minStemX, roundFactor_Stems)
+	minStemY = HF.roundbase(tthtm.minStemY, roundFactor_Stems)
+	maxStemX = HF.roundbase(tthtm.maxStemX, roundFactor_Stems)
+	maxStemY = HF.roundbase(tthtm.maxStemY, roundFactor_Stems)
+	xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
+	yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
+	if font.info.italicAngle != None:
+		ital = - font.info.italicAngle
+	else:
+		ital = 0
+	if 'O' not in font:
+		print "WARNING: glyph 'O' missing, unable to calculate stems"
+		return -1
+	g = font['O']
+	(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, tthtm.angleTolerance)
+
+	if O_stemsListX == None:
+		return 250
+	else:
+		return int(round(2.0 * max([stem[2] for stem in O_stemsListX])))
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Automation():
@@ -188,14 +217,18 @@ class Automation():
 		self.tthtm = TTHToolInstance.tthtm
 		self.controller = controller
 
+
 	def autoStems(self, font, progressBar):
 		roundFactor_Stems = self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
 		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
 		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
-		maxStemX = HF.roundbase(self.tthtm.maxStemX, roundFactor_Stems)
-		maxStemY = HF.roundbase(self.tthtm.maxStemY, roundFactor_Stems)
+
+		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
+		if maxStemX == -1:
+			return
+
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
@@ -203,20 +236,6 @@ class Automation():
 			ital = - font.info.italicAngle
 		else:
 			ital = 0
-
-		if 'O' not in font:
-			print "WARNING: glyph 'O' missing, unable to calculate stems"
-			return
-		g = font['O']
-		(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
-
-		if O_stemsListX == None:
-			maxStemX = maxStemY = 250
-		else:
-			maxStemX = maxStemY = max([stem[2] for stem in O_stemsListX])
-
-		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
-		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
 		stemsValuesXList = []
 		stemsValuesYList = []
@@ -339,6 +358,23 @@ def zoneData((zoneName, zone)):
 		y_end = int(zone['position'])
 	return (zoneName, isTop, y_start, y_end)
 
+class Collection:
+	def __init__(self):
+		self.positions = set()
+		self.nicePositions = set()
+		self.processedPositions = set()
+		self.leaderPos = None
+		self.minPos = 10000000
+		self.bounds = (10000000,-10000000)
+	def covers(self, p):
+		return (p in self.positions)
+	def add(self, pos, isNice):
+		self.minPos = min(self.minPos, pos)
+		self.positions.add(pos)
+		if isNice:
+			self.nicePositions.add(pos)
+		self.bounds = min(self.bounds[0], pos), max(self.bounds[1], pos)
+
 class AutoHinting():
 	def __init__(self, TTHToolInstance):
 		self.TTHToolInstance = TTHToolInstance
@@ -356,23 +392,110 @@ class AutoHinting():
 				newY.append((stem, name))
 		for stem in g_stemsListX:
 			name = self.guessStemForDistance(stem[0], stem[1], False)
-			if None != name:
-				newX.append((stem, name))
+			#if None != name:
+			newX.append((stem, name))
 		return (newX, newY)
 
-	def markStemsAndFindLeftRight(self, stems, contours):
-		l, r, lx, rx = None, None, 100000.0, 100000.0
+	def beautifulStem(self, stem, contours):
+		hd0 = contours[stem[0].cont][stem[0].seg]
+		hd1 = contours[stem[1].cont][stem[1].seg]
+		return (HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd0.outAngle, 1.0)
+		    and HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd1.inAngle, 1.0)
+		    and HF.closeAngleModulo180_withTolerance(hd1.inAngle, hd1.outAngle, 1.0))
+
+	def makeCollections(self, contours, stems):
+		collections = []
+		for stem, stemName in stems:
+			src = contours[stem[0].cont][stem[0].seg]
+			tgt = contours[stem[1].cont][stem[1].seg]
+			group0 = src.group
+			group1 = tgt.group
+			beautiful = self.beautifulStem(stem, contours)
+			#print "(",group0, group1,src.pos,tgt.pos,")",
+			if group0 == None or group1 == None: continue
+			coll = None
+			for c in collections:
+				if c.covers(group0) or c.covers(group1):
+					coll = c
+			if coll == None:
+				collections.append(Collection())
+				coll = collections[-1]
+			coll.add(group0, beautiful)
+			coll.add(group1, beautiful)
+		collections.sort(key=lambda c: c.minPos)
+		print "Collections:"
+		for coll in collections:
+			for p in coll.positions:
+				print p,
+			print " >|< "
+		return collections
+
+	def findLeftRight(self, collections):
+		nbColls = len(collections)
+		#--------------
+		i = 0
+		while (i<nbColls) and len(collections[i].nicePositions) == 0:
+			i += 1
+		if i == nbColls: return 0,None, 0,None
+		col = collections[i]
+		nicePositions = sorted(col.nicePositions)
+		#print "Left, positions", col.positions
+		#print "Left, nicePositions", nicePositions
+		leftmost = None
+		l = len(nicePositions)
+		if l >= 3:
+			leftmost = nicePositions[1]
+		elif l >= 1:
+			leftmost = nicePositions[0]
+		#----------------
+		j = nbColls-1
+		while (j>=0) and len(collections[j].nicePositions) == 0:
+			j -= 1
+		col = collections[j]
+		nicePositions = sorted(col.nicePositions)
+		#print "Right, nicePositions", nicePositions
+		rightmost = None
+		l = len(nicePositions)
+		if l >= 3:
+			rightmost = nicePositions[-2]
+		elif l >= 1:
+			rightmost = nicePositions[-1]
+		ret = i,leftmost, j,rightmost
+		print "findLeftRight returns", ret
+		return ret
+
+	def processCollection(self, coll, groups, contours, isHorizontal):
+		remainingPositions = sorted(coll.positions - coll.processedPositions)
+		if coll.leaderPos == None:
+			if len(coll.nicePositions)>0:
+				coll.leaderPos = sorted(coll.nicePositions)[0]
+			elif len(coll.processedPositions)>0:
+				coll.leaderPos = sorted(coll.processedPositions)[0]
+			else:
+				coll.leaderPos = remainingPositions.pop()
+				self.addLinksInGroup(0, groups[coll.leaderPos], contours, isHorizontal)
+		cont,seg = groups[coll.leaderPos][0][0]
+		lead = contours[cont][seg].leader
+		lead.touched = True
+		if len(remainingPositions) == len(coll.positions):
+			# Here we should add some interpolation to anchor the collection
+			pass
+		while len(remainingPositions)>0:
+			pos = remainingPositions.pop()
+			coll.processedPositions.add(pos)
+			cont,seg = groups[pos][0][0]
+			tgt = contours[cont][seg].leader
+			stemName = self.guessStemForDistance(lead, tgt, isHorizontal)
+			if not tgt.touched:
+				tgt.touched = True
+				self.addSingleLink(lead.name, tgt.name, isHorizontal, stemName)
+			self.addLinksInGroup(0, groups[pos], contours, isHorizontal)
+
+	def markStems(self, stems, contours):
 		for (stem, stemName) in stems:
 			for i in range(2):
 				hd = contours[stem[i].cont][stem[i].seg]
 				hd.inStem = True
-				if hd.group == None: continue
-				pos = hd.shearedPos[0]
-				if l == None or pos < lx:
-					l = hd; lx = pos
-				if r == None or rx < pos:
-					r = hd; rx = pos
-		return l, r
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -411,12 +534,12 @@ class AutoHinting():
 		else:
 			return None
 
-	def addSingleLink(self, p1name, p2name, isHorizontal, stemName=""):
+	def addSingleLink(self, p1name, p2name, isHorizontal, stemName):
 		command = {}
 		command['code'] = self.singleLinkCommandName[isHorizontal]
 		command['point1'] = p1name
 		command['point2'] = p2name
-		if stemName != "":
+		if stemName != None:
 			command['stem'] = stemName
 		self.TTHToolInstance.glyphTTHCommands.append(command)
 		return command
@@ -502,7 +625,7 @@ class AutoHinting():
 			hd = contours[cont][seg]
 			if hd.touched: continue
 			hd.touched = True
-			self.addSingleLink(startName, hd.name, isHorizontal)
+			self.addSingleLink(startName, hd.name, isHorizontal, None)
 
 	def handleNonZones(self, nonZonePositions, (contours, groups), isHorizontal):
 		for pos in nonZonePositions:
@@ -521,7 +644,7 @@ class AutoHinting():
 		contours, groups = cg
 		#printGroups(cg, 'Y')
 		# we mark point in Y groups that have at least one stem attached to them:
-		_, _ = self.markStemsAndFindLeftRight(stems, contours)
+		self.markStems(stems, contours)
 		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		# in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
 		nonZones = self.handleZones(g, cg)
@@ -534,43 +657,61 @@ class AutoHinting():
 		cg = makeGroups(g, self.ital, True, self) # for X auto-hinting
 		contours, groups = cg
 		#printGroups(cg, 'X')
-		# we mark point in X groups that have at least one stem attached to them:
-		leftmost, rightmost = self.markStemsAndFindLeftRight(stems, contours)
-		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
 		if len(groups) == 0: return
+		# we mark point in X groups that have at least one stem attached to them:
+		self.markStems(stems, contours)
+		for pos, comps in groups.iteritems(): self.putALeaderFirst(comps, contours)
+		
+		collections = self.makeCollections(contours, stems)
+		lci,lmi, rci,rmi = self.findLeftRight(collections)
+		leftColl = collections[lci]
+		rightColl = collections[rci]
 
-		if leftmost != None and rightmost != None:
-			self.addSingleLink('lsb', rightmost.name, False, "")['round'] = 'true'
-			self.addSingleLink(rightmost.name, 'rsb', False, "")['round'] = 'true'
-			self.addSingleLink(rightmost.name, leftmost.name, False, "")['round'] = 'true'
-			leftmost.touched = rightmost.touched = True
-			self.addLinksInGroup((0,0), groups[leftmost.group], contours, False)
-			self.addLinksInGroup((0,0), groups[rightmost.group], contours, False)
-		# now we actually insert the stems, as double or single links, in X
-		self.applyStems(stems, contours, False)
-		# put siblings in X, from points that were 'touched' by double-links (in 'applyStems')
-		abscissas = sorted(groups.keys())
-		if leftmost != None and rightmost != None:
-			for x in leftmost.group,rightmost.group:
-				if x in abscissas: abscissas.remove(x)
-		self.handleNonZones(abscissas, cg, isHorizontal=False)
-
+		if rmi != None:
+			rightColl.leaderPos = rmi
+			rightColl.processedPositions.add(rmi)
+			cont, seg = groups[rmi][0][0]
+			rightmost = contours[cont][seg].leader
+			self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
+			self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
+			rightmost.touched = True
+			self.addLinksInGroup(0, groups[rightmost.group], contours, False)
+			self.processCollection(rightColl, groups, contours, False)
+			if lmi != None and lci != rci:
+				leftColl.processedPositions.add(lmi)
+				cont, seg = groups[lmi][0][0]
+				leftmost = contours[cont][seg].leader
+				stemName = self.guessStemForDistance(leftmost, rightmost, False)
+				link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
+				if stemName == None:
+					link['round'] = 'true'
+				leftmost.touched = True
+				self.addLinksInGroup(0, groups[leftmost.group], contours, False)
+				leftColl.leaderPos = lmi
+				self.processCollection(leftColl, groups, contours, False)
+		for coll in collections:
+			if len(coll.processedPositions) < len(coll.positions):
+				self.processCollection(coll, groups, contours, False)
 
 	def autohint(self, g):
-		if self.TTHToolInstance.c_fontModel.f.info.italicAngle != None:
-			self.ital = - self.TTHToolInstance.c_fontModel.f.info.italicAngle
+		font = self.TTHToolInstance.c_fontModel.f
+		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
+		if font.info.italicAngle != None:
+			self.ital = - font.info.italicAngle
 		else:
 			self.ital = 0
 
 		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 
-		xBound = self.tthtm.minStemX, self.tthtm.maxStemX
-		yBound = self.tthtm.minStemY, self.tthtm.maxStemY
+		xBound = self.tthtm.minStemX, maxStemX
+		yBound = self.tthtm.minStemY, maxStemY
+		print "(minStemX, maxStemX) = ", xBound
 
+		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
+		stems = self.filterStems(stems)
+		self.autoHintX(g, stems[0])
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance)
 		stems = self.filterStems(stems)
-
-		self.autoHintX(g, stems[0])
 		self.autoHintY(g, stems[1])
 

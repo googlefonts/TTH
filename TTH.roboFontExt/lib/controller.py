@@ -2214,37 +2214,53 @@ class TTHTool(BaseEventTool):
 			elif A['point'] == B['point']:
 				order = ab
 		elif (A_isMiddleDelta and B_isMiddleDelta) or (A_isFinalDelta and B_isFinalDelta):
-			if (A['mono'] == 'true' and A['gray'] == 'true'):
-				if (B['mono'] == 'true' and B['gray'] == 'false'):
+			Amono = A['mono'] == 'true'
+			Agray = A['gray'] == 'true'
+			Bmono = B['mono'] == 'true'
+			Bgray = B['gray'] == 'true'
+			if (Amono and Agray):
+				if (Bmono and (not Bgray)):
 					order = ab
-				elif (B['mono'] == 'false' and B['gray'] == 'true'):
+				elif not Bmono:
 					order = ab
-				elif (B['mono'] == 'false' and B['gray'] == 'false'):
-					order = ab
+				#elif ((not Bmono) and Bgray):
+				#	order = ab
+				#elif ((not Bmono) and (not Bgray)):
+				#	order = ab
 
-			elif (A['mono'] == 'true' and A['gray'] == 'false'):
-				if (B['mono'] == 'true' and B['gray'] == 'true'):
+			elif (Amono and (not Agray)):
+				if (Bmono and Bgray):
 					order = ba
-				elif (B['mono'] == 'false' and B['gray'] == 'true'):
+				elif not Bmono:
 					order = ab
-				elif (B['mono'] == 'false' and B['gray'] == 'false'):
-					order = ab
+				#elif ((not Bmono) and Bgray):
+				#	order = ab
+				#elif ((not Bmono) and (not Bgray)):
+				#	order = ab
 
-			elif (A['mono'] == 'false' and A['gray'] == 'true'):
-				if (B['mono'] == 'true' and B['gray'] == 'true'):
+			elif ((not Amono) and Agray):
+				if (Bmono and Bgray):
 					order = ba
-				elif (B['mono'] == 'true' and B['gray'] == 'false'):
-					order = ba
-				elif (B['mono'] == 'false' and B['gray'] == 'false'):
-					order = ab
+				elif not Bgray:
+					if Bmono:
+						order = ba
+					else:
+						order = ab
+				#elif (Bmono and (not Bgray)):
+				#	order = ba
+				#elif ((not Bmono) and (not Bgray)):
+				#	order = ab
 
-			elif (A['mono'] == 'false' and A['gray'] == 'false'):
-				if (B['mono'] == 'true' and B['gray'] == 'true'):
+			# IS IT POSSIBLE THAT (not Amono) AND (not Agray) ???
+			elif ((not Amono) and (not Agray)):
+				if Bmono or Bgray:
 					order = ba
-				elif (B['mono'] == 'true' and B['gray'] == 'false'):
-					order = ba
-				elif (B['mono'] == 'false' and B['gray'] == 'true'):
-					order = ba
+				#if (Bmono and Bgray):
+				#	order = ba
+				#elif (Bmono and (not Bgray)):
+				#	order = ba
+				#elif ((not Bmono) and Bgray):
+				#	order = ba
 
 		if order == ab:
 			return (True, False)
