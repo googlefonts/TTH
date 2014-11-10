@@ -476,6 +476,7 @@ class AutoHinting():
 	def processCollection(self, coll, groups, contours, interpolatePossible, bounds, isHorizontal):
 		remainingPositions = sorted(coll.positions - coll.processedPositions)
 		if len(remainingPositions) == 0: return
+		# Find a leader position, preferably the position of a nice stem
 		if coll.leaderPos == None:
 			nbNice = len(coll.nicePositions)
 			if nbNice >= 3:
@@ -485,12 +486,18 @@ class AutoHinting():
 			elif len(coll.processedPositions)>0:
 				coll.leaderPos = sorted(coll.processedPositions)[0]
 			else:
-				coll.leaderPos = remainingPositions.pop()
-				coll.processedPositions.add(coll.leaderPos)
-				self.addLinksInGroup(0, groups[coll.leaderPos], contours, isHorizontal)
+				p = remainingPositions.pop()
+				# since 'p' is removed from the remaining positions here,
+				# we should process the corresponding group now:
+				coll.processedPositions.add(p)
+				self.addLinksInGroup(0, groups[p], contours, isHorizontal)
+				coll.leaderPos = p
+		# Find the leader control point in the leader group (= the group at the leaderPos)
 		cont,seg = groups[coll.leaderPos][0][0]
 		lead = contours[cont][seg].leader
 		if len(remainingPositions) == len(coll.positions) and interpolatePossible:
+			# If NO group in the collection had beed processed yet,
+			# then add a starting point by interpolation:
 			leftmost, rightmost = bounds
 			self.addInterpolate(leftmost, lead, rightmost, isHorizontal)
 		lead.touched = True
@@ -499,9 +506,9 @@ class AutoHinting():
 			coll.processedPositions.add(pos)
 			cont,seg = groups[pos][0][0]
 			tgt = contours[cont][seg].leader
-			stemName = self.guessStemForDistance(lead, tgt, isHorizontal)
 			if not tgt.touched:
 				tgt.touched = True
+				stemName = self.guessStemForDistance(lead, tgt, isHorizontal)
 				self.addSingleLink(lead.name, tgt.name, isHorizontal, stemName)
 			self.addLinksInGroup(0, groups[pos], contours, isHorizontal)
 
