@@ -364,16 +364,16 @@ class Collection:
 		self.nicePositions = set()
 		self.processedPositions = set()
 		self.leaderPos = None
-		self.minPos = 10000000
 		self.bounds = (10000000,-10000000)
-	def covers(self, p):
-		return (p in self.positions)
+	def covers(self, l, r):
+		if l < self.bounds[0] and self.bounds[1] < r: return True
+		if self.bounds[0] < l and r < self.bounds[1]: return True
+		return ((l,False) in self.positions) or ((r,True) in self.positions)
 	def add(self, pos, isNice):
-		self.minPos = min(self.minPos, pos[0])
 		self.positions.add(pos)
 		if isNice:
 			self.nicePositions.add(pos[0])
-		self.bounds = min(self.bounds[0], pos), max(self.bounds[1], pos)
+		self.bounds = min(self.bounds[0], pos[0]), max(self.bounds[1], pos[0])
 
 class AutoHinting():
 	def __init__(self, TTHToolInstance):
@@ -418,7 +418,7 @@ class AutoHinting():
 				group0, group1 = group1, group0
 			coll = None
 			for c in collections:
-				if c.covers((group0,False)) or c.covers((group1,True)):
+				if c.covers(group0, group1):
 					coll = c
 			if coll == None:
 				collections.append(Collection())
@@ -427,7 +427,7 @@ class AutoHinting():
 			coll.add((group1,True), beautiful)
 		for col in collections:
 			col.positions = set([p for (p,x) in col.positions])
-		collections.sort(key=lambda c: c.minPos)
+		collections.sort(key=lambda c: c.bounds[0])
 		#print "Collections:"
 		#for coll in collections:
 		#	for p in coll.positions:
@@ -476,12 +476,16 @@ class AutoHinting():
 	def processCollection(self, coll, groups, contours, interpolatePossible, bounds, isHorizontal):
 		remainingPositions = sorted(coll.positions - coll.processedPositions)
 		if coll.leaderPos == None:
-			if len(coll.nicePositions)>0:
+			nbNice = len(coll.nicePositions)
+			if nbNice >= 3:
+				coll.leaderPos = sorted(coll.nicePositions)[1]
+			elif nbNice > 0:
 				coll.leaderPos = sorted(coll.nicePositions)[0]
 			elif len(coll.processedPositions)>0:
 				coll.leaderPos = sorted(coll.processedPositions)[0]
 			else:
 				coll.leaderPos = remainingPositions.pop()
+				coll.processedPositions.add(coll.leaderPos)
 				self.addLinksInGroup(0, groups[coll.leaderPos], contours, isHorizontal)
 		cont,seg = groups[coll.leaderPos][0][0]
 		lead = contours[cont][seg].leader
