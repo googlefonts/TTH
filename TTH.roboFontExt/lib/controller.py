@@ -312,6 +312,7 @@ class TTHTool(BaseEventTool):
 		self.p_glyphList = []
 		self.glyphTTHCommands = []
 		self.commandLabelPos = {}
+		self.zoneLabelPos = {}
 		self.tthtm = tthtm
 		self.startPoint = None
 
@@ -341,6 +342,7 @@ class TTHTool(BaseEventTool):
 		self.point2 = None
 
 		self.selectedCommand = None
+		self.selectedZoneName = None
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
@@ -540,6 +542,14 @@ class TTHTool(BaseEventTool):
 		self.changeDeltaRange(self.tthtm.PPM_Size, self.tthtm.PPM_Size)
 		if self.previewWindow.isVisible():
 			self.previewWindow.setNeedsDisplay()
+
+		if self.popOverIsOpened:
+			if hasattr(self.popover, 'ZoneDeltaOffsetSlider'):
+				if 'delta' in self.c_fontModel.zones[self.selectedZoneName]:
+					if str(size) in self.c_fontModel.zones[self.selectedZoneName]['delta']:
+						self.popover.ZoneDeltaOffsetSlider.set(self.c_fontModel.zones[self.selectedZoneName]['delta'][str(size)] + 8)
+					else:
+						self.popover.ZoneDeltaOffsetSlider.set(8)
 		UpdateCurrentGlyphView()
 
 	def changeAxis(self, axis):
@@ -1023,6 +1033,13 @@ class TTHTool(BaseEventTool):
 
 		return touched_p_command
 
+	def isOnZoneLabel(self, p_cursor):
+		def pred0(zoneName, zonePos):
+			return pointInCommand(zonePos, p_cursor)
+
+		touched_p_zone = find_in_dict(self.zoneLabelPos, pred0)
+		return touched_p_zone
+
 	def isInZone(self, point, y_min, y_max):
 		if point[1]  >= y_min and point[1] <= y_max:
 			return True
@@ -1153,20 +1170,24 @@ class TTHTool(BaseEventTool):
 		self.p_selectionCursor = (int(point.x), int(point.y))
 
 		if self.popOverIsOpened == False:
-			self.commandClicked = self.isOnCommand(self.p_selectionCursor)
 			if self.tthtm.selectedHintingTool == 'Selection' or self.optionDown:
+				self.commandClicked = self.isOnCommand(self.p_selectionCursor)
 				if self.commandClicked != None and not self.popOverIsOpened:
 					self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
 					pointLabel = NSPoint(self.commandLabelPos[self.commandClicked][0][0], self.commandLabelPos[self.commandClicked][0][1])
 					self.openPopOver(pointLabel)
+				if self.isOnZoneLabel(self.p_selectionCursor) != None and not self.popOverIsOpened:
+					self.selectedZoneName = self.isOnZoneLabel(self.p_selectionCursor)
+					pointZoneLabel = NSPoint(self.zoneLabelPos[self.selectedZoneName][0][0], self.zoneLabelPos[self.selectedZoneName][0][1])
+					self.popOverZoneDelta(pointZoneLabel)
 		else:
 			self.selectedCommand = None
 			self.commandClicked = None
 
-		self.p_cursor = (int(point.x), int(point.y))
-		self.startPoint = self.isOnPoint(self.p_cursor)
+		self.startPoint = self.isOnPoint(self.p_selectionCursor)
 		if self.tthtm.selectedHintingTool in ['Middle Delta', 'Final Delta']:
-			self.startPoint = self.isOffOnPoint(self.p_cursor)
+			self.startPoint = self.isOffOnPoint(self.p_selectionCursor)
+
 
 	def getDistance(self, point1, point2, axis):
 		x1 = point1[0]
@@ -1209,6 +1230,7 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = False
 		self.selectedCommand = None
 		self.commandClicked = None
+		self.selectedZoneName = None
 		UpdateCurrentGlyphView()
 
 	def popoverStateCheckBoxCallback(self, sender):
@@ -1626,6 +1648,30 @@ class TTHTool(BaseEventTool):
 			#self.popover.AlignmentTypeText.show(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 			self.popover.AlignmentTypePopUpButton.enable(('round' not in self.selectedCommand) and ('stem' not in self.selectedCommand))
 
+	def popOverZoneDelta(self, point):
+		view = self.getNSView()
+		offsetX, offsetY = view.offset()
+		x = point.x
+		y = point.y
+		x += offsetX
+		y += offsetY
+		self.popover = Popover((200, 50))
+		self.popover.bind("did show", self.popoverOpened)
+		self.popover.bind("did close", self.popoverClosed)
+
+		self.popover.ZoneDeltaOffsetText = TextBox((10, 10, 100, 15), "Zone Delta Offset:", sizeStyle = "small")
+		self.popover.ZoneDeltaOffsetSlider = Slider((10, 25, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
+				callback=self.zoneDeltaOffsetSliderCallback)
+		if 'delta' in self.c_fontModel.zones[self.selectedZoneName]:
+			if str(self.tthtm.PPM_Size) in self.c_fontModel.zones[self.selectedZoneName]['delta']:
+				self.popover.ZoneDeltaOffsetSlider.set(self.c_fontModel.zones[self.selectedZoneName]['delta'][str(self.tthtm.PPM_Size)] + 8)
+
+		self.popOverIsOpened = True
+		UpdateCurrentGlyphView()
+		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
+	
+	def zoneDeltaOffsetSliderCallback(self, sender):
+		pass
 
 	def popOverDelta(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
@@ -2868,6 +2914,7 @@ class TTHTool(BaseEventTool):
 				self.assemblyWindow.updateAssemblyList([])
 
 		self.commandLabelPos = {}
+		self.zoneLabelPos = {}
 		self.pointUniqueIDToCoordinates = self.makePointUniqueIDToCoordinatesDict(g)
 		self.pointCoordinatesToUniqueID = self.makePointCoordinatesToUniqueIDDict(g)
 		self.pointCoordinatesToName = self.makePointCoordinatesToNameDict(g)
@@ -3145,8 +3192,26 @@ class TTHTool(BaseEventTool):
 			pathZone.closePath
 			zonecolor.set()
 			pathZone.fill()	
-			self.drawTextAtPoint(scale, zoneName, -100, y_start+y_end/2, whiteColor, zonecolorLabel, None)
+			(width, height) = self.drawTextAtPoint(scale, zoneName, -100*scale, y_start+y_end/2, whiteColor, zonecolorLabel, None)
 
+			self.zoneLabelPos[zoneName] = ((-100*scale, y_start+y_end/2), (width, height))
+
+			point = (-100*scale, y_start+y_end/2)
+			if 'delta' in zone:
+				for deltaPPM, deltaValue in zone['delta'].iteritems():
+					if int(deltaPPM) == self.tthtm.PPM_Size:
+						path = NSBezierPath.bezierPath()
+					 	path.moveToPoint_((point[0], point[1]))
+					 	end_x = point[0]
+					 	end_y = point[1] + (deltaValue/8.0)*self.tthtm.pitch
+					 	path.lineToPoint_((end_x, end_y))
+
+					 	deltacolor.set()
+						path.setLineWidth_(scale)
+						path.stroke()
+						r = 4
+						self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltacolor)
+				
 
 	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
 		labelColor = backgroundColor
@@ -3633,7 +3698,6 @@ class TTHTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 		r = 4
-		#NSBezierPath.bezierPathWithOvalInRect_(((end_x-r*scale, end_y-r*scale), (r*2*scale, r*2*scale))).fill()
 		self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, color)
 		
 		extension = ''
