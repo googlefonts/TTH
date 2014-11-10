@@ -477,15 +477,15 @@ class AutoHinting():
 		remainingPositions = sorted(coll.positions - coll.processedPositions)
 		if coll.leaderPos == None:
 			nbNice = len(coll.nicePositions)
-			if nbNice > 0:
-				if nbNice >= 3:
-					coll.leaderPos = sorted(coll.nicePositions)[1]
-				else:
-					coll.leaderPos = sorted(coll.nicePositions)[0]
+			if nbNice >= 3:
+				coll.leaderPos = sorted(coll.nicePositions)[1]
+			elif nbNice > 0:
+				coll.leaderPos = sorted(coll.nicePositions)[0]
 			elif len(coll.processedPositions)>0:
 				coll.leaderPos = sorted(coll.processedPositions)[0]
 			else:
 				coll.leaderPos = remainingPositions.pop()
+				coll.processedPositions.add(coll.leaderPos)
 				self.addLinksInGroup(0, groups[coll.leaderPos], contours, isHorizontal)
 		cont,seg = groups[coll.leaderPos][0][0]
 		lead = contours[cont][seg].leader
