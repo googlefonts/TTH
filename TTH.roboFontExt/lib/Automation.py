@@ -475,6 +475,7 @@ class AutoHinting():
 
 	def processCollection(self, coll, groups, contours, interpolatePossible, bounds, isHorizontal):
 		remainingPositions = sorted(coll.positions - coll.processedPositions)
+		if len(remainingPositions) == 0: return
 		if coll.leaderPos == None:
 			nbNice = len(coll.nicePositions)
 			if nbNice >= 3:
@@ -695,17 +696,16 @@ class AutoHinting():
 		bounds = None
 
 		if rmi != None:
-			rightColl.leaderPos = rmi
-			rightColl.processedPositions.add(rmi)
 			cont, seg = groups[rmi][0][0]
 			rightmost = contours[cont][seg].leader
 			self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
 			self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
 			rightmost.touched = True
 			self.addLinksInGroup(0, groups[rightmost.group], contours, False)
+			rightColl.leaderPos = rmi
+			rightColl.processedPositions.add(rmi)
 			self.processCollection(rightColl, groups, contours, False, None, isHorizontal=False)
 			if lmi != None and lci != rci:
-				leftColl.processedPositions.add(lmi)
 				cont, seg = groups[lmi][0][0]
 				leftmost = contours[cont][seg].leader
 				bounds = leftmost, rightmost
@@ -716,12 +716,11 @@ class AutoHinting():
 				leftmost.touched = True
 				self.addLinksInGroup(0, groups[leftmost.group], contours, False)
 				leftColl.leaderPos = lmi
+				leftColl.processedPositions.add(lmi)
 				self.processCollection(leftColl, groups, contours, False, None, isHorizontal=False)
 		interpolatePossible = (lmi != None) and (rmi != None) and (lci != rci)
 		for coll in collections:
-			if len(coll.processedPositions) < len(coll.positions):
-				self.processCollection(coll, groups, contours, \
-						interpolatePossible, bounds, isHorizontal=False)
+			self.processCollection(coll, groups, contours, interpolatePossible, bounds, isHorizontal=False)
 
 	def autohint(self, g):
 		font = self.TTHToolInstance.c_fontModel.f
