@@ -369,10 +369,10 @@ class Collection:
 	def covers(self, p):
 		return (p in self.positions)
 	def add(self, pos, isNice):
-		self.minPos = min(self.minPos, pos)
+		self.minPos = min(self.minPos, pos[0])
 		self.positions.add(pos)
 		if isNice:
-			self.nicePositions.add(pos)
+			self.nicePositions.add(pos[0])
 		self.bounds = min(self.bounds[0], pos), max(self.bounds[1], pos)
 
 class AutoHinting():
@@ -414,15 +414,19 @@ class AutoHinting():
 			beautiful = self.beautifulStem(stem, contours)
 			#print "(",group0, group1,src.pos,tgt.pos,beautiful,")"
 			if group0 == None or group1 == None: continue
+			if group1 < group0:
+				group0, group1 = group1, group0
 			coll = None
 			for c in collections:
-				if c.covers(group0) or c.covers(group1):
+				if c.covers((group0,False)) or c.covers((group1,True)):
 					coll = c
 			if coll == None:
 				collections.append(Collection())
 				coll = collections[-1]
-			coll.add(group0, beautiful)
-			coll.add(group1, beautiful)
+			coll.add((group0,False), beautiful)
+			coll.add((group1,True), beautiful)
+		for col in collections:
+			col.positions = set([p for (p,x) in col.positions])
 		collections.sort(key=lambda c: c.minPos)
 		#print "Collections:"
 		#for coll in collections:
@@ -437,7 +441,10 @@ class AutoHinting():
 		i = 0
 		while (i<nbColls) and len(collections[i].nicePositions) == 0:
 			i += 1
-		if i == nbColls: return 0,None, 0,None
+		if i == nbColls:
+			ret = 0,None, 0,None
+			print "findLeftRight returns", ret
+			return ret
 		col = collections[i]
 		nicePositions = sorted(col.nicePositions)
 		#print "Left, positions", col.positions
