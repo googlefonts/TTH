@@ -452,8 +452,8 @@ class AutoHinting():
 				newY.append((stem, name))
 		for stem in g_stemsListX:
 			name = self.guessStemForDistance(stem[0], stem[1], False)
-			#if None != name:
-			newX.append((stem, name))
+			if None != name:
+				newX.append((stem, name))
 		return (newX, newY)
 
 	def beautifulStem(self, stem, contours):
@@ -472,7 +472,7 @@ class AutoHinting():
 
 	def makeGroups(self, contours, stems, beautyPredicate, debug=False):
 		groups = []
-		for stem, stemName in stems:
+		for stem in stems:
 			src = contours[stem[0].cont][stem[0].seg]
 			tgt = contours[stem[1].cont][stem[1].seg]
 			pos0 = src.alignment
@@ -620,7 +620,7 @@ class AutoHinting():
 		return lead
 
 	def markStems(self, stems, contours):
-		for (stem, stemName) in stems:
+		for stem in stems:
 			for i in range(2):
 				hd = contours[stem[i].cont][stem[i].seg]
 				hd.nbStem += 1
@@ -649,18 +649,16 @@ class AutoHinting():
 		else:
 			detectedWidth = abs(p1.shearedPos[0] - p2.shearedPos[0])
 		candidatesList = []
+		bestD = 10000000
+		bestName = None
 		for stemName, stem in self.TTHToolInstance.c_fontModel.stems.iteritems():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
-			if abs(w - detectedWidth) <= detectedWidth*0.25:
-				candidatesList.append((abs(w - detectedWidth), stemName))
-
-		if candidatesList != []:
-			candidatesList.sort()
-			stemName = candidatesList[0][1]
-			return stemName
-		else:
-			return None
+			d = abs(w - detectedWidth)
+			if d <= detectedWidth*0.25 and d < bestD:
+				bestD = d
+				bestName = stemName
+		return bestName
 
 	def addSingleLink(self, p1name, p2name, isHorizontal, stemName):
 		command = {}
@@ -831,9 +829,6 @@ class AutoHinting():
 		yBound = self.tthtm.minStemY, maxStemY
 
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
-		stems = self.filterStems(stems)
 		self.autoHintX(g, stems[0])
-		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance)
-		stems = self.filterStems(stems)
 		self.autoHintY(g, stems[1])
 
