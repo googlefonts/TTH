@@ -520,13 +520,15 @@ class AutoHinting():
 		(i,lg), w0 = groupWeights[0]
 		if atLeastTwoGroups:
 			(i1,g1),w1 = groupWeights[1]
-			if w1 > 1.6 * w0 and g1.avgPos < lg.bounds[1]+2.0*lg.width():
+			#if w1 > 1.6 * w0 and g1.avgPos < lg.bounds[1]+1.2*lg.width():
+			if w1 > 1.6 * w0 and HF.intervalsIntersect(lg.bounds, g1.bounds):
 				i,lg = i1,g1
 		#----------------
 		(j,rg), w0 = groupWeights[-1]
 		if atLeastTwoGroups:
 			(j1,g1),w1 = groupWeights[-2]
-			if w1 > 1.6 * w0 and g1.avgPos > rg.bounds[0]-2.0*rg.width():
+			#if w1 > 1.6 * w0 and g1.avgPos > rg.bounds[0]-1.2*rg.width():
+			if w1 > 1.6 * w0 and HF.intervalsIntersect(rg.bounds, g1.bounds):
 				j,rg = j1,g1
 		if i == j and i > 0: (i,lg),_ = groupWeights[0]
 		if i == j and j < len(groups)-1: (j,rg),_ = groupWeights[-1]
@@ -787,8 +789,8 @@ class AutoHinting():
 
 		xBound = self.tthtm.minStemX, maxStemX
 		yBound = self.tthtm.minStemY, maxStemY
-		print "min and max stem size in X", xBound
-		print "min and max stem size in Y", yBound
+		#print "min and max stem size in X", xBound
+		#print "min and max stem size in Y", yBound
 
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
 		self.autoHintX(g, stems[0])

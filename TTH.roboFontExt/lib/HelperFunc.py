@@ -142,6 +142,9 @@ def roundbase(x, base):
 
 ###### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+def intervalsIntersect(a, b):
+	return (a[1] >= b[0]) and (b[1] >= a[0])
+
 def inInterval(x, i):
 	return (i[0] <= x) and (x <= i[1])
 
