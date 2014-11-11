@@ -222,6 +222,9 @@ class toolsWindow(BaseWindowController):
 		if gearOption == 11:
 			self.controlValuesCallback()
 
+		if gearOption == 13:
+			self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
+
 	def controlValuesCallback(self):
 		self.sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
 
@@ -806,6 +809,55 @@ class SheetAutoHinting(object):
 			self.w.bar.increment(increment)
 		self.w.bar.show(0)
 		self.controller.resetFont()
+
+class SheetPreferences(object):
+
+	def __init__(self, parent, controller):
+		self.controller = controller
+		self.c_fontModel = controller.c_fontModel
+		self.model = controller.tthtm
+
+		self.w = Sheet((505, 480), parentWindow=parent)
+
+		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
+
+		self.w.autohintingBox = Box((10, 19, -10, -40))
+
+		self.w.hotKeysBox = Box((10, 19, -10, -40))
+
+		preferencesSegmentDescriptions = [
+			dict(width=67, title="View", toolTip="View"),
+			dict(width=67, title="Auto-hinting", toolTip="Auto-hinting"),
+			dict(width=67, title="Hot Keys", toolTip="Hot Keys")
+		]
+
+		self.w.controlsSegmentedButton = SegmentedButton((137, 10, 220, 18), preferencesSegmentDescriptions, callback=self.preferencesSegmentedButtonCallback, sizeStyle="mini")
+		self.w.controlsSegmentedButton.set(0)
+
+		self.w.viewAndSettingsBox.show(True)
+		self.w.autohintingBox.show(False)
+		self.w.hotKeysBox.show(False)
+
+		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
+		self.w.open()
+
+
+	def closeButtonCallback(self, sender):
+		self.w.close()
+
+	def preferencesSegmentedButtonCallback(self, sender):
+		if sender.get() == 0:
+			self.w.viewAndSettingsBox.show(True)
+			self.w.autohintingBox.show(False)
+			self.w.hotKeysBox.show(False)
+		if sender.get() == 1:
+			self.w.viewAndSettingsBox.show(False)
+			self.w.autohintingBox.show(True)
+			self.w.hotKeysBox.show(False)
+		if sender.get() == 2:
+			self.w.viewAndSettingsBox.show(False)
+			self.w.autohintingBox.show(False)
+			self.w.hotKeysBox.show(True)
 
 
 reload(CV)
