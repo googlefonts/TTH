@@ -406,7 +406,7 @@ class TTHTool(BaseEventTool):
 		 	#Dialogs.Message("INFO:\nPreferences changed to\n'Draw with Quadratic (TrueType) curves'")
 			#self.messageInFront = False
 		self.resetFont(createWindows=True)
-		self.deletePreviewInGlyphWindow()
+		#self.deletePreviewInGlyphWindow()
 		self.updatePartialFont()
 
 	def becomeInactive(self):
@@ -478,7 +478,7 @@ class TTHTool(BaseEventTool):
 		else:
 			print "ERROR: A font was opened that I already knew about"
 
-		self.deletePreviewInGlyphWindow()
+		#self.deletePreviewInGlyphWindow()
 
 		self.toolsWindow.wTools.show()
 		self.previewWindow.showOrHide()
@@ -2839,7 +2839,7 @@ class TTHTool(BaseEventTool):
 
 		f = self.c_fontModel.f
 
-		self.deletePreviewInGlyphWindow()
+		#self.deletePreviewInGlyphWindow()
 		self.c_fontModel.setUPM(f.info.unitsPerEm)
 		if checkSegmentType(f) == False:
 			self.messageInFront = True
@@ -2888,7 +2888,6 @@ class TTHTool(BaseEventTool):
 		self.changeRoundBool(self.tthtm.roundBool)
 		self.changeDeltaOffset(self.tthtm.deltaOffset)
 		self.changeDeltaRange(self.tthtm.deltaRange1, self.tthtm.deltaRange2)
-
 
 	def updatePartialFontIfNeeded(self):
 		"""Re-create the partial font if new glyphs are required."""
@@ -3952,7 +3951,7 @@ class TTHTool(BaseEventTool):
 			if self.tthtm.showPreviewInGlyphWindow == 1:
 				self.createPreviewInGlyphWindow()
 				drawPreview = True
-		if name in self.previewInGlyphWindow:
+		else:
 			subView = self.previewInGlyphWindow[name]
 			superview = self.getNSView().enclosingScrollView().superview()
 			frame = superview.frame()
