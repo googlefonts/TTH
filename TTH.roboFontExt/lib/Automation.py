@@ -82,14 +82,14 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, 
 		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
 			HF.isHorizontal_withTolerance(angle1, tolerance) and
 			not existingStems['h'] ) :
-			if HF.inInterval(c_distance[1], yBound):# and HF.inInterval(hypoth, yBound):
+			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
 		## if they are vertical, treat the stem on the X axis
 		elif(HF.isVertical_withTolerance(angle0, tolerance) and
 			HF.isVertical_withTolerance(angle1, tolerance) and
 			not existingStems['v'] ) : # the angle is already sheared to counter italic
-			if HF.inInterval(c_distance[0], xBound):# and HF.inInterval(hypoth, xBound):
+			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
 				stemsListX_temp.append((hypoth, (src, tgt, c_distance[0])))
 		else:
@@ -153,9 +153,9 @@ def computeMaxStemOnO(tthtm, font):
 	(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, tthtm.angleTolerance)
 
 	if O_stemsListX == None:
-		return 250
+		return 200
 	else:
-		return int(round(2.0 * max([stem[2] for stem in O_stemsListX])))
+		return int(round(1.5 * max([stem[2] for stem in O_stemsListX])))
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -513,7 +513,7 @@ class AutoHinting():
 		return groups
 
 	def findLeftRight(self, groups):
-		atLeastTwoGroups = len(groups) >= 2
+		atLeastTwoGroups = (len(groups) >= 2)
 		groupWeights = [((i,g), sum([a.weight for a in g.alignments])) for (i, g) in enumerate(groups)]
 		#weights = [w (g, w) in groupWeights if w >= threshold]
 		(i,lg), w0 = groupWeights[0]
@@ -527,8 +527,8 @@ class AutoHinting():
 			(j1,g1),w1 = groupWeights[-2]
 			if w1 > 1.6 * w0 and g1.avgPos > rg.bounds[0]-2.0*rg.width():
 				j,rg = j1,g1
-		if i == j and i > 0: i,lg = groupWeights[0]
-		if i == j and j < len(groups)-1: j,rg = groupWeights[-1]
+		if i == j and i > 0: (i,lg),_ = groupWeights[0]
+		if i == j and j < len(groups)-1: (j,rg),_ = groupWeights[-1]
 		#----------------
 		if lg.alignments[0].pos < lg.alignments[1].pos:
 			leftmost = 0
@@ -541,14 +541,10 @@ class AutoHinting():
 			rightmost = 0
 		#----------------
 		ret = i,leftmost, j,rightmost
-		print "findLeftRight returns", ret
+		#print "findLeftRight returns", ret
 		return ret
 
-	def processGroup_X(self, grp, contours, interpolatePossible, bounds):
-		print "Processing group:",
-		for a in grp.alignments:
-			print a.pos,
-		print ''
+	def processGroup_X(self, grp, contours, interpolateIsPossible, bounds):
 		if len(grp.alignments) == 1:
 			if len(grp.alignments[0].components) == 1:
 				return
@@ -562,7 +558,7 @@ class AutoHinting():
 		# Find the leader control point in the leader alignment (= the alignment at the leaderPos)
 		leadAli = grp.alignments[grp.leaderPos]
 		lead = leadAli.leaderPoint(0, contours)
-		if (not lead.touched) and interpolatePossible:
+		if (not lead.touched) and interpolateIsPossible:
 			# If NO alignment in the group had beed processed yet,
 			# then add a starting point by interpolation:
 			leftmost, rightmost = bounds
@@ -577,45 +573,51 @@ class AutoHinting():
 				self.addSingleLink(lead.name, tgt.name, False, stemName)
 			ali.addLinks(0, contours, False, self)
 
-	def processGroup_Y(self, grp, alignments, contours, interpolatePossible, bounds, findZone):
-		remainingPositions = sorted(grp.positions - grp.processedPositions)
-		nbr = len(remainingPositions)
-		if nbr == 0: return None
+	def processGroup_Y(self, grp, contours, interpolateIsPossible, bounds, findZone):
 		zone = None
-		if grp.leaderPos == None and findZone:
-			for pos in sorted(grp.positions):
-				ali = alignments[pos]
-				if ali.zone != None:
+		if grp.leaderPos == None:
+			if not findZone:
+				grp.leaderPos = 0
+			for (i, ali) in enumerate(grp.alignments):
+				if ali.leaderPoint(0, contours).touched:
+					grp.leaderPos = i
+					break
+		if grp.leaderPos == None:
+			# Here, it must be the case that findZone == True, so we
+			# look for a zone
+			findTopMostZone = True
+			for pos, ali in enumerate(grp.alignments):
+				if ali.zone == None: continue
+				if not ali.zone[1]: findTopMostZone = False # bottom zone
+				if ((zone == None) or
+				   ((    findTopMostZone) and (zone[2] < ali.zone[2])) or
+				   ((not findTopMostZone) and (zone[2] > ali.zone[2]))):
 					zone = ali.zone
 					grp.leaderPos = pos
-					if not ali.zone[1]: break # bottom zone
 		if grp.leaderPos == None: # no zone
-			if findZone: return None
-			grp.leaderPos = coolAli[len(coolAli)/2]
-		if grp.leaderPos == None: # no zone, no stems !
-			print "ERROR on processGroup_Y: leaderPos not found"
 			return None
 		# Find the leader control point in the leader alignment (= the alignment at the leaderPos)
-		lead = alignments[grp.leaderPos].leaderPoint(0, contours)
-		if zone != None:
-			self.addAlign(lead.name, zone)
-			lead.touched = True
-		elif len(remainingPositions) == len(grp.positions) and interpolatePossible:
-			# If NO alignment in the group had beed processed yet,
-			# then add a starting point by interpolation:
-			bottommost, topmost = bounds
-			self.addInterpolate(bottommost, lead, topmost, True)
-			lead.touched = True
+		leadAli = grp.alignments[grp.leaderPos]
+		lead = leadAli.leaderPoint(0, contours)
+		if not lead.touched:
+			if zone != None:
+				self.addAlign(lead.name, zone)
+				lead.touched = True
+			elif interpolateIsPossible:
+				# If NO alignment in the group had beed processed yet,
+				# then add a starting point by interpolation:
+				bottommost, topmost = bounds
+				self.addInterpolate(bottommost, lead, topmost, True)
+				lead.touched = True
 		if not lead.touched: return None
-		while len(remainingPositions)>0:
-			pos = remainingPositions.pop()
-			grp.processedPositions.add(pos)
-			tgt = alignments[pos].leaderPoint(0, contours)
+		leadAli.addLinks(0, contours, True, self)
+		for ali in grp.alignments:
+			tgt = ali.leaderPoint(0, contours)
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(lead, tgt, True)
 				self.addSingleLink(lead.name, tgt.name, True, stemName)
-			alignments[pos].addLinks(0, contours, True, self)
+			ali.addLinks(0, contours, True, self)
 		return lead
 
 	def applyStems(self, stems, contours, isHorizontal):
@@ -746,21 +748,22 @@ class AutoHinting():
 		for pos, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 			alignment.findZone(contours, self)
+
 		groups = self.makeGroups(contours, stems, debug=False)
 		for grp in groups: grp.prepare(alignments)
+
 		bottom = None
 		top = None
 		for group in groups:
-			#if len(group.nicePositions) == 0: continue
-			pt = self.processGroup_Y(group, alignments, contours, False, None, findZone=True)
+			pt = self.processGroup_Y(group, contours, False, None, findZone=True)
 			if pt == None: continue
 			if top == None or pt.pos.y > top.pos.y: top = pt
 			if bottom == None or pt.pos.y < bottom.pos.y: bottom = pt
-		interpolationPossible = (top != None) and (bottom != None) and (not (top is bottom))
+		interpolateIsPossible = (top != None) and (bottom != None) and (not (top is bottom))
 		bounds = (bottom, top)
 		for group in groups:
 			#if len(group.nicePositions) > 0: continue
-			self.processGroup_Y(group, alignments, contours, interpolationPossible, bounds, findZone=False)
+			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
 
 		## in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
 		#nonZones = self.handleZones(ca)
@@ -780,21 +783,26 @@ class AutoHinting():
 		groups = self.makeGroups(contours, stems, debug=False)
 		for grp in groups: grp.prepare(alignments)
 
+		# Find the left and right points to be anchored to lsb and rsb.
 		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
 		leftGroup = groups[leftGrpIdx]
 		rightGroup = groups[rightGrpIdx]
 		bounds = None
-		interpolatePossible = False
+		interpolateIsPossible = False
 
-		rightmost = groups[rightGrpIdx].alignments[rmPos].leaderPoint(0, contours)
+		# Anchor the rightmost point
+		rightmost = rightGroup.alignments[rmPos].leaderPoint(0, contours)
 		self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
 		self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
 		rightGroup.leaderPos = rmPos
 		self.processGroup_X(rightGroup, contours, False, None)
 
+		# Anchor the leftmost point if they live in different groups
+		# (If not, then the processGroup will take care of the single link
+		#  and interpolation will not be possible)
 		if leftGrpIdx != rightGrpIdx:
-			interpolatePossible = True
-			leftmost = groups[leftGrpIdx].alignments[lmPos].leaderPoint(0, contours)
+			interpolateIsPossible = True
+			leftmost = leftGroup.alignments[lmPos].leaderPoint(0, contours)
 			bounds = leftmost, rightmost
 			stemName = self.guessStemForDistance(leftmost, rightmost, False)
 			link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
@@ -804,7 +812,7 @@ class AutoHinting():
 
 		for grp in groups:
 			if grp.leaderPos != None: continue
-			self.processGroup_X(grp, contours, interpolatePossible, bounds)
+			self.processGroup_X(grp, contours, interpolateIsPossible, bounds)
 
 
 	def autohint(self, g):
@@ -820,8 +828,10 @@ class AutoHinting():
 
 		xBound = self.tthtm.minStemX, maxStemX
 		yBound = self.tthtm.minStemY, maxStemY
+		print "min and max stem size in X", xBound
+		print "min and max stem size in Y", yBound
 
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
 		self.autoHintX(g, stems[0])
-		#self.autoHintY(g, stems[1])
+		self.autoHintY(g, stems[1])
 
