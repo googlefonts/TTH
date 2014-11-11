@@ -513,6 +513,7 @@ class AutoHinting():
 		return groups
 
 	def findLeftRight(self, groups):
+		if len(groups) == 0: return None, None, None, None
 		atLeastTwoGroups = (len(groups) >= 2)
 		groupWeights = [((i,g), sum([a.weight for a in g.alignments])) for (i, g) in enumerate(groups)]
 		#weights = [w (g, w) in groupWeights if w >= threshold]
@@ -544,6 +545,33 @@ class AutoHinting():
 		#print "findLeftRight returns", ret
 		return ret
 
+	def propagate(self, grp, contours, isHorizontal):
+		leadAli = grp.alignments[grp.leaderPos]
+		lead = leadAli.leaderPoint(0, contours)
+		leftAlignments = [a for a in grp.alignments if a.pos < leadAli.pos]
+		rightAlignments = [a for a in grp.alignments if a.pos > leadAli.pos]
+		leftAlignments.sort(key=lambda a:a.pos, reverse=True)
+		rightAlignments.sort(key=lambda a:a.pos, reverse=False)
+		leadAli.addLinks(0, contours, isHorizontal, self)
+		src = lead
+		for ali in leftAlignments:
+			tgt = ali.leaderPoint(0, contours)
+			if not tgt.touched:
+				tgt.touched = True
+				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
+				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+			src = tgt
+			ali.addLinks(0, contours, isHorizontal, self)
+		src = lead
+		for ali in rightAlignments:
+			tgt = ali.leaderPoint(0, contours)
+			if not tgt.touched:
+				tgt.touched = True
+				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
+				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+			src = tgt
+			ali.addLinks(0, contours, isHorizontal, self)
+
 	def processGroup_X(self, grp, contours, interpolateIsPossible, bounds):
 		if len(grp.alignments) == 1:
 			if len(grp.alignments[0].components) == 1:
@@ -564,14 +592,7 @@ class AutoHinting():
 			leftmost, rightmost = bounds
 			self.addInterpolate(leftmost, lead, rightmost, False)
 		lead.touched = True
-		leadAli.addLinks(0, contours, False, self)
-		for ali in grp.alignments:
-			tgt = ali.leaderPoint(0, contours)
-			if not tgt.touched:
-				tgt.touched = True
-				stemName = self.guessStemForDistance(lead, tgt, False)
-				self.addSingleLink(lead.name, tgt.name, False, stemName)
-			ali.addLinks(0, contours, False, self)
+		self.propagate(grp, contours, False)
 
 	def processGroup_Y(self, grp, contours, interpolateIsPossible, bounds, findZone):
 		zone = None
@@ -610,33 +631,8 @@ class AutoHinting():
 				self.addInterpolate(bottommost, lead, topmost, True)
 				lead.touched = True
 		if not lead.touched: return None
-		leadAli.addLinks(0, contours, True, self)
-		for ali in grp.alignments:
-			tgt = ali.leaderPoint(0, contours)
-			if not tgt.touched:
-				tgt.touched = True
-				stemName = self.guessStemForDistance(lead, tgt, True)
-				self.addSingleLink(lead.name, tgt.name, True, stemName)
-			ali.addLinks(0, contours, True, self)
+		self.propagate(grp, contours, True)
 		return lead
-
-	def applyStems(self, stems, contours, isHorizontal):
-		for (stem, stemName) in stems:
-			src, tgt = stem[0], stem[1]
-			src = contours[src.cont][src.seg].leader()
-			tgt = contours[tgt.cont][tgt.seg].leader()
-			if src.touched and tgt.touched: continue
-			if not (src.touched or tgt.touched):
-				# self.addDoubleLink(src, tgt, stemName, isHorizontal)
-				# src.touched = True
-				# tgt.touched = True
-				continue
-			if src.touched:
-				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
-				tgt.touched = True
-			else:
-				self.addSingleLink(tgt.name, src.name, isHorizontal, stemName)
-				src.touched = True
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
@@ -709,38 +705,6 @@ class AutoHinting():
 			if HF.inInterval(y, (yStart, yEnd)):
 				return zd
 
-	def handleZones(self, (contours, alignments)):
-		# First, handle alignments in zones
-		nonZonePositions = []
-		for pos, alignment in alignments.iteritems():
-			# are we in a zone?
-			zoneInfo = self.zoneAt(pos)
-			if None == zoneInfo:
-				nonZonePositions.append(pos)
-				continue
-			zoneName, isTop, _, _ = zoneInfo
-			nbComps = len(alignment.components)
-			cont, seg = alignment.components[0][0]
-			hd = contours[cont][seg]
-			hd.touched = True
-			# add align
-			self.addAlign(hd.name, zoneInfo)
-			# add single links
-			alignment.addLinks(0, contours, True, self)
-		return nonZonePositions
-
-	def handleNonZones(self, nonZonePositions, (contours, alignments), isHorizontal):
-		for pos in nonZonePositions:
-			alignment = alignments[pos]
-			# are there touched points at this position?
-			leader = None
-			for i, comp in enumerate(alignment.components):
-				for j, (cont, seg) in enumerate(comp):
-					if leader != None: break
-					if contours[cont][seg].touched:
-						leader = i#,j
-			if leader != None: alignment.addLinks(leader, contours, isHorizontal, self)
-
 	def autoHintY(self, g, stems):
 		ca = makeContoursAndAlignments(g, self.ital, False, self) # for Y auto-hinting
 		contours, alignments = ca
@@ -762,15 +726,7 @@ class AutoHinting():
 		interpolateIsPossible = (top != None) and (bottom != None) and (not (top is bottom))
 		bounds = (bottom, top)
 		for group in groups:
-			#if len(group.nicePositions) > 0: continue
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
-
-		## in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
-		#nonZones = self.handleZones(ca)
-		## now we actually insert the stems, as double or single links, in Y
-		#self.applyStems(stems, contours, True)
-		## put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
-		#self.handleNonZones(nonZones, ca, isHorizontal=True)
 
 	def autoHintX(self, g, stems):
 		ca = makeContoursAndAlignments(g, self.ital, True, self) # for X auto-hinting
@@ -785,6 +741,9 @@ class AutoHinting():
 
 		# Find the left and right points to be anchored to lsb and rsb.
 		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
+		if leftGrpIdx == None:
+			print "autoHintX weirdness: no left/right for glyph", g.name
+			return
 		leftGroup = groups[leftGrpIdx]
 		rightGroup = groups[rightGrpIdx]
 		bounds = None
