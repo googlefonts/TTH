@@ -881,6 +881,13 @@ class TTHTool(BaseEventTool):
 				self.writeGlyphFLTTProgram(g)
 			dummy = self.readGlyphFLTTProgram(self.getGlyph()) # recover the correct commands list
 
+	def setZoneDeltas(self, zoneName, PPMSize, deltaValue):
+		if 'delta' in self.c_fontModel.zones[zoneName]:
+			originalDeltas = self.c_fontModel.zones[zoneName]['delta']
+			self.c_fontModel.zones[zoneName]['delta'][str(PPMSize)] = deltaValue
+		else:
+			self.c_fontModel.zones[zoneName]['delta'] = {str(PPMSize):deltaValue}
+
 	def storeZone(self, zoneName, entry, isTop):
 		if zoneName not in self.c_fontModel.zones:
 			self.c_fontModel.zones[zoneName] = {}
@@ -1671,7 +1678,13 @@ class TTHTool(BaseEventTool):
 		self.popover.open(parentView=view, relativeRect=(x-2, y-2, 4, 4))
 	
 	def zoneDeltaOffsetSliderCallback(self, sender):
-		pass
+		g = self.getGlyph()
+		zoneDeltaOffset = int(sender.get() - 8)
+		self.setZoneDeltas(self.selectedZoneName, self.tthtm.PPM_Size, zoneDeltaOffset)	
+		self.c_fontModel.f.lib[FL_tth_key]["zones"] = self.c_fontModel.zones
+		self.resetFont()
+		if self.tthtm.alwaysRefresh == 1:
+			self.refreshGlyph(g)
 
 	def popOverDelta(self, point):
 		self.selectedCommand = self.glyphTTHCommands[self.commandClicked]
@@ -3199,7 +3212,7 @@ class TTHTool(BaseEventTool):
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
 				for deltaPPM, deltaValue in zone['delta'].iteritems():
-					if int(deltaPPM) == self.tthtm.PPM_Size:
+					if int(deltaPPM) == self.tthtm.PPM_Size and deltaValue != 0:
 						path = NSBezierPath.bezierPath()
 					 	path.moveToPoint_((point[0], point[1]))
 					 	end_x = point[0]
