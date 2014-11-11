@@ -21,13 +21,13 @@ def contourSegmentIterator(g):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	def __init__(self, on, sh, ina, outa, cont, seg):
+	def __init__(self, on, sh, ina, outa, cont, seg, weight):
 		self.pos        = on
 		self.name       = on.name.split(',')[0]
 		self.shearedPos = sh
 		self.inAngle    = ina
 		self.outAngle   = outa
-		self.nbStem     = 0
+		self.weight     = weight
 		self.touched    = False
 		self.alignment  = None
 		self.cont       = cont # contour number
@@ -41,7 +41,7 @@ class HintingData(object):
 	def prevOn(self, contours):
 		return contours[self.cont][self.seg-1]
 
-def makeHintingData(g, ital, (cidx, sidx)):
+def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	"""Compute data relevant to hinting for the ON point in the
 	sidx-th segment of the cidx-th contour of glyph 'g'."""
 	contour = g[cidx]
@@ -49,14 +49,22 @@ def makeHintingData(g, ital, (cidx, sidx)):
 	segment = contour[sidx]
 	onPt = segment.onCurve
 	nextOff = contour[(sidx+1) % contourLen].points[0]
+	nextOn = contour[(sidx+1) % contourLen].onCurve
+	prevOn = contour[sidx-1].onCurve
 	if len(segment.points) > 1:
 		prevOff = segment[-2]
 	else:
-		prevOff = contour[sidx-1].onCurve
+		prevOff = prevOn
+	if computeWeight:
+		weightX = abs(nextOn.x - onPt.x) + abs(prevOn.x - onPt.x)
+		weightY = abs(nextOn.y - onPt.y) + abs(prevOn.y - onPt.y)
+		weight = (weightX, weightY)
+	else:
+		weight = None
 	shearedOn = HF.shearPoint(segment.onCurve, ital)
 	angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
-	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx)
+	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx, weight)
 
 def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
 	stemsListX_temp = []
@@ -65,6 +73,10 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, 
 		dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
 		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
+
+		if (src.cont == tgt.cont) and (abs(src.seg-tgt.seg) == 1):
+			# neighbors can't make a stem
+			return
 
 		## if they are horizontal, treat the stem on the Y axis
 		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
@@ -289,7 +301,7 @@ class Alignment(object):
 	def __init__(self, pos):
 		self.components = []
 		self.pos = pos
-		self.nbStems = 0
+		self.weight = 0.0
 		self.zone = None
 	def leaderPoint(self, pos, contours):
 		cont, seg = self.components[pos][0]
@@ -303,7 +315,9 @@ class Alignment(object):
 					self.zone = z
 		return self.zone
 	def addPoint(self, cont, seg, contours):
-		contours[cont][seg].alignment = self.pos
+		pt = contours[cont][seg]
+		pt.alignment = self.pos
+		self.weight += pt.weight
 		lenc = len(contours[cont])
 		prevId = cont, (seg+lenc-1) % lenc
 		nextId = cont, (seg+1) % lenc
@@ -317,16 +331,19 @@ class Alignment(object):
 			self.components.append([(cont,seg)])
 	def putLeadersFirst(self, contours):
 		leaderComp = None
-		maxNbStem = 0
+		maxW = 0.0
 		comps = self.components
 		for i,comp in enumerate(comps):
 			compLeader = None
+			localMaxW = 0.0
 			for j, (cont, seg) in enumerate(comp):
 				pt = contours[cont][seg]
-				if pt.nbStem > maxNbStem: #and compLeader == None:
-					leaderComp = i
+				if pt.weight > localMaxW:
 					compLeader = j
-					maxNbStem = pt.nbStem
+					localMaxW = pt.weight
+				if pt.weight > maxW: #and compLeader == None:
+					leaderComp = i
+					maxW = pt.weight
 			if compLeader == None: compLeader = 0
 			if compLeader > 0: comp[compLeader], comp[0] = comp[0], comp[compLeader]
 			l = contours[comp[0][0]][comp[0][1]]
@@ -356,40 +373,43 @@ class Alignment(object):
 
 class Group:
 	def __init__(self):
-		self.positions = set()
-		self.nicePositions = set()
-		self.processedPositions = set()
+		self.alignments = set()
 		self.leaderPos = None
 		self.bounds = (10000000,-10000000)
+	def width(self):
+		return self.bounds[1] - self.bounds[0]
+	def prepare(self, alignments):
+		self.alignments = sorted([alignments[p] for p in self.alignments], key=lambda a:a.weight, reverse=True)
+		self.avgPos = 0.5 * (self.bounds[0] + self.bounds[1])
+		#print "Prepared alignments:",
+		#for a in self.alignments:
+		#	print '{'+str(a.pos)+', '+str(a.weight)+'}',
+		#print ''
 	def sticks(self, l, r):
 		if l < self.bounds[0] and self.bounds[1] < r: return True
 		if self.bounds[0] < l and r < self.bounds[1]: return True
-		return ((l,False) in self.positions) or ((r,True) in self.positions)
-	def add(self, pos, isNice):
-		self.positions.add(pos)
-		if isNice:
-			self.nicePositions.add(pos[0])
+		return ((l,False) in self.alignments) or ((r,True) in self.alignments)
+	def add(self, pos):
+		self.alignments.add(pos)
 		self.bounds = min(self.bounds[0], pos[0]), max(self.bounds[1], pos[0])
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def makeContoursAndAlignments(g, ital, X, autoh):
-	if X:
-		proj = lambda p: p[0]
-		ortho_proj = lambda p: p[1]
-	else:
-		proj = lambda p: p[1]
-		ortho_proj = lambda p: p[0]
+	if X: X = 0
+	else: X = 1
+	proj = lambda p: p[X]
+	ortho_proj = lambda p: p[1-X]
 	contours = []
 	for c in g:
 		contours.append([])
 	byPos = {}
-	angle = 0.0
-	if X: angle = 90.0
+	angle = (1-X) * 90.0
 	# make a copy of all contours with hinting data and groups the ON points
 	# having the same 'proj' coordinate (sheared X or Y)
 	for contseg in contourSegmentIterator(g):
-		hd = makeHintingData(g, ital, contseg)
+		hd = makeHintingData(g, ital, contseg, computeWeight=True)
+		hd.weight = hd.weight[1-X]
 		contours[contseg[0]].append(hd)
 		goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle,  angle, autoh.tthtm.angleTolerance) \
 		         or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
@@ -460,29 +480,14 @@ class AutoHinting():
 				newX.append((stem, name))
 		return (newX, newY)
 
-	def beautifulStem(self, stem, contours):
-		hd0 = contours[stem[0].cont][stem[0].seg]
-		hd1 = contours[stem[1].cont][stem[1].seg]
-		#print hd0.inAngle, hd0.outAngle, hd1.inAngle, hd1.outAngle
-		return (HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd0.outAngle, 1.0)
-		    and HF.closeAngleModulo180_withTolerance(hd0.inAngle, hd1.inAngle, 1.0)
-		    and HF.closeAngleModulo180_withTolerance(hd1.inAngle, hd1.outAngle, 1.0))
-
-	def beautifulInX(self, pt, stem, contours):
-		return self.beautifulStem(stem, contours)
-
-	def beautifulInY(self, pt, stem, contours):
-		return None != self.zoneAt(int(round(pt.pos.y)))
-
-	def makeGroups(self, contours, stems, beautyPredicate, debug=False):
+	def makeGroups(self, contours, stems, debug=False):
 		groups = []
 		for stem in stems:
 			src = contours[stem[0].cont][stem[0].seg]
 			tgt = contours[stem[1].cont][stem[1].seg]
 			pos0 = src.alignment
 			pos1 = tgt.alignment
-			beautiful = self.beautifulStem(stem, contours)
-			if debug: print "(",pos0, pos1,src.pos,tgt.pos,beautiful,")"
+			if debug: print "(",pos0, pos1,src.pos,tgt.pos,")"
 			if pos0 == None or pos1 == None: continue
 			if pos1 < pos0:
 				pos0, pos1 = pos1, pos0
@@ -494,93 +499,83 @@ class AutoHinting():
 			if grp == None:
 				groups.append(Group())
 				grp = groups[-1]
-			grp.add((pos0,False), beautiful)
-			grp.add((pos1,True),  beautiful)
+			grp.add((pos0,False))
+			grp.add((pos1,True))
 		for grp in groups:
-			grp.positions = set([p for (p,x) in grp.positions])
-		groups.sort(key=lambda c: c.bounds[0])
+			grp.alignments = set([p for (p,x) in grp.alignments])
+		groups.sort(key=lambda g: g.bounds[0]+g.bounds[1])
 		if debug:
 			print "Groups:"
 			for grp in groups:
-				for p in grp.positions:
+				for p in grp.alignments:
 					print p,
 				print " >|< "
 		return groups
 
 	def findLeftRight(self, groups):
-		nbGroups = len(groups)
-		#--------------
-		i = 0
-		while (i<nbGroups) and len(groups[i].nicePositions) == 0:
-			i += 1
-		if i == nbGroups:
-			ret = 0,None, 0,None
-			#print "findLeftRight returns", ret
-			return ret
-		grp = groups[i]
-		nicePositions = sorted(grp.nicePositions)
-		#print "Left, positions", grp.positions
-		#print "Left, nicePositions", nicePositions
-		leftmost = None
-		l = len(nicePositions)
-		if l >= 3:
-			leftmost = nicePositions[1]
-		elif l >= 1:
-			leftmost = nicePositions[0]
+		atLeastTwoGroups = len(groups) >= 2
+		groupWeights = [((i,g), sum([a.weight for a in g.alignments])) for (i, g) in enumerate(groups)]
+		#weights = [w (g, w) in groupWeights if w >= threshold]
+		(i,lg), w0 = groupWeights[0]
+		if atLeastTwoGroups:
+			(i1,g1),w1 = groupWeights[1]
+			if w1 > 1.6 * w0 and g1.avgPos < lg.bounds[1]+2.0*lg.width():
+				i,lg = i1,g1
 		#----------------
-		j = nbGroups-1
-		while (j>=0) and len(groups[j].nicePositions) == 0:
-			j -= 1
-		grp = groups[j]
-		nicePositions = sorted(grp.nicePositions)
-		#print "Right, positions", grp.positions
-		#print "Right, nicePositions", nicePositions
-		rightmost = None
-		l = len(nicePositions)
-		if l >= 3:
-			rightmost = nicePositions[-2]
-		elif l >= 1:
-			rightmost = nicePositions[-1]
+		(j,rg), w0 = groupWeights[-1]
+		if atLeastTwoGroups:
+			(j1,g1),w1 = groupWeights[-2]
+			if w1 > 1.6 * w0 and g1.avgPos > rg.bounds[0]-2.0*rg.width():
+				j,rg = j1,g1
+		if i == j and i > 0: i,lg = groupWeights[0]
+		if i == j and j < len(groups)-1: j,rg = groupWeights[-1]
+		#----------------
+		if lg.alignments[0].pos < lg.alignments[1].pos:
+			leftmost = 0
+		else:
+			leftmost = 1
+		#----------------
+		if rg.alignments[0].pos < rg.alignments[1].pos:
+			rightmost = 1
+		else:
+			rightmost = 0
+		#----------------
 		ret = i,leftmost, j,rightmost
-		#print "findLeftRight returns", ret
+		print "findLeftRight returns", ret
 		return ret
 
-	def processGroup_X(self, grp, alignments, contours, interpolatePossible, bounds):
-		remainingPositions = sorted(grp.positions - grp.processedPositions)
-		if len(remainingPositions) == 0: return
+	def processGroup_X(self, grp, contours, interpolatePossible, bounds):
+		print "Processing group:",
+		for a in grp.alignments:
+			print a.pos,
+		print ''
+		if len(grp.alignments) == 1:
+			if len(grp.alignments[0].components) == 1:
+				return
 		# Find a leader position, preferably the position of a nice stem
 		if grp.leaderPos == None:
-			nbNice = len(grp.nicePositions)
-			if nbNice >= 3:
-				grp.leaderPos = sorted(grp.nicePositions)[1]
-			elif nbNice > 0:
-				grp.leaderPos = sorted(grp.nicePositions)[0]
-			elif len(grp.processedPositions)>0:
-				grp.leaderPos = sorted(grp.processedPositions)[0]
-			else:
-				p = remainingPositions.pop()
-				# since 'p' is removed from the remaining positions here,
-				# we should process the corresponding alignment now:
-				grp.processedPositions.add(p)
-				alignments[p].addLinks(0, contours, False, self)
-				grp.leaderPos = p
+			grp.leaderPos = 0
+			for (i, ali) in enumerate(grp.alignments):
+				if ali.leaderPoint(0, contours).touched:
+					grp.leaderPos = i
+					break
 		# Find the leader control point in the leader alignment (= the alignment at the leaderPos)
-		lead = alignments[grp.leaderPos].leaderPoint(0, contours)
-		if len(remainingPositions) == len(grp.positions) and interpolatePossible:
+		leadAli = grp.alignments[grp.leaderPos]
+		lead = leadAli.leaderPoint(0, contours)
+		if (not lead.touched) and interpolatePossible:
 			# If NO alignment in the group had beed processed yet,
 			# then add a starting point by interpolation:
 			leftmost, rightmost = bounds
 			self.addInterpolate(leftmost, lead, rightmost, False)
 		lead.touched = True
-		while len(remainingPositions)>0:
-			pos = remainingPositions.pop()
-			grp.processedPositions.add(pos)
-			tgt = alignments[pos].leaderPoint(0, contours)
+		leadAli.addLinks(0, contours, False, self)
+		for ali in grp.alignments:
+			tgt = ali.leaderPoint(0, contours)
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(lead, tgt, False)
 				self.addSingleLink(lead.name, tgt.name, False, stemName)
-			alignments[pos].addLinks(0, contours, False, self)
+			ali.addLinks(0, contours, False, self)
 
 	def processGroup_Y(self, grp, alignments, contours, interpolatePossible, bounds, findZone):
 		remainingPositions = sorted(grp.positions - grp.processedPositions)
@@ -596,16 +591,6 @@ class AutoHinting():
 					if not ali.zone[1]: break # bottom zone
 		if grp.leaderPos == None: # no zone
 			if findZone: return None
-			maxNbStems = 0
-			coolAli = []
-			for pos in sorted(grp.positions):
-				ali = alignments[pos]
-				if ali.nbStems > maxNbStems:
-					coolAli = [pos]
-					maxNbStems = ali.nbStems
-				elif ali.nbStems == maxNbStems:
-					coolAli.append(pos)
-			coolAli.sort()
 			grp.leaderPos = coolAli[len(coolAli)/2]
 		if grp.leaderPos == None: # no zone, no stems !
 			print "ERROR on processGroup_Y: leaderPos not found"
@@ -632,14 +617,6 @@ class AutoHinting():
 				self.addSingleLink(lead.name, tgt.name, True, stemName)
 			alignments[pos].addLinks(0, contours, True, self)
 		return lead
-
-	def countStems(self, stems, (contours, alignments)):
-		for stem in stems:
-			for i in range(2):
-				hd = contours[stem[i].cont][stem[i].seg]
-				hd.nbStem += 1
-				ali = alignments[hd.alignment]
-				ali.nbStems = max(ali.nbStems, hd.nbStem)
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -766,12 +743,11 @@ class AutoHinting():
 		ca = makeContoursAndAlignments(g, self.ital, False, self) # for Y auto-hinting
 		contours, alignments = ca
 		#printAlignments(ca, 'Y')
-		# we mark point in Y alignments that have at least one stem attached to them:
-		self.countStems(stems, ca)
 		for pos, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 			alignment.findZone(contours, self)
-		groups = self.makeGroups(contours, stems, self.beautifulInY, debug=False)
+		groups = self.makeGroups(contours, stems, debug=False)
+		for grp in groups: grp.prepare(alignments)
 		bottom = None
 		top = None
 		for group in groups:
@@ -798,41 +774,38 @@ class AutoHinting():
 		contours, alignments = ca
 		#printAlignments(ca, 'X')
 		if len(alignments) == 0: return
-		# we mark point in X alignments that have at least one stem attached to them:
-		self.countStems(stems, ca)
-		for pos, alignment in alignments.iteritems(): alignment.putLeadersFirst(contours)
+		for pos, alignment in alignments.iteritems():
+			alignment.putLeadersFirst(contours)
 		
-		groups = self.makeGroups(contours, stems, self.beautifulInX)
-		leftGrpIdx,lmi, rightGrpIdx,rmi = self.findLeftRight(groups)
+		groups = self.makeGroups(contours, stems, debug=False)
+		for grp in groups: grp.prepare(alignments)
+
+		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
 		leftGroup = groups[leftGrpIdx]
 		rightGroup = groups[rightGrpIdx]
 		bounds = None
 		interpolatePossible = False
 
-		if rmi != None:
-			rightmost = alignments[rmi].leaderPoint(0, contours)
-			self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
-			self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
-			rightmost.touched = True
-			alignments[rightmost.alignment].addLinks(0, contours, False, self)
-			rightGroup.leaderPos = rmi
-			rightGroup.processedPositions.add(rmi)
-			self.processGroup_X(rightGroup, alignments, contours, False, None)
-			if lmi != None and leftGrpIdx != rightGrpIdx:
-				interpolatePossible = True
-				leftmost = alignments[lmi].leaderPoint(0, contours)
-				bounds = leftmost, rightmost
-				stemName = self.guessStemForDistance(leftmost, rightmost, False)
-				link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
-				if stemName == None:
-					link['round'] = 'true'
-				leftmost.touched = True
-				alignments[leftmost.alignment].addLinks(0, contours, False, self)
-				leftGroup.leaderPos = lmi
-				leftGroup.processedPositions.add(lmi)
-				self.processGroup_X(leftGroup, alignments, contours, False, None)
+		rightmost = groups[rightGrpIdx].alignments[rmPos].leaderPoint(0, contours)
+		self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
+		self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
+		rightGroup.leaderPos = rmPos
+		self.processGroup_X(rightGroup, contours, False, None)
+
+		if leftGrpIdx != rightGrpIdx:
+			interpolatePossible = True
+			leftmost = groups[leftGrpIdx].alignments[lmPos].leaderPoint(0, contours)
+			bounds = leftmost, rightmost
+			stemName = self.guessStemForDistance(leftmost, rightmost, False)
+			link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
+			if stemName == None: link['round'] = 'true'
+			leftGroup.leaderPos = lmPos
+			self.processGroup_X(leftGroup, contours, False, None)
+
 		for grp in groups:
-			self.processGroup_X(grp, alignments, contours, interpolatePossible, bounds)
+			if grp.leaderPos != None: continue
+			self.processGroup_X(grp, contours, interpolatePossible, bounds)
+
 
 	def autohint(self, g):
 		font = self.TTHToolInstance.c_fontModel.f
@@ -850,5 +823,5 @@ class AutoHinting():
 
 		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
 		self.autoHintX(g, stems[0])
-		self.autoHintY(g, stems[1])
+		#self.autoHintY(g, stems[1])
 
