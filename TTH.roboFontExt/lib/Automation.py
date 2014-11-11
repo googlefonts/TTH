@@ -289,6 +289,8 @@ class Alignment(object):
 	def __init__(self, pos):
 		self.components = []
 		self.pos = pos
+		self.nbStems = 0
+		self.zone = None
 	def leaderPoint(self, pos, contours):
 		cont, seg = self.components[pos][0]
 		return contours[cont][seg].leader()
@@ -297,7 +299,9 @@ class Alignment(object):
 			for (cont,seg) in comp:
 				pt = contours[cont][seg]
 				z = autoh.zoneAt(pt.pos.y)
-				if z != None: return z
+				if z != None:
+					self.zone = z
+		return self.zone
 	def addPoint(self, cont, seg, contours):
 		contours[cont][seg].alignment = self.pos
 		lenc = len(contours[cont])
@@ -477,7 +481,8 @@ class AutoHinting():
 			tgt = contours[stem[1].cont][stem[1].seg]
 			pos0 = src.alignment
 			pos1 = tgt.alignment
-			if debug: print "(",pos0, pos1,src.pos,tgt.pos,")"
+			beautiful = self.beautifulStem(stem, contours)
+			if debug: print "(",pos0, pos1,src.pos,tgt.pos,beautiful,")"
 			if pos0 == None or pos1 == None: continue
 			if pos1 < pos0:
 				pos0, pos1 = pos1, pos0
@@ -489,8 +494,8 @@ class AutoHinting():
 			if grp == None:
 				groups.append(Group())
 				grp = groups[-1]
-			grp.add((pos0,False), beautyPredicate(src, stem, contours))
-			grp.add((pos1,True),  beautyPredicate(tgt, stem, contours))
+			grp.add((pos0,False), beautiful)
+			grp.add((pos1,True),  beautiful)
 		for grp in groups:
 			grp.positions = set([p for (p,x) in grp.positions])
 		groups.sort(key=lambda c: c.bounds[0])
@@ -510,7 +515,7 @@ class AutoHinting():
 			i += 1
 		if i == nbGroups:
 			ret = 0,None, 0,None
-			print "findLeftRight returns", ret
+			#print "findLeftRight returns", ret
 			return ret
 		grp = groups[i]
 		nicePositions = sorted(grp.nicePositions)
@@ -537,7 +542,7 @@ class AutoHinting():
 		elif l >= 1:
 			rightmost = nicePositions[-1]
 		ret = i,leftmost, j,rightmost
-		print "findLeftRight returns", ret
+		#print "findLeftRight returns", ret
 		return ret
 
 	def processGroup_X(self, grp, alignments, contours, interpolatePossible, bounds):
@@ -577,25 +582,34 @@ class AutoHinting():
 				self.addSingleLink(lead.name, tgt.name, False, stemName)
 			alignments[pos].addLinks(0, contours, False, self)
 
-	def processGroup_Y(self, grp, alignments, contours, interpolatePossible, bounds):
+	def processGroup_Y(self, grp, alignments, contours, interpolatePossible, bounds, findZone):
 		remainingPositions = sorted(grp.positions - grp.processedPositions)
 		nbr = len(remainingPositions)
 		if nbr == 0: return None
 		zone = None
-		if grp.leaderPos == None:
-			nbNice = len(grp.nicePositions)
-			if nbNice >= 1:
-				nicePoss = sorted(grp.nicePositions)
-				grp.leaderPos = nicePoss[0]
-				zone = alignments[grp.leaderPos].findZone(contours, self)
-				if zone[1]: # zone is a top zone, so we find the topmost one
-					grp.leaderPos = nicePoss[-1]
-					zone = alignments[grp.leaderPos].findZone(contours, self)
-			elif len(grp.processedPositions)>0:
-				grp.leaderPos = sorted(grp.processedPositions)[0]
-				interpolatePossible = False
-			else:
-				grp.leaderPos = remainingPositions[int(nbr/2)]
+		if grp.leaderPos == None and findZone:
+			for pos in sorted(grp.positions):
+				ali = alignments[pos]
+				if ali.zone != None:
+					zone = ali.zone
+					grp.leaderPos = pos
+					if not ali.zone[1]: break # bottom zone
+		if grp.leaderPos == None: # no zone
+			if findZone: return None
+			maxNbStems = 0
+			coolAli = []
+			for pos in sorted(grp.positions):
+				ali = alignments[pos]
+				if ali.nbStems > maxNbStems:
+					coolAli = [pos]
+					maxNbStems = ali.nbStems
+				elif ali.nbStems == maxNbStems:
+					coolAli.append(pos)
+			coolAli.sort()
+			grp.leaderPos = coolAli[len(coolAli)/2]
+		if grp.leaderPos == None: # no zone, no stems !
+			print "ERROR on processGroup_Y: leaderPos not found"
+			return None
 		# Find the leader control point in the leader alignment (= the alignment at the leaderPos)
 		lead = alignments[grp.leaderPos].leaderPoint(0, contours)
 		if zone != None:
@@ -619,11 +633,13 @@ class AutoHinting():
 			alignments[pos].addLinks(0, contours, True, self)
 		return lead
 
-	def markStems(self, stems, contours):
+	def countStems(self, stems, (contours, alignments)):
 		for stem in stems:
 			for i in range(2):
 				hd = contours[stem[i].cont][stem[i].seg]
 				hd.nbStem += 1
+				ali = alignments[hd.alignment]
+				ali.nbStems = max(ali.nbStems, hd.nbStem)
 
 	def applyStems(self, stems, contours, isHorizontal):
 		for (stem, stemName) in stems:
@@ -747,39 +763,43 @@ class AutoHinting():
 			if leader != None: alignment.addLinks(leader, contours, isHorizontal, self)
 
 	def autoHintY(self, g, stems):
-		cg = makeContoursAndAlignments(g, self.ital, False, self) # for Y auto-hinting
-		contours, alignments = cg
-		#printAlignments(cg, 'Y')
+		ca = makeContoursAndAlignments(g, self.ital, False, self) # for Y auto-hinting
+		contours, alignments = ca
+		#printAlignments(ca, 'Y')
 		# we mark point in Y alignments that have at least one stem attached to them:
-		self.markStems(stems, contours)
-		for pos, alignment in alignments.iteritems(): alignment.putLeadersFirst(contours)
+		self.countStems(stems, ca)
+		for pos, alignment in alignments.iteritems():
+			alignment.putLeadersFirst(contours)
+			alignment.findZone(contours, self)
 		groups = self.makeGroups(contours, stems, self.beautifulInY, debug=False)
 		bottom = None
 		top = None
 		for group in groups:
-			if len(group.nicePositions) == 0: continue
-			pt = self.processGroup_Y(group, alignments, contours, False, None)
+			#if len(group.nicePositions) == 0: continue
+			pt = self.processGroup_Y(group, alignments, contours, False, None, findZone=True)
+			if pt == None: continue
 			if top == None or pt.pos.y > top.pos.y: top = pt
 			if bottom == None or pt.pos.y < bottom.pos.y: bottom = pt
 		interpolationPossible = (top != None) and (bottom != None) and (not (top is bottom))
 		bounds = (bottom, top)
 		for group in groups:
-			if len(group.nicePositions) > 0: continue
-			self.processGroup_Y(group, alignments, contours, interpolationPossible, bounds)
+			#if len(group.nicePositions) > 0: continue
+			self.processGroup_Y(group, alignments, contours, interpolationPossible, bounds, findZone=False)
 
 		## in each Y, anchor one point in the zone, if there is a zone and put siblings to the other points:
-		#nonZones = self.handleZones(cg)
+		#nonZones = self.handleZones(ca)
 		## now we actually insert the stems, as double or single links, in Y
 		#self.applyStems(stems, contours, True)
 		## put siblings in Y, where there is no zone, but maybe some 'touched' points due to the stems
-		#self.handleNonZones(nonZones, cg, isHorizontal=True)
+		#self.handleNonZones(nonZones, ca, isHorizontal=True)
 
 	def autoHintX(self, g, stems):
-		contours, alignments = makeContoursAndAlignments(g, self.ital, True, self) # for X auto-hinting
-		#printAlignments((contours, alignments), 'X')
+		ca = makeContoursAndAlignments(g, self.ital, True, self) # for X auto-hinting
+		contours, alignments = ca
+		#printAlignments(ca, 'X')
 		if len(alignments) == 0: return
 		# we mark point in X alignments that have at least one stem attached to them:
-		self.markStems(stems, contours)
+		self.countStems(stems, ca)
 		for pos, alignment in alignments.iteritems(): alignment.putLeadersFirst(contours)
 		
 		groups = self.makeGroups(contours, stems, self.beautifulInX)
