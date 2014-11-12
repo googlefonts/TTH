@@ -27,14 +27,21 @@ class HintingData(object):
 		self.shearedPos = sh
 		self.inAngle    = ina
 		self.outAngle   = outa
+		self.cont       = cont # contour number
+		self.seg        = seg  # segment number
+		# the following change when we switch from X- to Y-autohinting
+		self.weight2D   = weight
 		self.weight     = weight
 		self.touched    = False
 		self.alignment  = None
-		self.cont       = cont # contour number
-		self.seg        = seg  # segment number
 		self.leader     = None # who is my leader? (only leaders take part
 		# in hinting commands, each component of a alignment has exactly one
 		# leader)
+	def reset(self):
+		self.weight     = 0.0
+		self.touched    = False
+		self.alignment  = None
+		self.leader     = None
 	def nextOn(self, contours):
 		contour = contours[self.cont]
 		return contour[(self.seg+1)%len(contour)]
@@ -66,7 +73,17 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
 	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx, weight)
 
-def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
+def makeContours(g, ital):
+	contours = []
+	for c in g:
+		contours.append([])
+	# make a copy of all contours with hinting data
+	for contseg in contourSegmentIterator(g):
+		hd = makeHintingData(g, ital, contseg, computeWeight=True)
+		contours[contseg[0]].append(hd)
+	return contours
+
+def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	def addStemToList(src, tgt, angle0, angle1, existingStems):
@@ -102,11 +119,13 @@ def makeStemsList(g, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, 
 			wc[0] = hasSomeWhite(source, target, g, xBound[1], yBound[1])
 		return wc[0]
 
-	hPoints = [makeHintingData(g, italicAngle, contSeg) for contSeg in contourSegmentIterator(g)]
-	for gidx, src in enumerate(hPoints):
-		for tgt in hPoints[gidx+1:]:
-			existingStems = {'h':False, 'v':False, 'd':False}
+	contsegs = [contSeg for contSeg in contourSegmentIterator(g)]
+	for gidx, (sc, ss) in enumerate(contsegs):
+		src = contours[sc][ss]
+		for (tc, ts) in contsegs[gidx+1:]:
 			wc = [None]
+			tgt = contours[tc][ts]
+			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inAngle, src.outAngle):
 				for ta in (tgt.inAngle, tgt.outAngle):
 					if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
@@ -150,7 +169,8 @@ def computeMaxStemOnO(tthtm, font):
 		print "WARNING: glyph 'O' missing, unable to calculate stems"
 		return -1
 	g = font['O']
-	(O_stemsListX, O_stemsListY) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, tthtm.angleTolerance)
+	contours = makeContours(g, ital)
+	(O_stemsListX, O_stemsListY) = makeStemsList(g, contours, ital, xBound, yBound, roundFactor_Stems, tthtm.angleTolerance)
 
 	if O_stemsListX == None:
 		return 200
@@ -173,6 +193,11 @@ class Automation():
 		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
 		minStemY = HF.roundbase(self.tthtm.minStemY, roundFactor_Stems)
 
+		if font.info.italicAngle != None:
+			ital = - font.info.italicAngle
+		else:
+			ital = 0
+
 		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
 		if maxStemX == -1:
 			return
@@ -180,19 +205,16 @@ class Automation():
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
 
-		if font.info.italicAngle != None:
-			ital = - font.info.italicAngle
-		else:
-			ital = 0
-
 		stemsValuesXList = []
 		stemsValuesYList = []
+
+		contours = makeContours(g, ital)
 
 		progressBar.set(0)
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
-			(XStems, YStems) = makeStemsList(g, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
+			(XStems, YStems) = makeStemsList(g, contours, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 			XStems = [stem[2] for stem in XStems]
 			YStems = [stem[2] for stem in YStems]
 			stemsValuesXList.extend(XStems)
@@ -395,28 +417,24 @@ class Group:
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def makeContoursAndAlignments(g, ital, X, autoh):
+def makeAlignments(ital, contours, X, autoh):
 	if X: X = 0
 	else: X = 1
 	proj = lambda p: p[X]
 	ortho_proj = lambda p: p[1-X]
-	contours = []
-	for c in g:
-		contours.append([])
 	byPos = {}
 	angle = (1-X) * 90.0
 	# make a copy of all contours with hinting data and groups the ON points
 	# having the same 'proj' coordinate (sheared X or Y)
-	for contseg in contourSegmentIterator(g):
-		hd = makeHintingData(g, ital, contseg, computeWeight=True)
-		hd.weight = hd.weight[1-X]
-		contours[contseg[0]].append(hd)
-		goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle,  angle, autoh.tthtm.angleTolerance) \
-		         or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
-		if not goodAngle: continue
-		pos = int(round(proj(hd.shearedPos)))
-		ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
-		ptsAtPos.append((ortho_proj(hd.shearedPos), contseg))
+	for cont, contour in enumerate(contours):
+		for seg, hd in enumerate(contour):
+			hd.weight = hd.weight2D[1-X]
+			goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle,  angle, autoh.tthtm.angleTolerance) \
+				   or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
+			if not goodAngle: continue
+			pos = int(round(proj(hd.shearedPos)))
+			ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
+			ptsAtPos.append((ortho_proj(hd.shearedPos), (cont, seg)))
 
 	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]
 	byPos.sort()
@@ -432,9 +450,9 @@ def makeContoursAndAlignments(g, ital, X, autoh):
 		for _, (cont, seg) in pts:
 			alignment.addPoint(cont, seg, contours)
 		alignments[pos] = alignment
-	return (contours, alignments)
+	return alignments
 
-def printAlignments((contours, alignments), axis):
+def printAlignments(alignments, axis):
 	print "Alignments for", axis
 	for pos, alignment in sorted(alignments.iteritems(), reverse=True):
 		print pos, ":",
@@ -676,19 +694,19 @@ class AutoHinting():
 		#if newCommand not in self.TTHToolInstance.glyphTTHCommands:
 		self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
-	def addDoubleLink(self, p1, p2, stemName, isHorizontal):
-		if stemName == None:
-			return
-		newCommand = {}
-		if isHorizontal:
-			newCommand['code'] = 'doublev'
-		else:
-			newCommand['code'] = 'doubleh'
-		newCommand['point1'] = p1.name
-		newCommand['point2'] = p2.name
-		newCommand['stem'] = stemName
-		#if newCommand not in self.TTHToolInstance.glyphTTHCommands:
-		self.TTHToolInstance.glyphTTHCommands.append(newCommand)
+	#def addDoubleLink(self, p1, p2, stemName, isHorizontal):
+	#	if stemName == None:
+	#		return
+	#	newCommand = {}
+	#	if isHorizontal:
+	#		newCommand['code'] = 'doublev'
+	#	else:
+	#		newCommand['code'] = 'doubleh'
+	#	newCommand['point1'] = p1.name
+	#	newCommand['point2'] = p2.name
+	#	newCommand['stem'] = stemName
+	#	#if newCommand not in self.TTHToolInstance.glyphTTHCommands:
+	#	self.TTHToolInstance.glyphTTHCommands.append(newCommand)
 
 	def addAlign(self, pointName, (zoneName, isTopZone, ys, ye)):
 		newAlign = {}
@@ -707,10 +725,9 @@ class AutoHinting():
 			if HF.inInterval(y, (yStart, yEnd)):
 				return zd
 
-	def autoHintY(self, g, stems):
-		ca = makeContoursAndAlignments(g, self.ital, False, self) # for Y auto-hinting
-		contours, alignments = ca
-		#printAlignments(ca, 'Y')
+	def autoHintY(self, contours, stems):
+		alignments = makeAlignments(self.ital, contours, False, self) # for Y auto-hinting
+		#printAlignments(alignments, 'Y')
 		for pos, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 			alignment.findZone(contours, self)
@@ -730,10 +747,9 @@ class AutoHinting():
 		for group in groups:
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
 
-	def autoHintX(self, g, stems):
-		ca = makeContoursAndAlignments(g, self.ital, True, self) # for X auto-hinting
-		contours, alignments = ca
-		#printAlignments(ca, 'X')
+	def autoHintX(self, contours, stems):
+		alignments = makeAlignments(self.ital, contours, True, self) # for X auto-hinting
+		#printAlignments(alignments, 'X')
 		if len(alignments) == 0: return
 		for pos, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
@@ -778,21 +794,28 @@ class AutoHinting():
 
 	def autohint(self, g):
 		font = self.TTHToolInstance.c_fontModel.f
-		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
 		if font.info.italicAngle != None:
 			self.ital = - font.info.italicAngle
 		else:
 			self.ital = 0
+
+		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
+		if maxStemX == -1:
+			maxStemX = maxStemY = 200
 
 		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 
 		xBound = self.tthtm.minStemX, maxStemX
 		yBound = self.tthtm.minStemY, maxStemY
-		#print "min and max stem size in X", xBound
-		#print "min and max stem size in Y", yBound
+		print "min and max stem size in X", xBound
+		print "min and max stem size in Y", yBound
 
-		stems = makeStemsList(g, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
-		self.autoHintX(g, stems[0])
-		self.autoHintY(g, stems[1])
+		contours = makeContours(g, self.ital)
+		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
+		self.autoHintX(contours, stems[0])
+		for c in contours:
+			for hd in c:
+				hd.reset()
+		self.autoHintY(contours, stems[1])
 
