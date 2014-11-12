@@ -791,7 +791,7 @@ class SheetAutoHinting(object):
 	def autoHintGlyphCallBack(self, sender):
 		g = self.controller.getGlyph()
 		g.prepareUndo("Auto-hint Glyph")
-		self.autohinting.autohint(g)
+		self.autohinting.autohint(g, None)
 		self.controller.updateGlyphProgram(g)
 		if self.model.alwaysRefresh == 1:
 			self.controller.refreshGlyph(g)
@@ -800,10 +800,12 @@ class SheetAutoHinting(object):
 	def autoHintFontCallBack(self, sender):
 		self.w.bar.show(1)
 		self.w.bar.set(0)
-		increment = 100.0/len(self.c_fontModel.f)
+		font = self.c_fontModel.f
+		increment = 100.0/len(font)
+		maxStemSize = Automation.computeMaxStemOnO(self.controller.tthtm, font)
 		for g in self.c_fontModel.f:
 			g.prepareUndo("Auto-hint Glyph")
-			self.autohinting.autohint(g)
+			self.autohinting.autohint(g, maxStemSize)
 			self.controller.updateGlyphProgram(g)
 			g.performUndo()
 			self.w.bar.increment(increment)

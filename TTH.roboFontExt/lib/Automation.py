@@ -747,7 +747,7 @@ class AutoHinting():
 		for group in groups:
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
 
-	def autoHintX(self, contours, stems):
+	def autoHintX(self, g, contours, stems):
 		alignments = makeAlignments(self.ital, contours, True, self) # for X auto-hinting
 		#printAlignments(alignments, 'X')
 		if len(alignments) == 0: return
@@ -792,28 +792,28 @@ class AutoHinting():
 			self.processGroup_X(grp, contours, interpolateIsPossible, bounds)
 
 
-	def autohint(self, g):
+	def autohint(self, g, maxStemSize):
 		font = self.TTHToolInstance.c_fontModel.f
 		if font.info.italicAngle != None:
 			self.ital = - font.info.italicAngle
 		else:
 			self.ital = 0
 
-		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
-		if maxStemX == -1:
-			maxStemX = maxStemY = 200
+		if maxStemSize == None:
+			maxStemSize = computeMaxStemOnO(self.tthtm, font)
+			if maxStemSize == -1:
+				maxStemSize = maxStemY = 200
+			print "max stem size in X, Y is", maxStemSize
 
 		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []
 
-		xBound = self.tthtm.minStemX, maxStemX
-		yBound = self.tthtm.minStemY, maxStemY
-		print "min and max stem size in X", xBound
-		print "min and max stem size in Y", yBound
+		xBound = self.tthtm.minStemX, maxStemSize
+		yBound = self.tthtm.minStemY, maxStemSize
 
 		contours = makeContours(g, self.ital)
 		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
-		self.autoHintX(contours, stems[0])
+		self.autoHintX(g, contours, stems[0])
 		for c in contours:
 			for hd in c:
 				hd.reset()
