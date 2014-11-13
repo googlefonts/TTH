@@ -805,14 +805,28 @@ class SheetAutoHinting(object):
 		increment = 100.0/len(font)
 		maxStemSize = Automation.computeMaxStemOnO(self.controller.tthtm, font)
 		elapsedTime = time.clock()
+		badX, badY = [], []
 		for g in self.c_fontModel.f:
 			g.prepareUndo("Auto-hint Glyph")
-			self.autohinting.autohint(g, maxStemSize)
+			rx, ry = self.autohinting.autohint(g, maxStemSize)
+			if rx != None: badX.append(rx)
+			if ry != None: badY.append(ry)
 			self.controller.updateGlyphProgram(g)
 			g.performUndo()
 			self.w.bar.increment(increment)
 		elapsedTime = time.clock() - elapsedTime
 		print "Font auto-hinted in", elapsedTime, "seconds."
+		if badX != []:
+			print "\nThese glyphs may have problem in X-hinting (no left/right anchor):\n"
+			badX.sort()
+			print badX[0],
+			for b in badX[1:]: print ",", b,
+			print ''
+		if badX != []:
+			print "\nThese glyphs may have problem in Y-hinting (no top or no bottom align):\n"
+			badY.sort()
+			print badY[0],
+			for b in badY[1:]: print ",", b,
 		self.w.bar.show(0)
 		self.controller.resetFont()
 

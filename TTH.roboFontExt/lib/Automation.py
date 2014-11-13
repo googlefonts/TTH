@@ -745,6 +745,7 @@ class AutoHinting():
 		bounds = (bottom, top)
 		for group in groups:
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
+		return bottom != None and top != None
 
 	def autoHintX(self, g, contours, stems):
 		alignments = makeAlignments(self.ital, contours, True, self) # for X auto-hinting
@@ -758,9 +759,7 @@ class AutoHinting():
 
 		# Find the left and right points to be anchored to lsb and rsb.
 		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
-		if leftGrpIdx == None:
-			print "autoHintX weirdness: no left/right for glyph", g.name
-			return
+		if leftGrpIdx == None: return g.name
 		leftGroup = groups[leftGrpIdx]
 		rightGroup = groups[rightGrpIdx]
 		bounds = None
@@ -812,9 +811,12 @@ class AutoHinting():
 
 		contours = makeContours(g, self.ital)
 		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
-		self.autoHintX(g, contours, stems[0])
+		rx = self.autoHintX(g, contours, stems[0])
 		for c in contours:
 			for hd in c:
 				hd.reset()
-		self.autoHintY(contours, stems[1])
+		ry = self.autoHintY(contours, stems[1])
+		if not ry: ry = g.name
+		else: ry = None
+		return rx, ry
 
