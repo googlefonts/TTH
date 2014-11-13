@@ -2,6 +2,12 @@
 For v0.6 :
 ==============================
 
+------------------------------
+Autohinting: remove stems between ink traps
+------------------------------
+In the autohinting window : interface to customize max/minStemX/Y,
+Otherwise, large serifs may not be detected.
+------------------------------
 Fixer le resize du canvas de la previewWindow
 ------------------------------
 panneau des préférences
