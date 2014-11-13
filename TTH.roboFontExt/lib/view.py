@@ -9,6 +9,7 @@ from AppKit import *
 from defconAppKit.windows.baseWindow import BaseWindowController
 
 import string
+import time
 
 import preview
 import view_ControlValues as CV
@@ -803,12 +804,15 @@ class SheetAutoHinting(object):
 		font = self.c_fontModel.f
 		increment = 100.0/len(font)
 		maxStemSize = Automation.computeMaxStemOnO(self.controller.tthtm, font)
+		elapsedTime = time.clock()
 		for g in self.c_fontModel.f:
 			g.prepareUndo("Auto-hint Glyph")
 			self.autohinting.autohint(g, maxStemSize)
 			self.controller.updateGlyphProgram(g)
 			g.performUndo()
 			self.w.bar.increment(increment)
+		elapsedTime = time.clock() - elapsedTime
+		print "Font auto-hinted in", elapsedTime, "seconds."
 		self.w.bar.show(0)
 		self.controller.resetFont()
 

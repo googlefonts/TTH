@@ -86,15 +86,7 @@ def makeContours(g, ital):
 def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
 	stemsListX_temp = []
 	stemsListY_temp = []
-	def addStemToList(src, tgt, angle0, angle1, existingStems):
-		dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
-		c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
-		hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
-
-		if (src.cont == tgt.cont) and (abs(src.seg-tgt.seg) == 1):
-			# neighbors can't make a stem
-			return
-
+	def addStemToList(src, tgt, c_distance, hypoth, angle0, angle1, existingStems):
 		## if they are horizontal, treat the stem on the Y axis
 		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
 			HF.isHorizontal_withTolerance(angle1, tolerance) and
@@ -120,17 +112,25 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 		return wc[0]
 
 	contsegs = [contSeg for contSeg in contourSegmentIterator(g)]
+	bound = min(xBound[0], yBound[0])-1, max(xBound[1], yBound[1])+1
 	for gidx, (sc, ss) in enumerate(contsegs):
 		src = contours[sc][ss]
 		for (tc, ts) in contsegs[gidx+1:]:
-			wc = [None]
 			tgt = contours[tc][ts]
+			if (src.cont == tgt.cont) and (abs(src.seg-tgt.seg) == 1): # neighbors can't make a stem
+				continue
+			dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
+			c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
+			hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
+			if not HF.inInterval(hypoth, bound): continue
+
+			wc = [None]
 			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inAngle, src.outAngle):
 				for ta in (tgt.inAngle, tgt.outAngle):
 					if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
 						if hasWhite(wc, src.pos, tgt.pos): break
-						addStemToList(src, tgt, sa, ta, existingStems)
+						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems)
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
 	if not dedup: # dedup means de-duplications
@@ -208,12 +208,11 @@ class Automation():
 		stemsValuesXList = []
 		stemsValuesYList = []
 
-		contours = makeContours(g, ital)
-
 		progressBar.set(0)
 		tick = 100.0/len(string.ascii_letters)
 		for name in string.ascii_letters:
 			g = font[name]
+			contours = makeContours(g, ital)
 			(XStems, YStems) = makeStemsList(g, contours, ital, xBound, yBound, roundFactor_Stems, self.tthtm.angleTolerance)
 			XStems = [stem[2] for stem in XStems]
 			YStems = [stem[2] for stem in YStems]
