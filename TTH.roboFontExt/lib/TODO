@@ -2,6 +2,8 @@
 For v0.6 :
 ==============================
 
+Autohinting: en UI, il faut ajouter : minStemX/Y maxStemX/Y et peut-être ce seuil aussi.
+et l'angle tolerance
 ------------------------------
 Autohinting: remove stems between ink traps
 ------------------------------

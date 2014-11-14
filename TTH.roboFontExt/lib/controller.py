@@ -1405,6 +1405,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((100, 100))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1429,6 +1431,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 105))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1474,6 +1478,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 110))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1526,6 +1532,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 130))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1663,6 +1671,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 50))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 
@@ -1695,6 +1705,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 160))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 		
@@ -1848,6 +1860,8 @@ class TTHTool(BaseEventTool):
 		x += offsetX
 		y += offsetY
 		self.popover = Popover((200, 110))
+		if not hasattr(self.popover, "_bindings"):
+			self.popover._bindings = {}
 		self.popover.bind("did show", self.popoverOpened)
 		self.popover.bind("did close", self.popoverClosed)
 
