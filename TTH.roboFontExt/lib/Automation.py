@@ -427,53 +427,6 @@ class Group:
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def makeAlignments(ital, contours, X, autoh):
-	if X: X = 0
-	else: X = 1
-	proj = lambda p: p[X]
-	ortho_proj = lambda p: p[1-X]
-	byPos = {}
-	# make a copy of all contours with hinting data and groups the ON points
-	# having the same 'proj' coordinate (sheared X or Y)
-	minCosine = abs(math.cos(math.radians(autoh.tthtm.angleTolerance)))
-	for cont, contour in enumerate(contours):
-		for seg, hd in enumerate(contour):
-			hd.weight = hd.weight2D[1-X]
-			goodAngle = abs( hd.inTangent[1-X]) > minCosine \
-				   or abs(hd.outTangent[1-X]) > minCosine
-			if not goodAngle: continue
-			pos = int(round(proj(hd.shearedPos)))
-			ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
-			ptsAtPos.append((ortho_proj(hd.shearedPos), (cont, seg)))
-
-	byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]
-	byPos.sort()
-	alignments = {}
-	lastPos = -100000
-	for pos, pts in byPos:
-		if pos - lastPos < 10:
-			pos = lastPos
-			alignment = alignments[pos]
-		else:
-			alignment = Alignment(pos)
-			lastPos = pos
-		for _, (cont, seg) in pts:
-			alignment.addPoint(cont, seg, contours)
-		alignments[pos] = alignment
-	return alignments
-
-def printAlignments(alignments, axis):
-	print "Alignments for", axis
-	for pos, alignment in sorted(alignments.iteritems(), reverse=True):
-		print pos, ":",
-		for comp in alignment.components:
-			print '{',
-			for cont,seg in comp:
-				print str(cont)+'.'+str(seg),
-			print "}",
-		print ""
-
-### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def zoneData((zoneName, zone)):
 	isTop = zone['top']
@@ -494,6 +447,54 @@ class AutoHinting():
 		self.singleLinkCommandName = { False: 'singleh', True:'singlev' }
 		self.doubleLinkCommandName = { False: 'doubleh', True:'doublev' }
 		self.alignCommandName = { False: 'alignb', True:'alignt' }
+
+	def makeAlignments(self, contours, X):
+		if X: X = 0
+		else: X = 1
+		proj = lambda p: p[X]
+		ortho_proj = lambda p: p[1-X]
+		self.proj = proj
+		self.ortho_proj = ortho_proj
+		byPos = {}
+		# make a copy of all contours with hinting data and groups the ON points
+		# having the same 'proj' coordinate (sheared X or Y)
+		minCosine = abs(math.cos(math.radians(self.tthtm.angleTolerance)))
+		for cont, contour in enumerate(contours):
+			for seg, hd in enumerate(contour):
+				hd.weight = hd.weight2D[1-X]
+				goodAngle = abs( hd.inTangent[1-X]) > minCosine \
+					   or abs(hd.outTangent[1-X]) > minCosine
+				if not goodAngle: continue
+				pos = int(round(proj(hd.shearedPos)))
+				ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
+				ptsAtPos.append((ortho_proj(hd.shearedPos), (cont, seg)))
+
+		byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]
+		byPos.sort()
+		alignments = {}
+		lastPos = -100000
+		for pos, pts in byPos:
+			if pos - lastPos < 10:
+				pos = lastPos
+				alignment = alignments[pos]
+			else:
+				alignment = Alignment(pos)
+				lastPos = pos
+			for _, (cont, seg) in pts:
+				alignment.addPoint(cont, seg, contours)
+			alignments[pos] = alignment
+		return alignments
+
+	def printAlignments(self, alignments, axis):
+		print "Alignments for", axis
+		for pos, alignment in sorted(alignments.iteritems(), reverse=True):
+			print pos, ":",
+			for comp in alignment.components:
+				print '{',
+				for cont,seg in comp:
+					print str(cont)+'.'+str(seg),
+				print "}",
+			print ""
 
 	def filterStems(self, stems):
 		g_stemsListX, g_stemsListY = stems
@@ -583,24 +584,32 @@ class AutoHinting():
 		rightAlignments.sort(key=lambda a:a.pos, reverse=False)
 		leadAli.addLinks(0, contours, isHorizontal, self)
 		src = lead
+		srcpos = self.proj((src.pos.x, src.pos.y))
 		for ali in leftAlignments:
 			tgt = ali.leaderPoint(0, contours)
+			tgtpos = self.proj((tgt.pos.x, tgt.pos.y))
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
 				link = self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
-				if stemName == None: link['round'] = 'true'
+				if stemName == None and abs(srcpos-tgtpos) > 10.0:
+					link['round'] = 'true'
 			src = tgt
+			srcpos = tgtpos
 			ali.addLinks(0, contours, isHorizontal, self)
 		src = lead
+		srcpos = self.proj((src.pos.x, src.pos.y))
 		for ali in rightAlignments:
 			tgt = ali.leaderPoint(0, contours)
+			tgtpos = self.proj((tgt.pos.x, tgt.pos.y))
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
 				link = self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
-				if stemName == None: link['round'] = 'true'
+				if stemName == None and abs(srcpos-tgtpos) > 10.0:
+					link['round'] = 'true'
 			src = tgt
+			srcpos = tgtpos
 			ali.addLinks(0, contours, isHorizontal, self)
 
 	def processGroup_X(self, grp, contours, interpolateIsPossible, bounds):
@@ -737,8 +746,8 @@ class AutoHinting():
 				return zd
 
 	def autoHintY(self, contours, stems):
-		alignments = makeAlignments(self.ital, contours, False, self) # for Y auto-hinting
-		#printAlignments(alignments, 'Y')
+		alignments = self.makeAlignments(contours, False) # for Y auto-hinting
+		#self.printAlignments(alignments, 'Y')
 		for _, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 			alignment.findZone(contours, self)
@@ -768,8 +777,8 @@ class AutoHinting():
 		return bottom != None and top != None
 
 	def autoHintX(self, g, contours, stems):
-		alignments = makeAlignments(self.ital, contours, True, self) # for X auto-hinting
-		#printAlignments(alignments, 'X')
+		alignments = self.makeAlignments(contours, True) # for X auto-hinting
+		#self.printAlignments(alignments, 'X')
 		if len(alignments) == 0: return
 		for _, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
