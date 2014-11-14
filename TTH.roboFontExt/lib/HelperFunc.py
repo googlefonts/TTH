@@ -162,3 +162,25 @@ def add((x1, y1), (x2, y2)):
 
 def lerpPoints(t, a, b):
 	return add(scalePoint(1.0-t, a), scalePoint(t, b))
+
+def normalized(p):
+	l = math.sqrt(p.x*p.x+p.y*p.y)
+	if l < 0.01: return (0.0, 0.0)
+	return (p.x/l, p.y/l)
+
+def normalizedPair(p):
+	l = math.sqrt(p[0]*p[0]+p[1]*p[1])
+	if l < 0.01: return (0.0, 0.0)
+	return (p[0]/l, p[1]/l)
+
+def negatePair((x,y)):
+	return (-x, -y)
+
+def dotOfPairs(p1, p2):
+	return(p1[0]*p2[0] + p1[1]*p2[1])
+
+def diffOfPairs(p1, p2):
+	return(p1[0]-p2[0], p1[1]-p2[1])
+
+def det2x2(a, b):
+	return a[0]*b[1] - a[1]*b[0]

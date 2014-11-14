@@ -25,8 +25,8 @@ class HintingData(object):
 		self.pos        = on
 		self.name       = on.name.split(',')[0]
 		self.shearedPos = sh
-		self.inAngle    = ina
-		self.outAngle   = outa
+		self.inTangent  = ina
+		self.outTangent = outa
 		self.cont       = cont # contour number
 		self.seg        = seg  # segment number
 		# the following change when we switch from X- to Y-autohinting
@@ -62,16 +62,20 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 		prevOff = segment[-2]
 	else:
 		prevOff = prevOn
+	prevOn = HF.shearPoint(prevOn, ital)
+	nextOn = HF.shearPoint(nextOn, ital)
+	shearedOn = HF.shearPoint(segment.onCurve, ital)
 	if computeWeight:
-		weightX = abs(nextOn.x - onPt.x) + abs(prevOn.x - onPt.x)
-		weightY = abs(nextOn.y - onPt.y) + abs(prevOn.y - onPt.y)
-		weight = (weightX, weightY)
+		nextDif = HF.absoluteDiffOfPairs(nextOn, shearedOn)
+		prevDif = HF.absoluteDiffOfPairs(prevOn, shearedOn)
+		weight = HF.add(nextDif, prevDif)
 	else:
 		weight = None
-	shearedOn = HF.shearPoint(segment.onCurve, ital)
-	angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
-	angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
-	return HintingData(onPt, shearedOn, angleIn, angleOut, cidx, sidx, weight)
+	#angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
+	#angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
+	nextOff = HF.normalizedPair((nextOff.x-onPt.x, nextOff.y-onPt.y))
+	prevOff = HF.normalizedPair((onPt.x-prevOff.x, onPt.y-prevOff.y))
+	return HintingData(onPt, shearedOn, prevOff, nextOff, cidx, sidx, weight)
 
 def makeContours(g, ital):
 	contours = []
@@ -86,17 +90,16 @@ def makeContours(g, ital):
 def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, tolerance, dedup=True):
 	stemsListX_temp = []
 	stemsListY_temp = []
+	minCosine = abs(math.cos(math.radians(tolerance)))
 	def addStemToList(src, tgt, c_distance, hypoth, angle0, angle1, existingStems):
 		## if they are horizontal, treat the stem on the Y axis
-		if (HF.isHorizontal_withTolerance(angle0, tolerance) and
-			HF.isHorizontal_withTolerance(angle1, tolerance) and
-			not existingStems['h'] ) :
+		if (abs(angle0[0]) > minCosine and abs(angle1[0]) > minCosine and
+		    not existingStems['h'] ) :
 			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
 		## if they are vertical, treat the stem on the X axis
-		elif(HF.isVertical_withTolerance(angle0, tolerance) and
-			HF.isVertical_withTolerance(angle1, tolerance) and
+		elif (abs(angle0[1]) > minCosine and abs(angle1[1]) > minCosine and
 			not existingStems['v'] ) : # the angle is already sheared to counter italic
 			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
@@ -115,27 +118,31 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 	bound = min(xBound[0], yBound[0])-1, max(xBound[1], yBound[1])+1
 	for gidx, (sc, ss) in enumerate(contsegs):
 		src = contours[sc][ss]
+		srcPos = HF.pointToPair(src.pos)
 		for (tc, ts) in contsegs[gidx+1:]:
 			tgt = contours[tc][ts]
-			if (src.cont == tgt.cont) and (abs(src.seg-tgt.seg) == 1): # neighbors can't make a stem
-				continue
+			#if (src.cont == tgt.cont) and (abs(src.seg-tgt.seg) == 1): # neighbors can't make a stem
+			#	continue
 			dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
 			c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
 			hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
 			if not HF.inInterval(hypoth, bound): continue
 
+			diff = HF.diffOfPairs(HF.pointToPair(tgt.pos), srcPos)
 			wc = [None]
 			existingStems = {'h':False, 'v':False, 'd':False}
-			for sa in (src.inAngle, src.outAngle):
-				for ta in (tgt.inAngle, tgt.outAngle):
-					if HF.closeAngleModulo180_withTolerance(sa, ta, tolerance):
+			for sa in (src.inTangent, src.outTangent):
+				for ta in (tgt.inTangent, tgt.outTangent):
+					if ( HF.det2x2(sa, diff) < 0.0 and
+					     HF.det2x2(ta, diff) > 0.0 and
+					     abs(HF.dotOfPairs(sa, ta)) > minCosine):
 						if hasWhite(wc, src.pos, tgt.pos): break
 						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems)
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
 	if not dedup: # dedup means de-duplications
-		stemsX = [stem for (hypoth, stem) in stemsListX_temp]
-		stemsY = [stem for (hypoth, stem) in stemsListY_temp]
+		stemsX = [stem[1] for stem in stemsListX_temp]
+		stemsY = [stem[1] for stem in stemsListY_temp]
 		return (stemsX, stemsY)
 	# avoid duplicates, filters temporary stems
 	stemsLists = ([], [])
@@ -172,10 +179,10 @@ def computeMaxStemOnO(tthtm, font):
 	contours = makeContours(g, ital)
 	(O_stemsListX, O_stemsListY) = makeStemsList(g, contours, ital, xBound, yBound, roundFactor_Stems, tthtm.angleTolerance)
 
-	if O_stemsListX == None:
+	if O_stemsListX == []:
 		return 200
 	else:
-		return int(round(1.5 * max([stem[2] for stem in O_stemsListX])))
+		return int(round(2.0 * max([stem[2] for stem in O_stemsListX])))
 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -422,14 +429,14 @@ def makeAlignments(ital, contours, X, autoh):
 	proj = lambda p: p[X]
 	ortho_proj = lambda p: p[1-X]
 	byPos = {}
-	angle = (1-X) * 90.0
 	# make a copy of all contours with hinting data and groups the ON points
 	# having the same 'proj' coordinate (sheared X or Y)
+	minCosine = abs(math.cos(math.radians(autoh.tthtm.angleTolerance)))
 	for cont, contour in enumerate(contours):
 		for seg, hd in enumerate(contour):
 			hd.weight = hd.weight2D[1-X]
-			goodAngle = HF.closeAngleModulo180_withTolerance(hd.inAngle,  angle, autoh.tthtm.angleTolerance) \
-				   or HF.closeAngleModulo180_withTolerance(hd.outAngle, angle, autoh.tthtm.angleTolerance)
+			goodAngle = abs( hd.inTangent[1-X]) > minCosine \
+				   or abs(hd.outTangent[1-X]) > minCosine
 			if not goodAngle: continue
 			pos = int(round(proj(hd.shearedPos)))
 			ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
@@ -533,7 +540,6 @@ class AutoHinting():
 		if len(groups) == 0: return None, None, None, None
 		atLeastTwoGroups = (len(groups) >= 2)
 		groupWeights = [((i,g), sum([a.weight for a in g.alignments])) for (i, g) in enumerate(groups)]
-		#weights = [w (g, w) in groupWeights if w >= threshold]
 		(i,lg), w0 = groupWeights[0]
 		if atLeastTwoGroups:
 			(i1,g1),w1 = groupWeights[1]
@@ -727,7 +733,7 @@ class AutoHinting():
 	def autoHintY(self, contours, stems):
 		alignments = makeAlignments(self.ital, contours, False, self) # for Y auto-hinting
 		#printAlignments(alignments, 'Y')
-		for pos, alignment in alignments.iteritems():
+		for _, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 			alignment.findZone(contours, self)
 
@@ -745,13 +751,21 @@ class AutoHinting():
 		bounds = (bottom, top)
 		for group in groups:
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
+			# reset the zone, so that we can detect lone alignments with zones
+			for ali in group.alignments:
+				ali.zone = None
+		for _, ali in alignments.iteritems():
+			if ali.zone == None: continue
+			grp = Group()
+			grp.alignments = [ali]
+			self.processGroup_Y(grp, contours, False, None, findZone=True)
 		return bottom != None and top != None
 
 	def autoHintX(self, g, contours, stems):
 		alignments = makeAlignments(self.ital, contours, True, self) # for X auto-hinting
 		#printAlignments(alignments, 'X')
 		if len(alignments) == 0: return
-		for pos, alignment in alignments.iteritems():
+		for _, alignment in alignments.iteritems():
 			alignment.putLeadersFirst(contours)
 		
 		groups = self.makeGroups(contours, stems, debug=False)
@@ -810,6 +824,7 @@ class AutoHinting():
 		yBound = self.tthtm.minStemY, maxStemSize
 
 		contours = makeContours(g, self.ital)
+		if contours == []: return None, None
 		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
 		rx = self.autoHintX(g, contours, stems[0])
 		for c in contours:
