@@ -9,6 +9,10 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 	if dif[0] > maxStemX and dif[1] > maxStemY:
 		return True # too far away, assume there is white in between
 	hypothLength = HF.distance(point1, point2)
+	#def test(left, right):
+	#	if right - left <= 4: return False
+	#	p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
+	#	if not g.pointInside(p):
 	for j in range(1, int(hypothLength), 5):
 		p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
 		if not g.pointInside(p):
@@ -584,7 +588,8 @@ class AutoHinting():
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
-				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+				link = self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+				if stemName == None: link['round'] = 'true'
 			src = tgt
 			ali.addLinks(0, contours, isHorizontal, self)
 		src = lead
@@ -593,7 +598,8 @@ class AutoHinting():
 			if not tgt.touched:
 				tgt.touched = True
 				stemName = self.guessStemForDistance(src, tgt, isHorizontal)
-				self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+				link = self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
+				if stemName == None: link['round'] = 'true'
 			src = tgt
 			ali.addLinks(0, contours, isHorizontal, self)
 
