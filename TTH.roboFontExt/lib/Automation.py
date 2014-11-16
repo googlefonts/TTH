@@ -1,21 +1,28 @@
 import math
 import string
 import weakref
+from collections import deque
+import geom
 import HelperFunc as HF
 reload(HF)
+reload(geom)
 
 def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
-	dif = HF.absoluteDiff(point1, point2)
-	if dif[0] > maxStemX and dif[1] > maxStemY:
+	dif = (point1 - point2).absolute()
+	if dif.x > maxStemX and dif.y > maxStemY:
 		return True # too far away, assume there is white in between
-	hypothLength = HF.distance(point1, point2)
-	#def test(left, right):
-	#	if right - left <= 4: return False
-	#	p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
-	#	if not g.pointInside(p):
-	for j in range(1, int(hypothLength), 5):
-		p = HF.lerpPoints(j * 1.0 / hypothLength, point1, point2)
-		if not g.pointInside(p):
+	hypothLength = dif.length() / 5.0
+	queue = deque()
+	queue.append((0, int(math.ceil(hypothLength))))
+	while len(queue) > 0:
+		(left, right) = queue.popleft()
+		mid = int((left+right)/2)
+		p = geom.lerp(mid/hypothLength, point1, point2)
+		# for some reason (in RF) we can't pass 'p' directly, although it implements __getitem__
+		if g.pointInside((p.x, p.y)):
+			if mid  - left > 1: queue.append((left, mid))
+			if right - mid > 1: queue.append((mid, right))
+		else:
 			return True
 	return False
 
@@ -25,9 +32,9 @@ def contourSegmentIterator(g):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	def __init__(self, on, sh, ina, outa, cont, seg, weight):
-		self.pos        = on
-		self.name       = on.name.split(',')[0]
+	def __init__(self, on, name, sh, ina, outa, cont, seg, weight):
+		self.pos        = geom.Point(on.x, on.y)
+		self.name       = name
 		self.shearedPos = sh
 		self.inTangent  = ina
 		self.outTangent = outa
@@ -58,28 +65,25 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	contour = g[cidx]
 	contourLen = len(contour)
 	segment = contour[sidx]
-	onPt = segment.onCurve
-	nextOff = contour[(sidx+1) % contourLen].points[0]
-	nextOn = contour[(sidx+1) % contourLen].onCurve
-	prevOn = contour[sidx-1].onCurve
+	onPt = geom.makePoint(segment.onCurve)
+	name = segment.onCurve.name.split(',')[0]
+	nextOff = geom.makePoint(contour[(sidx+1) % contourLen].points[0])
+	nextOn = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
+	prevOn = geom.makePoint(contour[sidx-1].onCurve)
 	if len(segment.points) > 1:
 		prevOff = segment[-2]
 	else:
 		prevOff = prevOn
-	prevOn = HF.shearPoint(prevOn, ital)
-	nextOn = HF.shearPoint(nextOn, ital)
-	shearedOn = HF.shearPoint(segment.onCurve, ital)
+	prevOn = prevOn.sheared(ital)
+	nextOn = nextOn.sheared(ital)
+	shearedOn = onPt.sheared(ital)
 	if computeWeight:
-		nextDif = HF.absoluteDiffOfPairs(nextOn, shearedOn)
-		prevDif = HF.absoluteDiffOfPairs(prevOn, shearedOn)
-		weight = HF.add(nextDif, prevDif)
+		weight = (nextOn - shearedOn).absolute() + (prevOn - shearedOn).absolute()
 	else:
 		weight = None
-	#angleIn  = HF.angleOfVectorBetweenPairs(HF.shearPoint(prevOff, ital), shearedOn)
-	#angleOut = HF.angleOfVectorBetweenPairs(shearedOn, HF.shearPoint(nextOff, ital))
-	nextOff = HF.normalizedPair((nextOff.x-onPt.x, nextOff.y-onPt.y))
-	prevOff = HF.normalizedPair((onPt.x-prevOff.x, onPt.y-prevOff.y))
-	return HintingData(onPt, shearedOn, prevOff, nextOff, cidx, sidx, weight)
+	nextOff = (nextOff-onPt).normalized()
+	prevOff = (onPt-prevOff).normalized()
+	return HintingData(onPt, name, shearedOn, prevOff, nextOff, cidx, sidx, weight)
 
 def makeContours(g, ital):
 	contours = []
@@ -98,19 +102,19 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 	def addStemToList(src, tgt, c_distance, hypoth, srcTangent, tgtTangent, existingStems, debug):
 		## if they are horizontal, treat the stem on the Y axis
 		#if debug: print "DD"
-		if (abs(srcTangent[0]) > minCosine and abs(tgtTangent[0]) > minCosine and
+		if (abs(srcTangent.x) > minCosine and abs(tgtTangent.x) > minCosine and
 			not existingStems['h'] ) :
-			if HF.inInterval(c_distance[1], yBound) and HF.inInterval(hypoth, yBound):
+			if HF.inInterval(c_distance.y, yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
-				stemsListY_temp.append((hypoth, (src, tgt, c_distance[1])))
+				stemsListY_temp.append((hypoth, (src, tgt, c_distance.y)))
 			return
 		## if they are vertical, treat the stem on the X axis
 		#if debug: print "EE"
-		if (abs(srcTangent[1]) > minCosine and abs(tgtTangent[1]) > minCosine and
+		if (abs(srcTangent.y) > minCosine and abs(tgtTangent.y) > minCosine and
 			not existingStems['v'] ) : # the angle is already sheared to counter italic
-			if HF.inInterval(c_distance[0], xBound) and HF.inInterval(hypoth, xBound):
+			if HF.inInterval(c_distance.x, xBound) and HF.inInterval(hypoth, xBound):
 				existingStems['v'] = True
-				stemsListX_temp.append((hypoth, (src, tgt, c_distance[0])))
+				stemsListX_temp.append((hypoth, (src, tgt, c_distance.x)))
 			return
 		## Here, the angle of the stem is more diagonal
 		# ... do something here with diagonal
@@ -126,25 +130,24 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 	bound = min(xBound[0], yBound[0])-1, max(xBound[1], yBound[1])+1
 	for gidx, (sc, ss) in enumerate(contsegs):
 		src = contours[sc][ss]
-		srcPos = HF.pointToPair(src.pos)
 		for (tc, ts) in contsegs[gidx+1:]:
 			tgt = contours[tc][ts]
 			debug = False#ss == 9 and ts == 18
-			dx, dy = HF.absoluteDiffOfPairs(src.shearedPos, tgt.shearedPos)
-			c_distance = ( HF.roundbase(dx, roundFactor_Stems), HF.roundbase(dy, roundFactor_Stems) )
-			hypoth = HF.distanceOfPairs(src.shearedPos, tgt.shearedPos)
+			dif = (src.shearedPos - tgt.shearedPos).absolute()
+			c_distance = geom.Point( HF.roundbase(dif.x, roundFactor_Stems), HF.roundbase(dif.y, roundFactor_Stems) )
+			hypoth = dif.length()
 			#if debug: print "AA"
 			if not HF.inInterval(hypoth, bound): continue
 
-			diff = HF.diffOfPairs(HF.pointToPair(tgt.pos), srcPos)
+			diff = tgt.pos - src.pos
 			wc = [None]
 			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
-					#if debug: print "BB", HF.det2x2(sa, diff), HF.det2x2(ta, diff), abs(HF.dotOfPairs(sa, ta))
-					if ( HF.det2x2(sa, diff) < 0.0 and
-					     HF.det2x2(ta, diff) > 0.0 and
-					     abs(HF.dotOfPairs(sa, ta)) > minCosine):
+					#if debug: print "BB", geom.det2x2(sa, diff), geom.det2x2(ta, diff), abs(sa | ta)
+					if ( geom.det2x2(sa, diff) < 0.0 and
+					     geom.det2x2(ta, diff) > 0.0 and
+					     abs(sa | ta) > minCosine):
 						#if debug: print "CC"
 						if hasWhite(wc, src.pos, tgt.pos): break
 						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
@@ -342,9 +345,11 @@ class Alignment(object):
 		self.weight = 0.0
 		self.zone = None
 		self.inGroup = False
+
 	def leaderPoint(self, pos, contours):
 		cont, seg = self.components[pos][0]
 		return contours[cont][seg].leader()
+
 	def findZone(self, contours, autoh):
 		for comp in self.components:
 			for (cont,seg) in comp:
@@ -353,6 +358,7 @@ class Alignment(object):
 				if z != None:
 					self.zone = z
 		return self.zone
+
 	def addPoint(self, cont, seg, contours):
 		pt = contours[cont][seg]
 		pt.alignment = self.pos
@@ -368,6 +374,7 @@ class Alignment(object):
 				break
 		if not found:
 			self.components.append([(cont,seg)])
+
 	def putLeadersFirst(self, contours):
 		leaderComp = None
 		maxW = 0.0
@@ -394,6 +401,7 @@ class Alignment(object):
 			for s in c:
 				if s.leader == None:
 					s.leader = weakref.ref(s)
+
 	def addLinks(self, leader, contours, isHorizontal, autoh):
 		comps = self.components
 		cont, seg = comps[leader][0]
@@ -504,18 +512,18 @@ class AutoHinting():
 				print "}",
 			print ""
 
-	def filterStems(self, stems):
-		g_stemsListX, g_stemsListY = stems
-		newX, newY = [], []
-		for stem in g_stemsListY:
-			name = self.guessStemForDistance(stem[0], stem[1], True)
-			if None != name:
-				newY.append((stem, name))
-		for stem in g_stemsListX:
-			name = self.guessStemForDistance(stem[0], stem[1], False)
-			if None != name:
-				newX.append((stem, name))
-		return (newX, newY)
+	#def filterStems(self, stems):
+	#	g_stemsListX, g_stemsListY = stems
+	#	newX, newY = [], []
+	#	for stem in g_stemsListY:
+	#		name = self.guessStemForDistance(stem[0], stem[1], True)
+	#		if None != name:
+	#			newY.append((stem, name))
+	#	for stem in g_stemsListX:
+	#		name = self.guessStemForDistance(stem[0], stem[1], False)
+	#		if None != name:
+	#			newX.append((stem, name))
+	#	return (newX, newY)
 
 	def makeGroups(self, contours, alignments, stems, mergeLoneAlignments=False, debug=False):
 		groups = []
@@ -698,9 +706,9 @@ class AutoHinting():
 
 	def guessStemForDistance(self, p1, p2, isHorizontal):
 		if isHorizontal:
-			detectedWidth = abs(p1.shearedPos[1] - p2.shearedPos[1])
+			detectedWidth = abs(p1.shearedPos.y - p2.shearedPos.y)
 		else:
-			detectedWidth = abs(p1.shearedPos[0] - p2.shearedPos[0])
+			detectedWidth = abs(p1.shearedPos.x - p2.shearedPos.x)
 		candidatesList = []
 		bestD = 10000000
 		bestName = None
