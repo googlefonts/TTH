@@ -26,14 +26,43 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 			return True
 	return False
 
+#def hasSomeWhite(g, hContours, p0, p1, maxStemX, maxStemY):
+#	eps = 1e-5
+#	dif = p1.pos - p0.pos
+#	if abs(dif.x) > maxStemX and abs(dif.y) > maxStemY:
+#		return True # too far away, assume there is white in between
+#	normal = geom.Point(-dif.y, dif.x)
+#	dist = - (normal | p0.pos)
+#	ndif = dif.normalized()
+#	p0d = ndif | p0.pos
+#	for ci, contour in enumerate(hContours):
+#		prevSeg = contour[-1]
+#		for si, seg in enumerate(contour):
+#			if seg.type == 'qcurve':
+#				off = geom.makePoint(g[ci][si].points[0])
+#				hits = geom.quadBezierHitsLine((prevSeg.pos, off, seg.pos), (normal, dist))
+#				hits = [(r,p,(p|ndif) - p0d) for (r,p) in hits]
+#				hits = [h for h in hits if -eps <= h[2] and h[2] <= 1.0+eps]
+#				for r,p,pd in hits:
+#					if r > eps and r < 1.0-eps: return True
+#					if pd > eps and pd < 1.0-eps: return True
+#			else: # we have a line segment
+#				localDif = prevSeg.pos - seg.pos
+#				if (geom.det2x2(dif, prevSeg.pos - p0.pos) * geom.det2x2(dif, seg.pos - p0.pos) < 0.0 and
+#				geom.det2x2(localDif, p1.pos - seg.pos) * geom.det2x2(localDif, p0.pos - seg.pos) < 0.0):
+#					return True
+#			prevSeg = seg
+#	return False
+
 def contourSegmentIterator(g):
 	for cidx, c in enumerate(g):
 		for sidx, s in enumerate(c):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	def __init__(self, on, name, sh, ina, outa, cont, seg, weight):
-		self.pos        = geom.Point(on.x, on.y)
+	def __init__(self, on, typ, name, sh, ina, outa, cont, seg, weight):
+		self.pos        = on
+		self.type       = typ
 		self.name       = name
 		self.shearedPos = sh
 		self.inTangent  = ina
@@ -83,7 +112,7 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 		weight = None
 	nextOff = (nextOff-onPt).normalized()
 	prevOff = (onPt-prevOff).normalized()
-	return HintingData(onPt, name, shearedOn, prevOff, nextOff, cidx, sidx, weight)
+	return HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, cidx, sidx, weight)
 
 def makeContours(g, ital):
 	contours = []
@@ -123,13 +152,15 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 
 	def hasWhite(wc, source, target):
 		if wc[0] == None:
-			wc[0] = hasSomeWhite(source, target, g, xBound[1], yBound[1])
+			wc[0] = hasSomeWhite(source.pos, target.pos, g, xBound[1], yBound[1])
+			#wc[0] = hasSomeWhite(g, contours, source, target, xBound[1], yBound[1])
 		return wc[0]
 
 	contsegs = [contSeg for contSeg in contourSegmentIterator(g)]
 	bound = min(xBound[0], yBound[0])-1, max(xBound[1], yBound[1])+1
 	for gidx, (sc, ss) in enumerate(contsegs):
 		src = contours[sc][ss]
+		sc_len = len(contours[sc])
 		for (tc, ts) in contsegs[gidx+1:]:
 			tgt = contours[tc][ts]
 			debug = False#ss == 9 and ts == 18
@@ -141,6 +172,12 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 
 			diff = tgt.pos - src.pos
 			wc = [None]
+			if sc == tc:
+				# neighboring points. if there are linked with a straight line then wc <- [false]
+				if ts == ss + 1 and tgt.type == 'line':
+					wc[0] = True
+				elif (ss == 0 and ts == sc_len - 1) and src.type == 'line':
+					wc[0] = True
 			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
@@ -149,7 +186,7 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 					     geom.det2x2(ta, diff) > 0.0 and
 					     abs(sa | ta) > minCosine):
 						#if debug: print "CC"
-						if hasWhite(wc, src.pos, tgt.pos): break
+						if hasWhite(wc, src, tgt): break
 						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()

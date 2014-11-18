@@ -42,7 +42,6 @@ class Point(object):
 		if l < 1e-6: return Point(0.0, 0.0)
 		return Point(self.x/l, self.y/l)
 
-
 def makePoint(p): # used when 'p' is a RoboFab point
 	return Point(p.x, p.y)
 
@@ -51,4 +50,50 @@ def lerp(t, a, b):
 
 def det2x2(a, b):
 	return a.x * b.y - a.y * b.x
+
+def splitQuadratic(t, quadBez):
+	"""Splits a quadratic Bezier into two quadratic Bezier at the given parameter t.
+
+	Uses de Casteljau algorithm."""
+	a0 = lerp(t, quadBez[0], quadBez[1])
+	a1 = lerp(t, quadBez[1], quadBez[2])
+	c0 = lerp(t, a0, a1)
+	return (quadBez[0], a0, c0), (c0, a1, quadBez[2])
+
+def quadraticPointAtParam(t, quadBez):
+	"""Splits a quadratic Bezier into two quadratic Bezier at the given parameter t.
+
+	Uses de Casteljau algorithm."""
+	a0 = lerp(t, quadBez[0], quadBez[1])
+	a1 = lerp(t, quadBez[1], quadBez[2])
+	return lerp(t, a0, a1)
+
+eps = 1.0e-5
+
+def solveQuadratic(a, b, c):
+	if abs(a) < eps:
+		if abs(b) < eps: return []
+		return [- c / b]
+	disc = b * b - 4.0 * a * c
+	if disc < 0.0: return []
+	if disc < eps:
+		t = - b / (2.0 * a)
+		return [t, t]
+	disc = math.sqrt(disc)
+	root1 = ( - b - disc ) / (2.0 * a)
+	root2 = ( - b + disc ) / (2.0 * a)
+	if root2 < root1:
+		return [root2, root1]
+	return [root1, root2]
+
+def quadBezierToPolynomial((a, b, c)):
+	return (a+c-b), (b-(2*a)), a
+
+def quadBezierHitsLine(quad, (n, d)):
+	# lineq = (Point(nx, ny), d) --> nx*x+ny*y+d = 0
+	a,b,c = quadBezierToPolynomial(quad)
+	a = a | n
+	b = b | n
+	c = (c | n) + d
+	return [(r, quadraticPointAtParam(r, quad)) for r in [r for r in solveQuadratic(a, b, c) if r > -eps and r < 1.0+eps]]
 
