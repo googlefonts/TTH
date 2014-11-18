@@ -4,7 +4,7 @@ from mojo.events import *
 from mojo.UI import *
 from mojo.extensions import *
 from mojo.drawingTools import *
-from mojo.canvas import Canvas
+#from mojo.canvas import Canvas
 from lib.doodleMenus import BaseMenu
 from lib.tools.defaults import getDefault, setDefault
 from robofab.plistlib import Data
@@ -1174,7 +1174,7 @@ class TTHTool(BaseEventTool):
 			self.shiftDown = 1
 		if self.getModifiers()['optionDown'] != 0:
 			self.optionDown = 1
-		self.p_selectionCursor = (int(point.x), int(point.y))
+		self.p_selectionCursor = (point.x, point.y)
 
 		if self.popOverIsOpened == False:
 			if self.tthtm.selectedHintingTool == 'Selection' or self.optionDown:
@@ -2577,7 +2577,7 @@ class TTHTool(BaseEventTool):
 		UpdateCurrentGlyphView()
 
 	def rightMouseDown(self, point, event):
-		self.p_cursor = (int(point.x), int(point.y))
+		self.p_cursor = (point.x, point.y)
 		self.commandRightClicked = self.isOnCommand(self.p_cursor)
 
 		separator = NSMenuItem.separatorItem()
