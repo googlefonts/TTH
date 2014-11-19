@@ -3276,7 +3276,7 @@ class TTHTool(BaseEventTool):
 
 		if self.popOverIsOpened and cmdIndex == self.commandClicked and cmdIndex != None:
 			selectedPath = NSBezierPath.bezierPath()
-			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2, y-2), (width+4, height+4)), 3*scale, 3*scale)
+			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2*scale, y-2*scale), (width+4*scale, height+4*scale)), 3*scale, 3*scale)
 			selectedShadow = NSShadow.alloc().init()
 			selectedShadow.setShadowColor_(selectedColor)
 			selectedShadow.setShadowOffset_((0, 0))

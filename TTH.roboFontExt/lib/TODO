@@ -17,10 +17,6 @@ Compiler l'assembleur depuis le menu extensions de RoboFont directement sans lan
 ------------------------------
 La rapidité de la grille de center of pixels
 ------------------------------
-y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
-au dessus de 700 % environ
-ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
-------------------------------
 import Blues. Auto-Harmonize Stems.
 ------------------------------
 AutoHinting, ou Educated Guessing
@@ -30,6 +26,10 @@ AutoHinting, ou Educated Guessing
 Done:
 ==============================
 
+y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
+au dessus de 700 % environ
+ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
+------------------------------
 Faire le rasteriser sensitive stem control
 Avec l'instruction getinfo
 ------------------------------
