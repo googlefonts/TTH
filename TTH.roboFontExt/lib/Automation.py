@@ -888,7 +888,7 @@ class AutoHinting():
 			maxStemSize = computeMaxStemOnO(self.tthtm, font)
 			if maxStemSize == -1:
 				maxStemSize = maxStemY = 200
-			print "max stem size in X, Y is", maxStemSize
+			#print "max stem size in X, Y is", maxStemSize
 
 		self.TTHToolInstance.resetglyph(g)
 		self.TTHToolInstance.glyphTTHCommands = []

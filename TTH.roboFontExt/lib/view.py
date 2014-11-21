@@ -41,6 +41,7 @@ class toolsWindow(BaseWindowController):
 		BaseWindowController.__init__(self)
 		self.TTHToolInstance = TTHToolInstance
 		self.tthtm = TTHToolInstance.tthtm
+		self.autohinting = Automation.AutoHinting(self.TTHToolInstance)
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']
@@ -138,14 +139,14 @@ class toolsWindow(BaseWindowController):
 		self.wTools.DeltaRange2ComboBox.set(self.tthtm.deltaRange2)
 
 		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
-		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 40, 15, 15), "", sizeStyle = "mini",
+		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaMonochromeCheckBoxCallback)
 		self.wTools.DeltaMonochromeText.show(False)
 		self.wTools.DeltaMonochromeCheckBox.show(False)
 		self.wTools.DeltaMonochromeCheckBox.set(self.tthtm.deltaMonoBool)
 
 		self.wTools.DeltaGrayText = TextBox((150, 38, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
-		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 40, 15, 15), "", sizeStyle = "mini",
+		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaGrayCheckBoxCallback)
 		self.wTools.DeltaGrayText.show(False)
 		self.wTools.DeltaGrayCheckBox.show(False)
@@ -175,8 +176,8 @@ class toolsWindow(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Auto-hinting",
-			NSMenuItem.separatorItem(),
+			# "Auto-hinting",
+			# NSMenuItem.separatorItem(),
 			"Monochrome",
 			"Grayscale",
 			"Subpixel",
@@ -186,45 +187,54 @@ class toolsWindow(BaseWindowController):
 			"Assembly",
 			NSMenuItem.separatorItem(),
 			"Control Values",
-			NSMenuItem.separatorItem(),
-			"Preferences",
+			#NSMenuItem.separatorItem(),
+			#"Preferences",
 			]
 			)
 
-		imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
-		imgRefresh.setSize_((10, 13))
-
-		self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
+		# imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
+		# imgRefresh.setSize_((10, 13))
+		#self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
 
 		self.wTools.bind("move", self.toolsWindowMovedorResized)
 
 		self.wTools.open()
 		self.w = self.wTools
 
+	def autoHintGlyph(self):
+		g = self.TTHToolInstance.getGlyph()
+		g.prepareUndo("Auto-hint Glyph")
+		self.autohinting.autohint(g, None)
+		self.TTHToolInstance.updateGlyphProgram(g)
+		if self.tthtm.alwaysRefresh == 1:
+			self.TTHToolInstance.refreshGlyph(g)
+		g.performUndo()
+
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
-		if gearOption == 1:
-			self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolInstance)
+		#if gearOption == 1:
+			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolInstance)
+		#	self.autoHintGlyph()
 
-		if gearOption == 3:
+		if gearOption == 1:
 			self.TTHToolInstance.changeBitmapPreview("Monochrome")
-		if gearOption == 4:
+		if gearOption == 2:
 			self.TTHToolInstance.changeBitmapPreview("Grayscale")
-		if gearOption == 5:
+		if gearOption == 3:
 			self.TTHToolInstance.changeBitmapPreview("Subpixel")
 
-		if gearOption == 7:
+		if gearOption == 5:
 			self.showPreviewCallback()
-		if gearOption == 8:
+		if gearOption == 6:
 			self.showProgramCallback()
-		if gearOption == 9:
+		if gearOption == 7:
 			self.showAssemblyCallback()
 
-		if gearOption == 11:
+		if gearOption == 9:
 			self.controlValuesCallback()
 
-		if gearOption == 13:
-			self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
+		# if gearOption == 13:
+		# 	self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
 
 	def controlValuesCallback(self):
 		self.sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
@@ -790,6 +800,9 @@ class SheetAutoHinting(object):
 		self.w.close()
 
 	def autoHintGlyphCallBack(self, sender):
+		self.autoHintGlyph()
+
+	def autoHintGlyph(self):
 		g = self.controller.getGlyph()
 		g.prepareUndo("Auto-hint Glyph")
 		self.autohinting.autohint(g, None)
