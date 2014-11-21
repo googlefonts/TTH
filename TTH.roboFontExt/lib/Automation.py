@@ -175,9 +175,9 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 			if sc == tc:
 				# neighboring points. if there are linked with a straight line then wc <- [false]
 				if ts == ss + 1 and tgt.type == 'line':
-					wc[0] = True
+					wc[0] = False
 				elif (ss == 0 and ts == sc_len - 1) and src.type == 'line':
-					wc[0] = True
+					wc[0] = False
 			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
