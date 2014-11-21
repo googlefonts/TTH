@@ -80,7 +80,8 @@ def exists(l, p):
 def roundbase(x, base):
 	return int(base * round(float(x)/base))
 
-###### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def mean(l):
+	return float(sum(l))/float(len(l))
 
 def intervalsIntersect(a, b):
 	return (a[1] >= b[0]) and (b[1] >= a[0])

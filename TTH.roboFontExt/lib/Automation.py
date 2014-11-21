@@ -3,9 +3,11 @@ import string
 import weakref
 from collections import deque
 import geom
+import KMeans
 import HelperFunc as HF
 reload(HF)
 reload(geom)
+reload(KMeans)
 
 def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 	dif = (point1 - point2).absolute()
@@ -163,7 +165,7 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 		sc_len = len(contours[sc])
 		for (tc, ts) in contsegs[gidx+1:]:
 			tgt = contours[tc][ts]
-			debug = False#ss == 9 and ts == 18
+			#debug = ss == 16 and ts == 17
 			dif = (src.shearedPos - tgt.shearedPos).absolute()
 			c_distance = geom.Point( HF.roundbase(dif.x, roundFactor_Stems), HF.roundbase(dif.y, roundFactor_Stems) )
 			hypoth = dif.length()
@@ -178,6 +180,7 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 					wc[0] = False
 				elif (ss == 0 and ts == sc_len - 1) and src.type == 'line':
 					wc[0] = False
+			#if debug: print "wc[0] =", wc[0]
 			existingStems = {'h':False, 'v':False, 'd':False}
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
@@ -244,7 +247,7 @@ class Automation():
 
 
 	def autoStems(self, font, progressBar):
-		roundFactor_Stems = self.tthtm.roundFactor_Stems
+		roundFactor_Stems = 1#self.tthtm.roundFactor_Stems
 		roundFactor_Jumps = self.tthtm.roundFactor_Jumps
 
 		minStemX = HF.roundbase(self.tthtm.minStemX, roundFactor_Stems)
@@ -258,6 +261,7 @@ class Automation():
 		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
 		if maxStemX == -1:
 			return
+		print "max stem size in X, Y is", maxStemX
 
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
@@ -281,40 +285,44 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
 	def sortAndStoreValues(self, stemsValuesList, roundFactor_Jumps, isHorizontal):
-		valuesDict = {}
-		for StemValue in stemsValuesList:
-			try:
-				valuesDict[StemValue] += 1
-			except KeyError:
-				valuesDict[StemValue] = 1
-
-		keyValueList = valuesDict.items()
-		keyValueList.sort(lambda (k1,v1),(k2,v2): v2-v1)
-
-		stemSnapList = [k for k,v in keyValueList[:6]]
+		stemStretch = 15.0 / 100.0 # percentage
+		for k in xrange(1,20):
+			for i in xrange(6): # try several k-clusterings because sometimes it computes a bad one
+				seeds, clusters = KMeans.kMeans(stemsValuesList, k)
+				meanRads = [(seeds[i], 0.5*(max(clusters[i])-min(clusters[i]))) for i in range(k)]
+				badClusters = [1 for (m,r) in meanRads if (m-r < (1.0-stemStretch)*m) or (m+r > (1.0+stemStretch)*m)]
+				ok = len(badClusters) == 0
+				if ok: break
+			if ok: break
+		stemSnapList = [int(s+0.5) for s in seeds]
+		stemSnapList.sort()
+		print len(stemSnapList), "stemSnapList:", stemSnapList
+		#valuesDict = {}
+		#for StemValue in stemsValuesList:
+		#	try:
+		#		valuesDict[StemValue] += 1
+		#	except KeyError:
+		#		valuesDict[StemValue] = 1
+		#keyValueList = valuesDict.items()
+		#keyValueList.sort(lambda (k1,v1),(k2,v2): v2-v1)
+		#stemSnapList = [k for k,v in keyValueList[:6]]
 
 		for width in stemSnapList:
 			if not isHorizontal:
 				name = 'X_' + str(width)
 			else:
 				name = 'Y_' + str(width)
-			#stemPitch = float(self.tthtm.UPM)/width
 			roundedStem = HF.roundbase(width, roundFactor_Jumps)
 			if roundedStem != 0:
 				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/roundedStem
 			else:
 				stemPitch = float(self.TTHToolInstance.c_fontModel.UPM)/width
 				# FIXME maybe, here we should juste skip this width and 'continue'?
-			#stemPitch = roundbase(float(self.tthtm.UPM)/width, roundFactor_Jumps)
 			px1 = str(0)
 			px2 = str(int(2*stemPitch))
-			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 1*int(roundFactor_Jumps/5))
 			px3 = str(int(3*stemPitch))
-			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 2*int(roundFactor_Jumps/5))
 			px4 = str(int(4*stemPitch))
-			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 3*int(roundFactor_Jumps/5))
 			px5 = str(int(5*stemPitch))
-			#stemPitch = float(self.tthtm.UPM)/roundbase(width, roundFactor_Jumps - 4*int(roundFactor_Jumps/5))
 			px6 = str(int(6*stemPitch))
 
 			self.addStem(isHorizontal, name, width, px1, px2, px3, px4, px5, px6)
