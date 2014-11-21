@@ -165,7 +165,7 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 		sc_len = len(contours[sc])
 		for (tc, ts) in contsegs[gidx+1:]:
 			tgt = contours[tc][ts]
-			#debug = ss == 16 and ts == 17
+			debug = False#ss == 16 and ts == 17
 			dif = (src.shearedPos - tgt.shearedPos).absolute()
 			c_distance = geom.Point( HF.roundbase(dif.x, roundFactor_Stems), HF.roundbase(dif.y, roundFactor_Stems) )
 			hypoth = dif.length()
@@ -261,7 +261,6 @@ class Automation():
 		maxStemX = maxStemY = computeMaxStemOnO(self.tthtm, font)
 		if maxStemX == -1:
 			return
-		print "max stem size in X, Y is", maxStemX
 
 		xBound = minStemX*(1.0-roundFactor_Stems/100.0), maxStemX*(1.0+roundFactor_Stems/100.0)
 		yBound = minStemY*(1.0-roundFactor_Stems/100.0), maxStemY*(1.0+roundFactor_Stems/100.0)
@@ -287,7 +286,7 @@ class Automation():
 	def sortAndStoreValues(self, stemsValuesList, roundFactor_Jumps, isHorizontal):
 		stemStretch = 15.0 / 100.0 # percentage
 		for k in xrange(1,20):
-			for i in xrange(6): # try several k-clusterings because sometimes it computes a bad one
+			for j in xrange(2*k): # try several k-clusterings because sometimes it computes a bad one
 				seeds, clusters = KMeans.kMeans(stemsValuesList, k)
 				meanRads = [(seeds[i], 0.5*(max(clusters[i])-min(clusters[i]))) for i in range(k)]
 				badClusters = [1 for (m,r) in meanRads if (m-r < (1.0-stemStretch)*m) or (m+r > (1.0+stemStretch)*m)]
@@ -296,7 +295,8 @@ class Automation():
 			if ok: break
 		stemSnapList = [int(s+0.5) for s in seeds]
 		stemSnapList.sort()
-		print len(stemSnapList), "stemSnapList:", stemSnapList
+		#print len(stemSnapList), "stemSnapList:", stemSnapList
+
 		#valuesDict = {}
 		#for StemValue in stemsValuesList:
 		#	try:
@@ -761,7 +761,7 @@ class AutoHinting():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
 			d = abs(w - detectedWidth)
-			if d <= detectedWidth*0.25 and d < bestD:
+			if d <= w*0.25 and d < bestD:
 				bestD = d
 				bestName = stemName
 		return bestName
