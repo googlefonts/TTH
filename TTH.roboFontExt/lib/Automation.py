@@ -284,18 +284,22 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
 	def sortAndStoreValues(self, stemsValuesList, roundFactor_Jumps, isHorizontal):
-		stemStretch = 15.0 / 100.0 # percentage
+		fhi = 1.0 + 20.0 / 100.0
+		flo = 1.0 / fhi
+		stemsValuesList.sort()
+		logs = [math.log(v) for v in stemsValuesList]
 		for k in xrange(1,20):
-			for j in xrange(2*k): # try several k-clusterings because sometimes it computes a bad one
-				seeds, clusters = KMeans.kMeans(stemsValuesList, k)
-				meanRads = [(seeds[i], 0.5*(max(clusters[i])-min(clusters[i]))) for i in range(k)]
-				badClusters = [1 for (m,r) in meanRads if (m-r < (1.0-stemStretch)*m) or (m+r > (1.0+stemStretch)*m)]
-				ok = len(badClusters) == 0
-				if ok: break
-			if ok: break
+			score, seeds, clusters = KMeans.optimal(logs, k)
+			seeds = [math.exp(v) for v in seeds]
+			meanBounds = [(seeds[i], math.exp(min(c)), math.exp(max(c))) for (i,c) in enumerate(clusters)]
+			badClusters = [1 for (mu,mi,ma) in meanBounds if mi<flo*mu or ma>fhi*mu]
+			if len(badClusters) == 0: break
 		stemSnapList = [int(s+0.5) for s in seeds]
 		stemSnapList.sort()
-		#print len(stemSnapList), "stemSnapList:", stemSnapList
+		print len(stemSnapList), "Stems list in",
+		if isHorizontal: print "Y",
+		else: print "X",
+		print stemSnapList, score
 
 		#valuesDict = {}
 		#for StemValue in stemsValuesList:
