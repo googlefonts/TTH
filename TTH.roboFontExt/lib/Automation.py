@@ -284,17 +284,15 @@ class Automation():
 		self.sortAndStoreValues(stemsValuesYList, roundFactor_Jumps, isHorizontal=True)
 
 	def sortAndStoreValues(self, stemsValuesList, roundFactor_Jumps, isHorizontal):
-		fhi = 1.0 + 20.0 / 100.0
-		flo = 1.0 / fhi
+		f = math.log(1.0 + 20.0 / 100.0)
 		stemsValuesList.sort()
 		logs = [math.log(v) for v in stemsValuesList]
 		for k in xrange(1,20):
 			score, seeds, clusters = KMeans.optimal(logs, k)
-			seeds = [math.exp(v) for v in seeds]
-			meanBounds = [(seeds[i], math.exp(min(c)), math.exp(max(c))) for (i,c) in enumerate(clusters)]
-			badClusters = [1 for (mu,mi,ma) in meanBounds if mi<flo*mu or ma>fhi*mu]
+			meanBounds = [(seeds[i], min(c), max(c)) for (i,c) in enumerate(clusters)]
+			badClusters = [1 for (mu,mi,ma) in meanBounds if mi<mu-f or ma>mu+f]
 			if len(badClusters) == 0: break
-		stemSnapList = [int(s+0.5) for s in seeds]
+		stemSnapList = [int(math.exp(s)+0.5) for s in seeds]
 		stemSnapList.sort()
 		print len(stemSnapList), "Stems list in",
 		if isHorizontal: print "Y",
@@ -765,7 +763,9 @@ class AutoHinting():
 			if stem['horizontal'] != isHorizontal: continue
 			w = int(stem['width'])
 			d = abs(w - detectedWidth)
-			if d <= w*0.25 and d < bestD:
+			if ( detectedWidth >= w/1.22 and
+			     detectedWidth <= w*1.22 and
+			     detectedWidth < bestD ):
 				bestD = d
 				bestName = stemName
 		return bestName
