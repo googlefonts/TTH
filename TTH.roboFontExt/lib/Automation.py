@@ -293,11 +293,6 @@ class Automation():
 			badClusters = [1 for (mu,mi,ma) in meanBounds if mi<mu-f or ma>mu+f]
 			if len(badClusters) == 0: break
 		stemSnapList = [int(math.exp(s)+0.5) for s in seeds]
-		stemSnapList.sort()
-		print len(stemSnapList), "Stems list in",
-		if isHorizontal: print "Y",
-		else: print "X",
-		print stemSnapList, score
 
 		#valuesDict = {}
 		#for StemValue in stemsValuesList:
