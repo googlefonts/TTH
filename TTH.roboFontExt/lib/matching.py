@@ -30,10 +30,15 @@ def matchTwoContours(fromC, toC):
 	for t in xrange(lenTo):
 		table[0].append((-1, score(fromC[0], toC[t])))
 	for f in xrange(1,lenFrom):
+		s = 0
+		minVal = table[f-1][0][1]
 		for t in xrange(lenTo):
 			localScore = score(fromC[f], toC[t])
-			s = indexOfMin([x[1] for x in table[f-1][0:t+1]])
-			table[f].append((s, table[f-1][s][1] + localScore))
+			newVal = table[f-1][t][1]
+			if newVal < minVal:
+				minVal = newVal
+				s = t
+			table[f].append((s, minVal + localScore))
 	permut = [indexOfMin([x[1] for x in table[lenFrom-1]])]
 	matchQuality = table[lenFrom-1][permut[0]][1] # lower is better
 	for f in range(lenFrom-1, 0, -1):
@@ -57,7 +62,7 @@ def matchTwoGlyphs(fromG, toG):
 			matchingQuality, permut = matchings[i]
 			print matchingQuality
 			for i,j in enumerate(permut):
-				print "{0}->{1}\t".format(i,j),
+				print "{0}:{1}\t\t".format(i,j),
 			print ''
 
 def prepareGlyph(g):
