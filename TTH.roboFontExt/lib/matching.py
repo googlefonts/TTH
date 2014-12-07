@@ -49,13 +49,16 @@ def matchTwoGlyphs(fromG, toG):
 	if nbContours[0] != nbContours[1]:
 		return None
 	for fromC in fromG:
-		print fromC[0].shearedPos
+		print "From the contour that starts at", fromC[0].shearedPos
 		for toC in toG:
 			n = len(toC)
 			matchings = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]), i, n) for i in xrange(n)]
 			i = indexOfMin([x[0] for x in matchings])
 			matchingQuality, permut = matchings[i]
-			print matchingQuality, permut
+			print matchingQuality
+			for i,j in enumerate(permut):
+				print "{0}->{1}\t".format(i,j),
+			print ''
 
 def prepareGlyph(g):
 	contours = Automation.makeContours(g, 0.0)
@@ -74,10 +77,10 @@ def go():
 	fonts = []
 	for f in AllFonts():
 		fonts.append(f)
-	c = 'A'
+	c = CurrentGlyph().name
 	g0 = prepareGlyph(fonts[0][c])
 	g1 = prepareGlyph(fonts[1][c])
-	print "\nFrom", fonts[0].fileName, "\nto", fonts[1].fileName
+	print "\nFrom", fonts[0].fileName, "\nto  ", fonts[1].fileName
 	matchTwoGlyphs(g0, g1)
 
 go()
