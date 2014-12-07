@@ -49,21 +49,39 @@ def matchTwoContours(fromC, toC):
 def fix((s,permut), i, n):
 	return s,[(x+i) % n for x in permut] # recover original segment numbers
 
+def all_perms(elements):
+	n = len(elements)
+	if n <= 1:
+		yield elements
+	else:
+		for perm in all_perms(elements[1:]):
+			for i in range(n):
+				# nb elements[0:1] works in both string and list contexts
+				yield perm[:i] + elements[0:1] + perm[i:]
+
 def matchTwoGlyphs(fromG, toG):
 	nbContours = len(fromG), len(toG)
 	if nbContours[0] != nbContours[1]:
 		return None
-	for fromC in fromG:
-		print "From the contour that starts at", fromC[0].shearedPos
+	matchings = [[] for f in fromG]
+	for f,fromC in enumerate(fromG):
 		for toC in toG:
 			n = len(toC)
-			matchings = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]), i, n) for i in xrange(n)]
-			i = indexOfMin([x[0] for x in matchings])
-			matchingQuality, permut = matchings[i]
-			print matchingQuality
-			for i,j in enumerate(permut):
-				print "{0}:{1}\t\t".format(i,j),
-			print ''
+			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]), i, n) for i in xrange(n)]
+			i = indexOfMin([x[0] for x in permutedMatches])
+			matchings[f].append(permutedMatches[i])
+	bestScore = None
+	bestPerm = []
+	for perm in all_perms(range(len(toG))):
+		score = sum(matchings[i][perm[i]][0] for i in xrange(nbContours[0]))
+		if (bestScore == None) or (bestScore > score):
+			bestScore = score
+			bestPerm = perm
+	for f,t in enumerate(bestPerm):
+		print "Contour",f,"of source glyph matches contour",t,"of target glyph as follows:"
+		for i,j in enumerate(matchings[f][t][1]):
+			print "{}:{}\t\t".format(i,j),
+		print ''
 
 def prepareGlyph(g):
 	contours = Automation.makeContours(g, 0.0)
