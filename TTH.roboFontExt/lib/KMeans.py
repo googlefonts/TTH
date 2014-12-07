@@ -68,7 +68,7 @@ def iterative(values, k):
 		seeds = [mean(cls) for cls in clusters]
 	return seeds, partScore(clusters, seeds), clusters
 
-def optimal(values, k):
+def optimal(values, k): # In 1D, optimal clustering is possible with dynamic programming
 	uniqValues = uniques(values)
 	if k <= 1:
 		m = mean(values)

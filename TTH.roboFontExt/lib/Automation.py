@@ -97,7 +97,10 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	contourLen = len(contour)
 	segment = contour[sidx]
 	onPt = geom.makePoint(segment.onCurve)
-	name = segment.onCurve.name.split(',')[0]
+	if segment.onCurve.name != None:
+		name = segment.onCurve.name.split(',')[0]
+	else:
+		name = "noname"
 	nextOff = geom.makePoint(contour[(sidx+1) % contourLen].points[0])
 	nextOn = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
 	prevOn = geom.makePoint(contour[sidx-1].onCurve)
