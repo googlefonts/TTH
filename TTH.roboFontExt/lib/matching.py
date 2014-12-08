@@ -67,8 +67,8 @@ def matchTwoGlyphs(fromG, toG):
 
 	def getMatching(f, t):
 		if matchings[f][t] == None:
-			fromC = fromG[f]
-			toC   = toG[t]
+			fromC = fromG[f] # fromC = source Contour
+			toC   = toG[t]   # toC   = target Contour
 			n = len(toC)
 			table = [[None for x in xrange(n)] for y in fromC]
 			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i], table), i, n) for i in xrange(n)]
@@ -77,13 +77,13 @@ def matchTwoGlyphs(fromG, toG):
 		return matchings[f][t]
 
 	bestPerm = range(nbContours[1])
-	bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbContours[1]))
-	for perm in permutationsOf(range(len(toG))):
+	bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbContours[0]))
+	for perm in permutationsOf(range(nbContours[1])):
 		score = 0.0
 		badMatch = False
 		for i in xrange(nbContours[0]):
 			score = score + getMatching(i, perm[i])[1]
-			if score > bestScore:
+			if score >= bestScore:
 				badMatch = True
 				break
 		if badMatch: continue
