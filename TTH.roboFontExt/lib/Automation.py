@@ -100,6 +100,7 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	if segment.onCurve.name != None:
 		name = segment.onCurve.name.split(',')[0]
 	else:
+		print "WARNING ERROR: a segment's onCurve point has no name"
 		name = "noname"
 	nextOff = geom.makePoint(contour[(sidx+1) % contourLen].points[0])
 	nextOn = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
