@@ -111,15 +111,34 @@ def prepareGlyph(g):
 			p.pos = geom.Point(newpos.x * 1000.0 / dim.x, newpos.y * 1000.0 / dim.y)
 	return contours
 
+class PointMatcher(object):
+	def __init__(self, g0, g1):
+		# g0 and g1 are two objects of class 'Glyph'
+		fromG = prepareGlyph(g0)
+		toG = prepareGlyph(g1)
+		matchings = matchTwoGlyphs(fromG, toG)
+		m = {}
+		self._map = m
+		if matchings == None: return
+		for f, (t, perm) in enumerate(matchings):
+			for fromSeg, toSeg in enumerate(perm):
+				fName = fromG[f][fromSeg].name
+				tName = toG[t][toSeg].name
+				m[fName] = tName
+	def map(self, fName):
+		try:
+			return self._map[fName]
+		except:
+			return None
+
 def go():
 	fonts = []
 	for f in AllFonts():
 		fonts.append(f)
 	c = CurrentGlyph().name
-	g0 = prepareGlyph(fonts[0][c])
-	g1 = prepareGlyph(fonts[1][c])
 	print "---------------------------------------------------------"
 	print "From", fonts[0].fileName, "\nto  ", fonts[1].fileName, '\n'
-	matchTwoGlyphs(g0, g1)
+	pm = PointMatcher(fonts[0][c], fonts[1][c])
+	print pm._map
 
 go()
