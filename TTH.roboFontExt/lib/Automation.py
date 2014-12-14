@@ -98,7 +98,8 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	segment = contour[sidx]
 	onPt = geom.makePoint(segment.onCurve)
 	if segment.onCurve.name != None:
-		name = segment.onCurve.name.split(',')[0]
+		#name = segment.onCurve.name.split(',')[0]
+		name = segment.onCurve.name
 	else:
 		print "WARNING ERROR: a segment's onCurve point has no name"
 		name = "noname"
