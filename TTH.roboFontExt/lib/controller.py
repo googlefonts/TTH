@@ -3030,46 +3030,103 @@ class TTHTool(BaseEventTool):
 			print 'ERROR: Unable to generate temporary font'
 			#print 'DONE generating partialtemp font with glyphs:', self.tthtm.requiredGlyphsForPartialTempFont
 
-	def makePointNameToIndexDict(self, g):
+	# def makePointNameToIndexDict(self, g):
+	# 	result = {}
+	# 	index = 0
+	# 	for contour in g:
+	# 		for point in contour.points:
+	# 			uniqueID = point.naked().uniqueID
+	# 			if point.name:
+	# 				name = point.name.split(',')[0]
+	# 				if name != 'inserted':
+	# 					result[name] = index
+	# 				else:
+	# 					result[uniqueID] = index
+	# 					point.name = uniqueID
+	# 			else:
+	# 				result[uniqueID] = index
+	# 			index += 1
+	# 	return result
+
+	# def makePointNameToUniqueIDDict(self, g):
+	# 	pointNameToUniqueID = {}
+	# 	for contour in g:
+	# 		for point in contour.points:
+	# 			uniqueID = point.naked().uniqueID
+	# 			if point.name:
+	# 				name = point.name.split(',')[0]
+	# 				if name != 'inserted':
+	# 					pointNameToUniqueID[name] = uniqueID
+	# 				else:
+	# 					pointNameToUniqueID[uniqueID] = uniqueID
+	# 					point.name = uniqueID
+	# 			else:
+	# 				pointNameToUniqueID[uniqueID] = uniqueID
+	# 	return pointNameToUniqueID
+
+	def makePointRFNameToIndexDict(self, g):
 		result = {}
 		index = 0
 		for contour in g:
 			for point in contour.points:
 				uniqueID = point.naked().uniqueID
 				if point.name:
-					name = point.name.split(',')[0]
-					if name != 'inserted':
+					name = point.name
+					if 'inserted' not in name:
 						result[name] = index
 					else:
-						result[uniqueID] = index
+						result[name] = index
 						point.name = uniqueID
 				else:
 					result[uniqueID] = index
+					point.name = uniqueID
 				index += 1
 		return result
 
-	def makePointNameToUniqueIDDict(self, g):
-		pointNameToUniqueID = {}
+	def makePointRFNameToUniqueIDDict(self, g):
+		pointRFNameToUniqueID = {}
+		for contour in g:
+			for point in contour.points:
+				uniqueID = point.naked().uniqueID
+				if point.name:
+					name = point.name
+					if 'inserted' not in name:
+						pointRFNameToUniqueID[name] = uniqueID
+					else:
+						pointRFNameToUniqueID[uniqueID] = uniqueID
+						point.name = uniqueID
+				else:
+					pointRFNameToUniqueID[uniqueID] = uniqueID
+					point.name = uniqueID
+		return pointRFNameToUniqueID
+
+	def makePointNameToRFNameDict(self, g):
+		pointNameToRFNameDict = {}
 		for contour in g:
 			for point in contour.points:
 				uniqueID = point.naked().uniqueID
 				if point.name:
 					name = point.name.split(',')[0]
-					if name != 'inserted':
-						pointNameToUniqueID[name] = uniqueID
+					if 'inserted' not in name:
+						pointNameToRFNameDict[name] = point.name
 					else:
-						pointNameToUniqueID[uniqueID] = uniqueID
 						point.name = uniqueID
+						pointNameToRFNameDict[uniqueID] = point.name
 				else:
-					pointNameToUniqueID[uniqueID] = uniqueID
-		return pointNameToUniqueID
+					point.name = uniqueID
+					pointNameToRFNameDict[uniqueID] = point.name
+		return pointNameToRFNameDict
+
+
+
 
 	def makePointlistOfNames_On(self, g):
 		listOfNames_On = []
 		for contour in g:
 			for point in contour.points:
 				if point.type != 'offCurve':
-					name = point.name.split(',')[0]
+					#name = point.name.split(',')[0]
+					name = point.name
 					listOfNames_On.append(name)
 
 		return listOfNames_On
@@ -3096,14 +3153,16 @@ class TTHTool(BaseEventTool):
 		pointCoordinatesToName[(g.width,0)] = 'rsb'
 		for contour in g:
 			for point in contour.points:
-				pointCoordinatesToName[(point.x, point.y)] = (point.name.split(',')[0])
+				# pointCoordinatesToName[(point.x, point.y)] = (point.name.split(',')[0])
+				pointCoordinatesToName[(point.x, point.y)] = point.name
 		return pointCoordinatesToName
 
 	def readGlyphFLTTProgram(self, g):
 		if g == None:
 			return
-		self.pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
-		self.pointNameToIndex = self.makePointNameToIndexDict(g)
+		self.pointNameToUniqueID = self.makePointRFNameToUniqueIDDict(g)
+		self.pointNameToIndex = self.makePointRFNameToIndexDict(g)
+		self.pointNameToRFName = self.makePointNameToRFNameDict(g)
 		self.glyphTTHCommands = []
 		if 'com.fontlab.ttprogram' not in g.lib:
 			return None
@@ -3123,6 +3182,15 @@ class TTHTool(BaseEventTool):
 					child.attrib['gray'] = 'true'
 				if 'mono' not in child.attrib:
 					child.attrib['mono'] = 'true'
+			if 'point' in child.attrib:
+				if child.attrib['point'] in self.pointNameToRFName:
+					child.attrib['point'] = self.pointNameToRFName[child.attrib['point']]
+			if 'point1' in child.attrib:
+				if child.attrib['point1'] in self.pointNameToRFName:
+					child.attrib['point1'] = self.pointNameToRFName[child.attrib['point1']]
+			if 'point2' in child.attrib:
+				if child.attrib['point2'] in self.pointNameToRFName:
+					child.attrib['point2'] = self.pointNameToRFName[child.attrib['point2']]
 		return self.glyphTTHCommands
 
 	def writeGlyphFLTTProgram(self, g):
@@ -3988,7 +4056,7 @@ class TTHTool(BaseEventTool):
 	def checkAndCleanCommandsPoints(self, g):
 		commandsToRemove = []
 		commandsCurated = []
-		pointNameToUniqueID = self.makePointNameToUniqueIDDict(g)
+		pointNameToUniqueID = self.makePointRFNameToUniqueIDDict(g)
 
 		for command in self.glyphTTHCommands:
 			doAppend = True
