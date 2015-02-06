@@ -366,10 +366,10 @@ class SheetControlValues(object):
 		w.gaspBox = Box((10, 19, -10, -40))
 		w.gaspBox.gaspSettingsList = List((10, 10, -10, -32), self.gaspRangesListUI,
 			columnDescriptions=[{"title": "Range", "width": 50, "key": "range", "editable": True}, 
-								{"title": "Gray AntiAlias", "key": "GAA", "editable": True, "cell": CheckBoxListCell()},
-								{"title": "GridFit", "key": "GF", "editable": True, "cell": CheckBoxListCell()},
-								{"title": "Sym. GridFit", "key": "SGF", "editable": True, "cell": CheckBoxListCell()},
-								{"title": "Sym. Smoothing", "key": "SS", "editable": True, "cell": CheckBoxListCell()}],
+								{"title": "Gray AntiAlias", "width": 100, "key": "GAA", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "GridFit", "width": 100, "key": "GF", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "Sym. GridFit", "width": 100, "key": "SGF", "editable": True, "cell": CheckBoxListCell()},
+								{"title": "Sym. Smoothing", "width": 100, "key": "SS", "editable": True, "cell": CheckBoxListCell()}],
 			editCallback = self.gaspSettingsList_EditCallBack,
 			selectionCallback = self.gaspSettingsList_SelectionCallback)
 
@@ -378,10 +378,10 @@ class SheetControlValues(object):
 		w.gaspBox.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
 		w.gaspBox.rangeEditText = EditText((32, -32, 40, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
 		w.gaspBox.rangeEditText.set(8)
-		w.gaspBox.GAA_PopUpButton = CheckBox((77, -34, 90, 22), "Gray AntiAlias", value=False, sizeStyle = "small")
+		w.gaspBox.GAA_PopUpButton = CheckBox((77, -34, 95, 22), "Gray AntiAlias", value=False, sizeStyle = "small")
 		w.gaspBox.GF_PopUpButton = CheckBox((173, -34, 60, 22), "GridFit", value=False, sizeStyle = "small")
-		w.gaspBox.SGF_PopUpButton = CheckBox((233, -34, 80, 22), "Sym. GridFit", value=False, sizeStyle = "small")
-		w.gaspBox.SS_PopUpButton = CheckBox((323, -34, 100, 22), "Sym. Smoothing", value=False, sizeStyle = "small")
+		w.gaspBox.SGF_PopUpButton = CheckBox((233, -34, 85, 22), "Sym. GridFit", value=False, sizeStyle = "small")
+		w.gaspBox.SS_PopUpButton = CheckBox((323, -34, 105, 22), "Sym. Smoothing", value=False, sizeStyle = "small")
 		w.gaspBox.buttonAddRange = SquareButton((-32, -32, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddRangeCallback)
 		w.gaspBox.show(0)
 
