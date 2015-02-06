@@ -670,20 +670,20 @@ class ProgramWindow(TTHWindow):
 		columnDescriptions = [
 			{"title": "index", "width": 30, "editable": False}, 
 			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True),
-			{"title": "code", "editable": False}, 
-			{"title": "point", "editable": False},
-			{"title": "point1", "editable": False}, 
-			{"title": "point2", "editable": False}, 
-			{"title": "align", "editable": False},
-			{"title": "round", "editable": False}, 
-			{"title": "stem", "editable": False}, 
-			{"title": "zone", "editable": False},
+			{"title": "code", "width": 100, "editable": False}, 
+			{"title": "point", "width": 100, "editable": False},
+			{"title": "point1", "width": 100, "editable": False}, 
+			{"title": "point2", "width": 100, "editable": False}, 
+			{"title": "align", "width": 100, "editable": False},
+			{"title": "round", "width": 80, "editable": False}, 
+			{"title": "stem", "width": 100, "editable": False}, 
+			{"title": "zone", "width": 100, "editable": False},
 			#dict(title='delta', cell=sliderCell, width=90, editable=True),
-			{"title": "delta", "editable": False}, 
-			{"title": "ppm1", "editable": False}, 
-			{"title": "ppm2", "editable": False},
-			{"title": "mono", "editable": False},
-			{"title": "gray", "editable": False}
+			{"title": "delta", "width": 50, "editable": False}, 
+			{"title": "ppm1", "width": 50,"editable": False}, 
+			{"title": "ppm2", "width": 50, "editable": False},
+			{"title": "mono", "width": 50, "editable": False},
+			{"title": "gray", "width": 50, "editable": False}
 			]
 		self.programList = []
 		win.programList = List((0, 0, -0, -0), self.programList, 

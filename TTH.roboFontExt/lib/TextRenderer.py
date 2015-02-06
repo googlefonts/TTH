@@ -1,5 +1,6 @@
 
 from objc import allocateBuffer
+from AppKit import *
 import Quartz
 from mojo.UI import *
 try:

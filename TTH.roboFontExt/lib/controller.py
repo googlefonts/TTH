@@ -16,6 +16,7 @@ from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 import tempfile
 import time
 import sets
+from AppKit import *
 
 import TTHToolModel
 import tt_tables
