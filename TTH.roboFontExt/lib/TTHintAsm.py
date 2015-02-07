@@ -535,7 +535,7 @@ def processDelta(commandsList, pointNameToIndex):
 			for command in deltaGroup[1]:
 				deltaInstructions.extend(processDeltaCommand(command, pointNameToIndex))
 			deltaInstructions.append('EIF[ ]')
-			if command['code'] == 'mdeltahv':
+			if command['code'] == 'mdeltav':
 				y_instructions.extend(deltaInstructions)
 			elif command['code'] == 'fdeltav':
 				finalDeltasV.extend(deltaInstructions)
