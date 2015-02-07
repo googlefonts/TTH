@@ -176,8 +176,8 @@ class toolsWindow(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			# "Auto-hinting",
-			# NSMenuItem.separatorItem(),
+			"Auto-hinting",
+			NSMenuItem.separatorItem(),
 			"Monochrome",
 			"Grayscale",
 			"Subpixel",
@@ -187,8 +187,8 @@ class toolsWindow(BaseWindowController):
 			"Assembly",
 			NSMenuItem.separatorItem(),
 			"Control Values",
-			#NSMenuItem.separatorItem(),
-			#"Preferences",
+			NSMenuItem.separatorItem(),
+			"Preferences",
 			]
 			)
 
@@ -212,29 +212,29 @@ class toolsWindow(BaseWindowController):
 
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
-		#if gearOption == 1:
-			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolInstance)
-		#	self.autoHintGlyph()
-
 		if gearOption == 1:
-			self.TTHToolInstance.changeBitmapPreview("Monochrome")
-		if gearOption == 2:
-			self.TTHToolInstance.changeBitmapPreview("Grayscale")
+			self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolInstance)
+			#self.autoHintGlyph()
+
 		if gearOption == 3:
+			self.TTHToolInstance.changeBitmapPreview("Monochrome")
+		if gearOption == 4:
+			self.TTHToolInstance.changeBitmapPreview("Grayscale")
+		if gearOption == 5:
 			self.TTHToolInstance.changeBitmapPreview("Subpixel")
 
-		if gearOption == 5:
-			self.showPreviewCallback()
-		if gearOption == 6:
-			self.showProgramCallback()
 		if gearOption == 7:
+			self.showPreviewCallback()
+		if gearOption == 8:
+			self.showProgramCallback()
+		if gearOption == 9:
 			self.showAssemblyCallback()
 
-		if gearOption == 9:
+		if gearOption == 11:
 			self.controlValuesCallback()
 
-		# if gearOption == 13:
-		# 	self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
+		if gearOption == 13:
+			self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
 
 	def controlValuesCallback(self):
 		self.sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)
