@@ -105,6 +105,7 @@ def prepareGlyph(g):
 	lo = geom.Point(min(xs), min(ys))
 	hi = geom.Point(max(xs), max(ys))
 	dim = hi - lo
+	# Rescale the glyph to fit in a square box from (0,0) to (1000,1000)
 	for c in contours:
 		for p in c:
 			newpos = (p.pos - lo)

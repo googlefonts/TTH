@@ -765,7 +765,7 @@ class AutoHinting():
 			d = abs(w - detectedWidth)
 			if ( detectedWidth >= w/1.22 and
 			     detectedWidth <= w*1.22 and
-			     detectedWidth < bestD ):
+			     d < bestD ):
 				bestD = d
 				bestName = stemName
 		return bestName
