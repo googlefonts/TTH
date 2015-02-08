@@ -40,7 +40,7 @@ def writegasp(f, gasp_ranges):
 
 def writeCVTandPREP(f, UPM, alignppm, stems, zones, codePPM):
 	
-	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 12
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 11
 	f.lib[TTFCompilerSettings.roboHintMaxpMaxStorageLibKey] = 5
 
 	table_CVT = []
@@ -574,39 +574,6 @@ def writeFPGM(f):
 	'ENDF[ ]'
 	]
 	table_FPGM.extend(FPGM_10)
-
-	FPGM_11 = [
-	'PUSHW[ ] 11',
-	'FDEF[ ]',
-		'PUSHW[ ] 97',  # set bits 6,5,0 to 1 (only bits 5,0 -> 33)
-		'GETINFO[ ]',
-		'DUP[ ]',
-		'PUSHW[ ] 255',
-		'AND[ ]',
-		'PUSHW[ ] 37',
-		'LTEQ[ ] ',
-		'IF[ ]',
-
-			'PUSHW[ ] ' + str(4096*64),
-			'DIV[ ]', # shift the bits 12,13 to position 0,1
-
-			'DUP[ ]',
-			'PUSHB[ ] 1',
-			'AND[ ]', # get bit corresponding to grayscale
-
-			'SWAP[ ]',
-			'PUSHW[ ] 128',
-			'DIV[ ]', # get bit corresponding to cleartype
-
-			'ADD[ ]',
-
-		'ELSE[ ]',
-			'POP[ ]', # drop the answer to the 5,6-th bit query
-			'PUSHB[ ] 0',
-		'EIF[ ]',
-	'ENDF[ ]'
-	]
-	table_FPGM.extend(FPGM_11)
 
 	# print table_FPGM
 	f.lib['com.robofont.robohint.fpgm'] = table_FPGM

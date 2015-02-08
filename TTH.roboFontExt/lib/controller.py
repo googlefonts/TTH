@@ -2226,10 +2226,7 @@ class TTHTool(BaseEventTool):
 		A_isFinalDelta = A['code'] in ['fdeltah', 'fdeltav']
 		B_isFinalDelta = B['code'] in ['fdeltah', 'fdeltav']
 
-		if A_isAlign and B_isAlign:
-			if A['point'] == B['point']:
-				order = 'BUG'
-		elif A_isSingleLink and B_isAlign:
+		if A_isSingleLink and B_isAlign:
 			if A['point1'] == B['point']:
 				order = ba
 		elif A_isAlign and B_isSingleLink:
@@ -2240,8 +2237,6 @@ class TTHTool(BaseEventTool):
 				order = ba
 			elif A['point2'] == B['point1']:
 				order = ab
-			elif A['point2'] == B['point2']:
-				order = 'BUG'
 		elif A_isAlign and B_isInterpolate:
 			if A['point'] == B['point1'] or A['point'] == B['point2']:
 				order = ab
@@ -2297,20 +2292,12 @@ class TTHTool(BaseEventTool):
 					order = ab
 				elif not Bmono:
 					order = ab
-				#elif ((not Bmono) and Bgray):
-				#	order = ab
-				#elif ((not Bmono) and (not Bgray)):
-				#	order = ab
 
 			elif (Amono and (not Agray)):
 				if (Bmono and Bgray):
 					order = ba
 				elif not Bmono:
 					order = ab
-				#elif ((not Bmono) and Bgray):
-				#	order = ab
-				#elif ((not Bmono) and (not Bgray)):
-				#	order = ab
 
 			elif ((not Amono) and Agray):
 				if (Bmono and Bgray):
@@ -2320,21 +2307,10 @@ class TTHTool(BaseEventTool):
 						order = ba
 					else:
 						order = ab
-				#elif (Bmono and (not Bgray)):
-				#	order = ba
-				#elif ((not Bmono) and (not Bgray)):
-				#	order = ab
 
-			# IS IT POSSIBLE THAT (not Amono) AND (not Agray) ???
 			elif ((not Amono) and (not Agray)):
 				if Bmono or Bgray:
 					order = ba
-				#if (Bmono and Bgray):
-				#	order = ba
-				#elif (Bmono and (not Bgray)):
-				#	order = ba
-				#elif ((not Bmono) and Bgray):
-				#	order = ba
 
 		if order == ab:
 			return (True, False)
