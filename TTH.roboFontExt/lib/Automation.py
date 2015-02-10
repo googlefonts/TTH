@@ -136,16 +136,16 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 	stemsListY_temp = []
 	minCosine = abs(math.cos(math.radians(tolerance)))
 	def addStemToList(src, tgt, c_distance, hypoth, srcTangent, tgtTangent, existingStems, debug):
-		## if they are horizontal, treat the stem on the Y axis
 		#if debug: print "DD"
+		# if they are horizontal, treat the stem on the Y axis
 		if (abs(srcTangent.x) > minCosine and abs(tgtTangent.x) > minCosine and
 			not existingStems['h'] ) :
 			if HF.inInterval(c_distance.y, yBound) and HF.inInterval(hypoth, yBound):
 				existingStems['h'] = True
 				stemsListY_temp.append((hypoth, (src, tgt, c_distance.y)))
 			return
-		## if they are vertical, treat the stem on the X axis
 		#if debug: print "EE"
+		# if they are vertical, treat the stem on the X axis
 		if (abs(srcTangent.y) > minCosine and abs(tgtTangent.y) > minCosine and
 			not existingStems['v'] ) : # the angle is already sheared to counter italic
 			if HF.inInterval(c_distance.x, xBound) and HF.inInterval(hypoth, xBound):
@@ -165,11 +165,12 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 
 	contsegs = [contSeg for contSeg in contourSegmentIterator(g)]
 	bound = min(xBound[0], yBound[0])-1, max(xBound[1], yBound[1])+1
-	for gidx, (sc, ss) in enumerate(contsegs):
-		src = contours[sc][ss]
+	# We loop over all pairs of distinct points (ON control points)
+	for gidx, (sc, ss) in enumerate(contsegs): # 'sc' = Source Contour, 'sc' = Source Segment
+		src = contours[sc][ss] # 'src' = Source Point
 		sc_len = len(contours[sc])
-		for (tc, ts) in contsegs[gidx+1:]:
-			tgt = contours[tc][ts]
+		for (tc, ts) in contsegs[gidx+1:]: # 'tc' = Target Contour, 'tc' = Target Segment
+			tgt = contours[tc][ts] # 'tgt' = Target Point
 			debug = False#ss == 16 and ts == 17
 			dif = (src.shearedPos - tgt.shearedPos).absolute()
 			c_distance = geom.Point( HF.roundbase(dif.x, roundFactor_Stems), HF.roundbase(dif.y, roundFactor_Stems) )
@@ -177,24 +178,34 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, roundFactor_Stems, t
 			#if debug: print "AA"
 			if not HF.inInterval(hypoth, bound): continue
 
-			diff = tgt.pos - src.pos
-			wc = [None]
-			if sc == tc:
-				# neighboring points. if there are linked with a straight line then wc <- [false]
+			diff = tgt.pos - src.pos # the vector between the source and the target under consideration
+
+			wc = [None] # 'wc' = White Cache : 'None' means that we don't know if
+			# there is some white between source and target. We put it in a list
+			# so that 'wc' can be passed as a parameter and the called function
+			# (hasWhite()) can modify the only cell in the list.
+
+			if sc == tc: # source and target live on the same contour.
+				# if they are neighboring points and are linked with a straight line then wc <- [false]
+				# which indicates that there is only black ink between them (no white).
 				if ts == ss + 1 and tgt.type == 'line':
-					wc[0] = False
+					wc[0] = False # False --> no white, so pure black
 				elif (ss == 0 and ts == sc_len - 1) and src.type == 'line':
 					wc[0] = False
 			#if debug: print "wc[0] =", wc[0]
 			existingStems = {'h':False, 'v':False, 'd':False}
+			# For example, existingStems['h'] = True if we found an horizontal stem between 'src' and 'tgt'
+			# 'v' : vertical
+			# 'd' : diagonal
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
 					#if debug: print "BB", geom.det2x2(sa, diff), geom.det2x2(ta, diff), abs(sa | ta)
-					if ( geom.det2x2(sa, diff) < 0.0 and
-					     geom.det2x2(ta, diff) > 0.0 and
-					     abs(sa | ta) > minCosine):
+					if ( geom.det2x2(sa, diff) < 0.0 and # test that 'tgt' is on the correct side of tangent 'sa'
+					     geom.det2x2(ta, diff) > 0.0 and # test that 'src' is on the correct side of tangent 'ta'
+					     abs(sa | ta) > minCosine): # and test that both tangent are almost parallel
 						#if debug: print "CC"
 						if hasWhite(wc, src, tgt): break
+						# OK we found a 'stem'!
 						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
@@ -890,31 +901,40 @@ class AutoHinting():
 
 
 	def autohint(self, g, maxStemSize):
+		# get the current font
 		font = self.TTHToolInstance.c_fontModel.f
+		# get the italic angle
 		if font.info.italicAngle != None:
 			self.ital = - font.info.italicAngle
 		else:
 			self.ital = 0
 
 		if maxStemSize == None:
+			# if maxStemSize was not provided, take it from the 'O'
 			maxStemSize = computeMaxStemOnO(self.tthtm, font)
 			if maxStemSize == -1:
+				# and if the 'O' is weird, choose default value
 				maxStemSize = maxStemY = 200
-			#print "max stem size in X, Y is", maxStemSize
 
+		# set current glyph
 		self.TTHToolInstance.resetglyph(g)
+		# Clear the hinting program for the current glyph
 		self.TTHToolInstance.glyphTTHCommands = []
 
 		xBound = self.tthtm.minStemX, maxStemSize
 		yBound = self.tthtm.minStemY, maxStemSize
 
+		# compute additional contour information in custom structure
 		contours = makeContours(g, self.ital)
 		if contours == []: return None, None
+		# compute as much stem as one can find
 		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
+		# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
 		rx = self.autoHintX(g, contours, stems[0])
 		for c in contours:
 			for hd in c:
 				hd.reset()
+		# Do Y hinting. 'ry' is True if all is OK and False if there was a problem
 		ry = self.autoHintY(contours, stems[1])
 		if not ry: ry = g.name
 		else: ry = None
