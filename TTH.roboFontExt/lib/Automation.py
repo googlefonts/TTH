@@ -543,11 +543,14 @@ class AutoHinting():
 				ptsAtPos = HF.getOrPutDefault(byPos, pos, [])
 				ptsAtPos.append((ortho_proj(hd.shearedPos), (cont, seg)))
 
+		# make it a list, so we can sort it by X position ('k' below)
 		byPos = [(k, sorted(v)) for (k, v) in byPos.iteritems()]
 		byPos.sort()
 		alignments = {}
 		lastPos = -100000
 		for pos, pts in byPos:
+			# Merge everything within 10 units : maybe too big or not
+			# adapted to some situation...
 			if pos - lastPos < 10:
 				pos = lastPos
 				alignment = alignments[pos]

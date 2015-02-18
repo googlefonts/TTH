@@ -848,11 +848,10 @@ class TTHTool(BaseEventTool):
 		if selected == []:
 			return
 		for zoneName in selected:
-			try:
-				del self.c_fontModel.f.lib[FL_tth_key]["zones"][zoneName]
-				del self.c_fontModel.zones[zoneName]
-			except:
-				pass
+			try: del self.c_fontModel.f.lib[FL_tth_key]["zones"][zoneName]
+			except: pass
+			try: del self.c_fontModel.zones[zoneName]
+			except: pass
 		for g in self.c_fontModel.f:
 			commands = self.readGlyphFLTTProgram(g)
 			if commands == None:
@@ -3170,11 +3169,14 @@ class TTHTool(BaseEventTool):
 					child.attrib['point2'] = self.pointNameToRFName[child.attrib['point2']]
 		return self.glyphTTHCommands
 
-	def writeGlyphFLTTProgram(self, g):
+	def writeGlyphFLTTProgram(self, g, commands = None):
 		if g == None:
 			return
 		root = ET.Element('ttProgram')
-		for command in self.glyphTTHCommands:
+		listOfCommands = commands
+		if listOfCommands == None:
+			listOfCommands = self.glyphTTHCommands
+		for command in listOfCommands:
 			com = ET.SubElement(root, 'ttc')
 			if 'active' not in command:
 				command['active'] = 'true'

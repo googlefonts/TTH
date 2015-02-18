@@ -11,9 +11,10 @@ from defconAppKit.windows.baseWindow import BaseWindowController
 import string
 import time
 
-import preview
+import preview, matching
 import view_ControlValues as CV
 import Automation
+reload(matching)
 
 buttonXPath = ExtensionBundle("TTH").get("buttonX")
 buttonYPath = ExtensionBundle("TTH").get("buttonY")
@@ -189,6 +190,8 @@ class toolsWindow(BaseWindowController):
 			"Control Values",
 			NSMenuItem.separatorItem(),
 			"Preferences",
+			NSMenuItem.separatorItem(),
+			"Transfer",
 			]
 			)
 
@@ -218,23 +221,25 @@ class toolsWindow(BaseWindowController):
 
 		if gearOption == 3:
 			self.TTHToolInstance.changeBitmapPreview("Monochrome")
-		if gearOption == 4:
+		elif gearOption == 4:
 			self.TTHToolInstance.changeBitmapPreview("Grayscale")
-		if gearOption == 5:
+		elif gearOption == 5:
 			self.TTHToolInstance.changeBitmapPreview("Subpixel")
 
-		if gearOption == 7:
+		elif gearOption == 7:
 			self.showPreviewCallback()
-		if gearOption == 8:
+		elif gearOption == 8:
 			self.showProgramCallback()
-		if gearOption == 9:
+		elif gearOption == 9:
 			self.showAssemblyCallback()
 
-		if gearOption == 11:
+		elif gearOption == 11:
 			self.controlValuesCallback()
 
-		if gearOption == 13:
+		elif gearOption == 13:
 			self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolInstance)
+		elif gearOption == 15:
+			matching.transfer(self.TTHToolInstance)
 
 	def controlValuesCallback(self):
 		self.sheet = CV.SheetControlValues(self, self.wTools, self.tthtm, self.TTHToolInstance)

@@ -2,6 +2,10 @@ import Automation
 import geom
 import math
 import sys
+#from mojo.UI import *
+#from mojo.extensions import *
+from robofab.world import *
+#from mojo.roboFont import *
 reload(Automation)
 
 def square(x):
@@ -118,7 +122,7 @@ class PointMatcher(object):
 		fromG = prepareGlyph(g0)
 		toG = prepareGlyph(g1)
 		matchings = matchTwoGlyphs(fromG, toG)
-		m = {}
+		m = {'lsb':'lsb', 'rsb':'rsb'}
 		self._map = m
 		if matchings == None: return
 		for f, (t, perm) in enumerate(matchings):
@@ -142,4 +146,24 @@ def go():
 	pm = PointMatcher(fonts[0][c], fonts[1][c])
 	print pm._map
 
-go()
+def transfer(controller):
+	fonts = []
+	for f in AllFonts():
+		fonts.append(f)
+	c = CurrentGlyph().name
+	glyphs = [fo[c] for fo in fonts]
+	pm = PointMatcher(glyphs[0], glyphs[1])
+	#print pm._map
+	inCommands = controller.readGlyphFLTTProgram(glyphs[0])
+	if inCommands == None:
+		return
+	outCommands = []
+	for com in inCommands:
+		command = dict(com)
+		for k in ['point', 'point1', 'point2']:
+			if k in command:
+				res = pm.map(command[k])
+				command[k] = res
+		outCommands.append(command)
+	controller.writeGlyphFLTTProgram(glyphs[1], outCommands)
+
