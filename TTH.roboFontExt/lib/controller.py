@@ -1,5 +1,4 @@
 #coding=utf-8
-
 from mojo.events import *
 from mojo.UI import *
 from mojo.extensions import *
