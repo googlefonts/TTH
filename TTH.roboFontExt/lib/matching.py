@@ -11,13 +11,18 @@ reload(Automation)
 def square(x):
 	return x*x
 
+def angleScore(d):
+	if d > 1.0000001: print "ERROR : dot product is larger than ONE"
+	if d < -0.999: d = -0.999
+	return math.exp( - 2.0 * square(d+1.0) )
+	#return math.exp(2.0/(d+1.0))
+	return (2.0/(d+1.0))
+
 def score(p0, p1):
 	posDiff = (p1.pos-p0.pos).squaredLength()
-	di = p0.inTangent | p1.inTangent
-	do = p0.outTangent | p1.outTangent
-	frontAngleMatch = math.exp( - 2.0 * square(di + 1.0) )
-	backAngleMatch  = math.exp( - 2.0 * square(do + 1.0) )
-	return posDiff * (frontAngleMatch + backAngleMatch)
+	frontAngleMatch = angleScore(p0.inTangent  | p1.inTangent)
+	backAngleMatch  = angleScore(p0.outTangent | p1.outTangent)
+	return posDiff *(frontAngleMatch + backAngleMatch)
 
 def indexOfMin(values):
 	i = 0
@@ -31,8 +36,10 @@ def indexOfMin(values):
 def matchTwoContours(fromC, toC, table):
 	lenFrom = len(fromC)
 	lenTo = len(toC)
+	# dynamic programming init
 	for t in xrange(lenTo):
 		table[0][t] = (-1, score(fromC[0], toC[t]))
+	# dynamic programming propagation
 	for f in xrange(1,lenFrom):
 		s = 0
 		minVal = table[f-1][0][1]
@@ -43,6 +50,7 @@ def matchTwoContours(fromC, toC, table):
 				minVal = newVal
 				s = t
 			table[f][t] = (s, minVal + localScore)
+	# dynamic programming backtrack
 	permut = [indexOfMin(table[lenFrom-1])]
 	matchQuality = table[lenFrom-1][permut[0]][1] # lower is better
 	for f in range(lenFrom-1, 0, -1):
@@ -54,6 +62,7 @@ def fix((permut,s), i, n):
 	return [(x+i) % n for x in permut],s # recover original segment numbers
 
 def permutationsOf(elements):
+	"""Iterates over all permutations of input 'elements'."""
 	n = len(elements)
 	if n <= 1:
 		yield elements
@@ -67,6 +76,7 @@ def matchTwoGlyphs(fromG, toG):
 	if nbContours[0] != nbContours[1]:
 		return None
 
+	# A cache of matchings over pairs of contours
 	matchings = [[None for t in toG] for f in fromG]
 
 	def getMatching(f, t):
