@@ -84,8 +84,8 @@ def matchTwoGlyphs(fromG, toG):
 			fromC = fromG[f] # fromC = source Contour
 			toC   = toG[t]   # toC   = target Contour
 			n = len(toC)
-			table = [[None for x in xrange(n)] for y in fromC]
-			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i], table), i, n) for i in xrange(n)]
+			table = [[None for x in xrange(n+1)] for y in fromC]
+			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]+[toC[i]], table), i, n) for i in xrange(n)]
 			i = indexOfMin(permutedMatches)
 			matchings[f][t] = permutedMatches[i]
 		return matchings[f][t]
