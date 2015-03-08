@@ -319,7 +319,7 @@ class MainPanel(BaseWindowController):
 	##########
 
 	def toolsWindowMovedorResized(self, sender):
-		self.tthtm.toolsWindowPosSize = self.wTools.getPosSize()
+		self.TTHToolModel.toolsWindowPosSize = self.wTools.getPosSize()
 		setExtensionDefault(defaultKeyToolsWindowPosSize, self.TTHToolModel.toolsWindowPosSize)
 
 	def close(self):
