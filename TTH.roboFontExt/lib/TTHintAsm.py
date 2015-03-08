@@ -628,6 +628,18 @@ def writeAssembly(TTHToolInstance, g, glyphTTHCommands, pointNameToUniqueID, poi
 	if glyphTTHCommands == []:
 		return
 
+	# mystring = ''
+	# if g.name == 'b':
+	# 	mystring += '<array>'
+	# 	for i in glyphTTHCommands:
+	# 		mystring += '<dict>'
+	# 		for k, v in i.iteritems():
+	# 			mystring += '<key>' + str(k) + '</key>'
+	# 			mystring += '<string>' + str(v) + '</string>'
+	# 		mystring += '</dict>'
+	# 	mystring += '</array>'
+	# 	print mystring
+
 	nbPointsContour = 0
 	for contour in g:
 		nbPointsContour += len(contour.points)

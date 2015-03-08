@@ -13,7 +13,7 @@
 	<key>launchAtStartUp</key>
 	<integer>1</integer>
 	<key>mainScript</key>
-	<string>__main__.py</string>
+	<string>main.py</string>
 	<key>name</key>
 	<string>TTH</string>
 	<key>requiresVersionMajor</key>
