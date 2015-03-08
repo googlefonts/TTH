@@ -3,7 +3,7 @@ from mojo.events import *
 from robofab.world import *
 from lib.tools.defaults import getDefault, setDefault
 
-from generals import helperFunctions
+from commons import helperFunctions
 from models import fontModel
 from views import mainPanel
 

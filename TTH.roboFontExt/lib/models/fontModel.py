@@ -1,7 +1,7 @@
 import tempfile
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
-from generals import helperFunctions
+from commons import helperFunctions
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
