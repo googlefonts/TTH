@@ -5,5 +5,5 @@ from mojo.events import installTool
 reload(toolController)
 reload(toolModel)
 
-tthtm = toolModel.TTHToolModel()
-installTool(toolController.TTHTool(tthtm))
+TTHToolModel = toolModel.TTHToolModel()
+installTool(toolController.TTHTool(TTHToolModel))
