@@ -314,6 +314,10 @@ class MainPanel(BaseWindowController):
 			#matching.transfer(self.TTHToolController)
 			pass
 
+	def showPreviewCallback(self):
+		self.TTHToolController.updatePartialFont()
+		self.TTHToolController.previewPanel.show()
+
 	##########
 	# Bindings
 	##########

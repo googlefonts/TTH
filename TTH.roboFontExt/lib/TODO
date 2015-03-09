@@ -20,6 +20,8 @@ La rapidité de la grille de center of pixels
 import Blues. Auto-Harmonize Stems.
 ------------------------------
 AutoHinting, ou Educated Guessing
+------------------------------
+Check if 'pitch' is relevant & debug the badly placed vertical purple line that should be on top of RSB
 
 
 ==============================

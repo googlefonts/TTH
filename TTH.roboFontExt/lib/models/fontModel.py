@@ -1,7 +1,10 @@
 import tempfile
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
-from commons import helperFunctions
+from commons import helperFunctions, textRenderer
+
+reload(helperFunctions)
+reload(textRenderer)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
@@ -43,3 +46,16 @@ class FontModel():
 			self.gasp_ranges = helperFunctions.getOrPutDefault(self.f.lib, gasp_key, {})
 		except:
 			print "ERROR: can't set font's control values"
+
+	def setFont(self, font):
+		self.f = font
+
+	def setUPM(self, UPM):
+		self.UPM = int(UPM)
+
+	def regenTextRenderer(self):
+		self.textRenderer = textRenderer.TextRenderer(self.partialtempfontpath, self.bitmapPreviewSelection)
+
+	def setBitmapPreview(self, preview):
+		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
+			self.bitmapPreviewSelection = self.SP_tth_lib["bitmapPreviewSelection"] = preview

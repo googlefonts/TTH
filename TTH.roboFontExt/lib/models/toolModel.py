@@ -40,14 +40,15 @@ class TTHToolModel():
 		self.previewString = '/?'
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
-		self.requiredGlyphsForPartialTempFont = set()
-		self.requiredGlyphsForPartialTempFont.add('space')
 		self.alwaysRefresh = getExtensionDefault(defaultKeyAlwaysRefresh, fallback=1)
 		self.showOutline = getExtensionDefault(defaultKeyShowOutline, fallback=0)
 		self.showBitmap = getExtensionDefault(defaultKeyShowBitmap, fallback=0)
 		self.showGrid = getExtensionDefault(defaultKeyShowGrid, fallback=0)
 		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
+
+		self.requiredGlyphsForPartialTempFont = set()
+		self.requiredGlyphsForPartialTempFont.add('space')
 
 		self.roundFactor_Stems = 15
 		self.roundFactor_Jumps = 20
@@ -58,3 +59,20 @@ class TTHToolModel():
 		self.maxStemY = 1000
 
 		self.angleTolerance = 10.0
+
+	def setSize(self, size):
+		self.PPM_Size = int(size)
+		setExtensionDefault(defaultKeyCurrentPPMSize, self.PPM_Size)
+
+	def resetPitch(self, UPM):
+		self.pitch = UPM/self.PPM_Size
+		self.fPitch = float(UPM)/self.PPM_Size
+
+	def setDeltaRange1(self, value):
+		self.deltaRange1 = int(value)
+
+	def setDeltaRange2(self, value):
+		self.deltaRange2 = int(value)
+
+	def setPreviewString(self, previewString):
+		self.previewString = previewString
