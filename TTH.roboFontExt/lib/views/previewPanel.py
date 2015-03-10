@@ -131,7 +131,6 @@ class PreviewPanel(TTHWindow):
 			return
 		if self.TTHToolController.getGlyph() == None:
 			return
-		print 'I draw in the previewPanel'
 		self.clickableSizes= {}
 
 		tr = self.TTHToolController.c_fontModel.textRenderer

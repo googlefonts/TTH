@@ -41,28 +41,41 @@ class TTHTool(BaseEventTool):
 
 		self.previewPanel  = previewPanel.PreviewPanel(self, (-510, 30, 500, 600))
 
+	#################################################################################
+	# This function is called by RF on the parent class in order to get the tool icon
+	#################################################################################
 	def getToolbarIcon(self):
 		return toolbarIcon
 
 	def getToolbarTip(self):
 		return "TTH"
 
+	###############################################################
+	# This function is called by RF when the tool button is pressed
+	###############################################################
 	def becomeActive(self):
 		if helperFunctions.checkDrawingPreferences() == False:
 			setDefault('drawingSegmentType', 'qcurve')
 			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
+		self.updatePartialFont()
 
+	###################################################################
+	# This function is called by RF when another tool button is pressed
+	###################################################################
 	def becomeInactive(self):
 		self.mainPanel.close()
 		self.previewPanel.hide()
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
 
+	###########################################################
+	# This function is called by RF when the Glyph View changed
+	###########################################################
 	def viewDidChangeGlyph(self):
 		if self.fontClosed:
 			return
-		#self.resetglyph(self.getGlyph())
+		self.resetglyph(self.getGlyph())
 		self.updatePartialFontIfNeeded()
 
 	def currentGlyphChanged(self):
@@ -145,7 +158,7 @@ class TTHTool(BaseEventTool):
 			return
 
 		self.ready = True
-		print 'I am ready'
+
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 
