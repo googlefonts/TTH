@@ -144,8 +144,8 @@ class TTHTool(BaseEventTool):
 			return
 
 		self.ready = True
-		if self.previewWindow.isVisible():
-			self.previewWindow.setNeedsDisplay()
+		if self.previewPanel.isVisible():
+			self.previewPanel.setNeedsDisplay()
 
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
