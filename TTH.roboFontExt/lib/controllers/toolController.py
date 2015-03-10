@@ -35,6 +35,7 @@ class TTHTool(BaseEventTool):
 		self.cachedPathes = {'grid':None, 'centers':None}
 		self.cachedScale = None
 		
+		self.fontClosed = False
 		self.popOverIsOpened = False
 		self.messageInFront = False
 
@@ -57,6 +58,16 @@ class TTHTool(BaseEventTool):
 		self.previewPanel.hide()
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
+
+	def viewDidChangeGlyph(self):
+		if self.fontClosed:
+			return
+		#self.resetglyph(self.getGlyph())
+		self.updatePartialFontIfNeeded()
+
+	def currentGlyphChanged(self):
+		self.resetglyph(self.getGlyph())
+		self.updatePartialFontIfNeeded()
 
 	def drawBackground(self, scale):
 		g = self.getGlyph()
