@@ -84,18 +84,18 @@ class TTHTool(BaseEventTool):
 		tr.set_cur_size(self.TTHToolModel.PPM_Size)
 		tr.set_pen((0, 0))
 		
-		if self.TTHToolModel.showBitmap == 1:
-			tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, 0.4)
+		# if self.TTHToolModel.showBitmap == 1:
+		tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, 0.4)
 
-		if self.TTHToolModel.showGrid == 1:
-			self.drawGrid(scale, self.TTHToolModel.fPitch)
+		# if self.TTHToolModel.showGrid == 1:
+		# 	self.drawGrid(scale, self.TTHToolModel.fPitch)
 
-		if self.TTHToolModel.showCenterPixel == 1:
-			self.drawCenterPixel(scale, self.TTHToolModel.fPitch)
+		# if self.TTHToolModel.showCenterPixel == 1:
+		# 	self.drawCenterPixel(scale, self.TTHToolModel.fPitch)
 
-		if self.TTHToolModel.showOutline == 1:
-			tr.drawOutlineOfName(scale, self.TTHToolModel.fPitch, g.name)
-			self.drawSideBearings(scale, g.name)
+		# if self.TTHToolModel.showOutline == 1:
+		# 	tr.drawOutlineOfName(scale, self.TTHToolModel.fPitch, g.name)
+		# 	self.drawSideBearings(scale, g.name)
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
