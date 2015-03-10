@@ -2286,19 +2286,19 @@ class TTHTool(BaseEventTool):
 			Agray = A['gray'] == 'true'
 			Bmono = B['mono'] == 'true'
 			Bgray = B['gray'] == 'true'
-			if (Amono and Agray):
+			if (Amono and Agray) and A['point'] == B['point']:
 				if (Bmono and (not Bgray)):
 					order = ab
 				elif not Bmono:
 					order = ab
 
-			elif (Amono and (not Agray)):
+			elif (Amono and (not Agray)) and A['point'] == B['point']:
 				if (Bmono and Bgray):
 					order = ba
 				elif not Bmono:
 					order = ab
 
-			elif ((not Amono) and Agray):
+			elif ((not Amono) and Agray) and A['point'] == B['point']:
 				if (Bmono and Bgray):
 					order = ba
 				elif not Bgray:
@@ -2307,7 +2307,7 @@ class TTHTool(BaseEventTool):
 					else:
 						order = ab
 
-			elif ((not Amono) and (not Agray)):
+			elif ((not Amono) and (not Agray)) and A['point'] == B['point']:
 				if Bmono or Bgray:
 					order = ba
 
