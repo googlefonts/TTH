@@ -1,6 +1,7 @@
 from mojo.extensions import *
 from vanilla import *
 from mojo.canvas import Canvas
+from AppKit import *
 import string
 
 from views import TTHWindow
@@ -9,6 +10,9 @@ DefaultKeyStub = "com.sansplomb.TTH."
 
 defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
 defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
+
+blackColor = NSColor.blackColor()
+redColor = NSColor.redColor()
 
 
 class PreviewPanel(TTHWindow):
@@ -77,7 +81,7 @@ class PreviewPanel(TTHWindow):
 				break
 
 	def draw(self):
-		self.drawPreviewWindow()
+		self.drawPreviewPanel()
 	
 	def resizeView(self, posSize):
 		self.window().view.getNSView().setFrame_(((0, 0), self.calculateCanvasSize(posSize)))
@@ -122,12 +126,12 @@ class PreviewPanel(TTHWindow):
 		self.TTHToolController.changePreviewSize(self.FromSize, self.ToSize)
 		self.setNeedsDisplay()
 
-	def drawPreviewWindow(self):
+	def drawPreviewPanel(self):
 		if self.TTHToolController.ready == False:
 			return
 		if self.TTHToolController.getGlyph() == None:
 			return
-
+		print 'I draw in the previewPanel'
 		self.clickableSizes= {}
 
 		tr = self.TTHToolController.c_fontModel.textRenderer
@@ -142,7 +146,7 @@ class PreviewPanel(TTHWindow):
 		# render user string
 		tr.set_cur_size(self.TTHToolModel.PPM_Size)
 
-		ps = self.previewPanel.window().getPosSize()
+		ps = self.window().getPosSize()
 		tr.set_pen((20, ps[3] - 250))
 		tr.render_indexed_glyph_list(glyphs)
 
@@ -163,9 +167,9 @@ class PreviewPanel(TTHWindow):
 			self.clickableSizes[(x-20, y)] = size
 
 			displaysize = str(size)
-			if size == self.TTHToolModel.PPM_Size and text != '':
+			if size == self.TTHToolModel.PPM_Size:
 				self.drawPreviewSize(displaysize, x-20, y, redColor)
-			elif text != '':
+			else:
 				self.drawPreviewSize(displaysize, x-20, y, blackColor)
 
 			tr.set_cur_size(size)
@@ -187,9 +191,9 @@ class PreviewPanel(TTHWindow):
 
 			displaysize = str(size)
 			if size == self.TTHToolModel.PPM_Size:
-				self.drawPreviewSize(displaysize, advance, ps[3] - 200, NSColor.redColor())
+				self.drawPreviewSize(displaysize, advance, ps[3] - 200, redColor)
 			else:
-				self.drawPreviewSize(displaysize, advance, ps[3] - 200, NSColor.blackColor())
+				self.drawPreviewSize(displaysize, advance, ps[3] - 200, blackColor)
 			
 			tr.set_cur_size(size)
 			tr.set_pen((advance, ps[3] - 165))
@@ -202,4 +206,16 @@ class PreviewPanel(TTHWindow):
 
 		if width < newWidth:
 			ps = ps[0], ps[1], newWidth, ps[3]
-			self.previewPanel.resizeView(ps)
+			self.resizeView(ps)
+
+	def drawPreviewSize(self, title, x, y, color):
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
+			NSForegroundColorAttributeName : color,
+			}
+
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		text.drawAtPoint_((x, y))
+
+	def resizeView(self, posSize):
+		self.window().view.getNSView().setFrame_(((0, 0), self.calculateCanvasSize(posSize)))

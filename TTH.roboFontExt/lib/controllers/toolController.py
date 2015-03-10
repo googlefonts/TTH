@@ -137,6 +137,7 @@ class TTHTool(BaseEventTool):
 			self.mainPanel = mainPanel.MainPanel(self)
 			self.previewPanel.showOrHide()
 
+		print self.getGlyph()
 		self.resetglyph(self.getGlyph())
 
 	def resetglyph(self, g):
@@ -144,6 +145,7 @@ class TTHTool(BaseEventTool):
 			return
 
 		self.ready = True
+		print 'I am ready'
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 
