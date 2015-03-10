@@ -137,6 +137,16 @@ class TTHTool(BaseEventTool):
 			self.mainPanel = mainPanel.MainPanel(self)
 			self.previewPanel.showOrHide()
 
+		self.resetglyph(self.getGlyph())
+
+	def resetglyph(self, g):
+		if g == None:
+			return
+
+		self.ready = True
+		if self.previewWindow.isVisible():
+			self.previewWindow.setNeedsDisplay()
+
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
 		self.generatePartialTempFont()
