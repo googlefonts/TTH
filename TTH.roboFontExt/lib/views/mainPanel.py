@@ -4,6 +4,10 @@ from AppKit import *
 from vanilla import *
 from mojo.extensions import *
 
+from views import preferencesSheet
+
+reload(preferencesSheet)
+
 buttonXPath = ExtensionBundle("TTH").get("buttonX")
 buttonYPath = ExtensionBundle("TTH").get("buttonY")
 buttonAlignPath = ExtensionBundle("TTH").get("buttonAlign")
@@ -308,8 +312,7 @@ class MainPanel(BaseWindowController):
 			self.controlValuesCallback()
 
 		elif gearOption == 13:
-			#self.preferencesSheet = SheetPreferences(self.wTools, self.TTHToolController)
-			pass
+			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools, self.TTHToolController)
 		elif gearOption == 15:
 			#matching.transfer(self.TTHToolController)
 			pass

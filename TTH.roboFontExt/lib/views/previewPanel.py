@@ -28,25 +28,24 @@ class PreviewPanel(TTHWindow):
 		self.clickableGlyphs = {}
 
 		ps = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=defaultPosSize)
-		win = FloatingWindow(ps, "Preview", minSize=(350, 200))
+		self.win = FloatingWindow(ps, "Preview", minSize=(350, 200))
 
-		previewList = ['HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase]
-		win.previewEditText = ComboBox((10, 10, -10, 22), previewList,
+		self.win.previewEditText = ComboBox((10, 10, -10, 22), self.TTHToolModel.previewSampleStringsList,
 				callback=self.previewEditTextCallback)
-		win.previewEditText.set(self.TTHToolModel.previewString)
+		self.win.previewEditText.set(self.TTHToolModel.previewString)
 
-		win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.calculateCanvasSize(ps))
+		self.win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 
-		win.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
-		win.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
+		self.win.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
+		self.win.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
 				callback=self.DisplayFromEditTextCallback)
-		win.DisplayFromEditText.set(self.FromSize)
+		self.win.DisplayFromEditText.set(self.FromSize)
 
-		win.DisplayToSizeText = TextBox((170, -30, 22, -10), "To:", sizeStyle = "small")
-		win.DisplayToEditText = EditText((202, -32, 30, 19), sizeStyle = "small", 
+		self.win.DisplayToSizeText = TextBox((170, -30, 22, -10), "To:", sizeStyle = "small")
+		self.win.DisplayToEditText = EditText((202, -32, 30, 19), sizeStyle = "small", 
 				callback=self.DisplayToEditTextCallback)
-		win.DisplayToEditText.set(self.ToSize)
-		win.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
+		self.win.DisplayToEditText.set(self.ToSize)
+		self.win.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
 				callback=self.ApplyButtonCallback)
 		
 		for i in string.lowercase:
@@ -56,9 +55,9 @@ class PreviewPanel(TTHWindow):
 		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
 			self.TTHToolModel.requiredGlyphsForPartialTempFont.add(i)
 
-		win.bind("move", self.movedOrResizedCallback)
-		win.bind("resize", self.movedOrResizedCallback)
-		self.setWindow(win) # this will not rebind the events, since they are already bound.
+		self.win.bind("move", self.movedOrResizedCallback)
+		self.win.bind("resize", self.movedOrResizedCallback)
+		self.setWindow(self.win) # this will not rebind the events, since they are already bound.
 
 	def calculateCanvasSize(self, winPosSize):
 		return (winPosSize[2], winPosSize[3]-90)

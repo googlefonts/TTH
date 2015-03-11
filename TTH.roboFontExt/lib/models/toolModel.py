@@ -1,14 +1,17 @@
 from mojo.extensions import *
+import string
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
 defaultKeyCurrentPPMSize = DefaultKeyStub + "currentPPMSize"
 defaultKeySelectedAxis = DefaultKeyStub + "selectedAxis"
+defaultKeyPreviewSampleStrings = DefaultKeyStub + "previewSampleStrings"
 defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
 defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 defaultKeyAlwaysRefresh = DefaultKeyStub + "alwaysRefresh"
 defaultKeyShowOutline = DefaultKeyStub + "showOutline"
 defaultKeyShowBitmap = DefaultKeyStub + "showBitmap"
+defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
 defaultKeyShowGrid = DefaultKeyStub + "showGrid"
 defaultKeyShowCenterPixels = DefaultKeyStub + "showCenterPixels"
 defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
@@ -36,13 +39,17 @@ class TTHToolModel():
 		self.deltaMonoBool = 1
 		self.deltaGrayBool = 1
 
+		
+
 		self.toolsWindowPosSize = (170, 30, 265, 95)
 		self.previewString = '/?'
+		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings, fallback=['HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase])
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.alwaysRefresh = getExtensionDefault(defaultKeyAlwaysRefresh, fallback=1)
 		self.showOutline = getExtensionDefault(defaultKeyShowOutline, fallback=0)
 		self.showBitmap = getExtensionDefault(defaultKeyShowBitmap, fallback=0)
+		self.bitmapOpacity = getExtensionDefault(defaultKeyBitmapOpacity, fallback=.4)
 		self.showGrid = getExtensionDefault(defaultKeyShowGrid, fallback=0)
 		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)

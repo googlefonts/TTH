@@ -98,7 +98,7 @@ class TTHTool(BaseEventTool):
 		tr.set_pen((0, 0))
 		
 		# if self.TTHToolModel.showBitmap == 1:
-		tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, 0.4)
+		tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, self.TTHToolModel.bitmapOpacity)
 
 		# if self.TTHToolModel.showGrid == 1:
 		# 	self.drawGrid(scale, self.TTHToolModel.fPitch)
@@ -150,7 +150,6 @@ class TTHTool(BaseEventTool):
 			self.mainPanel = mainPanel.MainPanel(self)
 			self.previewPanel.showOrHide()
 
-		print self.getGlyph()
 		self.resetglyph(self.getGlyph())
 
 	def resetglyph(self, g):
