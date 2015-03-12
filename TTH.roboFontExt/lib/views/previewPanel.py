@@ -34,19 +34,7 @@ class PreviewPanel(TTHWindow):
 				callback=self.previewEditTextCallback)
 		self.win.previewEditText.set(self.TTHToolModel.previewString)
 
-		self.win.view = Canvas((10, 50, -10, -40), delegate = self, canvasSize = self.calculateCanvasSize(ps))
-
-		self.win.DisplaySizesText = TextBox((10, -30, 120, -10), "Display Sizes From:", sizeStyle = "small")
-		self.win.DisplayFromEditText = EditText((130, -32, 30, 19), sizeStyle = "small", 
-				callback=self.DisplayFromEditTextCallback)
-		self.win.DisplayFromEditText.set(self.FromSize)
-
-		self.win.DisplayToSizeText = TextBox((170, -30, 22, -10), "To:", sizeStyle = "small")
-		self.win.DisplayToEditText = EditText((202, -32, 30, 19), sizeStyle = "small", 
-				callback=self.DisplayToEditTextCallback)
-		self.win.DisplayToEditText.set(self.ToSize)
-		self.win.ApplyButton = Button((-100, -32, -10, 22), "Apply", sizeStyle = 'small', 
-				callback=self.ApplyButtonCallback)
+		self.win.view = Canvas((10, 50, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 		
 		for i in string.lowercase:
 			self.TTHToolModel.requiredGlyphsForPartialTempFont.add(i)
@@ -60,7 +48,7 @@ class PreviewPanel(TTHWindow):
 		self.setWindow(self.win) # this will not rebind the events, since they are already bound.
 
 	def calculateCanvasSize(self, winPosSize):
-		return (winPosSize[2], winPosSize[3]-90)
+		return (winPosSize[2], winPosSize[3]-60)
 
 	def setNeedsDisplay(self):
 		self.window().view.getNSView().setNeedsDisplay_(True)
@@ -94,37 +82,6 @@ class PreviewPanel(TTHWindow):
 		self.TTHToolController.updatePartialFontIfNeeded()
 		self.setNeedsDisplay()
 
-	def DisplayFromEditTextCallback(self, sender):
-		try:
-			size = int(sender.get())
-		except:
-			size = self.TTHToolModel.previewFrom
-		self.FromSize = self.TTHToolController.cleanPreviewSize(size)
-
-	def DisplayToEditTextCallback(self, sender):
-		try:
-			size = int(sender.get())
-		except:
-			size = self.TTHToolModel.previewTo
-		self.ToSize = self.TTHToolController.cleanPreviewSize(size)
-
-	def ApplyButtonCallback(self, sender):
-		win = self.window()
-		fromS = self.FromSize
-		toS = self.ToSize
-		if fromS < 8: fromS = 8
-		if toS < 8: toS = 8
-		if fromS > toS:
-			fromS = toS
-		if toS > fromS + 100:
-			toS = fromS + 100
-		self.FromSize = fromS
-		self.ToSize = toS
-		self.window().DisplayFromEditText.set(fromS)
-		self.window().DisplayToEditText.set(toS)
-		self.TTHToolController.changePreviewSize(self.FromSize, self.ToSize)
-		self.setNeedsDisplay()
-
 	def drawPreviewPanel(self):
 		if self.TTHToolController.ready == False:
 			return
@@ -145,11 +102,11 @@ class PreviewPanel(TTHWindow):
 		tr.set_cur_size(self.TTHToolModel.PPM_Size)
 
 		ps = self.window().getPosSize()
-		tr.set_pen((20, ps[3] - 250))
+		tr.set_pen((20, ps[3] - 220))
 		tr.render_indexed_glyph_list(glyphs)
 
 		self.clickableGlyphs = {}
-		pen = (20, ps[3] - 250)
+		pen = (20, ps[3] - 220)
 		for name in namedGlyphList:
 			adv = tr.get_name_advance(name)
 			newpen = pen[0]+int(adv[0]/64), pen[1]+int(adv[1]/64)
@@ -158,7 +115,7 @@ class PreviewPanel(TTHWindow):
 			pen = newpen
 
 		# render user string at various sizes
-		y = ps[3] - 310
+		y = ps[3] - 280
 		x = 30
 		for size in range(self.TTHToolModel.previewFrom, self.TTHToolModel.previewTo+1, 1):
 
@@ -185,16 +142,16 @@ class PreviewPanel(TTHWindow):
 		
 		for size in range(self.TTHToolModel.previewFrom, self.TTHToolModel.previewTo+1, 1):
 
-			self.clickableSizes[(advance, ps[3] - 200)] = size
+			self.clickableSizes[(advance, ps[3] - 270)] = size
 
 			displaysize = str(size)
 			if size == self.TTHToolModel.PPM_Size:
-				self.drawPreviewSize(displaysize, advance, ps[3] - 200, redColor)
+				self.drawPreviewSize(displaysize, advance, ps[3] - 170, redColor)
 			else:
-				self.drawPreviewSize(displaysize, advance, ps[3] - 200, blackColor)
+				self.drawPreviewSize(displaysize, advance, ps[3] - 170, blackColor)
 			
 			tr.set_cur_size(size)
-			tr.set_pen((advance, ps[3] - 165))
+			tr.set_pen((advance, ps[3] - 135))
 			delta_pos = tr.render_named_glyph_list([curGlyphName])
 			advance += delta_pos[0] + 5
 			advanceWidthCurrentGlyph = advance

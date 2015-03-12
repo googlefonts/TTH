@@ -190,3 +190,11 @@ def checkSegmentType(font):
 	except:
 		segmentType = font.preferedSegmentType
 	return (segmentType == 'qcurve' or segmentType == 'qCurve')
+
+def checkIntSize(size):
+		try:
+			size = int(size)
+		except ValueError:
+			size = 9
+		if size < 8: return 8
+		return size
