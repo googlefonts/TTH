@@ -5,12 +5,6 @@ import string
 
 from commons import helperFunctions
 
-DefaultKeyStub = "com.sansplomb.TTH."
-
-defaultKeyPreviewSampleStrings = DefaultKeyStub + "previewSampleStrings"
-defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
-defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
-defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 
 class PreferencesSheet(object):
 
@@ -83,36 +77,31 @@ class PreferencesSheet(object):
 			self.w.hotKeysBox.show(True)
 
 	def bitmapOpacitySliderCallBack(self, sender):
-		self.TTHToolModel.bitmapOpacity = sender.get()
-		setExtensionDefault(defaultKeyBitmapOpacity, self.TTHToolModel.bitmapOpacity)
-		UpdateCurrentGlyphView()
+		self.TTHToolController.changeBitmapOpacity(sender.get())
 
 	def previewSampleStringsListEditCallBack(self, sender):
 		updatedSampleStrings = []
 		for i in sender.get():
 			for k, v in i.iteritems():
 				updatedSampleStrings.append(v)
-		self.TTHToolModel.previewSampleStringsList = updatedSampleStrings
-		setExtensionDefault(defaultKeyPreviewSampleStrings, self.TTHToolModel.previewSampleStringsList)
-		self.TTHToolController.previewPanel.win.previewEditText.setItems(self.TTHToolModel.previewSampleStringsList)
+		self.TTHToolController.samplesStringsHaveChanged(updatedSampleStrings)
 
 	def addStringButtonCallback(self, sender):
-		self.TTHToolModel.previewSampleStringsList.append('/?')
-		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in self.TTHToolModel.previewSampleStringsList])
-		setExtensionDefault(defaultKeyPreviewSampleStrings, self.TTHToolModel.previewSampleStringsList)
-		self.TTHToolController.previewPanel.win.previewEditText.setItems(self.TTHToolModel.previewSampleStringsList)
+		updatedSampleStrings = self.TTHToolModel.previewSampleStringsList
+		updatedSampleStrings.append('/?')
+		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
+		self.TTHToolController.samplesStringsHaveChanged(updatedSampleStrings)
 		self.w.viewAndSettingsBox.previewSampleStringsList.setSelection([len(self.TTHToolModel.previewSampleStringsList)-1])
 
 	def removeStringButtonCallback(self, sender):
 		selected = self.w.viewAndSettingsBox.previewSampleStringsList.getSelection()
-		updatedSampleString = []
+		updatedSampleStrings = []
 		for i, s in enumerate(self.TTHToolModel.previewSampleStringsList):
 			if i not in selected:
-				updatedSampleString.append(s)
-		self.TTHToolModel.previewSampleStringsList = updatedSampleString
-		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in self.TTHToolModel.previewSampleStringsList])
-		setExtensionDefault(defaultKeyPreviewSampleStrings, self.TTHToolModel.previewSampleStringsList)
-		self.TTHToolController.previewPanel.win.previewEditText.setItems(self.TTHToolModel.previewSampleStringsList)
+				updatedSampleStrings.append(s)
+		self.TTHToolModel.previewSampleStringsList = updatedSampleStrings
+		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
+		self.TTHToolController.samplesStringsHaveChanged(updatedSampleStrings)
 
 	def displayFromEditTextCallback(self, sender):
 		try:
@@ -137,13 +126,10 @@ class PreferencesSheet(object):
 			fromS = toS
 		if toS > fromS + 100:
 			toS = fromS + 100
-		self.TTHToolModel.previewFrom = fromS
-		self.TTHToolModel.previewTo = toS
 		self.w.viewAndSettingsBox.displayFromEditText.set(fromS)
 		self.w.viewAndSettingsBox.displayToEditText.set(toS)
-		setExtensionDefault(defaultKeyPreviewFrom, self.TTHToolModel.previewFrom)
-		setExtensionDefault(defaultKeyPreviewTo, self.TTHToolModel.previewTo)
-		self.TTHToolController.previewPanel.setNeedsDisplay()
+		self.TTHToolController.changeDisplayPreviewSizesFromTo(fromS, toS)
+
 
 
 

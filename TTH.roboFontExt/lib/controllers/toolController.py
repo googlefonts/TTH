@@ -18,6 +18,13 @@ reload(previewPanel)
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
+DefaultKeyStub = "com.sansplomb.TTH."
+
+defaultKeyPreviewSampleStrings = DefaultKeyStub + "previewSampleStrings"
+defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
+defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
+defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
+
 class TTHTool(BaseEventTool):
 
 	def __init__(self, TTHToolModel):
@@ -317,3 +324,20 @@ class TTHTool(BaseEventTool):
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
+
+	def changeBitmapOpacity(self, value):
+		self.TTHToolModel.bitmapOpacity = value
+		setExtensionDefault(defaultKeyBitmapOpacity, self.TTHToolModel.bitmapOpacity)
+		UpdateCurrentGlyphView()
+
+	def changeDisplayPreviewSizesFromTo(self, fromSize, toSize):
+		self.TTHToolModel.previewFrom = fromSize
+		self.TTHToolModel.previewTo = toSize
+		setExtensionDefault(defaultKeyPreviewFrom, self.TTHToolModel.previewFrom)
+		setExtensionDefault(defaultKeyPreviewTo, self.TTHToolModel.previewTo)
+		self.previewPanel.setNeedsDisplay()
+
+	def samplesStringsHaveChanged(self, sampleStrings):
+		self.TTHToolModel.previewSampleStringsList = sampleStrings
+		setExtensionDefault(defaultKeyPreviewSampleStrings, self.TTHToolModel.previewSampleStringsList)
+		self.previewPanel.win.previewEditText.setItems(self.TTHToolModel.previewSampleStringsList)
