@@ -99,7 +99,6 @@ class PreferencesSheet(object):
 		for i, s in enumerate(self.TTHToolModel.previewSampleStringsList):
 			if i not in selected:
 				updatedSampleStrings.append(s)
-		self.TTHToolModel.previewSampleStringsList = updatedSampleStrings
 		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
 		self.TTHToolController.samplesStringsHaveChanged(updatedSampleStrings)
 
