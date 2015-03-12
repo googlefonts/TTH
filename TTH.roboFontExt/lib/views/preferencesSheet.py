@@ -5,6 +5,7 @@ import string
 
 from commons import helperFunctions
 
+reload(helperFunctions)
 
 class PreferencesSheet(object):
 

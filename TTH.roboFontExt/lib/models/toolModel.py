@@ -43,7 +43,8 @@ class TTHToolModel():
 
 		self.toolsWindowPosSize = (170, 30, 265, 95)
 		self.previewString = '/?'
-		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings, fallback=['HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase])
+
+		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings, fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase])
 		self.previewFrom = getExtensionDefault(defaultKeyPreviewFrom, fallback=9)
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.alwaysRefresh = getExtensionDefault(defaultKeyAlwaysRefresh, fallback=1)
@@ -82,4 +83,7 @@ class TTHToolModel():
 		self.deltaRange2 = int(value)
 
 	def setPreviewString(self, previewString):
-		self.previewString = previewString
+		if previewString != None:
+			self.previewString = previewString
+		else:
+			self.previewString = '/?'
