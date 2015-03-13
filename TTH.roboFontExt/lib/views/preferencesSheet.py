@@ -14,7 +14,7 @@ class PreferencesSheet(object):
 		self.c_fontModel = self.TTHToolController.c_fontModel
 		self.TTHToolModel = self.TTHToolController.TTHToolModel
 
-		self.w = Sheet((505, 480), parentWindow=parentWindow)
+		self.w = Sheet((505, 350), parentWindow=parentWindow)
 
 		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
 
@@ -28,7 +28,7 @@ class PreferencesSheet(object):
 			dict(width=67, title="Hot Keys", toolTip="Hot Keys")
 		]
 
-		self.w.controlsSegmentedButton = SegmentedButton((137, 10, 220, 18), preferencesSegmentDescriptions, callback=self.preferencesSegmentedButtonCallback, sizeStyle="mini")
+		self.w.controlsSegmentedButton = SegmentedButton((147, 10, 220, 18), preferencesSegmentDescriptions, callback=self.preferencesSegmentedButtonCallback, sizeStyle="mini")
 		self.w.controlsSegmentedButton.set(0)
 
 		self.w.viewAndSettingsBox.show(True)
