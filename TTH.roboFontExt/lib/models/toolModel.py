@@ -87,3 +87,7 @@ class TTHToolModel():
 			self.previewString = previewString
 		else:
 			self.previewString = '/?'
+
+	def setPreviewInGlyphWindowState(self, onOff):
+		self.showPreviewInGlyphWindow = onOff
+		setExtensionDefault(defaultKeyShowPreviewInGlyphWindow, onOff)

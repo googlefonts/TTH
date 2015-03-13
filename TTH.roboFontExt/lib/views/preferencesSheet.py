@@ -48,10 +48,13 @@ class PreferencesSheet(object):
 				callback=self.displayFromEditTextCallback)
 		self.w.viewAndSettingsBox.displayFromEditText.set(self.TTHToolModel.previewFrom)
 
-		self.w.viewAndSettingsBox.displayToSizeText = TextBox((170, 150, 22, -10), "To:", sizeStyle = "small")
+		self.w.viewAndSettingsBox.displayToSizeText = TextBox((170, 150, 22, 18), "To:", sizeStyle = "small")
 		self.w.viewAndSettingsBox.displayToEditText = EditText((202, 147, 30, 19), sizeStyle = "small", continuous=False, 
 				callback=self.displayToEditTextCallback)
 		self.w.viewAndSettingsBox.displayToEditText.set(self.TTHToolModel.previewTo)
+
+		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowText = TextBox((10, 170, -10, 18), "Display Preview In Glyph Window:", sizeStyle = "small")
+		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowCheckBox = CheckBox((200, 170, 18, 18), "", callback=self.displayPreviewInGlyphWindowCheckBoxCallback, value=self.TTHToolModel.showPreviewInGlyphWindow, sizeStyle="small")
 
 		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		self.w.open()
@@ -111,7 +114,7 @@ class PreferencesSheet(object):
 		except:
 			size = self.TTHToolModel.previewFrom
 		self.TTHToolModel.previewFrom = helperFunctions.checkIntSize(size)
-		self.applySizeChange()
+		self.TTHToolController.applySizeChange()
 
 	def displayToEditTextCallback(self, sender):
 		try:
@@ -119,18 +122,10 @@ class PreferencesSheet(object):
 		except:
 			size = self.TTHToolModel.previewTo
 		self.TTHToolModel.previewTo = helperFunctions.checkIntSize(size)
-		self.applySizeChange()
+		self.TTHToolController.applySizeChange()
 
-	def applySizeChange(self):
-		fromS = self.TTHToolModel.previewFrom
-		toS = self.TTHToolModel.previewTo
-		if fromS > toS:
-			fromS = toS
-		if toS > fromS + 100:
-			toS = fromS + 100
-		self.w.viewAndSettingsBox.displayFromEditText.set(fromS)
-		self.w.viewAndSettingsBox.displayToEditText.set(toS)
-		self.TTHToolController.changeDisplayPreviewSizesFromTo(fromS, toS)
+	def displayPreviewInGlyphWindowCheckBoxCallback(self, sender):
+		self.TTHToolController.changePreviewInGlyphWindowState(sender.get())
 
 
 

@@ -5,8 +5,9 @@ from robofab.world import *
 import robofab.interface.all.dialogs as Dialogs
 from lib.tools.defaults import getDefault, setDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
+from AppKit import *
 
-from commons import helperFunctions, textRenderer
+from commons import helperFunctions, textRenderer, previewInGlyphWindow
 from models import fontModel
 from views import mainPanel, previewPanel
 
@@ -46,6 +47,8 @@ class TTHTool(BaseEventTool):
 		self.popOverIsOpened = False
 		self.messageInFront = False
 
+		self.previewInGlyphWindow = {}
+
 		self.previewPanel  = previewPanel.PreviewPanel(self, (-510, 30, 500, 600))
 
 	#################################################################################
@@ -71,6 +74,7 @@ class TTHTool(BaseEventTool):
 	# This function is called by RF when another tool button is pressed
 	###################################################################
 	def becomeInactive(self):
+		self.deletePreviewInGlyphWindow()
 		self.mainPanel.close()
 		self.previewPanel.hide()
 		if self.drawingPreferencesChanged == True:
@@ -85,10 +89,72 @@ class TTHTool(BaseEventTool):
 		self.resetglyph(self.getGlyph())
 		self.updatePartialFontIfNeeded()
 
+	##############################################################
+	# This function is called by RF when the Current Glyph changed
+	##############################################################
 	def currentGlyphChanged(self):
 		self.resetglyph(self.getGlyph())
 		self.updatePartialFontIfNeeded()
 
+
+	##############################################################
+	# This function is called by RF before the Current Font closes
+	##############################################################
+	def fontWillClose(self, font):
+		# We hide the pannels only if we close the last font opened
+		if len(AllFonts()) > 1:
+			return
+		self.mainPanel.wTools.hide()
+		self.previewPanel.hide()
+		# self.programWindow.hide()
+		# self.assemblyWindow.hide()
+		self.fontClosed = True
+
+	############################################################################
+	# This function is called by RF when the Current Font is not Current anymore
+	############################################################################
+	def fontResignCurrent(self, font):
+		if self.fontClosed:
+			return
+		self.deletePreviewInGlyphWindow()
+		self.resetFont(createWindows=False)
+
+	###############################################################
+	# This function is called by RF when a new Font becomes Current
+	###############################################################
+	def fontBecameCurrent(self, font):
+		self.setupCurrentModel(font)
+		if self.fontClosed:
+			return
+		# if hasattr(self.toolsPanel, 'sheetControlValues'):
+		# 	self.toolsPanel.sheetControlValues.c_fontModel = self.c_fontModel
+		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
+		# 	self.toolsPanel.sheetControlValues.resetStemBox()
+		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
+
+		self.resetFont(createWindows=False)
+		self.updatePartialFont()
+		self.fontClosed = False
+
+	########################################################
+	# This function is called by RF when a new Font did Open
+	########################################################
+	def fontDidOpen(self, font):
+		key = font.fileName
+		if key not in self.fontModels:
+			self.fontModels[key] = TTHToolModel.fontModel(font)
+
+		self.mainPanel.wTools.show()
+		self.previewPanel.showOrHide()
+		# self.programWindow.showOrHide()
+		# self.assemblyWindow.showOrHide()
+
+		self.resetFont(createWindows=False)
+		self.updatePartialFont()
+
+	########################################################################################
+	# This function is called by RF whenever the Background of the glyph Window needs redraw
+	########################################################################################
 	def drawBackground(self, scale):
 		g = self.getGlyph()
 		if g == None or self.doneGeneratingPartialFont == False:
@@ -116,6 +182,65 @@ class TTHTool(BaseEventTool):
 		# if self.TTHToolModel.showOutline == 1:
 		# 	tr.drawOutlineOfName(scale, self.TTHToolModel.fPitch, g.name)
 		# 	self.drawSideBearings(scale, g.name)
+
+	########################################################################################
+	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
+	########################################################################################
+	def draw(self, scale):
+		self.scale = scale
+		g = self.getGlyph()
+		if g == None:
+			return
+
+		# update the size of the waterfall subview
+		name = self.c_fontModel.f.fileName
+		drawPreview = False
+		if name not in self.previewInGlyphWindow:
+			if self.TTHToolModel.showPreviewInGlyphWindow == 1:
+				self.createPreviewInGlyphWindow()
+				drawPreview = True
+		else:
+			subView = self.previewInGlyphWindow[name]
+			superview = self.getNSView().enclosingScrollView().superview()
+			frame = superview.frame()
+			frame.size.width -= 30
+			frame.origin.x = 0
+			subView.setFrame_(frame)
+
+	def drawPreviewSize(self, title, x, y, color):
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
+			NSForegroundColorAttributeName : color,
+			}
+
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		text.drawAtPoint_((x, y))
+
+	def deletePreviewInGlyphWindow(self):
+		name = self.c_fontModel.f.fileName
+		if name in self.previewInGlyphWindow:
+			self.previewInGlyphWindow[name].removeFromSuperview()
+			del self.previewInGlyphWindow[name]
+
+	def changePreviewInGlyphWindowState(self, onOff):
+		if onOff == 1 and self.TTHToolModel.showPreviewInGlyphWindow == 0:
+			self.createPreviewInGlyphWindow()
+		elif onOff == 0 and self.TTHToolModel.showPreviewInGlyphWindow == 1:
+			self.deletePreviewInGlyphWindow()
+		self.TTHToolModel.setPreviewInGlyphWindowState(onOff)
+		UpdateCurrentGlyphView()
+
+	def createPreviewInGlyphWindow(self):
+		name = self.c_fontModel.f.fileName
+		if name in self.previewInGlyphWindow: return
+		superview = self.getNSView().enclosingScrollView().superview()
+		newView = previewInGlyphWindow.PreviewInGlyphWindow.alloc().init_withTTHToolInstance(self)
+		superview.addSubview_(newView)
+		frame = superview.frame()
+		frame.size.width -= 30
+		frame.origin.x = 0
+		newView.setFrame_(frame)
+		self.previewInGlyphWindow[name] = newView
 
 	def buildModelsForOpenFonts(self):
 		self.fontModels = {}
@@ -292,6 +417,19 @@ class TTHTool(BaseEventTool):
 						self.popover.ZoneDeltaOffsetSlider.set(self.c_fontModel.zones[self.selectedZoneName]['delta'][str(size)] + 8)
 					else:
 						self.popover.ZoneDeltaOffsetSlider.set(8)
+		UpdateCurrentGlyphView()
+
+	def applySizeChange(self):
+		fromS = self.TTHToolModel.previewFrom
+		toS = self.TTHToolModel.previewTo
+		if fromS > toS:
+			fromS = toS
+		if toS > fromS + 100:
+			toS = fromS + 100
+		if hasattr(self.mainPanel, 'preferencesSheet'):
+			self.mainPanel.preferencesSheet.w.viewAndSettingsBox.displayFromEditText.set(fromS)
+			self.mainPanel.preferencesSheet.w.viewAndSettingsBox.displayToEditText.set(toS)
+		self.changeDisplayPreviewSizesFromTo(fromS, toS)
 		UpdateCurrentGlyphView()
 
 	def changeDeltaRange(self, value1, value2):

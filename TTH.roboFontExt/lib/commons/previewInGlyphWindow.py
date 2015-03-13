@@ -11,7 +11,8 @@ class PreviewInGlyphWindow(NSView):
 
 	def init_withTTHToolInstance(self, TTHToolInstance):
 		self.init()
-		self.TTHToolInstance = TTHToolInstance
+		self.TTHToolController = TTHToolInstance
+		self.TTHToolModel = self.TTHToolController.TTHToolModel
 		return self
 
 	def drawRect_(self, rect):
@@ -22,7 +23,7 @@ class PreviewInGlyphWindow(NSView):
 		bkgColor.set()
 		path.fill()
 
-		if self.TTHToolInstance.tthtm.selectedAxis == 'Y':
+		if self.TTHToolModel.selectedAxis == 'Y':
 			axisPath = NSBezierPath.bezierPath()
 			axisPath.moveToPoint_((240, 85))
 			axisPath.lineToPoint_((230, 75))
@@ -43,12 +44,12 @@ class PreviewInGlyphWindow(NSView):
 
 		self.clickableSizesGlyphWindow = {}
 
-		glyph = self.TTHToolInstance.getGlyph()
+		glyph = self.TTHToolController.getGlyph()
 		if glyph == None: return
-		tr = self.TTHToolInstance.c_fontModel.textRenderer
+		tr = self.TTHToolController.c_fontModel.textRenderer
 		advance = 40
 		glyphname = [glyph.name]
-		for size in range(self.TTHToolInstance.tthtm.previewFrom, self.TTHToolInstance.tthtm.previewTo + 1, 1):
+		for size in range(self.TTHToolModel.previewFrom, self.TTHToolModel.previewTo + 1, 1):
 
 			self.clickableSizesGlyphWindow[(advance, 20)] = size
 
@@ -56,15 +57,15 @@ class PreviewInGlyphWindow(NSView):
 			tr.set_pen((advance, 40))
 			delta_pos = tr.render_named_glyph_list(glyphname)
 			
-			if size == self.TTHToolInstance.tthtm.PPM_Size:
+			if size == self.TTHToolModel.PPM_Size:
 				color = redColor
 			else:
 				color = blackColor
-			self.TTHToolInstance.drawPreviewSize(str(size), advance, 20, color)
+			self.TTHToolController.drawPreviewSize(str(size), advance, 20, color)
 			advance += delta_pos[0] + 5
 
-		tr.set_cur_size(self.TTHToolInstance.tthtm.PPM_Size)
+		tr.set_cur_size(self.TTHToolModel.PPM_Size)
 		tr.set_pen((40, 110))
-		scale = 170.0/self.TTHToolInstance.tthtm.PPM_Size
+		scale = 170.0/self.TTHToolModel.PPM_Size
 		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
 
