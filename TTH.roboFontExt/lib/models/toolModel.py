@@ -91,3 +91,7 @@ class TTHToolModel():
 	def setPreviewInGlyphWindowState(self, onOff):
 		self.showPreviewInGlyphWindow = onOff
 		setExtensionDefault(defaultKeyShowPreviewInGlyphWindow, onOff)
+
+	def setShowBitmap(self, onOff):
+		self.showBitmap = onOff
+		setExtensionDefault(defaultKeyShowBitmap, onOff)

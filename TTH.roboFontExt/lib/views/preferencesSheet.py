@@ -36,7 +36,9 @@ class PreferencesSheet(object):
 		self.w.hotKeysBox.show(False)
 
 		self.w.viewAndSettingsBox.bitmapOpacityTextBox = TextBox((10, 12, 100, 18), 'Bitmap Opacity:', sizeStyle='small')
-		self.w.viewAndSettingsBox.bitmapOpacitySlider = Slider((110, 10, -10, 18), minValue=0, maxValue=1, value=self.TTHToolModel.bitmapOpacity, callback=self.bitmapOpacitySliderCallBack, sizeStyle='small')
+		self.w.viewAndSettingsBox.bitmapOpacitySlider = Slider((110, 10, 200, 18), minValue=0, maxValue=1, value=self.TTHToolModel.bitmapOpacity, callback=self.bitmapOpacitySliderCallBack, sizeStyle='small')
+		self.w.viewAndSettingsBox.displayBitmapTextBox = TextBox((320, 12, 80, 18), 'Show Bitmap:', sizeStyle='small')
+		self.w.viewAndSettingsBox.displayBitmapCheckBox = CheckBox((400, 12, 18, 18), "", callback=self.displayBitmapCheckBoxCallback, value=self.TTHToolModel.showBitmap, sizeStyle="small")
 
 		self.w.viewAndSettingsBox.previewSampleStringsTextBox = TextBox((10, 30, -10, 18), 'Preview Samples:', sizeStyle='small')
 		self.w.viewAndSettingsBox.previewSampleStringsList = List((10, 45, -10, 80), [{"PreviewString": v} for v in self.TTHToolModel.previewSampleStringsList], columnDescriptions=[{"title": "PreviewString", "width": 465, "editable": True}], showColumnTitles=False, editCallback=self.previewSampleStringsListEditCallBack)
@@ -53,7 +55,7 @@ class PreferencesSheet(object):
 				callback=self.displayToEditTextCallback)
 		self.w.viewAndSettingsBox.displayToEditText.set(self.TTHToolModel.previewTo)
 
-		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowText = TextBox((10, 170, -10, 18), "Display Preview In Glyph Window:", sizeStyle = "small")
+		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowText = TextBox((10, 170, -10, 18), "Show Preview in Glyph Window:", sizeStyle = "small")
 		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowCheckBox = CheckBox((200, 170, 18, 18), "", callback=self.displayPreviewInGlyphWindowCheckBoxCallback, value=self.TTHToolModel.showPreviewInGlyphWindow, sizeStyle="small")
 
 		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
@@ -126,6 +128,9 @@ class PreferencesSheet(object):
 
 	def displayPreviewInGlyphWindowCheckBoxCallback(self, sender):
 		self.TTHToolController.changePreviewInGlyphWindowState(sender.get())
+
+	def displayBitmapCheckBoxCallback(self, sender):
+		self.TTHToolController.changeShowBitmapState(sender.get())
 
 
 

@@ -142,7 +142,7 @@ class PreviewPanel(TTHWindow):
 		
 		for size in range(self.TTHToolModel.previewFrom, self.TTHToolModel.previewTo+1, 1):
 
-			self.clickableSizes[(advance, ps[3] - 270)] = size
+			self.clickableSizes[(advance, ps[3] - 170)] = size
 
 			displaysize = str(size)
 			if size == self.TTHToolModel.PPM_Size:

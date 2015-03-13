@@ -170,8 +170,8 @@ class TTHTool(BaseEventTool):
 		tr.set_cur_size(self.TTHToolModel.PPM_Size)
 		tr.set_pen((0, 0))
 		
-		# if self.TTHToolModel.showBitmap == 1:
-		tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, self.TTHToolModel.bitmapOpacity)
+		if self.TTHToolModel.showBitmap == 1:
+			tr.render_named_glyph_list([g.name], self.TTHToolModel.fPitch, self.TTHToolModel.bitmapOpacity)
 
 		# if self.TTHToolModel.showGrid == 1:
 		# 	self.drawGrid(scale, self.TTHToolModel.fPitch)
@@ -206,6 +206,20 @@ class TTHTool(BaseEventTool):
 			frame.size.width -= 30
 			frame.origin.x = 0
 			subView.setFrame_(frame)
+
+	###########################################
+	# This function is called by RF at mouse Up
+	###########################################
+	def mouseUp(self, point):
+		if self.TTHToolModel.showPreviewInGlyphWindow == 1:
+			x = self.getCurrentEvent().locationInWindow().x
+			y = self.getCurrentEvent().locationInWindow().y
+
+			fname = self.c_fontModel.f.fileName
+			if fname in self.previewInGlyphWindow:
+				for i in self.previewInGlyphWindow[fname].clickableSizesGlyphWindow:
+					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
+						self.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
 
 	def drawPreviewSize(self, title, x, y, color):
 		attributes = {
@@ -466,6 +480,10 @@ class TTHTool(BaseEventTool):
 	def changeBitmapOpacity(self, value):
 		self.TTHToolModel.bitmapOpacity = value
 		setExtensionDefault(defaultKeyBitmapOpacity, self.TTHToolModel.bitmapOpacity)
+		UpdateCurrentGlyphView()
+
+	def changeShowBitmapState(self, onOff):
+		self.TTHToolModel.setShowBitmap(onOff)
 		UpdateCurrentGlyphView()
 
 	def changeDisplayPreviewSizesFromTo(self, fromSize, toSize):
