@@ -339,11 +339,10 @@ class TTHTool(BaseEventTool):
 
 	def samplesStringsHaveChanged(self, sampleStrings):
 		currentString = self.previewPanel.win.previewEditText.get()
-		if currentString not in sampleStrings:
-			self.resetPreviewComboBoxWithString(currentString)
 		self.TTHToolModel.previewSampleStringsList = sampleStrings
 		setExtensionDefault(defaultKeyPreviewSampleStrings, self.TTHToolModel.previewSampleStringsList)
 		self.previewPanel.win.previewEditText.setItems(self.TTHToolModel.previewSampleStringsList)
+		self.resetPreviewComboBoxWithString(currentString)
 
 	def resetPreviewComboBoxWithString(self, sampleString):
 		self.TTHToolModel.setPreviewString(sampleString)

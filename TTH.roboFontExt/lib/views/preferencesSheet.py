@@ -92,7 +92,9 @@ class PreferencesSheet(object):
 		updatedSampleStrings.append('/?')
 		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
 		self.TTHToolController.samplesStringsHaveChanged(updatedSampleStrings)
-		self.w.viewAndSettingsBox.previewSampleStringsList.setSelection([len(self.TTHToolModel.previewSampleStringsList)-1])
+		event = self.TTHToolController.getCurrentEvent()
+		tableview = self.w.viewAndSettingsBox.previewSampleStringsList.getNSTableView()
+		tableview.editColumn_row_withEvent_select_(0, len(self.w.viewAndSettingsBox.previewSampleStringsList)-1, event, True)
 
 	def removeStringButtonCallback(self, sender):
 		selected = self.w.viewAndSettingsBox.previewSampleStringsList.getSelection()
