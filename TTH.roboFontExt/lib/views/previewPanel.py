@@ -1,6 +1,7 @@
 from mojo.extensions import *
 from vanilla import *
 from mojo.canvas import Canvas
+from mojo.UI import *
 from AppKit import *
 import string
 
