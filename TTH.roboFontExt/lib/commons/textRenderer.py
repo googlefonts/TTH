@@ -168,19 +168,19 @@ class TextRenderer(object):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
 
-	def drawOutline(self, scale, paths):
+	def drawOutline(self, scale, paths, thickness):
 		if paths is None:
 			return
 		self.outlinecolor.set()
 		for p  in paths:
-			p.setLineWidth_(scale*2)
+			p.setLineWidth_(scale*thickness)
 			p.stroke()
 
 	def drawOutlineOfChar(self, scale, pitch, char):
 		self.drawOutline(scale, self.getBezierPathOfChar(scale, pitch, char))
 
-	def drawOutlineOfName(self, scale, pitch, name):
-		self.drawOutline(scale, self.getBezierPathOfName(scale, pitch, name))
+	def drawOutlineOfNameWithThickness(self, scale, pitch, name, thickness):
+		self.drawOutline(scale, self.getBezierPathOfName(scale, pitch, name), thickness)
 
 	def getBezierPathOfName(self, scale, pitch, name):
 		index = self.face.get_name_index(name)

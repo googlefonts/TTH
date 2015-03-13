@@ -10,10 +10,13 @@ defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
 defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 defaultKeyAlwaysRefresh = DefaultKeyStub + "alwaysRefresh"
 defaultKeyShowOutline = DefaultKeyStub + "showOutline"
+defaultKeyOutlineThickness = DefaultKeyStub + "outlineThickness"
 defaultKeyShowBitmap = DefaultKeyStub + "showBitmap"
 defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
 defaultKeyShowGrid = DefaultKeyStub + "showGrid"
+defaultKeyGridOpacity = DefaultKeyStub + "gridOpacity"
 defaultKeyShowCenterPixels = DefaultKeyStub + "showCenterPixels"
+defaultKeyCenterPixelSize = DefaultKeyStub + "centerPixelSize"
 defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 
 
@@ -49,10 +52,13 @@ class TTHToolModel():
 		self.previewTo = getExtensionDefault(defaultKeyPreviewTo, fallback=72)
 		self.alwaysRefresh = getExtensionDefault(defaultKeyAlwaysRefresh, fallback=1)
 		self.showOutline = getExtensionDefault(defaultKeyShowOutline, fallback=0)
+		self.outlineThickness = getExtensionDefault(defaultKeyOutlineThickness, fallback=2)
 		self.showBitmap = getExtensionDefault(defaultKeyShowBitmap, fallback=0)
 		self.bitmapOpacity = getExtensionDefault(defaultKeyBitmapOpacity, fallback=.4)
 		self.showGrid = getExtensionDefault(defaultKeyShowGrid, fallback=0)
+		self.gridOpacity = getExtensionDefault(defaultKeyGridOpacity, fallback=.4)
 		self.showCenterPixel = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
+		self.centerPixelSize = getExtensionDefault(defaultKeyCenterPixelSize, fallback=3)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
 		self.requiredGlyphsForPartialTempFont = set()
@@ -95,3 +101,32 @@ class TTHToolModel():
 	def setShowBitmap(self, onOff):
 		self.showBitmap = onOff
 		setExtensionDefault(defaultKeyShowBitmap, onOff)
+
+	def setBitmapOpacity(self, value):
+		self.bitmapOpacity = value
+		setExtensionDefault(defaultKeyBitmapOpacity, value)
+
+	def setShowOutline(self, onOff):
+		self.showOutline = onOff
+		setExtensionDefault(defaultKeyShowOutline, onOff)
+
+	def setOutlineThickness(self, value):
+		self.outlineThickness = value
+		setExtensionDefault(defaultKeyOutlineThickness, value)
+
+	def setShowGrid(self, onOff):
+		self.showGrid = onOff
+		setExtensionDefault(defaultKeyShowGrid, onOff)
+
+	def setGridOpacity(self, value):
+		self.gridOpacity = value
+		setExtensionDefault(defaultKeyGridOpacity, value)
+
+	def setShowCenterPixels(self, onOff):
+		self.showCenterPixel = onOff
+		setExtensionDefault(defaultKeyShowCenterPixels, onOff)
+
+	def setCenterPixelSize(self, value):
+		self.centerPixelSize = value
+		setExtensionDefault(defaultKeyCenterPixelSize, value)
+
