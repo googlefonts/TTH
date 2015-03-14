@@ -26,10 +26,16 @@ defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
 defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
 defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 
+whiteColor = NSColor.whiteColor()
+shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
+borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
+
 sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
 discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
+zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
+zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
 
 class TTHTool(BaseEventTool):
 
@@ -54,6 +60,8 @@ class TTHTool(BaseEventTool):
 		self.messageInFront = False
 
 		self.previewInGlyphWindow = {}
+
+		self.zoneLabelPos = {}
 
 		self.previewPanel  = previewPanel.PreviewPanel(self, (-510, 30, 500, 600))
 
@@ -166,7 +174,7 @@ class TTHTool(BaseEventTool):
 		if g == None or self.doneGeneratingPartialFont == False:
 			return
 
-		# self.drawZones(scale)
+		self.drawZones(scale)
 
 		tr = self.c_fontModel.textRenderer
 		tr.set_cur_size(self.TTHToolModel.PPM_Size)
@@ -228,6 +236,16 @@ class TTHTool(BaseEventTool):
 	def drawDiscAtPoint(self, r, x, y, color):
 		color.set()
 		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
+
+	def drawLozengeAtPoint(self, scale, r, x, y, color):
+		color.set()
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_((x+r*5, y))
+		path.lineToPoint_((x, y+r*5))
+		path.lineToPoint_((x-r*5, y))
+		path.lineToPoint_((x, y-r*5))
+		path.lineToPoint_((x+r*5, y))
+		path.fill()
 
 	def drawSideBearingsPointsOfGlyph(self, scale, size, glyph):
 		r = size*scale
@@ -299,6 +317,108 @@ class TTHTool(BaseEventTool):
 		path = self.cachedPathes['centers']
 		centerpixelsColor.set()
 		path.fill()
+
+	def drawZones(self, scale):
+
+		for zoneName, zone in self.c_fontModel.zones.iteritems():
+			y_start = int(zone['position'])
+			y_end = int(zone['width'])
+			if not zone['top']:
+				y_end = - y_end
+			pathZone = NSBezierPath.bezierPath()
+			pathZone.moveToPoint_((-5000*(self.c_fontModel.UPM/1000.0), y_start))
+			pathZone.lineToPoint_((5000*(self.c_fontModel.UPM/1000.0), y_start))
+			pathZone.lineToPoint_((5000*(self.c_fontModel.UPM/1000.0), y_start+y_end))
+			pathZone.lineToPoint_((-5000*(self.c_fontModel.UPM/1000.0), y_start+y_end))
+			pathZone.closePath
+			zonecolor.set()
+			pathZone.fill()	
+			(width, height) = self.drawTextAtPoint(scale, zoneName, -100*scale, y_start+y_end/2, whiteColor, zonecolorLabel, None)
+
+			self.zoneLabelPos[zoneName] = ((-100*scale, y_start+y_end/2), (width, height))
+
+			point = (-100*scale, y_start+y_end/2)
+			if 'delta' in zone:
+				for deltaPPM, deltaValue in zone['delta'].iteritems():
+					if int(deltaPPM) == self.tthtm.PPM_Size and deltaValue != 0:
+						path = NSBezierPath.bezierPath()
+					 	path.moveToPoint_((point[0], point[1]))
+					 	end_x = point[0]
+					 	end_y = point[1] + (deltaValue/8.0)*self.tthtm.pitch
+					 	path.lineToPoint_((end_x, end_y))
+
+					 	deltacolor.set()
+						path.setLineWidth_(scale)
+						path.stroke()
+						r = 4
+						self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltacolor)
+
+	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
+		labelColor = backgroundColor
+
+		if cmdIndex != None:
+			if self.glyphTTHCommands[cmdIndex]['active'] == 'false':
+				labelColor = inactiveColor
+				textColor = whiteColor
+			else:
+				labelColor = backgroundColor
+
+		currentTool = getActiveEventTool()
+		view = currentTool.getNSView()
+
+		attributes = {
+			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
+			NSForegroundColorAttributeName : textColor,
+			}
+		backgroundStrokeColor = NSColor.whiteColor()
+
+		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
+		width, height = text.size()
+		fontSize = attributes[NSFontAttributeName].pointSize()
+		width = width*scale
+		width += 8.0*scale
+		height = 13*scale
+		x -= width / 2.0
+		y -= fontSize*scale / 2.0
+		
+		shadow = NSShadow.alloc().init()
+		shadow.setShadowColor_(shadowColor)
+		shadow.setShadowOffset_((0, -1))
+		shadow.setShadowBlurRadius_(2)
+
+		if self.popOverIsOpened and cmdIndex == self.commandClicked and cmdIndex != None:
+			selectedPath = NSBezierPath.bezierPath()
+			selectedPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x-2*scale, y-2*scale), (width+4*scale, height+4*scale)), 3*scale, 3*scale)
+			selectedShadow = NSShadow.alloc().init()
+			selectedShadow.setShadowColor_(selectedColor)
+			selectedShadow.setShadowOffset_((0, 0))
+			selectedShadow.setShadowBlurRadius_(10)
+			
+			selectedContext = NSGraphicsContext.currentContext()
+			selectedContext.saveGraphicsState()
+
+			selectedShadow.set()
+			selectedColor.set()
+			selectedPath.fill()
+
+			selectedContext.restoreGraphicsState()
+
+		thePath = NSBezierPath.bezierPath()
+		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x, y), (width, height)), 3*scale, 3*scale)
+		
+		context = NSGraphicsContext.currentContext()
+		context.saveGraphicsState()
+		shadow.set()
+		thePath.setLineWidth_(scale)
+		labelColor.set()
+		thePath.fill()
+		borderColor.set()
+		thePath.stroke()
+
+		context.restoreGraphicsState()
+		
+		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
+		return (width, height)
 
 	def deletePreviewInGlyphWindow(self):
 		name = self.c_fontModel.f.fileName
@@ -376,6 +496,8 @@ class TTHTool(BaseEventTool):
 
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
+
+		self.zoneLabelPos = {}
 
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
