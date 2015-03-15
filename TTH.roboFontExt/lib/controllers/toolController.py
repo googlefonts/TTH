@@ -532,19 +532,15 @@ class TTHTool(BaseEventTool):
 		self.zoneLabelPos = {}
 
 	def calculateHdmx(self):
-		self.updatePartialFontIfNeeded()
-		if self.c_fontModel.textRenderer == None: return
-		required = self.TTHToolModel.requiredGlyphsForPartialTempFont
-		print required
-		print self.TTHToolModel.requiredGlyphsForPartialTempFont
+		self.generateFullTempFont()
+		self.c_fontModel.regenTextRendererFullFont()
+		if self.c_fontModel.textRendererFullFont == None:
+			return
 		ppems = {}
 		for size in self.c_fontModel.hdmx_ppem_sizes:
 			widths = {}
 			for glyphName in self.c_fontModel.f.glyphOrder:
-				if glyphName in required:
-					width = self.c_fontModel.textRenderer.get_glyph_advance_at_size(glyphName, size) / 64
-				else:
-					width = 0
+				width = self.c_fontModel.textRendererFullFont.get_glyph_advance_at_size(glyphName, size) / 64
 				widths[glyphName] = width
 			ppems[str(size)] = widths
 
