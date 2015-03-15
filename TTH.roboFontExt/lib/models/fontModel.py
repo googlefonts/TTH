@@ -42,10 +42,12 @@ class FontModel():
 		tempPartial = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		# Path to temporary file for the partial font
 		self.partialtempfontpath = tempPartial.name
+		#print "partial:", self.partialtempfontpath
 
 		tempFull = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		# Path to temporary file for the full font (generated TTF)
 		self.fulltempfontpath = tempFull.name
+		#print "full:", self.fulltempfontpath
 		
 		tempPartial.close()
 		tempFull.close()

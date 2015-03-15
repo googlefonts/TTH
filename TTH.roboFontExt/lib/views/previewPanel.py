@@ -36,13 +36,6 @@ class PreviewPanel(TTHWindow):
 		self.win.previewEditText.set(self.TTHToolModel.previewString)
 
 		self.win.view = Canvas((10, 50, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
-		
-		for i in string.lowercase:
-			self.TTHToolModel.requiredGlyphsForPartialTempFont.add(i)
-		for i in string.uppercase:
-			self.TTHToolModel.requiredGlyphsForPartialTempFont.add(i)
-		for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-			self.TTHToolModel.requiredGlyphsForPartialTempFont.add(i)
 
 		self.win.bind("move", self.movedOrResizedCallback)
 		self.win.bind("resize", self.movedOrResizedCallback)

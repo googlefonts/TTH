@@ -43,19 +43,28 @@ class TTHTool(BaseEventTool):
 	def __init__(self, TTHToolModel):
 		BaseEventTool.__init__(self)
 
+		# The CURRENT FontModel
 		self.c_fontModel = None
 
+		# The ONLY TTHToolModel
 		self.TTHToolModel = TTHToolModel
 		self.buildModelsForOpenFonts()
 
+		# FIXME: Can we come up with a precise meaning for this boolean?
 		self.ready = False
 		self.doneGeneratingPartialFont = False
 		self.drawingPreferencesChanged = False
 
+		# Precomputed NSBezierPath'es
 		self.cachedPathes = {'grid':None, 'centers':None}
+		# The 'scale' parameter from the last 'draw()' call.
+		# Used in drawCenterPixel()
 		self.cachedScale = None
+		# The 'size' parameter during the last 'draw()' call.
+		# Used in drawCenterPixel()
 		self.cachedSize = None
 		
+		# Set to True when the current font document is about to be closed.
 		self.fontClosed = False
 		self.popOverIsOpened = False
 		self.messageInFront = False
@@ -523,15 +532,19 @@ class TTHTool(BaseEventTool):
 		self.zoneLabelPos = {}
 
 	def calculateHdmx(self):
-		self.generateFullTempFont()
-		self.c_fontModel.regenTextRendererFullFont()
-		if self.c_fontModel.textRendererFullFont == None:
-			return
+		self.updatePartialFontIfNeeded()
+		if self.c_fontModel.textRenderer == None: return
+		required = self.TTHToolModel.requiredGlyphsForPartialTempFont
+		print required
+		print self.TTHToolModel.requiredGlyphsForPartialTempFont
 		ppems = {}
 		for size in self.c_fontModel.hdmx_ppem_sizes:
 			widths = {}
 			for glyphName in self.c_fontModel.f.glyphOrder:
-				width = self.c_fontModel.textRendererFullFont.get_glyph_advance_at_size(glyphName, size) / 64
+				if glyphName in required:
+					width = self.c_fontModel.textRenderer.get_glyph_advance_at_size(glyphName, size) / 64
+				else:
+					width = 0
 				widths[glyphName] = width
 			ppems[str(size)] = widths
 
@@ -595,6 +608,13 @@ class TTHTool(BaseEventTool):
 			except:
 				pass
 		glyphSet = set()
+		addGlyph(glyphSet, 'space')
+		#for i in string.lowercase:
+		#	addGlyph(glyphSet, i)
+		#for i in string.uppercase:
+		#	addGlyph(glyphSet, i)
+		#for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
+		#	addGlyph(glyphSet, i)
 		addGlyph(glyphSet, curGlyphName)
 		for name in text:
 			addGlyph(glyphSet, name)
@@ -660,6 +680,7 @@ class TTHTool(BaseEventTool):
 
 		self.cachedPathes['centers'] = None
 		self.cachedPathes['grid'] = None
+		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedSize should. Is this correct?
 		self.cachedScale = None
 
 		self.changeDeltaRange(self.TTHToolModel.PPM_Size, self.TTHToolModel.PPM_Size)
