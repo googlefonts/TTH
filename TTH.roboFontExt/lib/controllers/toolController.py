@@ -538,6 +538,9 @@ class TTHTool(BaseEventTool):
 		self.c_fontModel.hdmx_ppems = ppems
 		ttTablesWriter.writehdmx(self.c_fontModel.f, self.c_fontModel.hdmx_ppems)
 
+	def updateHdmxForGlyph(self, glyphName):
+		pass
+
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
 		self.generatePartialTempFont()
