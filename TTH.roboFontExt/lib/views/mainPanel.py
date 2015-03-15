@@ -36,15 +36,39 @@ class MainPanel(BaseWindowController):
 		self.TTHToolModel = TTHToolController.TTHToolModel
 
 		self.axisList = ['X', 'Y']
-		self.hintingToolsList = ['Align', 'Single Link', 'Double Link', 'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']
+		self.hintingToolsList = [	'Align',
+							'Single Link',
+							'Double Link',
+							'Interpolation',
+							'Middle Delta',
+							'Final Delta',
+							'Selection']
+		# FIXME Why are these memeber variables set here??
 		if self.TTHToolModel.selectedAxis == 'X':
 			self.stemTypeList = self.TTHToolModel.stemsListX
-			self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
-			self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Left Edge', 'Right Edge', 'Center of Pixel', 'Double Grid']
+			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
+									'Left Edge', 'Right Edge',
+									'Center of Pixel',
+									'Double Grid']
+			self.alignmentTypeListLinkDisplay = [	'Do Not Align to Grid',
+										'Closest Pixel Edge',
+										'Left Edge',
+										'Right Edge',
+										'Center of Pixel',
+										'Double Grid']
 		else:
 			self.stemTypeList = self.TTHToolModel.stemsListY
-			self.alignmentTypeListDisplay = ['Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
-			self.alignmentTypeListLinkDisplay = ['Do Not Align to Grid', 'Closest Pixel Edge', 'Bottom Edge', 'Top Edge', 'Center of Pixel', 'Double Grid']
+			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
+									'Bottom Edge',
+									'Top Edge',
+									'Center of Pixel',
+									'Double Grid']
+			self.alignmentTypeListLinkDisplay = [	'Do Not Align to Grid',
+										'Closest Pixel Edge',
+										'Bottom Edge',
+										'Top Edge',
+										'Center of Pixel',
+										'Double Grid']
 
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']

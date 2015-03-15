@@ -266,17 +266,16 @@ class TTHTool(BaseEventTool):
 
 	def drawSideBearings(self, scale, name):
 		try:
-			xPos = self.TTHToolModel.fPitch * self.c_fontModel.textRenderer.get_name_advance(name)[0] / 64
+			xPos = self.TTHToolModel.fPitch * self.c_fontModel.textRenderer.get_name_advance(name)[0] / 64.0
 		except:
 			return
 		pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((xPos, -5000))
 		pathX.lineToPoint_((xPos, 5000))
-		sidebearingColor.set()
-		pathX.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
-		pathX.stroke()
-
-		pathX = NSBezierPath.bezierPath()
+		#sidebearingColor.set()
+		#pathX.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
+		#pathX.stroke()
+		#pathX = NSBezierPath.bezierPath()
 		pathX.moveToPoint_((0, -5000))
 		pathX.lineToPoint_((0, 5000))
 		sidebearingColor.set()
@@ -339,16 +338,17 @@ class TTHTool(BaseEventTool):
 
 	def drawZones(self, scale):
 
+		xpos = 5000*(self.c_fontModel.UPM/1000.0)
 		for zoneName, zone in self.c_fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
 			if not zone['top']:
 				y_end = - y_end
 			pathZone = NSBezierPath.bezierPath()
-			pathZone.moveToPoint_((-5000*(self.c_fontModel.UPM/1000.0), y_start))
-			pathZone.lineToPoint_((5000*(self.c_fontModel.UPM/1000.0), y_start))
-			pathZone.lineToPoint_((5000*(self.c_fontModel.UPM/1000.0), y_start+y_end))
-			pathZone.lineToPoint_((-5000*(self.c_fontModel.UPM/1000.0), y_start+y_end))
+			pathZone.moveToPoint_((-xpos, y_start))
+			pathZone.lineToPoint_(( xpos, y_start))
+			pathZone.lineToPoint_(( xpos, y_start+y_end))
+			pathZone.lineToPoint_((-xpos, y_start+y_end))
 			pathZone.closePath
 			zonecolor.set()
 			pathZone.fill()	
@@ -359,18 +359,19 @@ class TTHTool(BaseEventTool):
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
 				for deltaPPM, deltaValue in zone['delta'].iteritems():
-					if int(deltaPPM) == self.TTHToolModel.PPM_Size and deltaValue != 0:
-						path = NSBezierPath.bezierPath()
-					 	path.moveToPoint_((point[0], point[1]))
-					 	end_x = point[0]
-					 	end_y = point[1] + (deltaValue/8.0)*self.tthtm.pitch
-					 	path.lineToPoint_((end_x, end_y))
+					if int(deltaPPM) != self.TTHToolModel.PPM_Size or deltaValue == 0:
+						continue
+					path = NSBezierPath.bezierPath()
+					path.moveToPoint_((point[0], point[1]))
+					end_x = point[0]
+					end_y = point[1] + (deltaValue/8.0)*self.tthtm.fPitch
+					path.lineToPoint_((end_x, end_y))
 
-					 	deltacolor.set()
-						path.setLineWidth_(scale)
-						path.stroke()
-						r = 4
-						self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltacolor)
+					deltacolor.set()
+					path.setLineWidth_(scale)
+					path.stroke()
+					r = 4
+					self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltacolor)
 
 	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
 		labelColor = backgroundColor

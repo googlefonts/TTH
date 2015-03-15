@@ -21,13 +21,15 @@ import Blues. Auto-Harmonize Stems.
 ------------------------------
 AutoHinting, ou Educated Guessing
 ------------------------------
-Check if 'pitch' is relevant & debug the badly placed vertical purple line that should be on top of RSB
+Debug the badly placed vertical purple line that should be on top of RSB
 
 
 ==============================
 Done:
 ==============================
 
+Check if 'pitch' is relevant: not relevant --> removed
+------------------------------
 y'au aussi un bug de clic-droit sur les labels quand on zoome bcp
 au dessus de 700 % environ
 ca chie la zone cliquable ne doit pas etre bien en accord avec l'etiquette
