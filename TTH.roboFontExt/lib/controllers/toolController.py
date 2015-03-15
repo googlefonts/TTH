@@ -7,12 +7,13 @@ from lib.tools.defaults import getDefault, setDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from AppKit import *
 
-from commons import helperFunctions, textRenderer, previewInGlyphWindow
+from commons import helperFunctions, textRenderer, previewInGlyphWindow, ttTablesWriter
 from models import fontModel
 from views import mainPanel, previewPanel
 
 reload(helperFunctions)
 reload(textRenderer)
+reload(ttTablesWriter)
 reload(fontModel)
 reload(mainPanel)
 reload(previewPanel)
@@ -83,6 +84,7 @@ class TTHTool(BaseEventTool):
 			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
 		self.updatePartialFont()
+		self.calculateHdmx()
 
 	###################################################################
 	# This function is called by RF when another tool button is pressed
@@ -109,7 +111,6 @@ class TTHTool(BaseEventTool):
 	def currentGlyphChanged(self):
 		self.resetglyph(self.getGlyph())
 		self.updatePartialFontIfNeeded()
-
 
 	##############################################################
 	# This function is called by RF before the Current Font closes
@@ -194,6 +195,8 @@ class TTHTool(BaseEventTool):
 			self.drawSideBearings(scale, g.name)
 
 		self.drawSideBearingsPointsOfGlyph(scale, 5, g)
+		self.drawAscent(scale)
+		self.drawDescent(scale)
 
 	########################################################################################
 	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
@@ -280,6 +283,22 @@ class TTHTool(BaseEventTool):
 		pathX.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
 		pathX.stroke()
 
+	def drawAscent(self, scale):
+		yPos = helperFunctions.roundbase(self.c_fontModel.OS2WinAscent, self.TTHToolModel.fPitch)
+		self.drawHorizontal(scale, yPos)
+
+	def drawDescent(self, scale):
+		yPos = helperFunctions.roundbase(self.c_fontModel.OS2WinDescent, self.TTHToolModel.fPitch)
+		self.drawHorizontal(scale, -yPos)
+
+	def drawHorizontal(self, scale, yPos):
+		pathY = NSBezierPath.bezierPath()
+		pathY.moveToPoint_((-5000, yPos))
+		pathY.lineToPoint_((5000, yPos))
+		sidebearingColor.set()
+		pathY.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
+		pathY.stroke()
+
 	def drawGrid(self, scale, pitch, opacity):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
@@ -340,7 +359,7 @@ class TTHTool(BaseEventTool):
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
 				for deltaPPM, deltaValue in zone['delta'].iteritems():
-					if int(deltaPPM) == self.tthtm.PPM_Size and deltaValue != 0:
+					if int(deltaPPM) == self.TTHToolModel.PPM_Size and deltaValue != 0:
 						path = NSBezierPath.bezierPath()
 					 	path.moveToPoint_((point[0], point[1]))
 					 	end_x = point[0]
@@ -497,7 +516,26 @@ class TTHTool(BaseEventTool):
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 
+		self.c_fontModel.resetAscent()
+		self.c_fontModel.resetDescent()
+
 		self.zoneLabelPos = {}
+
+	def calculateHdmx(self):
+		self.generateFullTempFont()
+		self.c_fontModel.regenTextRendererFullFont()
+		if self.c_fontModel.textRendererFullFont == None:
+			return
+		ppems = {}
+		for size in self.c_fontModel.hdmx_ppem_sizes:
+			widths = {}
+			for glyphName in self.c_fontModel.f.glyphOrder:
+				width = self.c_fontModel.textRendererFullFont.get_glyph_advance_at_size(glyphName, size) / 64
+				widths[glyphName] = width
+			ppems[str(size)] = widths
+
+		self.c_fontModel.hdmx_ppems = ppems
+		ttTablesWriter.writehdmx(self.c_fontModel.f, self.c_fontModel.hdmx_ppems)
 
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
@@ -558,6 +596,12 @@ class TTHTool(BaseEventTool):
 			addGlyph(glyphSet, name)
 		return glyphSet
 
+	def generateFullTempFont(self):
+		try:
+			self.c_fontModel.f.generate(self.c_fontModel.fulltempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		except:
+			print 'ERROR: Unable to generate full font'
+
 	def generatePartialTempFont(self):
 		try:
 			tempFont = RFont(showUI=False)
@@ -580,6 +624,8 @@ class TTHTool(BaseEventTool):
 				tempFont.lib['com.robofont.robohint.fpgm'] = self.c_fontModel.f.lib['com.robofont.robohint.fpgm']
 			if 'com.robofont.robohint.gasp' in self.c_fontModel.f.lib:
 				tempFont.lib['com.robofont.robohint.gasp'] = self.c_fontModel.f.lib['com.robofont.robohint.gasp']
+			if 'com.robofont.robohint.hdmx' in self.c_fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.hdmx'] = self.c_fontModel.f.lib['com.robofont.robohint.hdmx']
 			if 'com.robofont.robohint.maxp.maxStorage' in self.c_fontModel.f.lib:
 				tempFont.lib['com.robofont.robohint.maxp.maxStorage'] = self.c_fontModel.f.lib['com.robofont.robohint.maxp.maxStorage']
 

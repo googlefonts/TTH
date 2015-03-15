@@ -149,6 +149,13 @@ class TextRenderer(object):
 		# convert unicode-char to glyph-index and then call get_glyph_image
 		return self.get_glyph_image(self.face.get_char_index(char))
 
+	def get_glyph_advance_at_size(self, name, size):
+		self.face.set_pixel_sizes(0, int(size))
+		self.set_cur_size(size)
+		self.face.load_glyph(self.face.get_name_index(name), self.load_mode)
+		self.slot.get_glyph()
+		return self.slot.advance.x
+
 	def get_glyph_bitmap(self, index):
 		# a glyph bitmap (pixel buffer) is requested. If not in the cache,
 		# we render it with freetype and save it in the cache and return

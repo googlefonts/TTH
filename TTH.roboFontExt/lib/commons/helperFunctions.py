@@ -198,3 +198,6 @@ def checkIntSize(size):
 			size = 9
 		if size < 8: return 8
 		return size
+
+def roundbase(x, base):
+	return int(base * round(float(x)/base))
