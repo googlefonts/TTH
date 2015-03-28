@@ -1,4 +1,12 @@
 ==============================
+In Refactor
+==============================
+
+Créer une instance de TTHToolController dans le fichier toolController.py
+et utiliser partout, au lieu de passer le controller partout en argument des __init__ :
+from toolController import TheTTHController as TTH (par exemple)
+
+==============================
 For v0.7 :
 ==============================
 

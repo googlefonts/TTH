@@ -1,5 +1,5 @@
 import math
-from lib.tools.defaults import getDefault, setDefault
+from lib.tools.defaults import getDefault#, setDefault
 
 def getOrDefault(dico, key, default):
 	try:

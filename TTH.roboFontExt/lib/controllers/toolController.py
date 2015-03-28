@@ -7,9 +7,10 @@ from lib.tools.defaults import getDefault, setDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from AppKit import *
 
-from commons import helperFunctions, textRenderer, previewInGlyphWindow, ttTablesWriter
+from commons import helperFunctions, textRenderer, ttTablesWriter
+from commons import drawing as DR
 from models import fontModel
-from views import mainPanel, previewPanel
+from views import previewInGlyphWindow, mainPanel, previewPanel
 
 reload(helperFunctions)
 reload(textRenderer)
@@ -31,12 +32,12 @@ whiteColor = NSColor.whiteColor()
 shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 
-sidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
-discColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
-zonecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
-zonecolorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
+zoneColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
+zoneColorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
+deltaColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
+#finalDeltaColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 
 class TTHTool(BaseEventTool):
 
@@ -93,7 +94,7 @@ class TTHTool(BaseEventTool):
 			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
 		self.updatePartialFont()
-		self.calculateHdmx()
+		#self.calculateHdmx()
 
 	###################################################################
 	# This function is called by RF when another tool button is pressed
@@ -203,9 +204,8 @@ class TTHTool(BaseEventTool):
 			tr.drawOutlineOfNameWithThickness(scale, self.TTHToolModel.fPitch, g.name, self.TTHToolModel.outlineThickness)
 			self.drawSideBearings(scale, g.name)
 
-		self.drawSideBearingsPointsOfGlyph(scale, 5, g)
-		self.drawAscent(scale)
-		self.drawDescent(scale)
+		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
+		self.drawAscentDescent(scale)
 
 	########################################################################################
 	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
@@ -224,11 +224,11 @@ class TTHTool(BaseEventTool):
 				self.createPreviewInGlyphWindow()
 				drawPreview = True
 		else:
-			subView = self.previewInGlyphWindow[name]
 			superview = self.getNSView().enclosingScrollView().superview()
 			frame = superview.frame()
 			frame.size.width -= 30
 			frame.origin.x = 0
+			subView = self.previewInGlyphWindow[name]
 			subView.setFrame_(frame)
 
 	###########################################
@@ -245,78 +245,29 @@ class TTHTool(BaseEventTool):
 					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
 						self.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
 
-	def drawDiscAtPoint(self, r, x, y, color):
-		color.set()
-		NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
-
-	def drawLozengeAtPoint(self, scale, r, x, y, color):
-		color.set()
-		path = NSBezierPath.bezierPath()
-		path.moveToPoint_((x+r*5, y))
-		path.lineToPoint_((x, y+r*5))
-		path.lineToPoint_((x-r*5, y))
-		path.lineToPoint_((x, y-r*5))
-		path.lineToPoint_((x+r*5, y))
-		path.fill()
-
-	def drawSideBearingsPointsOfGlyph(self, scale, size, glyph):
-		r = size*scale
-		self.drawDiscAtPoint(r, 0, 0, discColor)
-		self.drawDiscAtPoint(r, glyph.width, 0, discColor)
-
-	def drawPreviewSize(self, title, x, y, color):
-		attributes = {
-			NSFontAttributeName : NSFont.boldSystemFontOfSize_(7),
-			NSForegroundColorAttributeName : color,
-			}
-
-		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
-		text.drawAtPoint_((x, y))
-
 	def drawSideBearings(self, scale, name):
 		try:
 			xPos = self.TTHToolModel.fPitch * self.c_fontModel.textRenderer.get_name_advance(name)[0] / 64.0
 		except:
 			return
-		pathX = NSBezierPath.bezierPath()
-		pathX.moveToPoint_((xPos, -5000))
-		pathX.lineToPoint_((xPos, 5000))
-		#sidebearingColor.set()
-		#pathX.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
-		#pathX.stroke()
-		#pathX = NSBezierPath.bezierPath()
-		pathX.moveToPoint_((0, -5000))
-		pathX.lineToPoint_((0, 5000))
-		sidebearingColor.set()
-		pathX.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
-		pathX.stroke()
+		DR.drawVerticalLines(scale*self.TTHToolModel.outlineThickness, [0, xPos])
 
-	def drawAscent(self, scale):
-		yPos = helperFunctions.roundbase(self.c_fontModel.OS2WinAscent, self.TTHToolModel.fPitch)
-		self.drawHorizontal(scale, yPos)
-
-	def drawDescent(self, scale):
-		yPos = helperFunctions.roundbase(self.c_fontModel.OS2WinDescent, self.TTHToolModel.fPitch)
-		self.drawHorizontal(scale, -yPos)
-
-	def drawHorizontal(self, scale, yPos):
-		pathY = NSBezierPath.bezierPath()
-		pathY.moveToPoint_((-5000, yPos))
-		pathY.lineToPoint_((5000, yPos))
-		sidebearingColor.set()
-		pathY.setLineWidth_(scale*self.TTHToolModel.outlineThickness)
-		pathY.stroke()
+	def drawAscentDescent(self, scale):
+		yAsc  = helperFunctions.roundbase(self.c_fontModel.OS2WinAscent,  self.TTHToolModel.fPitch)
+		yDesc = helperFunctions.roundbase(self.c_fontModel.OS2WinDescent, self.TTHToolModel.fPitch)
+		DR.drawHorizontalLines(scale*self.TTHToolModel.outlineThickness, [yAsc, yDesc])
 
 	def drawGrid(self, scale, pitch, opacity):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
-			pos = - int(1000*(self.c_fontModel.UPM/1000.0)/pitch) * pitch
+			upm = self.c_fontModel.UPM
+			pos = - int(upm/pitch) * pitch
 			maxi = -2 * pos
 			while pos < maxi:
-				path.moveToPoint_((pos, -1000*(self.c_fontModel.UPM/1000.0)))
-				path.lineToPoint_((pos, 2000*(self.c_fontModel.UPM/1000.0)))
-				path.moveToPoint_((-1000*(self.c_fontModel.UPM/1000.0), pos))
-				path.lineToPoint_((2000*(self.c_fontModel.UPM/1000.0), pos))
+				path.moveToPoint_((pos, -upm))
+				path.lineToPoint_((pos, 2*upm))
+				path.moveToPoint_((-upm, pos))
+				path.lineToPoint_((2*upm, pos))
 				pos += pitch
 			self.cachedPathes['grid'] = path
 		path = self.cachedPathes['grid']
@@ -330,7 +281,7 @@ class TTHTool(BaseEventTool):
 			path = NSBezierPath.bezierPath()
 			r = scale * size
 			r = (r,r)
-			x = - int(1000*(self.c_fontModel.UPM/1000.0)/pitch) * pitch + pitch/2 - r[0]/2
+			x = - int(self.c_fontModel.UPM/pitch) * pitch + pitch/2 - r[0]/2
 			yinit = x
 			maxi = -2 * x
 			while x < maxi:
@@ -346,8 +297,7 @@ class TTHTool(BaseEventTool):
 		path.fill()
 
 	def drawZones(self, scale):
-
-		xpos = 5000*(self.c_fontModel.UPM/1000.0)
+		xpos = 5*self.c_fontModel.UPM
 		for zoneName, zone in self.c_fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
@@ -359,9 +309,9 @@ class TTHTool(BaseEventTool):
 			pathZone.lineToPoint_(( xpos, y_start+y_end))
 			pathZone.lineToPoint_((-xpos, y_start+y_end))
 			pathZone.closePath
-			zonecolor.set()
+			zoneColor.set()
 			pathZone.fill()	
-			(width, height) = self.drawTextAtPoint(scale, zoneName, -100*scale, y_start+y_end/2, whiteColor, zonecolorLabel, None)
+			(width, height) = self.drawTextAtPoint(scale, zoneName, -100*scale, y_start+y_end/2, whiteColor, zoneColorLabel, None)
 
 			self.zoneLabelPos[zoneName] = ((-100*scale, y_start+y_end/2), (width, height))
 
@@ -373,14 +323,14 @@ class TTHTool(BaseEventTool):
 					path = NSBezierPath.bezierPath()
 					path.moveToPoint_((point[0], point[1]))
 					end_x = point[0]
-					end_y = point[1] + (deltaValue/8.0)*self.tthtm.fPitch
+					end_y = point[1] + (deltaValue/8.0)*self.TTHToolModel.fPitch
 					path.lineToPoint_((end_x, end_y))
 
-					deltacolor.set()
+					deltaColor.set()
 					path.setLineWidth_(scale)
 					path.stroke()
 					r = 4
-					self.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltacolor)
+					DR.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltaColor)
 
 	def drawTextAtPoint(self, scale, title, x, y, textColor, backgroundColor, cmdIndex):
 		labelColor = backgroundColor
@@ -399,7 +349,7 @@ class TTHTool(BaseEventTool):
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
 			NSForegroundColorAttributeName : textColor,
 			}
-		backgroundStrokeColor = NSColor.whiteColor()
+		backgroundStrokeColor = whiteColor
 
 		text = NSAttributedString.alloc().initWithString_attributes_(title, attributes)
 		width, height = text.size()
