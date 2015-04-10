@@ -5,13 +5,13 @@ class TTHGlyph(object):
 		# private variables
 		self._g = rfGlyph
 		self._contours = None
-		self._h_stems  = None
+		self._h_stems  = None # a list of pairs of ContSegs
 		self._v_stems  = None
 		self._sortedHintingCommands = None
 		# public variables
 		self.hintingCommands = []
 		self.nameToContSeg   = {}
-		# load stuff from the UFO
+		# load stuff from the UFO Lib
 		self.loadFromUFO()
 
 	@property
@@ -21,13 +21,13 @@ class TTHGlyph(object):
 		return self._contours
 
 	@property
-	def horizontalContours(self):
+	def horizontalStems(self):
 		if None == self._h_stems:
 			self.computeStems() # or maybe, self._v_stems, self._h_tems = Automation.computeStems(_g)
 		return self._h_stems
 
 	@property
-	def verticalContours(self):
+	def verticalStems(self):
 		if None == self._v_stems:
 			self.computeStems() # see comment above
 		return self._v_stems
@@ -66,9 +66,9 @@ class TTHGlyph(object):
 				self.nameToContSeg[seg.onCurve.name] = (cidx, sidx)
 
 	def saveToUFO(self):
-		"""Save what can be save in the UFO."""
+		"""Save what can be saved in the UFO Lib."""
 		# write self.hintingCommands to UFO lib.
 
 	def loadFromUFO(self):
-		"""Load what can be loaded from the UFO."""
+		"""Load what can be loaded from the UFO Lib."""
 		# read self.hintingCommands from UFO lib.
