@@ -5,6 +5,7 @@ from vanilla import *
 from mojo.extensions import *
 
 from views import preferencesSheet
+from models.TTHTool import uniqueInstance as tthTool
 
 reload(preferencesSheet)
 
@@ -30,10 +31,9 @@ defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 class MainPanel(BaseWindowController):
-	def __init__(self, TTHToolController):
+	def __init__(self, tthEventTool):
 		BaseWindowController.__init__(self)
-		self.TTHToolController = TTHToolController
-		self.TTHToolModel = TTHToolController.TTHToolModel
+		self.tthEventTool = tthEventTool
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = [	'Align',
@@ -44,8 +44,8 @@ class MainPanel(BaseWindowController):
 							'Final Delta',
 							'Selection']
 		# FIXME Why are these memeber variables set here??
-		if self.TTHToolModel.selectedAxis == 'X':
-			self.stemTypeList = self.TTHToolModel.stemsListX
+		if tthTool.selectedAxis == 'X':
+			self.stemTypeList = tthTool.stemsListX
 			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
 									'Left Edge', 'Right Edge',
 									'Center of Pixel',
@@ -57,7 +57,7 @@ class MainPanel(BaseWindowController):
 										'Center of Pixel',
 										'Double Grid']
 		else:
-			self.stemTypeList = self.TTHToolModel.stemsListY
+			self.stemTypeList = tthTool.stemsListY
 			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
 									'Bottom Edge',
 									'Top Edge',
@@ -76,7 +76,7 @@ class MainPanel(BaseWindowController):
 		self.makeMainPanel()
 
 	def makeMainPanel(self):
-		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=self.TTHToolModel.toolsWindowPosSize), "TTH", closable = False)
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=tthTool.toolsWindowPosSize), "TTH", closable = False)
 
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
@@ -98,7 +98,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.PPEMSizeComboBox = ComboBox((10, 14, 40, 16),
 				self.PPMSizesList, sizeStyle = "small",
 				callback=self.PPEMSizeComboBoxCallback)
-		self.wTools.PPEMSizeComboBox.set(self.TTHToolModel.PPM_Size)
+		self.wTools.PPEMSizeComboBox.set(tthTool.PPM_Size)
 
 		self.wTools.axisSegmentedButton = SegmentedButton((60, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.axisSegmentedButton.set(0)
@@ -133,7 +133,7 @@ class MainPanel(BaseWindowController):
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
-		self.wTools.DeltaOffsetEditText.set(self.TTHToolModel.deltaOffset)
+		self.wTools.DeltaOffsetEditText.set(tthTool.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 		self.wTools.DeltaRangeText = TextBox((-120, 57, 40, 15), "Range:", sizeStyle = "mini")
@@ -144,22 +144,22 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
-		self.wTools.DeltaRange1ComboBox.set(self.TTHToolModel.deltaRange1)
-		self.wTools.DeltaRange2ComboBox.set(self.TTHToolModel.deltaRange2)
+		self.wTools.DeltaRange1ComboBox.set(tthTool.deltaRange1)
+		self.wTools.DeltaRange2ComboBox.set(tthTool.deltaRange2)
 
 		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
 		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaMonochromeCheckBoxCallback)
 		self.wTools.DeltaMonochromeText.show(False)
 		self.wTools.DeltaMonochromeCheckBox.show(False)
-		self.wTools.DeltaMonochromeCheckBox.set(self.TTHToolModel.deltaMonoBool)
+		self.wTools.DeltaMonochromeCheckBox.set(tthTool.deltaMonoBool)
 
 		self.wTools.DeltaGrayText = TextBox((150, 38, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
 		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaGrayCheckBoxCallback)
 		self.wTools.DeltaGrayText.show(False)
 		self.wTools.DeltaGrayCheckBox.show(False)
-		self.wTools.DeltaGrayCheckBox.set(self.TTHToolModel.deltaGrayBool)
+		self.wTools.DeltaGrayCheckBox.set(tthTool.deltaGrayBool)
 
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
@@ -209,121 +209,121 @@ class MainPanel(BaseWindowController):
 	###########
 
 	def PPEMSizeComboBoxCallback(self, sender):
-		g = self.TTHToolController.getGlyph()
+		g = self.tthEventTool.getGlyph()
 		if g == None:
 			return
 		size = sender.get()
 		try:
 			int(size)
 		except:
-			size = self.TTHToolModel.PPM_Size
+			size = tthTool.PPM_Size
 			sender.set(size)
 
-		self.TTHToolController.changeSize(size)
+		self.tthEventTool.changeSize(size)
 
 	def axisSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
-			self.TTHToolController.changeAxis('X')
-			self.TTHToolController.makeStemsListsPopUpMenu()
-			self.wTools.StemTypePopUpButton.setItems(self.TTHToolModel.stemsListX)
-			self.TTHToolController.changeSelectedStemX(self.TTHToolModel.selectedStemX)
+			self.tthEventTool.changeAxis('X')
+			self.tthEventTool.makeStemsListsPopUpMenu()
+			self.wTools.StemTypePopUpButton.setItems(tthTool.stemsListX)
+			self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
 		else:
-			self.TTHToolController.changeAxis('Y')
-			self.TTHToolController.makeStemsListsPopUpMenu()
-			self.wTools.StemTypePopUpButton.setItems(self.TTHToolModel.stemsListY)
-			self.TTHToolController.changeSelectedStemY(self.TTHToolModel.selectedStemY)
+			self.tthEventTool.changeAxis('Y')
+			self.tthEventTool.makeStemsListsPopUpMenu()
+			self.wTools.StemTypePopUpButton.setItems(tthTool.stemsListY)
+			self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
 
 	def toolsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
 			self.AlignSettings()
-			self.TTHToolController.changeSelectedAlignmentTypeAlign(self.TTHToolModel.selectedAlignmentTypeAlign)
-			self.TTHToolController.changeSelectedHintingTool('Align')
+			self.tthEventTool.changeSelectedAlignmentTypeAlign(tthTool.selectedAlignmentTypeAlign)
+			self.tthEventTool.changeSelectedHintingTool('Align')
 		if sender.get() == 1:
 			self.LinkSettings()
-			self.TTHToolController.changeSelectedAlignmentTypeLink(self.TTHToolModel.selectedAlignmentTypeLink)
-			if self.TTHToolModel.selectedAxis == 'X':
-				self.TTHToolController.changeSelectedStemX(self.TTHToolModel.selectedStemX)
+			self.tthEventTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
+			if tthTool.selectedAxis == 'X':
+				self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
 			else:
-				self.TTHToolController.changeSelectedStemY(self.TTHToolModel.selectedStemY)
-			self.TTHToolController.changeSelectedHintingTool('Single Link')
+				self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
+			self.tthEventTool.changeSelectedHintingTool('Single Link')
 		if sender.get() == 2:
 			self.DoubleLinkSettings()
-			if self.TTHToolModel.selectedAxis == 'X':
-				self.TTHToolController.changeSelectedStemX(self.TTHToolModel.selectedStemX)
+			if tthTool.selectedAxis == 'X':
+				self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
 			else:
-				self.TTHToolController.changeSelectedStemY(self.TTHToolModel.selectedStemY)
-			self.TTHToolController.changeSelectedHintingTool('Double Link')
+				self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
+			self.tthEventTool.changeSelectedHintingTool('Double Link')
 		if sender.get() == 3:
 			self.InterpolationSettings()
-			self.TTHToolController.changeSelectedAlignmentTypeLink(self.TTHToolModel.selectedAlignmentTypeLink)
-			self.TTHToolController.changeSelectedHintingTool('Interpolation')
+			self.tthEventTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
+			self.tthEventTool.changeSelectedHintingTool('Interpolation')
 		if sender.get() == 4:
 			self.DeltaSettings()
-			self.TTHToolController.changeSelectedHintingTool('Middle Delta')
+			self.tthEventTool.changeSelectedHintingTool('Middle Delta')
 		if sender.get() == 5:
 			self.DeltaSettings()
-			self.TTHToolController.changeSelectedHintingTool('Final Delta')
+			self.tthEventTool.changeSelectedHintingTool('Final Delta')
 		if sender.get() == 6:
 			self.SelectionSettings()
-			self.TTHToolController.changeSelectedHintingTool('Selection')
+			self.tthEventTool.changeSelectedHintingTool('Selection')
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
-		if self.TTHToolModel.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
-			self.TTHToolController.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
-		elif self.TTHToolModel.selectedHintingTool == 'Align':
-			self.TTHToolController.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
+		if tthTool.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
+			self.tthEventTool.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
+		elif tthTool.selectedHintingTool == 'Align':
+			self.tthEventTool.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
 
 	def StemTypePopUpButtonCallback(self, sender):
-		if self.TTHToolModel.selectedAxis == 'X':
-			self.TTHToolController.changeSelectedStemX(self.TTHToolModel.stemsListX[sender.get()])
+		if tthTool.selectedAxis == 'X':
+			self.tthEventTool.changeSelectedStemX(tthTool.stemsListX[sender.get()])
 		else:
-			self.TTHToolController.changeSelectedStemY(self.TTHToolModel.stemsListY[sender.get()])
+			self.tthEventTool.changeSelectedStemY(tthTool.stemsListY[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
-		self.TTHToolController.changeRoundBool(sender.get())
+		self.tthEventTool.changeRoundBool(sender.get())
 
 	def DeltaMonochromeCheckBoxCallback(self, sender):
-		self.TTHToolController.changeDeltaMono(sender.get())
+		self.tthEventTool.changeDeltaMono(sender.get())
 
 	def DeltaGrayCheckBoxCallback(self, sender):
-		self.TTHToolController.changeDeltaGray(sender.get())
+		self.tthEventTool.changeDeltaGray(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
-		self.TTHToolController.changeDeltaOffset(int(sender.get() - 8))
+		self.tthEventTool.changeDeltaOffset(int(sender.get() - 8))
 
 	def DeltaOffsetEditTextCallback(self, sender):
-		self.TTHToolController.changeDeltaOffset(sender.get())
+		self.tthEventTool.changeDeltaOffset(sender.get())
 
 	def DeltaRange1ComboBoxCallback(self, sender):
 		size = sender.get()
 		try:
 			int(size)
 		except:
-			size = self.TTHToolModel.deltaRange1
+			size = tthTool.deltaRange1
 			sender.set(size)
-		self.TTHToolController.changeDeltaRange(sender.get(), self.TTHToolModel.deltaRange2)
+		self.tthEventTool.changeDeltaRange(sender.get(), tthTool.deltaRange2)
 
 	def DeltaRange2ComboBoxCallback(self, sender):
 		size = sender.get()
 		try:
 			int(size)
 		except:
-			size = self.TTHToolModel.deltaRange2
+			size = tthTool.deltaRange2
 			sender.set(size)
-		self.TTHToolController.changeDeltaRange(self.TTHToolModel.deltaRange1, sender.get())
+		self.tthEventTool.changeDeltaRange(tthTool.deltaRange1, sender.get())
 
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
 		if gearOption == 1:
-			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.TTHToolController)
+			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.tthEventTool)
 			pass
 
 		if gearOption == 3:
-			self.TTHToolController.changeBitmapPreview("Monochrome")
+			self.tthEventTool.changeBitmapPreview("Monochrome")
 		elif gearOption == 4:
-			self.TTHToolController.changeBitmapPreview("Grayscale")
+			self.tthEventTool.changeBitmapPreview("Grayscale")
 		elif gearOption == 5:
-			self.TTHToolController.changeBitmapPreview("Subpixel")
+			self.tthEventTool.changeBitmapPreview("Subpixel")
 
 		elif gearOption == 7:
 			self.showPreviewCallback()
@@ -336,22 +336,22 @@ class MainPanel(BaseWindowController):
 			self.controlValuesCallback()
 
 		elif gearOption == 13:
-			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools, self.TTHToolController)
+			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools, self.tthEventTool)
 		elif gearOption == 15:
-			#matching.transfer(self.TTHToolController)
+			#matching.transfer(self.tthEventTool)
 			pass
 
 	def showPreviewCallback(self):
-		self.TTHToolController.updatePartialFont()
-		self.TTHToolController.previewPanel.show()
+		self.tthEventTool.updatePartialFont()
+		self.tthEventTool.previewPanel.show()
 
 	##########
 	# Bindings
 	##########
 
 	def toolsWindowMovedorResized(self, sender):
-		self.TTHToolModel.toolsWindowPosSize = self.wTools.getPosSize()
-		setExtensionDefault(defaultKeyToolsWindowPosSize, self.TTHToolModel.toolsWindowPosSize)
+		tthTool.toolsWindowPosSize = self.wTools.getPosSize()
+		setExtensionDefault(defaultKeyToolsWindowPosSize, tthTool.toolsWindowPosSize)
 
 	def close(self):
 		self.wTools.close()

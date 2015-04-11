@@ -12,7 +12,7 @@ gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
 
 
-class FontModel():
+class TTHFont():
 	def __init__(self, font):
 		# the corresponding Robofont font
 		self.f = font

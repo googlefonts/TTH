@@ -1,9 +1,6 @@
-from controllers import toolController
-from models import toolModel
 from mojo.events import installTool
+from controllers import toolController
 
 reload(toolController)
-reload(toolModel)
 
-TTHToolModel = toolModel.TTHToolModel()
-installTool(toolController.TTHTool(TTHToolModel))
+installTool(toolController.TTH_RF_EventTool())

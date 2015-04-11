@@ -20,7 +20,7 @@ defaultKeyCenterPixelSize		= DefaultKeyStub + "centerPixelSize"
 defaultKeyShowPreviewInGlyphWindow	= DefaultKeyStub + "showPreviewInGlyphWindow"
 
 
-class TTHToolModel():
+class TTHTool():
 	def __init__(self):
 
 		# The CURRENT Point/Pixel Per Em size for displaying the hinted preview
@@ -144,3 +144,5 @@ class TTHToolModel():
 		self.centerPixelSize = value
 		setExtensionDefault(defaultKeyCenterPixelSize, value)
 
+# THE UNIQUE INSTANCE
+uniqueInstance = TTHTool()

@@ -6,6 +6,7 @@ from AppKit import *
 import string
 
 from views import TTHWindow
+from models.TTHTool import uniqueInstance as tthTool
 from commons import drawing as DR
 
 DefaultKeyStub = "com.sansplomb.TTH."
@@ -17,13 +18,12 @@ blackColor = NSColor.blackColor()
 redColor = NSColor.redColor()
 
 class PreviewPanel(TTHWindow):
-	def __init__(self, TTHToolInstance, defaultPosSize):
+	def __init__(self, tthEventTool, defaultPosSize):
 		super(PreviewPanel, self).__init__(defaultKeyPreviewWindowPosSize, defaultKeyPreviewWindowVisibility)
-		self.TTHToolController = TTHToolInstance
-		tthtm = self.TTHToolController.TTHToolModel
+		self.tthEventTool = tthEventTool
 
-		self.FromSize = tthtm.previewFrom
-		self.ToSize = tthtm.previewTo
+		self.FromSize = tthTool.previewFrom
+		self.ToSize = tthTool.previewTo
 
 		self.clickableSizes= {}
 		self.clickableGlyphs = {}
@@ -31,9 +31,9 @@ class PreviewPanel(TTHWindow):
 		ps = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=defaultPosSize)
 		win = FloatingWindow(ps, "Preview", minSize=(350, 200))
 
-		win.previewEditText = ComboBox((10, 10, -10, 22), tthtm.previewSampleStringsList,
+		win.previewEditText = ComboBox((10, 10, -10, 22), tthTool.previewSampleStringsList,
 			callback=self.previewEditTextCallback)
-		win.previewEditText.set(tthtm.previewString)
+		win.previewEditText.set(tthTool.previewString)
 
 		win.view = Canvas((10, 50, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 
@@ -54,7 +54,7 @@ class PreviewPanel(TTHWindow):
 		x, y = pos.x, pos.y
 		for i in self.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+8:
-				self.TTHToolController.changeSize(self.clickableSizes[i])
+				self.tthEventTool.changeSize(self.clickableSizes[i])
 				break
 		for coords, glyphName in self.clickableGlyphs.items():
 			if x >= coords[0] and x <= coords[2] and y >= coords[1] and y <= coords[3]:
@@ -72,30 +72,28 @@ class PreviewPanel(TTHWindow):
 		self.resizeView(self.window.getPosSize())
 
 	def previewEditTextCallback(self, sender):
-		self.TTHToolController.TTHToolModel.setPreviewString(sender.get())
-		self.TTHToolController.updatePartialFontIfNeeded()
+		tthTool.setPreviewString(sender.get())
+		self.tthEventTool.updatePartialFontIfNeeded()
 		self.setNeedsDisplay()
 
 	def drawPreviewPanel(self):
-		if self.TTHToolController.ready == False:
+		if self.tthEventTool.ready == False:
 			return
-		if self.TTHToolController.getGlyph() == None:
+		if self.tthEventTool.getGlyph() == None:
 			return
 		self.clickableSizes= {}
 
-		tr = self.TTHToolController.c_fontModel.textRenderer
+		tr = self.tthEventTool.c_fontModel.textRenderer
 		if not tr:
 			return
 
-		tthtm = self.TTHToolController.TTHToolModel
-
 		advanceWidthUserString = 0
 		advanceWidthCurrentGlyph = 0
-		(namedGlyphList, curGlyphName) = self.TTHToolController.prepareText()
+		(namedGlyphList, curGlyphName) = self.tthEventTool.prepareText()
 		glyphs = tr.names_to_indices(namedGlyphList)
 		curGlyph = tr.names_to_indices([curGlyphName])[0]
 		# render user string
-		tr.set_cur_size(tthtm.PPM_Size)
+		tr.set_cur_size(tthTool.PPM_Size)
 
 		ps = self.window.getPosSize()
 		tr.set_pen((20, ps[3] - 220))
@@ -106,19 +104,19 @@ class PreviewPanel(TTHWindow):
 		for name in namedGlyphList:
 			adv = tr.get_name_advance(name)
 			newpen = pen[0]+int(adv[0]/64), pen[1]+int(adv[1]/64)
-			rect = (pen[0], pen[1], newpen[0], pen[1]+tthtm.PPM_Size)
+			rect = (pen[0], pen[1], newpen[0], pen[1]+tthTool.PPM_Size)
 			self.clickableGlyphs[rect] = name
 			pen = newpen
 
 		# render user string at various sizes
 		y = ps[3] - 280
 		x = 30
-		for size in range(tthtm.previewFrom, tthtm.previewTo+1, 1):
+		for size in range(tthTool.previewFrom, tthTool.previewTo+1, 1):
 
 			self.clickableSizes[(x-20, y)] = size
 
 			displaysize = str(size)
-			if size == tthtm.PPM_Size:
+			if size == tthTool.PPM_Size:
 				DR.drawPreviewSize(displaysize, x-20, y, redColor)
 			else:
 				DR.drawPreviewSize(displaysize, x-20, y, blackColor)
@@ -136,12 +134,12 @@ class PreviewPanel(TTHWindow):
 		# render current glyph at various sizes
 		advance = 10
 		
-		for size in range(tthtm.previewFrom, tthtm.previewTo+1, 1):
+		for size in range(tthTool.previewFrom, tthTool.previewTo+1, 1):
 
 			self.clickableSizes[(advance, ps[3] - 170)] = size
 
 			displaysize = str(size)
-			if size == tthtm.PPM_Size:
+			if size == tthTool.PPM_Size:
 				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, redColor)
 			else:
 				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, blackColor)
