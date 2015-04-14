@@ -2,17 +2,24 @@
 class TTHGlyph(object):
 
 	def __init__(self, rfGlyph):
-		# private variables
+		# private variables: freely accessible, but the underscore, by
+		# python-convention, indicates `please don't use me outside of the
+		# class methods'.
 		self._g = rfGlyph
 		self._contours = None
 		self._h_stems  = None # a list of pairs of ContSegs
 		self._v_stems  = None
 		self._sortedHintingCommands = None
+		self._nameToContSeg = None
 		# public variables
 		self.hintingCommands = []
-		self.nameToContSeg   = {}
 		# load stuff from the UFO Lib
 		self.loadFromUFO()
+	
+	def __del__(self):
+		self._g = None
+		self.dirtyGeometry()
+		self.dirtyHinting()
 
 	@property
 	def contours(self):
@@ -44,13 +51,20 @@ class TTHGlyph(object):
 		self._contours = None
 		self._h_stems  = None
 		self._v_stems  = None
-		self.buildNameToContSegDict()
 
 	def dirtyHinting(self):
 		'''Should be called if the list of hinting commands changes, or if
 		a command is modified. So this may be called by the
 		command-popovers for example.'''
 		self._sortedHintingCommands = None
+	
+	def contSegOfPointName(self, name):
+		if None == self._nameToContSeg:
+			self.buildNameToContSegDict()
+		try:
+			return self._nameToContSeg[name]
+		except:
+			return None
 
 	def buildNameToContSegDict(self):
 		'''A `ContSeg` is a pair (cidx,sidx) where cidx is the index of a
@@ -60,10 +74,10 @@ class TTHGlyph(object):
 		The ON-point is self._g[cidx][sidx].onCurve
 		A ContSeg therefore identifies an ON-point in a glyph, as well as
 		its contour index and its position in that contour.'''
-		self.nameToContSeg = {}
+		self._nameToContSeg = {}
 		for cidx, contour in enumerate(g):
 			for sidx, seg in enumerate(contour):
-				self.nameToContSeg[seg.onCurve.name] = (cidx, sidx)
+				self._nameToContSeg[seg.onCurve.name] = (cidx, sidx)
 
 	def saveToUFO(self):
 		"""Save what can be saved in the UFO Lib."""
