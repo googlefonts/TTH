@@ -3,7 +3,8 @@ from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 import tempfile
 
 from commons import helperFunctions, textRenderer
-from models.TTHTool import uniqueInstance as tthTool
+
+tthTool = None
 
 reload(helperFunctions)
 reload(textRenderer)

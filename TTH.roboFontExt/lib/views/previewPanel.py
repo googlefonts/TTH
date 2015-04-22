@@ -6,7 +6,6 @@ from AppKit import *
 import string
 
 from views import TTHWindow
-from models.TTHTool import uniqueInstance as tthTool
 from commons import drawing as DR
 
 DefaultKeyStub = "com.sansplomb.TTH."
@@ -17,18 +16,16 @@ defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
 blackColor = NSColor.blackColor()
 redColor = NSColor.redColor()
 
-class PreviewPanel(TTHWindow):
-	def __init__(self, tthEventTool, defaultPosSize):
-		super(PreviewPanel, self).__init__(defaultKeyPreviewWindowPosSize, defaultKeyPreviewWindowVisibility)
-		self.tthEventTool = tthEventTool
+tthTool = None
 
-		self.FromSize = tthTool.previewFrom
-		self.ToSize = tthTool.previewTo
+class PreviewPanel(TTHWindow):
+	def __init__(self):
+		super(PreviewPanel, self).__init__(defaultKeyPreviewWindowPosSize, defaultKeyPreviewWindowVisibility)
 
 		self.clickableSizes= {}
 		self.clickableGlyphs = {}
 
-		ps = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=defaultPosSize)
+		ps = getExtensionDefault(defaultKeyPreviewWindowPosSize, fallback=(-510, 30, 500, 600))
 		win = FloatingWindow(ps, "Preview", minSize=(350, 200))
 
 		win.previewEditText = ComboBox((10, 10, -10, 22), tthTool.previewSampleStringsList,
@@ -54,16 +51,13 @@ class PreviewPanel(TTHWindow):
 		x, y = pos.x, pos.y
 		for i in self.clickableSizes:
 			if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+8:
-				self.tthEventTool.changeSize(self.clickableSizes[i])
+				tthTool.changeSize(self.clickableSizes[i])
 				break
 		for coords, glyphName in self.clickableGlyphs.items():
 			if x >= coords[0] and x <= coords[2] and y >= coords[1] and y <= coords[3]:
 				SetCurrentGlyphByName(glyphName[0])
 				break
 
-	def draw(self):
-		self.drawPreviewPanel()
-	
 	def resizeView(self, posSize):
 		self.window.view.getNSView().setFrame_(((0, 0), self.calculateCanvasSize(posSize)))
 
@@ -73,14 +67,12 @@ class PreviewPanel(TTHWindow):
 
 	def previewEditTextCallback(self, sender):
 		tthTool.setPreviewString(sender.get())
-		self.tthEventTool.updatePartialFontIfNeeded()
+		tthTool.updatePartialFontIfNeeded()
 		self.setNeedsDisplay()
 
-	def drawPreviewPanel(self):
-		if self.tthEventTool.ready == False:
-			return
-		glyph, fm = self.tthEventTool.getGAndFontModel()
-		if glyph == None: return
+	def draw(self):
+		glyph, fm = tthTool.getGAndFontModel()
+		if fm == None: return
 		self.clickableSizes= {}
 		tr = fm.textRenderer
 		if not tr:
@@ -88,7 +80,7 @@ class PreviewPanel(TTHWindow):
 
 		advanceWidthUserString = 0
 		advanceWidthCurrentGlyph = 0
-		(namedGlyphList, curGlyphName) = self.tthEventTool.prepareText()
+		(namedGlyphList, curGlyphName) = tthTool.prepareText()
 		glyphs = tr.names_to_indices(namedGlyphList)
 		curGlyph = tr.names_to_indices([curGlyphName])[0]
 		# render user string

@@ -219,7 +219,10 @@ class MainPanel(BaseWindowController):
 			size = tthTool.PPM_Size
 			sender.set(size)
 
-		self.tthEventTool.changeSize(size)
+		tthTool.changeSize(size)
+	
+	def displayPPEMSize(self, size):
+		self.wTools.PPEMSizeComboBox.set(size)
 
 	def axisSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
@@ -301,7 +304,7 @@ class MainPanel(BaseWindowController):
 		except:
 			size = tthTool.deltaRange1
 			sender.set(size)
-		self.tthEventTool.changeDeltaRange(sender.get(), tthTool.deltaRange2)
+		tthTool.changeDeltaRange(sender.get(), tthTool.deltaRange2)
 
 	def DeltaRange2ComboBoxCallback(self, sender):
 		size = sender.get()
@@ -310,7 +313,11 @@ class MainPanel(BaseWindowController):
 		except:
 			size = tthTool.deltaRange2
 			sender.set(size)
-		self.tthEventTool.changeDeltaRange(tthTool.deltaRange1, sender.get())
+		tthTool.changeDeltaRange(tthTool.deltaRange1, sender.get())
+
+	def displayDeltaRange(self, v1, v2):
+		self.wTools.DeltaRange1ComboBox.set(v1)
+		self.wTools.DeltaRange2ComboBox.set(v2)
 
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
@@ -342,8 +349,8 @@ class MainPanel(BaseWindowController):
 			pass
 
 	def showPreviewCallback(self):
-		self.tthEventTool.updatePartialFont()
-		self.tthEventTool.previewPanel.show()
+		tthTool.updatePartialFont()
+		tthTool.previewPanel.show()
 
 	##########
 	# Bindings

@@ -97,7 +97,8 @@ class PreferencesSheet(object):
 			self.w.hotKeysBox.show(True)
 
 	def bitmapOpacitySliderCallBack(self, sender):
-		self.tthEventTool.changeBitmapOpacity(sender.get())
+		tthTool.setBitmapOpacity(sender.get())
+		UpdateCurrentGlyphView()
 
 	def previewSampleStringsListEditCallBack(self, sender):
 		updatedSampleStrings = []
@@ -144,23 +145,30 @@ class PreferencesSheet(object):
 		self.tthEventTool.changePreviewInGlyphWindowState(sender.get())
 
 	def displayBitmapCheckBoxCallback(self, sender):
-		self.tthEventTool.changeShowBitmapState(sender.get())
+		tthTool.setShowBitmap(sender.get())
+		UpdateCurrentGlyphView()
 
 	def displayHintedOutlineCheckBoxCallback(self, sender):
-		self.tthEventTool.changeShowOutlineState(sender.get())
+		tthTool.setShowOutline(sender.get())
+		UpdateCurrentGlyphView()
 
 	def outlineThicknessSliderCallBack(self, sender):
-		self.tthEventTool.changeOutlineThickness(sender.get())
+		tthTool.setOutlineThickness(sender.get())
+		UpdateCurrentGlyphView()
 
 	def displayGridCheckBoxCallback(self, sender):
-		self.tthEventTool.changeShowGridState(sender.get())
+		tthTool.setShowGrid(sender.get())
+		UpdateCurrentGlyphView()
 
 	def gridOpacitySliderCallBack(self, sender):
-		self.tthEventTool.changeGridOpacity(sender.get())
+		tthTool.setGridOpacity(value)
+		UpdateCurrentGlyphView()
 
 	def displayPixelCentersCheckBoxCallback(self, sender):
-		self.tthEventTool.changeShowCenterPixelState(sender.get())
+		tthTool.setShowCenterPixels(sender.get())
+		UpdateCurrentGlyphView()
 
 	def pixelCentersSizeSliderCallBack(self, sender):
-		self.tthEventTool.changeCenterPixelSize(sender.get())
+		tthTool.setCenterPixelSize(sender.get())
+		UpdateCurrentGlyphView()
 

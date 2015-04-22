@@ -4,20 +4,18 @@ from mojo.UI import *
 from robofab.world import *
 import robofab.interface.all.dialogs as Dialogs
 from lib.tools.defaults import getDefault, setDefault
-from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from AppKit import *
 
 from commons import helperFunctions, textRenderer, ttTablesWriter
 from commons import drawing as DR
 from models import TTHTool
-from views import previewInGlyphWindow, mainPanel, previewPanel
+from views import previewInGlyphWindow, mainPanel
 
 reload(helperFunctions)
 reload(textRenderer)
 reload(ttTablesWriter)
 reload(TTHTool)
 reload(mainPanel)
-reload(previewPanel)
 
 tthTool = TTHTool.uniqueInstance
 
@@ -48,7 +46,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# FIXME: Can we come up with a precise meaning for this boolean?
 		self.ready = False
-		self.doneGeneratingPartialFont = False
 		self.drawingPreferencesChanged = False
 
 		# Precomputed NSBezierPath'es
@@ -65,11 +62,14 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.popOverIsOpened = False
 		self.messageInFront = False
 
+		# FIXME: should go in TTHFont
 		self.previewInGlyphWindow = {}
-
 		self.zoneLabelPos = {}
 
-		self.previewPanel  = previewPanel.PreviewPanel(self, (-510, 30, 500, 600))
+		tthTool.eventController = self
+
+	def __del__(self):
+		tthTool.eventController = None
 
 	def getGAndFontModel(self):
 		g = self.getGlyph()
@@ -94,7 +94,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			setDefault('drawingSegmentType', 'qcurve')
 			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
-		self.updatePartialFont()
+		tthTool.updatePartialFont()
 		#self.calculateHdmx()
 
 	###################################################################
@@ -103,7 +103,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	def becomeInactive(self):
 		self.deletePreviewInGlyphWindow()
 		self.mainPanel.close()
-		self.previewPanel.hide()
+		tthTool.previewPanel.hide()
 		if self.drawingPreferencesChanged == True:
 			setDefault('drawingSegmentType', 'curve')
 
@@ -114,14 +114,14 @@ class TTH_RF_EventTool(BaseEventTool):
 		if self.fontClosed:
 			return
 		self.resetglyph(self.getGlyph())
-		self.updatePartialFontIfNeeded()
+		tthTool.updatePartialFontIfNeeded()
 
 	##############################################################
 	# This function is called by RF when the Current Glyph changed
 	##############################################################
 	def currentGlyphChanged(self):
 		self.resetglyph(self.getGlyph())
-		self.updatePartialFontIfNeeded()
+		tthTool.updatePartialFontIfNeeded()
 
 	##############################################################
 	# This function is called by RF before the Current Font closes
@@ -131,7 +131,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		if len(AllFonts()) > 1:
 			return
 		self.mainPanel.wTools.hide()
-		self.previewPanel.hide()
+		tthTool.previewPanel.hide()
+		tthTool.delFontModelForFont(font)
 		# self.programWindow.hide()
 		# self.assemblyWindow.hide()
 		self.fontClosed = True
@@ -159,7 +160,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
 
 		self.resetFont(createWindows=False)
-		self.updatePartialFont()
+		tthTool.updatePartialFont()
 		self.fontClosed = False
 
 	########################################################
@@ -167,19 +168,19 @@ class TTH_RF_EventTool(BaseEventTool):
 	########################################################
 	def fontDidOpen(self, font):
 		self.mainPanel.wTools.show()
-		self.previewPanel.showOrHide()
+		tthTool.previewPanel.showOrHide()
 		# self.programWindow.showOrHide()
 		# self.assemblyWindow.showOrHide()
 
 		self.resetFont(createWindows=False)
-		self.updatePartialFont()
+		tthTool.updatePartialFont()
 
 	########################################################################################
 	# This function is called by RF whenever the Background of the glyph Window needs redraw
 	########################################################################################
 	def drawBackground(self, scale):
 		g, fm = self.getGAndFontModel()
-		if g == None or self.doneGeneratingPartialFont == False:
+		if g == None:
 			return
 
 		pitch = fm.getPitch()
@@ -190,7 +191,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		tr.set_cur_size(tthTool.PPM_Size)
 		tr.set_pen((0, 0))
 		
-		if tthTool.showBitmap == 1:
+		if tthTool.showBitmap == 1 and tr != None:
 			tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
 
 		if tthTool.showGrid == 1:
@@ -199,7 +200,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		if tthTool.showCenterPixel == 1:
 			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
 
-		if tthTool.showOutline == 1:
+		if tthTool.showOutline == 1 and tr != None:
 			tr.drawOutlineOfNameWithThickness(scale, pitch, g.name, tthTool.outlineThickness)
 			self.drawSideBearings(scale, pitch, g.name, fm)
 
@@ -234,7 +235,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	###########################################
 	# This function is called by RF at mouse Up
 	###########################################
-	def mouseDown(self, point):
+	def mouseDown(self, point, clickCount):
 		g, fm = self.getGAndFontModel()
 		self.c_fontModel = fm
 
@@ -250,7 +251,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			if fname in self.previewInGlyphWindow:
 				for i in self.previewInGlyphWindow[fname].clickableSizesGlyphWindow:
 					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-						self.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
+						tthTool.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
 		del self.c_fontModel
 
 	def drawSideBearings(self, scale, pitch, name, fontModel):
@@ -453,7 +454,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if createWindows:
 			self.mainPanel = mainPanel.MainPanel(self)
-			self.previewPanel.showOrHide()
+			tthTool.previewPanel.showOrHide()
 
 		self.resetglyph(self.getGlyph())
 
@@ -463,78 +464,10 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		self.ready = True
 
-		if self.previewPanel.isVisible():
-			self.previewPanel.setNeedsDisplay()
+		if tthTool.previewPanel.isVisible():
+			tthTool.previewPanel.setNeedsDisplay()
 
 		self.zoneLabelPos = {}
-
-	def updatePartialFont(self):
-		"""Typically called directly when the current glyph has been modifed."""
-		self.generatePartialTempFont()
-		fontModel = tthTool.fontModelForFont(CurrentFont())
-		fontModel.regenTextRenderer()
-
-	def updatePartialFontIfNeeded(self):
-		"""Re-create the partial font if new glyphs are required."""
-		(text, curGlyphString) = self.prepareText()
-		curSet = tthTool.requiredGlyphsForPartialTempFont
-		newSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
-		regenerate = not newSet.issubset(curSet)
-		n = len(curSet)
-		if (n > 128) and (len(newSet) < n):
-			regenerate = True
-		if regenerate:
-			tthTool.requiredGlyphsForPartialTempFont = newSet
-			self.updatePartialFont()
-
-	def prepareText(self):
-		g, fm = self.getGAndFontModel()
-		unicodeToName = CurrentFont().getCharacterMapping()
-
-		if g == None:
-			curGlyphName = ''
-		else:
-			curGlyphName = g.name
-
-		texts = tthTool.previewString.split('/?')
-		udata = fm.f.naked().unicodeData
-		output = []
-
-		for text in texts:
-			# replace /name pattern
-			sp = text.split('/')
-			nbsp = len(sp)
-			output = output + splitText(sp[0], udata)
-			for i in range(1,nbsp):
-				sub = sp[i].split(' ', 1)
-				output.append(str(sub[0]))
-				if len(sub) > 1:
-					output = output + splitText(sub[1], udata)
-			output.append(curGlyphName)
-		output = output[:-1]
-		return (output, curGlyphName)
-
-	def defineGlyphsForPartialTempFont(self, text, curGlyphName):
-		fontModel = tthTool.fontModelForFont(CurrentFont())
-		def addGlyph(s, name):
-			try:
-				s.add(name)
-				for component in fontModel.f[name].components:
-					s.add(component.baseGlyph)
-			except:
-				pass
-		glyphSet = set()
-		addGlyph(glyphSet, 'space')
-		#for i in string.lowercase:
-		#	addGlyph(glyphSet, i)
-		#for i in string.uppercase:
-		#	addGlyph(glyphSet, i)
-		#for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-		#	addGlyph(glyphSet, i)
-		addGlyph(glyphSet, curGlyphName)
-		for name in text:
-			addGlyph(glyphSet, name)
-		return glyphSet
 
 	def generateFullTempFont(self):
 		fontModel = tthTool.fontModelForFont(CurrentFont())
@@ -542,76 +475,6 @@ class TTH_RF_EventTool(BaseEventTool):
 			fontModel.f.generate(fontModel.fulltempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		except:
 			print 'ERROR: Unable to generate full font'
-
-	def generatePartialTempFont(self):
-		fontModel = tthTool.fontModelForFont(CurrentFont())
-		try:
-			tempFont = RFont(showUI=False)
-			tempFont.info.unitsPerEm = fontModel.f.info.unitsPerEm
-			tempFont.info.ascender = fontModel.f.info.ascender
-			tempFont.info.descender = fontModel.f.info.descender
-			tempFont.info.xHeight = fontModel.f.info.xHeight
-			tempFont.info.capHeight = fontModel.f.info.capHeight
-
-			tempFont.info.familyName = fontModel.f.info.familyName
-			tempFont.info.styleName = fontModel.f.info.styleName
-
-			tempFont.glyphOrder = fontModel.f.glyphOrder
-
-			if 'com.robofont.robohint.cvt ' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.cvt '] = fontModel.f.lib['com.robofont.robohint.cvt ']
-			if 'com.robofont.robohint.prep' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.prep'] = fontModel.f.lib['com.robofont.robohint.prep']
-			if 'com.robofont.robohint.fpgm' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.fpgm'] = fontModel.f.lib['com.robofont.robohint.fpgm']
-			if 'com.robofont.robohint.gasp' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.gasp'] = fontModel.f.lib['com.robofont.robohint.gasp']
-			if 'com.robofont.robohint.hdmx' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.hdmx'] = fontModel.f.lib['com.robofont.robohint.hdmx']
-			if 'com.robofont.robohint.maxp.maxStorage' in fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.maxp.maxStorage'] = fontModel.f.lib['com.robofont.robohint.maxp.maxStorage']
-
-
-			for gName in tthTool.requiredGlyphsForPartialTempFont:
-				tempFont.newGlyph(gName)
-				tempFont[gName] = fontModel.f[gName]
-				tempFont[gName].unicode = fontModel.f[gName].unicode
-				if 'com.robofont.robohint.assembly' in fontModel.f[gName].lib:
-					tempFont[gName].lib['com.robofont.robohint.assembly'] = fontModel.f[gName].lib['com.robofont.robohint.assembly']
-
-			tempFont.generate(fontModel.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-			self.doneGeneratingPartialFont = True
-
-		except:
-			print 'ERROR: Unable to generate temporary font'
-
-	def changeSize(self, size):
-		try:
-			size = int(size)
-		except ValueError:
-			size = 9
-
-		tthTool.setSize(size)
-		self.mainPanel.wTools.PPEMSizeComboBox.set(size)
-
-		self.cachedPathes['centers'] = None
-		self.cachedPathes['grid'] = None
-		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedSize should. Is this correct?
-		self.cachedScale = None
-
-		self.changeDeltaRange(tthTool.PPM_Size, tthTool.PPM_Size)
-		if self.previewPanel.isVisible():
-			self.previewPanel.setNeedsDisplay()
-
-		if self.popOverIsOpened:
-			fontModel = tthTool.fontModelForFont(CurrentFont())
-			if hasattr(self.popover, 'ZoneDeltaOffsetSlider'):
-				if 'delta' in fontModel.zones[self.selectedZoneName]:
-					if str(size) in fontModel.zones[self.selectedZoneName]['delta']:
-						self.popover.ZoneDeltaOffsetSlider.set(fontModel.zones[self.selectedZoneName]['delta'][str(size)] + 8)
-					else:
-						self.popover.ZoneDeltaOffsetSlider.set(8)
-		UpdateCurrentGlyphView()
 
 	def applySizeChange(self):
 		fromS = tthTool.previewFrom
@@ -626,62 +489,18 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.changeDisplayPreviewSizesFromTo(fromS, toS)
 		UpdateCurrentGlyphView()
 
-	def changeDeltaRange(self, value1, value2):
-		try:
-			value1 = int(value1)
-		except ValueError:
-			value1 = 9
-		try:
-			value2 = int(value2)
-		except ValueError:
-			value2 = 9
-
-		if value2 < value1:
-			value2 = value1
-
-		tthTool.setDeltaRange1(value1)
-		self.mainPanel.wTools.DeltaRange1ComboBox.set(tthTool.deltaRange1)
-		tthTool.setDeltaRange2(value2)
-		self.mainPanel.wTools.DeltaRange2ComboBox.set(tthTool.deltaRange2)
+	def sizeHasChanged(self):
+		self.cachedPathes['centers'] = None
+		self.cachedPathes['grid'] = None
+		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedSize should. Is this correct?
+		self.cachedScale = None
 
 	def changeBitmapPreview(self, preview):
 		fontModel.setBitmapPreview(preview)
 		if self.getGlyph() == None:
 			return
-		if self.previewPanel.isVisible():
-			self.previewPanel.setNeedsDisplay()
-		UpdateCurrentGlyphView()
-
-	def changeBitmapOpacity(self, value):
-		tthTool.setBitmapOpacity(value)
-		UpdateCurrentGlyphView()
-
-	def changeShowBitmapState(self, onOff):
-		tthTool.setShowBitmap(onOff)
-		UpdateCurrentGlyphView()
-
-	def changeShowOutlineState(self, onOff):
-		tthTool.setShowOutline(onOff)
-		UpdateCurrentGlyphView()
-
-	def changeOutlineThickness(self, value):
-		tthTool.setOutlineThickness(value)
-		UpdateCurrentGlyphView()
-
-	def changeShowGridState(self, onOff):
-		tthTool.setShowGrid(onOff)
-		UpdateCurrentGlyphView()
-
-	def changeGridOpacity(self, value):
-		tthTool.setGridOpacity(value)
-		UpdateCurrentGlyphView()
-
-	def changeShowCenterPixelState(self, onOff):
-		tthTool.setShowCenterPixels(onOff)
-		UpdateCurrentGlyphView()
-
-	def changeCenterPixelSize(self, value):
-		tthTool.setCenterPixelSize(value)
+		if tthTool.previewPanel.isVisible():
+			tthTool.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
 	def changeDisplayPreviewSizesFromTo(self, fromSize, toSize):
@@ -689,15 +508,4 @@ class TTH_RF_EventTool(BaseEventTool):
 		tthTool.previewTo = toSize
 		setExtensionDefault(defaultKeyPreviewFrom, tthTool.previewFrom)
 		setExtensionDefault(defaultKeyPreviewTo, tthTool.previewTo)
-		self.previewPanel.setNeedsDisplay()
-
-	def samplesStringsHaveChanged(self, sampleStrings):
-		currentString = self.previewPanel.win.previewEditText.get()
-		tthTool.previewSampleStringsList = sampleStrings
-		setExtensionDefault(defaultKeyPreviewSampleStrings, tthTool.previewSampleStringsList)
-		self.previewPanel.win.previewEditText.setItems(tthTool.previewSampleStringsList)
-		self.resetPreviewComboBoxWithString(currentString)
-
-	def resetPreviewComboBoxWithString(self, sampleString):
-		tthTool.setPreviewString(sampleString)
-		self.previewPanel.win.previewEditText.set(tthTool.previewString)
+		tthTool.previewPanel.setNeedsDisplay()
