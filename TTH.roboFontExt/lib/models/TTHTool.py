@@ -1,33 +1,35 @@
 from mojo.extensions import *
+
+from models import TTHFont
+
 import string
+
+reload(TTHFont)
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
-defaultKeyCurrentPPMSize		= DefaultKeyStub + "currentPPMSize"
+defaultKeyCurrentPPMSize			= DefaultKeyStub + "currentPPMSize"
 defaultKeySelectedAxis			= DefaultKeyStub + "selectedAxis"
 defaultKeyPreviewSampleStrings	= DefaultKeyStub + "previewSampleStrings"
 defaultKeyPreviewFrom			= DefaultKeyStub + "previewFrom"
-defaultKeyPreviewTo			= DefaultKeyStub + "previewTo"
+defaultKeyPreviewTo				= DefaultKeyStub + "previewTo"
 defaultKeyAlwaysRefresh			= DefaultKeyStub + "alwaysRefresh"
 defaultKeyShowOutline			= DefaultKeyStub + "showOutline"
 defaultKeyOutlineThickness		= DefaultKeyStub + "outlineThickness"
 defaultKeyShowBitmap			= DefaultKeyStub + "showBitmap"
 defaultKeyBitmapOpacity			= DefaultKeyStub + "bitmapOpacity"
-defaultKeyShowGrid			= DefaultKeyStub + "showGrid"
+defaultKeyShowGrid				= DefaultKeyStub + "showGrid"
 defaultKeyGridOpacity			= DefaultKeyStub + "gridOpacity"
 defaultKeyShowCenterPixels		= DefaultKeyStub + "showCenterPixels"
 defaultKeyCenterPixelSize		= DefaultKeyStub + "centerPixelSize"
 defaultKeyShowPreviewInGlyphWindow	= DefaultKeyStub + "showPreviewInGlyphWindow"
 
-
 class TTHTool():
 	def __init__(self):
 
-		# The CURRENT Point/Pixel Per Em size for displaying the hinted preview
+		# The current Point/Pixel Per Em size for displaying the hinted preview
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
-		# The size of a 'big pixel' in the preview
-		self.fPitch = 1000.0/self.PPM_Size
-		# The CURRENT hinting axis: 'X' or 'Y'
+		# The current hinting axis: 'X' or 'Y'
 		self.selectedAxis = getExtensionDefault(defaultKeySelectedAxis, fallback='X')
 
 		# The CURRENT hinting tool
@@ -46,13 +48,7 @@ class TTHTool():
 		self.deltaRange2 = 9
 		self.deltaMonoBool = 1
 		self.deltaGrayBool = 1
-		# FIXME: describe this. FIXME: This should probably go in a 'GlyphModel' object.
-		self.stemsListX = []
-		# FIXME: describe this. FIXME: This should probably go in a 'GlyphModel' object.
-		self.stemsListY = []
-
 		
-		self.toolsWindowPosSize = (170, 30, 265, 95)
 		self.previewString = '/?'
 
 		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings, fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase])
@@ -80,7 +76,7 @@ class TTHTool():
 		self.roundFactor_Jumps = 20
 
 		# The min and max size of a stem (as the vector between a pair of control points)
-		# FIXME: Maybe this should go in the FontModel ?
+		# FIXME: Maybe this should go in the FontModel ? (but should stay here if this is not stored anywhere in the UFO)
 		self.minStemX = 20
 		self.minStemY = 20
 		self.maxStemX = 1000
@@ -89,12 +85,40 @@ class TTHTool():
 		# Angle tolerance for 'parallel' lines/vectors
 		self.angleTolerance = 10.0
 
-	def setSize(self, size):
-		self.PPM_Size = int(size)
-		setExtensionDefault(defaultKeyCurrentPPMSize, self.PPM_Size)
+		# TTHFont instances for each opened font
+		self._fontModels = {}
 
-	def resetPitch(self, UPM):
-		self.fPitch = float(UPM)/self.PPM_Size
+	def __del__(self):
+		pass
+
+	def fontModelForFont(self, font):
+		key = font.fileName
+		if key not in self._fontModels:
+			model = TTHFont.TTHFont(font)
+			self._fontModels[key] = model
+			return model
+		return self._fontModels[key]
+
+	def delFontModelForFont(self, font):
+		key = font.fileName
+		if key in self._fontModels:
+			model = self._fontModels[key]
+			del model
+			del self._fontModels[key]
+
+	def fontModelForGlyph(self, g):
+		if g is None:
+			return None
+		return self.fontModelForFont(g.getParent())
+
+	def delFontModelForGlyph(self, g):
+		if g != None:
+			return self.delFontModelForFont(g.getParent())
+
+	def setSize(self, size):
+		s = int(size+0.5)
+		self._PPM_Size = s
+		setExtensionDefault(defaultKeyCurrentPPMSize, s)
 
 	def setDeltaRange1(self, value):
 		self.deltaRange1 = int(value)

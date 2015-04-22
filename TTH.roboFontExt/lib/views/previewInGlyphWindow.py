@@ -52,9 +52,9 @@ class PreviewInGlyphWindow(NSView):
 
 		self.clickableSizesGlyphWindow = {}
 
-		glyph = self.tthEventTool.getGlyph()
+		glyph, fm = self.tthEventTool.getGAndFontModel()
 		if glyph == None: return
-		tr = self.tthEventTool.c_fontModel.textRenderer
+		tr = fm.textRenderer
 		advance = 40
 		glyphname = [glyph.name]
 		color = blackColor

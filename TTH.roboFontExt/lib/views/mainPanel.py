@@ -45,7 +45,7 @@ class MainPanel(BaseWindowController):
 							'Selection']
 		# FIXME Why are these memeber variables set here??
 		if tthTool.selectedAxis == 'X':
-			self.stemTypeList = tthTool.stemsListX
+			self.stemTypeList = []#tthTool.stemsListX
 			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
 									'Left Edge', 'Right Edge',
 									'Center of Pixel',
@@ -57,7 +57,7 @@ class MainPanel(BaseWindowController):
 										'Center of Pixel',
 										'Double Grid']
 		else:
-			self.stemTypeList = tthTool.stemsListY
+			self.stemTypeList = []#tthTool.stemsListY
 			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
 									'Bottom Edge',
 									'Top Edge',
@@ -76,7 +76,7 @@ class MainPanel(BaseWindowController):
 		self.makeMainPanel()
 
 	def makeMainPanel(self):
-		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=tthTool.toolsWindowPosSize), "TTH", closable = False)
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
 
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
@@ -350,8 +350,7 @@ class MainPanel(BaseWindowController):
 	##########
 
 	def toolsWindowMovedorResized(self, sender):
-		tthTool.toolsWindowPosSize = self.wTools.getPosSize()
-		setExtensionDefault(defaultKeyToolsWindowPosSize, tthTool.toolsWindowPosSize)
+		setExtensionDefault(defaultKeyToolsWindowPosSize, self.wTools.getPosSize())
 
 	def close(self):
 		self.wTools.close()

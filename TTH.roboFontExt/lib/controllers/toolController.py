@@ -9,13 +9,12 @@ from AppKit import *
 
 from commons import helperFunctions, textRenderer, ttTablesWriter
 from commons import drawing as DR
-from models import TTHFont, TTHTool
+from models import TTHTool
 from views import previewInGlyphWindow, mainPanel, previewPanel
 
 reload(helperFunctions)
 reload(textRenderer)
 reload(ttTablesWriter)
-reload(TTHFont)
 reload(TTHTool)
 reload(mainPanel)
 reload(previewPanel)
@@ -47,11 +46,6 @@ class TTH_RF_EventTool(BaseEventTool):
 	def __init__(self):
 		super(TTH_RF_EventTool, self).__init__()
 
-		# The CURRENT TTHFont
-		self.c_fontModel = None
-
-		self.buildModelsForOpenFonts()
-
 		# FIXME: Can we come up with a precise meaning for this boolean?
 		self.ready = False
 		self.doneGeneratingPartialFont = False
@@ -76,6 +70,12 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.zoneLabelPos = {}
 
 		self.previewPanel  = previewPanel.PreviewPanel(self, (-510, 30, 500, 600))
+
+	def getGAndFontModel(self):
+		g = self.getGlyph()
+		if g == None:
+			return (None, None)
+		return (g, tthTool.fontModelForGlyph(g))
 
 	#################################################################################
 	# This function is called by RF on the parent class in order to get the tool icon
@@ -140,6 +140,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF when the Current Font is not Current anymore
 	############################################################################
 	def fontResignCurrent(self, font):
+		print "Font resign current", font.fileName
 		if self.fontClosed:
 			return
 		self.deletePreviewInGlyphWindow()
@@ -149,7 +150,6 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF when a new Font becomes Current
 	###############################################################
 	def fontBecameCurrent(self, font):
-		self.setupCurrentModel(font)
 		if self.fontClosed:
 			return
 		# if hasattr(self.toolsPanel, 'sheetControlValues'):
@@ -166,10 +166,6 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF when a new Font did Open
 	########################################################
 	def fontDidOpen(self, font):
-		key = font.fileName
-		if key not in self.fontModels:
-			self.fontModels[key] = TTHFont.TTHFont(font)
-
 		self.mainPanel.wTools.show()
 		self.previewPanel.showOrHide()
 		# self.programWindow.showOrHide()
@@ -182,31 +178,33 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF whenever the Background of the glyph Window needs redraw
 	########################################################################################
 	def drawBackground(self, scale):
-		g = self.getGlyph()
+		g, fm = self.getGAndFontModel()
 		if g == None or self.doneGeneratingPartialFont == False:
 			return
 
-		self.drawZones(scale)
+		pitch = fm.getPitch()
 
-		tr = self.c_fontModel.textRenderer
+		self.drawZones(scale, pitch, fm)
+
+		tr = fm.textRenderer
 		tr.set_cur_size(tthTool.PPM_Size)
 		tr.set_pen((0, 0))
 		
 		if tthTool.showBitmap == 1:
-			tr.render_named_glyph_list([g.name], tthTool.fPitch, tthTool.bitmapOpacity)
+			tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
 
 		if tthTool.showGrid == 1:
-			self.drawGrid(scale, tthTool.fPitch, tthTool.gridOpacity)
+			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
 
 		if tthTool.showCenterPixel == 1:
-			self.drawCenterPixel(scale, tthTool.fPitch, tthTool.centerPixelSize)
+			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
 
 		if tthTool.showOutline == 1:
-			tr.drawOutlineOfNameWithThickness(scale, tthTool.fPitch, g.name, tthTool.outlineThickness)
-			self.drawSideBearings(scale, g.name)
+			tr.drawOutlineOfNameWithThickness(scale, pitch, g.name, tthTool.outlineThickness)
+			self.drawSideBearings(scale, pitch, g.name, fm)
 
 		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
-		self.drawAscentDescent(scale)
+		self.drawAscentDescent(scale, pitch, fm)
 
 	########################################################################################
 	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
@@ -216,9 +214,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		g = self.getGlyph()
 		if g == None:
 			return
+		fm = tthTool.fontModelForGlyph(g)
 
 		# update the size of the waterfall subview
-		name = self.c_fontModel.f.fileName
+		name = fm.f.fileName
 		drawPreview = False
 		if name not in self.previewInGlyphWindow:
 			if tthTool.showPreviewInGlyphWindow == 1:
@@ -235,6 +234,13 @@ class TTH_RF_EventTool(BaseEventTool):
 	###########################################
 	# This function is called by RF at mouse Up
 	###########################################
+	def mouseDown(self, point):
+		g, fm = self.getGAndFontModel()
+		self.c_fontModel = fm
+
+	###########################################
+	# This function is called by RF at mouse Up
+	###########################################
 	def mouseUp(self, point):
 		if tthTool.showPreviewInGlyphWindow == 1:
 			x = self.getCurrentEvent().locationInWindow().x
@@ -245,26 +251,27 @@ class TTH_RF_EventTool(BaseEventTool):
 				for i in self.previewInGlyphWindow[fname].clickableSizesGlyphWindow:
 					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
 						self.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
+		del self.c_fontModel
 
-	def drawSideBearings(self, scale, name):
+	def drawSideBearings(self, scale, pitch, name, fontModel):
 		try:
-			xPos = tthTool.fPitch * self.c_fontModel.textRenderer.get_name_advance(name)[0] / 64.0
+			xPos = pitch * fontModel.textRenderer.get_name_advance(name)[0] / 64.0
 		except:
 			return
 		DR.drawVerticalLines(scale*tthTool.outlineThickness, [0, xPos])
 
-	def drawAscentDescent(self, scale):
-		yAsc  = self.c_fontModel.OS2WinAscent
-		yDesc = self.c_fontModel.OS2WinDescent
-		if None == yAsc or None == YDesc: return
-		yAsc  = helperFunctions.roundbase(yAsc,  tthTool.fPitch)
-		yDesc = helperFunctions.roundbase(yDesc, tthTool.fPitch)
+	def drawAscentDescent(self, scale, pitch, fontModel):
+		yAsc  = fontModel.ascent
+		yDesc = fontModel.descent
+		if None == yAsc or None == yDesc: return
+		yAsc  = helperFunctions.roundbase(yAsc,  pitch)
+		yDesc = helperFunctions.roundbase(yDesc, pitch)
 		DR.drawHorizontalLines(scale*tthTool.outlineThickness, [yAsc, yDesc])
 
-	def drawGrid(self, scale, pitch, opacity):
+	def drawGrid(self, scale, pitch, opacity, fontModel):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
-			upm = self.c_fontModel.UPM
+			upm = fontModel.UPM
 			pos = - int(upm/pitch) * pitch
 			maxi = -2 * pos
 			while pos < maxi:
@@ -285,7 +292,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			path = NSBezierPath.bezierPath()
 			r = scale * size
 			r = (r,r)
-			x = - int(self.c_fontModel.UPM/pitch) * pitch + pitch/2 - r[0]/2
+			x = - tthTool.PPM_Size * pitch + pitch/2 - r[0]/2
 			yinit = x
 			maxi = -2 * x
 			while x < maxi:
@@ -300,9 +307,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		centerpixelsColor.set()
 		path.fill()
 
-	def drawZones(self, scale):
-		xpos = 5*self.c_fontModel.UPM
-		for zoneName, zone in self.c_fontModel.zones.iteritems():
+	def drawZones(self, scale, pitch, fontModel):
+		xpos = 5 * fontModel.UPM
+		for zoneName, zone in fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
 			if not zone['top']:
@@ -327,7 +334,7 @@ class TTH_RF_EventTool(BaseEventTool):
 					path = NSBezierPath.bezierPath()
 					path.moveToPoint_((point[0], point[1]))
 					end_x = point[0]
-					end_y = point[1] + (deltaValue/8.0)*tthTool.fPitch
+					end_y = point[1] + (deltaValue/8.0) * pitch
 					path.lineToPoint_((end_x, end_y))
 
 					deltaColor.set()
@@ -404,7 +411,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		return (width, height)
 
 	def deletePreviewInGlyphWindow(self):
-		name = self.c_fontModel.f.fileName
+		g, fm = self.getGAndFontModel()
+		name = fm.f.fileName
 		if name in self.previewInGlyphWindow:
 			self.previewInGlyphWindow[name].removeFromSuperview()
 			del self.previewInGlyphWindow[name]
@@ -418,7 +426,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		UpdateCurrentGlyphView()
 
 	def createPreviewInGlyphWindow(self):
-		name = self.c_fontModel.f.fileName
+		g, fm = self.getGAndFontModel()
+		name = fm.f.fileName
 		if name in self.previewInGlyphWindow: return
 		superview = self.getNSView().enclosingScrollView().superview()
 		newView = previewInGlyphWindow.PreviewInGlyphWindow.alloc().init_withTTHEventTool(self)
@@ -429,32 +438,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		newView.setFrame_(frame)
 		self.previewInGlyphWindow[name] = newView
 
-	def buildModelsForOpenFonts(self):
-		self.fontModels = {}
-		for f in AllFonts():
-			key = f.fileName
-			self.fontModels[key] = TTHFont.TTHFont(f)
-		if CurrentFont() != None:
-			self.c_fontModel = self.fontModels[CurrentFont().fileName]
-		else:
-			self.c_fontModel = None
-
-	def setupCurrentModel(self, font):
-		key = font.fileName
-		if key not in self.fontModels:
-			self.fontModels[key] = TTHFont.TTHFont(font)
-		self.c_fontModel = self.fontModels[key]
-
 	def resetFont(self, createWindows=False):
-		c_f = CurrentFont()
-		if c_f == None:
+		f = CurrentFont()
+		if f == None:
 			return
-
-		self.setupCurrentModel(c_f)
-		self.c_fontModel.setFont(c_f)
-
-		f = self.c_fontModel.f
-		self.c_fontModel.setUPM(f.info.unitsPerEm)
 
 		if helperFunctions.checkSegmentType(f) == False:
 			self.messageInFront = True
@@ -462,8 +449,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.messageInFront = False
 			return
 
-		tthTool.resetPitch(self.c_fontModel.UPM)
-		self.c_fontModel.setControlValues()
+		tthTool.fontModelForFont(f).setControlValues()
 
 		if createWindows:
 			self.mainPanel = mainPanel.MainPanel(self)
@@ -480,34 +466,13 @@ class TTH_RF_EventTool(BaseEventTool):
 		if self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 
-		self.c_fontModel.resetAscent()
-		self.c_fontModel.resetDescent()
-
 		self.zoneLabelPos = {}
-
-	def calculateHdmx(self):
-		self.generateFullTempFont()
-		self.c_fontModel.regenTextRendererFullFont()
-		if self.c_fontModel.textRendererFullFont == None:
-			return
-		ppems = {}
-		for size in self.c_fontModel.hdmx_ppem_sizes:
-			widths = {}
-			for glyphName in self.c_fontModel.f.glyphOrder:
-				width = self.c_fontModel.textRendererFullFont.get_glyph_advance_at_size(glyphName, size) / 64
-				widths[glyphName] = width
-			ppems[str(size)] = widths
-
-		self.c_fontModel.hdmx_ppems = ppems
-		ttTablesWriter.writehdmx(self.c_fontModel.f, self.c_fontModel.hdmx_ppems)
-
-	def updateHdmxForGlyph(self, glyphName):
-		pass
 
 	def updatePartialFont(self):
 		"""Typically called directly when the current glyph has been modifed."""
 		self.generatePartialTempFont()
-		self.c_fontModel.regenTextRenderer()
+		fontModel = tthTool.fontModelForFont(CurrentFont())
+		fontModel.regenTextRenderer()
 
 	def updatePartialFontIfNeeded(self):
 		"""Re-create the partial font if new glyphs are required."""
@@ -523,7 +488,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.updatePartialFont()
 
 	def prepareText(self):
-		g = self.getGlyph()
+		g, fm = self.getGAndFontModel()
 		unicodeToName = CurrentFont().getCharacterMapping()
 
 		if g == None:
@@ -532,7 +497,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			curGlyphName = g.name
 
 		texts = tthTool.previewString.split('/?')
-		udata = self.c_fontModel.f.naked().unicodeData
+		udata = fm.f.naked().unicodeData
 		output = []
 
 		for text in texts:
@@ -550,10 +515,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		return (output, curGlyphName)
 
 	def defineGlyphsForPartialTempFont(self, text, curGlyphName):
+		fontModel = tthTool.fontModelForFont(CurrentFont())
 		def addGlyph(s, name):
 			try:
 				s.add(name)
-				for component in self.c_fontModel.f[name].components:
+				for component in fontModel.f[name].components:
 					s.add(component.baseGlyph)
 			except:
 				pass
@@ -571,47 +537,49 @@ class TTH_RF_EventTool(BaseEventTool):
 		return glyphSet
 
 	def generateFullTempFont(self):
+		fontModel = tthTool.fontModelForFont(CurrentFont())
 		try:
-			self.c_fontModel.f.generate(self.c_fontModel.fulltempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+			fontModel.f.generate(fontModel.fulltempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 		except:
 			print 'ERROR: Unable to generate full font'
 
 	def generatePartialTempFont(self):
+		fontModel = tthTool.fontModelForFont(CurrentFont())
 		try:
 			tempFont = RFont(showUI=False)
-			tempFont.info.unitsPerEm = self.c_fontModel.f.info.unitsPerEm
-			tempFont.info.ascender = self.c_fontModel.f.info.ascender
-			tempFont.info.descender = self.c_fontModel.f.info.descender
-			tempFont.info.xHeight = self.c_fontModel.f.info.xHeight
-			tempFont.info.capHeight = self.c_fontModel.f.info.capHeight
+			tempFont.info.unitsPerEm = fontModel.f.info.unitsPerEm
+			tempFont.info.ascender = fontModel.f.info.ascender
+			tempFont.info.descender = fontModel.f.info.descender
+			tempFont.info.xHeight = fontModel.f.info.xHeight
+			tempFont.info.capHeight = fontModel.f.info.capHeight
 
-			tempFont.info.familyName = self.c_fontModel.f.info.familyName
-			tempFont.info.styleName = self.c_fontModel.f.info.styleName
+			tempFont.info.familyName = fontModel.f.info.familyName
+			tempFont.info.styleName = fontModel.f.info.styleName
 
-			tempFont.glyphOrder = self.c_fontModel.f.glyphOrder
+			tempFont.glyphOrder = fontModel.f.glyphOrder
 
-			if 'com.robofont.robohint.cvt ' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.cvt '] = self.c_fontModel.f.lib['com.robofont.robohint.cvt ']
-			if 'com.robofont.robohint.prep' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.prep'] = self.c_fontModel.f.lib['com.robofont.robohint.prep']
-			if 'com.robofont.robohint.fpgm' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.fpgm'] = self.c_fontModel.f.lib['com.robofont.robohint.fpgm']
-			if 'com.robofont.robohint.gasp' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.gasp'] = self.c_fontModel.f.lib['com.robofont.robohint.gasp']
-			if 'com.robofont.robohint.hdmx' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.hdmx'] = self.c_fontModel.f.lib['com.robofont.robohint.hdmx']
-			if 'com.robofont.robohint.maxp.maxStorage' in self.c_fontModel.f.lib:
-				tempFont.lib['com.robofont.robohint.maxp.maxStorage'] = self.c_fontModel.f.lib['com.robofont.robohint.maxp.maxStorage']
+			if 'com.robofont.robohint.cvt ' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.cvt '] = fontModel.f.lib['com.robofont.robohint.cvt ']
+			if 'com.robofont.robohint.prep' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.prep'] = fontModel.f.lib['com.robofont.robohint.prep']
+			if 'com.robofont.robohint.fpgm' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.fpgm'] = fontModel.f.lib['com.robofont.robohint.fpgm']
+			if 'com.robofont.robohint.gasp' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.gasp'] = fontModel.f.lib['com.robofont.robohint.gasp']
+			if 'com.robofont.robohint.hdmx' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.hdmx'] = fontModel.f.lib['com.robofont.robohint.hdmx']
+			if 'com.robofont.robohint.maxp.maxStorage' in fontModel.f.lib:
+				tempFont.lib['com.robofont.robohint.maxp.maxStorage'] = fontModel.f.lib['com.robofont.robohint.maxp.maxStorage']
 
 
 			for gName in tthTool.requiredGlyphsForPartialTempFont:
 				tempFont.newGlyph(gName)
-				tempFont[gName] = self.c_fontModel.f[gName]
-				tempFont[gName].unicode = self.c_fontModel.f[gName].unicode
-				if 'com.robofont.robohint.assembly' in self.c_fontModel.f[gName].lib:
-					tempFont[gName].lib['com.robofont.robohint.assembly'] = self.c_fontModel.f[gName].lib['com.robofont.robohint.assembly']
+				tempFont[gName] = fontModel.f[gName]
+				tempFont[gName].unicode = fontModel.f[gName].unicode
+				if 'com.robofont.robohint.assembly' in fontModel.f[gName].lib:
+					tempFont[gName].lib['com.robofont.robohint.assembly'] = fontModel.f[gName].lib['com.robofont.robohint.assembly']
 
-			tempFont.generate(self.c_fontModel.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+			tempFont.generate(fontModel.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
 			self.doneGeneratingPartialFont = True
 
 		except:
@@ -624,9 +592,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			size = 9
 
 		tthTool.setSize(size)
-		self.mainPanel.wTools.PPEMSizeComboBox.set(tthTool.PPM_Size)
-
-		tthTool.resetPitch(self.c_fontModel.UPM)
+		self.mainPanel.wTools.PPEMSizeComboBox.set(size)
 
 		self.cachedPathes['centers'] = None
 		self.cachedPathes['grid'] = None
@@ -638,10 +604,11 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.previewPanel.setNeedsDisplay()
 
 		if self.popOverIsOpened:
+			fontModel = tthTool.fontModelForFont(CurrentFont())
 			if hasattr(self.popover, 'ZoneDeltaOffsetSlider'):
-				if 'delta' in self.c_fontModel.zones[self.selectedZoneName]:
-					if str(size) in self.c_fontModel.zones[self.selectedZoneName]['delta']:
-						self.popover.ZoneDeltaOffsetSlider.set(self.c_fontModel.zones[self.selectedZoneName]['delta'][str(size)] + 8)
+				if 'delta' in fontModel.zones[self.selectedZoneName]:
+					if str(size) in fontModel.zones[self.selectedZoneName]['delta']:
+						self.popover.ZoneDeltaOffsetSlider.set(fontModel.zones[self.selectedZoneName]['delta'][str(size)] + 8)
 					else:
 						self.popover.ZoneDeltaOffsetSlider.set(8)
 		UpdateCurrentGlyphView()
@@ -678,12 +645,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.mainPanel.wTools.DeltaRange2ComboBox.set(tthTool.deltaRange2)
 
 	def changeBitmapPreview(self, preview):
-		if not self.doneGeneratingPartialFont: return
-		model = self.c_fontModel
-		if model.bitmapPreviewSelection == preview: return
-		model.setBitmapPreview(preview)
-		model.textRenderer = textRenderer.TextRenderer(model.partialtempfontpath, model.bitmapPreviewSelection)
-
+		fontModel.setBitmapPreview(preview)
 		if self.getGlyph() == None:
 			return
 		if self.previewPanel.isVisible():
