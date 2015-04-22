@@ -79,11 +79,10 @@ class PreviewPanel(TTHWindow):
 	def drawPreviewPanel(self):
 		if self.tthEventTool.ready == False:
 			return
-		if self.tthEventTool.getGlyph() == None:
-			return
+		glyph, fm = self.tthEventTool.getGAndFontModel()
+		if glyph == None: return
 		self.clickableSizes= {}
-
-		tr = self.tthEventTool.c_fontModel.textRenderer
+		tr = fm.textRenderer
 		if not tr:
 			return
 

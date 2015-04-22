@@ -1,7 +1,9 @@
-import tempfile
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 
+import tempfile
+
 from commons import helperFunctions, textRenderer
+from models.TTHTool import uniqueInstance as tthTool
 
 reload(helperFunctions)
 reload(textRenderer)
@@ -16,12 +18,6 @@ class TTHFont():
 	def __init__(self, font):
 		# the corresponding Robofont font
 		self.f = font
-		# Font-wise units per Em, typically 1000 for TrueType fonts
-		self.UPM = font.info.unitsPerEm
-		# FIXME: describe this
-		self.OS2WinAscent = font.info.openTypeOS2WinAscent
-		# FIXME: describe this
-		self.OS2WinDescent = font.info.openTypeOS2WinDescent
 
 		# A plist with custom 'SansPlomb' data
 		self.SP_tth_lib = helperFunctions.getOrPutDefault(self.f.lib, SP_tth_key, {})
@@ -33,28 +29,22 @@ class TTHFont():
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
 		self.setControlValues()
 
+		# Option for the generated TTH assembly
+		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(self.SP_tth_lib, "deactivateStemWhenGrayScale", False)
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
 		self.textRenderer = None
-		# What is this used for?
-		self.textRendererFullFont = None
-
-		tempPartial = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		# Path to temporary file for the partial font
+		tempPartial = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.partialtempfontpath = tempPartial.name
-		#print "partial:", self.partialtempfontpath
-
-		tempFull = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		# Path to temporary file for the full font (generated TTF)
-		self.fulltempfontpath = tempFull.name
-		#print "full:", self.fulltempfontpath
-		
 		tempPartial.close()
+		# Path to temporary file for the full font (generated TTF)
+		tempFull = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
+		self.fulltempfontpath = tempFull.name
 		tempFull.close()
 
-		# Option for the generated TTH assembly
-		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(self.SP_tth_lib, "deactivateStemWhenGrayScale", False)
-
+	def __del__(self):
+		self.f = None
 
 	def setControlValues(self):
 		try:
@@ -84,24 +74,31 @@ class TTHFont():
 	def setFont(self, font):
 		self.f = font
 
-	def setUPM(self, UPM):
-		self.UPM = int(UPM)
+	@property
+	def UPM(self):
+		return self.f.info.unitsPerEm
 
-	def resetAscent(self):
-		self.OS2WinAscent = self.f.info.openTypeOS2WinAscent
+	def getPitch(self):
+		return float(self.UPM) / tthTool.PPM_Size
 
-	def resetDescent(self):
-		self.OS2WinDescent = self.f.info.openTypeOS2WinDescent
+	@property
+	def ascent(self):
+		return self.f.info.openTypeOS2WinAscent
+
+	@property
+	def descent(self):
+		return self.f.info.openTypeOS2WinDescent
 
 	def regenTextRenderer(self):
 		self.textRenderer = textRenderer.TextRenderer(self.partialtempfontpath, self.bitmapPreviewSelection)
 
-	def regenTextRendererFullFont(self):
-		self.textRendererFullFont = textRenderer.TextRenderer(self.fulltempfontpath, self.bitmapPreviewSelection)
-
 	def setBitmapPreview(self, preview):
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
-			self.bitmapPreviewSelection = self.SP_tth_lib["bitmapPreviewSelection"] = preview
+			old = self.bitmapPreviewSelection
+			self.bitmapPreviewSelection = preview
+			self.SP_tth_lib["bitmapPreviewSelection"] = preview
+			if old != preview:
+				self.regenTextRenderer()
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
