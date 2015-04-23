@@ -130,19 +130,17 @@ class PreferencesSheet(object):
 			size = int(sender.get())
 		except:
 			size = tthTool.previewFrom
-		tthTool.previewFrom = helperFunctions.checkIntSize(size)
-		self.tthEventTool.applySizeChange()
+		tthTool.setPreviewSizeRange(size, tthTool.previewTo, self)
 
 	def displayToEditTextCallback(self, sender):
 		try:
 			size = int(sender.get())
 		except:
 			size = tthTool.previewTo
-		tthTool.previewTo = helperFunctions.checkIntSize(size)
-		self.tthEventTool.applySizeChange()
+		tthTool.setPreviewSizeRange(tthTool.previewFrom, size, self)
 
 	def displayPreviewInGlyphWindowCheckBoxCallback(self, sender):
-		self.tthEventTool.changePreviewInGlyphWindowState(sender.get())
+		tthTool.setPreviewInGlyphWindowState(sender.get())
 
 	def displayBitmapCheckBoxCallback(self, sender):
 		tthTool.setShowBitmap(sender.get())

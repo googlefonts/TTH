@@ -1,20 +1,21 @@
-from mojo.extensions import *
-from mojo.events import *
-from mojo.UI import *
-from robofab.world import *
-import robofab.interface.all.dialogs as Dialogs
+from mojo.extensions import ExtensionBundle, setExtensionDefault
+from mojo.events import BaseEventTool#, getActiveEventTool
+from mojo.roboFont import CurrentFont, AllFonts
+from mojo.UI import UpdateCurrentGlyphView
+from robofab.interface.all.dialogs import Message as FabMessage
 from lib.tools.defaults import getDefault, setDefault
-from AppKit import *
+from AppKit import NSColor, NSBezierPath, NSFontAttributeName, NSFont,\
+                   NSForegroundColorAttributeName, NSAttributedString,\
+			 NSShadow, NSGraphicsContext
 
 from models import TTHTool
-from views import previewInGlyphWindow, mainPanel
-from commons import helperFunctions, textRenderer, ttTablesWriter
+from views import mainPanel
+from commons import helperFunctions, textRenderer
 from commons import drawing as DR
 
-reload(TTHTool)
+#reload(TTHTool)
 reload(mainPanel)
 reload(helperFunctions)
-reload(ttTablesWriter)
 reload(textRenderer)
 
 tthTool = TTHTool.uniqueInstance
@@ -28,16 +29,16 @@ defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
 defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
 defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 
-whiteColor = NSColor.whiteColor()
-shadowColor =  NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
+whiteColor  = NSColor.whiteColor()
+shadowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 borderColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 
-gridColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
+gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
-zoneColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
-zoneColorLabel = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
-deltaColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
-#finalDeltaColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
+zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
+zoneColorLabel    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
+deltaColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
+#finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 
 class TTH_RF_EventTool(BaseEventTool):
 
@@ -46,7 +47,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# FIXME: Can we come up with a precise meaning for this boolean?
 		self.ready = False
-		self.drawingPreferencesChanged = False
+		self.curveDrawingPref = None
 
 		# Precomputed NSBezierPath'es
 		self.cachedPathes = {'grid':None, 'centers':None}
@@ -62,13 +63,13 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.popOverIsOpened = False
 		self.messageInFront = False
 
-		# FIXME: should go in TTHFont
-		self.previewInGlyphWindow = {}
 		self.zoneLabelPos = {}
 
 		tthTool.eventController = self
+		#print "SETTING Event Controller", tthTool.eventController
 
 	def __del__(self):
+		#print "KILLING Event Controller to None"
 		tthTool.eventController = None
 
 	def getGAndFontModel(self):
@@ -88,22 +89,21 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF when the tool button is pressed
 	###############################################################
 	def becomeActive(self):
-		if helperFunctions.checkDrawingPreferences() == False:
+		self.curveDrawingPref = getDefault('drawingSegmentType')
+		if self.curveDrawingPref != 'qcurve':
 			setDefault('drawingSegmentType', 'qcurve')
-			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
-		tthTool.updatePartialFontIfNeeded()
+		tthTool.becomeActive()
 		#self.calculateHdmx()
 
 	###################################################################
 	# This function is called by RF when another tool button is pressed
 	###################################################################
 	def becomeInactive(self):
-		self.deletePreviewInGlyphWindow()
 		self.mainPanel.close()
-		tthTool.previewPanel.hide()
-		if self.drawingPreferencesChanged == True:
-			setDefault('drawingSegmentType', 'curve')
+		tthTool.becomeInactive()
+		if self.curveDrawingPref != 'qcurve':
+			setDefault('drawingSegmentType', self.curveDrawingPref)
 
 	###########################################################
 	# This function is called by RF when the Glyph View changed
@@ -142,7 +142,6 @@ class TTH_RF_EventTool(BaseEventTool):
 		print "Font resign current", font.fileName
 		if self.fontClosed:
 			return
-		self.deletePreviewInGlyphWindow()
 		self.resetFont(createWindows=False)
 
 	###############################################################
@@ -209,33 +208,15 @@ class TTH_RF_EventTool(BaseEventTool):
 	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
 	########################################################################################
 	def draw(self, scale):
-		#self.scale = scale
-		g = self.getGlyph()
-		if g == None:
-			return
-		fm = tthTool.fontModelForGlyph(g)
-
-		# update the size of the waterfall subview
-		name = fm.f.fileName
-		drawPreview = False
-		if name not in self.previewInGlyphWindow:
-			if tthTool.showPreviewInGlyphWindow == 1:
-				self.createPreviewInGlyphWindow()
-				drawPreview = True
-		else:
-			superview = self.getNSView().enclosingScrollView().superview()
-			frame = superview.frame()
-			frame.size.width -= 30
-			frame.origin.x = 0
-			subView = self.previewInGlyphWindow[name]
-			subView.setFrame_(frame)
+		g, fm = self.getGAndFontModel()
+		pigw = fm.createPreviewInGlyphWindowIfNeeded()
 
 	###########################################
 	# This function is called by RF at mouse Up
 	###########################################
 	def mouseDown(self, point, clickCount):
 		g, fm = self.getGAndFontModel()
-		self.c_fontModel = fm
+		self.mouseDownFontModel = fm
 
 	###########################################
 	# This function is called by RF at mouse Up
@@ -245,12 +226,13 @@ class TTH_RF_EventTool(BaseEventTool):
 			x = self.getCurrentEvent().locationInWindow().x
 			y = self.getCurrentEvent().locationInWindow().y
 
-			fname = self.c_fontModel.f.fileName
-			if fname in self.previewInGlyphWindow:
-				for i in self.previewInGlyphWindow[fname].clickableSizesGlyphWindow:
+			fname = self.mouseDownFontModel.f.fileName
+			pigw = self.mouseDownFontModel.previewInGlyphWindow
+			if pigw != None:
+				for i in pigw.clickableSizesGlyphWindow:
 					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-						tthTool.changeSize(self.previewInGlyphWindow[fname].clickableSizesGlyphWindow[i])
-		del self.c_fontModel
+						tthTool.changeSize(pigw.clickableSizesGlyphWindow[i])
+		del self.mouseDownFontModel
 
 	def drawSideBearings(self, scale, pitch, name, fontModel):
 		try:
@@ -352,8 +334,9 @@ class TTH_RF_EventTool(BaseEventTool):
 			else:
 				labelColor = backgroundColor
 
-		currentTool = getActiveEventTool()
-		view = currentTool.getNSView()
+		#currentTool = getActiveEventTool()
+		#view = currentTool.getNSView()
+		view = self.getNSView()
 
 		attributes = {
 			NSFontAttributeName : NSFont.boldSystemFontOfSize_(9),
@@ -409,34 +392,6 @@ class TTH_RF_EventTool(BaseEventTool):
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
 
-	def deletePreviewInGlyphWindow(self):
-		g, fm = self.getGAndFontModel()
-		name = fm.f.fileName
-		if name in self.previewInGlyphWindow:
-			self.previewInGlyphWindow[name].removeFromSuperview()
-			del self.previewInGlyphWindow[name]
-
-	def changePreviewInGlyphWindowState(self, onOff):
-		if onOff == 1 and tthTool.showPreviewInGlyphWindow == 0:
-			self.createPreviewInGlyphWindow()
-		elif onOff == 0 and tthTool.showPreviewInGlyphWindow == 1:
-			self.deletePreviewInGlyphWindow()
-		tthTool.setPreviewInGlyphWindowState(onOff)
-		UpdateCurrentGlyphView()
-
-	def createPreviewInGlyphWindow(self):
-		g, fm = self.getGAndFontModel()
-		name = fm.f.fileName
-		if name in self.previewInGlyphWindow: return
-		superview = self.getNSView().enclosingScrollView().superview()
-		newView = previewInGlyphWindow.PreviewInGlyphWindow.alloc().init_withTTHEventTool(self)
-		superview.addSubview_(newView)
-		frame = superview.frame()
-		frame.size.width -= 30
-		frame.origin.x = 0
-		newView.setFrame_(frame)
-		self.previewInGlyphWindow[name] = newView
-
 	def resetFont(self, createWindows=False):
 		f = CurrentFont()
 		if f == None:
@@ -444,7 +399,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if helperFunctions.checkSegmentType(f) == False:
 			self.messageInFront = True
-		 	Dialogs.Message("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
+		 	FabMessage("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
 			self.messageInFront = False
 			return
 
@@ -474,19 +429,6 @@ class TTH_RF_EventTool(BaseEventTool):
 		except:
 			print 'ERROR: Unable to generate full font'
 
-	def applySizeChange(self):
-		fromS = tthTool.previewFrom
-		toS = tthTool.previewTo
-		if fromS > toS:
-			fromS = toS
-		if toS > fromS + 100:
-			toS = fromS + 100
-		if hasattr(self.mainPanel, 'preferencesSheet'):
-			self.mainPanel.preferencesSheet.w.viewAndSettingsBox.displayFromEditText.set(fromS)
-			self.mainPanel.preferencesSheet.w.viewAndSettingsBox.displayToEditText.set(toS)
-		self.changeDisplayPreviewSizesFromTo(fromS, toS)
-		UpdateCurrentGlyphView()
-
 	def sizeHasChanged(self):
 		self.cachedPathes['centers'] = None
 		self.cachedPathes['grid'] = None
@@ -500,10 +442,3 @@ class TTH_RF_EventTool(BaseEventTool):
 		if tthTool.previewPanel.isVisible():
 			tthTool.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
-
-	def changeDisplayPreviewSizesFromTo(self, fromSize, toSize):
-		tthTool.previewFrom = fromSize
-		tthTool.previewTo = toSize
-		setExtensionDefault(defaultKeyPreviewFrom, tthTool.previewFrom)
-		setExtensionDefault(defaultKeyPreviewTo, tthTool.previewTo)
-		tthTool.previewPanel.setNeedsDisplay()

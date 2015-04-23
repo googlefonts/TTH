@@ -1,5 +1,4 @@
 import math
-from lib.tools.defaults import getDefault#, setDefault
 
 def getOrDefault(dico, key, default):
 	try:
@@ -181,23 +180,12 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
-def checkDrawingPreferences():
-	return (getDefault('drawingSegmentType') == 'qcurve')
-
 def checkSegmentType(font):
 	try:
 		segmentType = font.preferredSegmentType
 	except:
 		segmentType = font.preferedSegmentType
 	return (segmentType == 'qcurve' or segmentType == 'qCurve')
-
-def checkIntSize(size):
-		try:
-			size = int(size)
-		except ValueError:
-			size = 9
-		if size < 8: return 8
-		return size
 
 def roundbase(x, base):
 	return int(base * round(float(x)/base))

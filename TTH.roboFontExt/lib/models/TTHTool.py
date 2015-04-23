@@ -90,17 +90,14 @@ class TTHTool():
 		# TTHFont instances for each opened font
 		self._fontModels = {}
 
+		#print "INITIALIZING Event Controller to None"
 		self.eventController = None
 		self._previewPanel  = None
 
 	def __del__(self):
 		pass
 
-	@property
-	def previewPanel(self):
-		if self._previewPanel == None:
-			self._previewPanel  = previewPanel.PreviewPanel()
-		return self._previewPanel
+# - - - - - - - - - - - - - - - - - - - - - FONT MODELS
 
 	def getGAndFontModel(self):
 		if self.eventController != None:
@@ -135,6 +132,20 @@ class TTHTool():
 		if g != None:
 			return self.delFontModelForFont(g.getParent())
 
+# - - - - - - - - - - - - - - - - - - - - - PREVIEW and CURRENT SIZE
+
+	def setPreviewSizeRange(self, fromS, toS, prefsSheet):
+		fromS = min(200, max(fromS, 8))
+		toS   = min(fromS+100, max(toS, fromS))
+		self.previewFrom = fromS
+		self.previewTo   = toS
+		prefsSheet.w.viewAndSettingsBox.displayFromEditText.set(fromS)
+		prefsSheet.w.viewAndSettingsBox.displayToEditText.set(toS)
+		setExtensionDefault(defaultKeyPreviewFrom, fromS)
+		setExtensionDefault(defaultKeyPreviewTo, toS)
+		self.previewPanel.setNeedsDisplay()
+		UpdateCurrentGlyphView()
+
 	def setSize(self, s):
 		self._PPM_Size = s
 		setExtensionDefault(defaultKeyCurrentPPMSize, s)
@@ -152,6 +163,8 @@ class TTHTool():
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
+# - - - - - - - - - - - - - - - - - - - - - - - DELTA RANGE
+
 	def changeDeltaRange(self, value1, value2):
 		try:
 			value1 = int(value1)
@@ -167,6 +180,8 @@ class TTHTool():
 		self.deltaRange2 = value2
 		self.eventController.mainPanel.displayDeltaRange(value1, value2)
 
+# - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
+
 	def setPreviewString(self, previewString):
 		if previewString != None:
 			self.previewString = previewString
@@ -174,9 +189,43 @@ class TTHTool():
 			self.previewString = '/?'
 		self.previewPanel.window.previewEditText.set(self.previewString)
 
+	def samplesStringsHaveChanged(self, sampleStrings):
+		currentString = self.previewPanel.window.previewEditText.get()
+		self.previewSampleStringsList = sampleStrings
+		setExtensionDefault(defaultKeyPreviewSampleStrings, self.previewSampleStringsList)
+		self.previewPanel.window.previewEditText.setItems(self.previewSampleStringsList)
+		self.setPreviewString(currentString)
+
+# - - - - - - - - - - - - - - - - - - - - PREVIEW PANEL & IN GLYPH-WINDOW
+
+	@property
+	def previewPanel(self):
+		if self._previewPanel == None:
+			self._previewPanel  = previewPanel.PreviewPanel()
+		return self._previewPanel
+
 	def setPreviewInGlyphWindowState(self, onOff):
 		self.showPreviewInGlyphWindow = onOff
 		setExtensionDefault(defaultKeyShowPreviewInGlyphWindow, onOff)
+		for fm in self._fontModels.itervalues():
+			fm.setPreviewInGlyphWindowVisibility(onOff)
+		UpdateCurrentGlyphView()
+
+# - - - - - - - - - - - - - - - - - - - ACTIVE / INACTIVE
+
+	def becomeActive(self):
+		self.updatePartialFontIfNeeded()
+		for fm in self._fontModels.itervalues():
+			fm.setPreviewInGlyphWindowVisibility(self.showPreviewInGlyphWindow)
+		UpdateCurrentGlyphView()
+
+	def becomeInactive(self):
+		self.previewPanel.hide()
+		for fm in self._fontModels.itervalues():
+			fm.killPreviewInGlyphWindowVisibility()
+		UpdateCurrentGlyphView()
+
+# - - - - - - - - - - - - - - - - - - - GLYPH WINDOW DRAWING OPTIONS
 
 	def setShowBitmap(self, onOff):
 		self.showBitmap = onOff
@@ -210,12 +259,7 @@ class TTHTool():
 		self.centerPixelSize = value
 		setExtensionDefault(defaultKeyCenterPixelSize, value)
 
-	def samplesStringsHaveChanged(self, sampleStrings):
-		currentString = self.previewPanel.window.previewEditText.get()
-		self.previewSampleStringsList = sampleStrings
-		setExtensionDefault(defaultKeyPreviewSampleStrings, self.previewSampleStringsList)
-		self.previewPanel.window.previewEditText.setItems(self.previewSampleStringsList)
-		self.setPreviewString(currentString)
+# - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def updatePartialFontIfNeeded(self):
 		g, fm = self.getGAndFontModel()

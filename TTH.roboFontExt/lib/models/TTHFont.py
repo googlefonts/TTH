@@ -7,6 +7,8 @@ from commons import helperFunctions, textRenderer
 
 from models.TTHTool import uniqueInstance as tthTool
 
+from views import previewInGlyphWindow as PIGW
+
 reload(helperFunctions)
 reload(textRenderer)
 
@@ -14,7 +16,6 @@ FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
 gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
-
 
 class TTHFont():
 	def __init__(self, font):
@@ -33,6 +34,9 @@ class TTHFont():
 
 		# Option for the generated TTH assembly
 		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(self.SP_tth_lib, "deactivateStemWhenGrayScale", False)
+
+		self._pigw = None # internal preview in glyph-window
+
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
 		self.textRenderer = None
@@ -47,6 +51,41 @@ class TTHFont():
 
 	def __del__(self):
 		self.f = None
+		if self._pigw != None:
+			self._pigw.removeFromSuperview()
+			self._pigw = None
+
+# - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
+
+	def createPreviewInGlyphWindowIfNeeded(self):
+		if self._pigw == None:
+			self._pigw = self.createPreviewInGlyphWindow()
+
+	@property
+	def previewInGlyphWindow(self):
+		return self._pigw
+
+	def killPreviewInGlyphWindowVisibility(self):
+		if self._pigw == None: return
+		self._pigw.setHidden_(True)
+		self._pigw.removeFromSuperview()
+		self._pigw = None
+
+	def setPreviewInGlyphWindowVisibility(self, visible):
+		if self._pigw == None: return
+		self._pigw.setHidden_(visible == 0)
+
+	def createPreviewInGlyphWindow(self):
+		superview = tthTool.eventController.getNSView().enclosingScrollView().superview()
+		if superview == None: return
+		newView = PIGW.PreviewInGlyphWindow.alloc().initWithFontAndTool(self, tthTool)
+		superview.addSubview_(newView)
+		newView.recomputeFrame()
+		if tthTool.showPreviewInGlyphWindow == 0:
+			newView.setHidden_(True)
+		return newView
+
+# - - - - - - - - - - - - - - - -
 
 	def setControlValues(self):
 		try:

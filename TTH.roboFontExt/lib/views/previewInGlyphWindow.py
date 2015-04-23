@@ -4,7 +4,6 @@ from AppKit import *
 from math import ceil
 
 from commons import drawing as DR
-from models.TTHTool import uniqueInstance as tthTool
 
 bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 blackColor = NSColor.blackColor()
@@ -15,9 +14,10 @@ redColor = NSColor.redColor()
 
 class PreviewInGlyphWindow(NSView):
 
-	def init_withTTHEventTool(self, tthEventTool):
+	def initWithFontAndTool(self, fontModel, tthTool):
 		self.init()
-		self.tthEventTool = tthEventTool
+		self.fontModel = fontModel
+		self.tthTool = tthTool
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((30, 65), (190, 190)), 3, 3)
@@ -40,26 +40,33 @@ class PreviewInGlyphWindow(NSView):
 		self.xAxisPath = xAxisPath
 		return self
 
+	def recomputeFrame(self):
+		frame = self.superview().frame()
+		frame.size.width -= 30
+		frame.origin.x = 0
+		self.setFrame_(frame)
+
 	def drawRect_(self, rect):
+		self.recomputeFrame()
 		bkgColor.set()
 		self.backPath.fill()
 
 		blackColor.set()
-		if tthTool.selectedAxis == 'Y':
+		if self.tthTool.selectedAxis == 'Y':
 			self.yAxisPath.stroke()
 		else:
 			self.xAxisPath.stroke()
 
 		self.clickableSizesGlyphWindow = {}
 
-		glyph, fm = self.tthEventTool.getGAndFontModel()
+		glyph = self.tthTool.eventController.getGlyph()
 		if glyph == None: return
-		tr = fm.textRenderer
+		tr = self.fontModel.textRenderer
 		advance = 40
 		glyphname = [glyph.name]
 		color = blackColor
 		heightOfTextSize = 20
-		for size in range(tthTool.previewFrom, tthTool.previewTo + 1, 1):
+		for size in range(self.tthTool.previewFrom, self.tthTool.previewTo + 1, 1):
 
 			self.clickableSizesGlyphWindow[(advance, heightOfTextSize)] = size
 
@@ -68,14 +75,14 @@ class PreviewInGlyphWindow(NSView):
 			delta_pos = tr.render_named_glyph_list(glyphname)
 
 			#print advance,rect
-			
-			if size == tthTool.PPM_Size: color = redColor
+			ppem = self.tthTool.PPM_Size
+			if size == ppem: color = redColor
 			DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)
-			if size == tthTool.PPM_Size: color = blackColor
+			if size == ppem: color = blackColor
 			advance += delta_pos[0] + 5
 
-		tr.set_cur_size(tthTool.PPM_Size)
+		tr.set_cur_size(ppem)
 		tr.set_pen((40, 110))
-		scale = 170.0/tthTool.PPM_Size
+		scale = 170.0/ppem
 		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
 
