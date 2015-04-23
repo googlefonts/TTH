@@ -1,15 +1,12 @@
-from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.extensions import getExtensionDefault, setExtensionDefault
-from mojo.roboFont import CurrentFont, RFont
+from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
-
-from models import TTHFont
-from views import previewPanel
+from mojo.roboFont import CurrentFont
 
 import string
 
-reload(TTHFont)
-reload(previewPanel)
+# IMPORTANT: All the modules that use the unique instance of TTHTool and are
+# used in this file should be imported at the bottom of this file.
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -70,7 +67,7 @@ class TTHTool():
 		self.centerPixelSize	= getExtensionDefault(defaultKeyCenterPixelSize,	fallback=3)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
-		self.requiredGlyphsForPartialTempFont = set(['space'])
+		self.requiredGlyphsForPartialTempFont = set()
 
 		# Stems are rounded to a multiple of that value
 		# FIXME: Check if this is still used? If so, check if we can get rid of it?
@@ -127,8 +124,12 @@ class TTHTool():
 
 	def fontModelForGlyph(self, g):
 		if g is None:
+			f = CurrentFont()
+		else:
+			f = g.getParent()
+		if f is None:
 			return None
-		return self.fontModelForFont(g.getParent())
+		return self.fontModelForFont(f)
 
 	def delFontModelForGlyph(self, g):
 		if g != None:
@@ -216,70 +217,18 @@ class TTHTool():
 		self.previewPanel.window.previewEditText.setItems(self.previewSampleStringsList)
 		self.setPreviewString(currentString)
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
-
-	def generatePartialTempFont(self):
-		#try:
-			fontModel = self.fontModelForFont(CurrentFont())
-			tempFont = RFont(showUI=False)
-			info = fontModel.f.info
-			tempFont.info.unitsPerEm = info.unitsPerEm
-			tempFont.info.ascender   = info.ascender
-			tempFont.info.descender  = info.descender
-			tempFont.info.xHeight    = info.xHeight
-			tempFont.info.capHeight  = info.capHeight
-			tempFont.info.familyName = info.familyName
-			tempFont.info.styleName  = info.styleName
-			tempFont.glyphOrder = fontModel.f.glyphOrder
-			lib = fontModel.f.lib
-			for key in ['com.robofont.robohint.cvt ',
-					'com.robofont.robohint.prep',
-					'com.robofont.robohint.fpgm',
-					'com.robofont.robohint.gasp',
-					'com.robofont.robohint.hdmx',
-					'com.robofont.robohint.maxp.maxStorage']:
-				if key in lib:
-					tempFont.lib[key] = lib[key]
-			for name in self.requiredGlyphsForPartialTempFont:
-				oldG = fontModel.f[name]
-				tempFont[name] = oldG
-				newG = tempFont[name]
-				newG.unicode = oldG.unicode # FIXME: why?
-				key = 'com.robofont.robohint.assembly'
-				if key in oldG.lib:
-					newG.lib[key] = oldG.lib[key]
-			tempFont.generate(fontModel.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		#except:
-		#	print 'ERROR: Unable to generate temporary font'
-
-	def updatePartialFont(self):
-		"""Typically called directly when the current glyph has been modifed."""
-		self.generatePartialTempFont()
-		fontModel = self.fontModelForFont(CurrentFont())
-		fontModel.regenTextRenderer()
-
 	def updatePartialFontIfNeeded(self):
-		"""Re-create the partial font if new glyphs are required."""
-		(text, curGlyphString) = self.prepareText()
-		curSet = self.requiredGlyphsForPartialTempFont
-		newSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
-		regenerate = not newSet.issubset(curSet)
-		n = len(curSet)
-		if (n > 128) and (len(newSet) < n):
-			regenerate = True
-		if regenerate:
-			self.requiredGlyphsForPartialTempFont = newSet
-			self.updatePartialFont()
-
-	def prepareText(self):
 		g, fm = self.getGAndFontModel()
+		self.requiredGlyphsForPartialTempFont = fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
+
+	def prepareText(self, g, font):
 		if g == None:
-			curGlyphName = ''
+			curGlyphName = '.notdef'
 		else:
 			curGlyphName = g.name
 
 		texts = self.previewString.split('/?')
-		udata = fm.f.naked().unicodeData
+		udata = font.naked().unicodeData
 		output = []
 
 		for text in texts:
@@ -296,29 +245,11 @@ class TTHTool():
 		output = output[:-1]
 		return (output, curGlyphName)
 
-	def defineGlyphsForPartialTempFont(self, text, curGlyphName):
-		font = CurrentFont()
-		def addGlyph(s, name):
-			try:
-				s.add(name)
-				for component in font[name].components:
-					s.add(component.baseGlyph)
-			except:
-				pass
-		glyphSet = set()
-		addGlyph(glyphSet, 'space')
-		#for i in string.lowercase:
-		#	addGlyph(glyphSet, i)
-		#for i in string.uppercase:
-		#	addGlyph(glyphSet, i)
-		#for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-		#	addGlyph(glyphSet, i)
-		addGlyph(glyphSet, curGlyphName)
-		for name in text:
-			addGlyph(glyphSet, name)
-		return glyphSet
 
 # THE UNIQUE INSTANCE
 uniqueInstance = TTHTool()
-TTHFont.tthTool      = uniqueInstance
-previewPanel.tthTool = uniqueInstance
+
+from models import TTHFont
+from views import previewPanel
+reload(TTHFont)
+reload(previewPanel)

@@ -1,6 +1,6 @@
 from mojo.events import installTool
-from controllers import toolController
+from controllers import RFEventTool
 
-reload(toolController)
+reload(RFEventTool)
 
-installTool(toolController.TTH_RF_EventTool())
+installTool(RFEventTool.TTH_RF_EventTool())

@@ -16,7 +16,7 @@ defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
 blackColor = NSColor.blackColor()
 redColor = NSColor.redColor()
 
-tthTool = None
+from models.TTHTool import uniqueInstance as tthTool
 
 class PreviewPanel(TTHWindow):
 	def __init__(self):
@@ -80,7 +80,7 @@ class PreviewPanel(TTHWindow):
 
 		advanceWidthUserString = 0
 		advanceWidthCurrentGlyph = 0
-		(namedGlyphList, curGlyphName) = tthTool.prepareText()
+		(namedGlyphList, curGlyphName) = tthTool.prepareText(glyph, fm.f)
 		glyphs = tr.names_to_indices(namedGlyphList)
 		curGlyph = tr.names_to_indices([curGlyphName])[0]
 		# render user string

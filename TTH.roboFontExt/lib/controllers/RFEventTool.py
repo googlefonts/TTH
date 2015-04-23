@@ -6,16 +6,16 @@ import robofab.interface.all.dialogs as Dialogs
 from lib.tools.defaults import getDefault, setDefault
 from AppKit import *
 
-from commons import helperFunctions, textRenderer, ttTablesWriter
-from commons import drawing as DR
 from models import TTHTool
 from views import previewInGlyphWindow, mainPanel
+from commons import helperFunctions, textRenderer, ttTablesWriter
+from commons import drawing as DR
 
-reload(helperFunctions)
-reload(textRenderer)
-reload(ttTablesWriter)
 reload(TTHTool)
 reload(mainPanel)
+reload(helperFunctions)
+reload(ttTablesWriter)
+reload(textRenderer)
 
 tthTool = TTHTool.uniqueInstance
 
@@ -73,8 +73,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def getGAndFontModel(self):
 		g = self.getGlyph()
-		if g == None:
-			return (None, None)
 		return (g, tthTool.fontModelForGlyph(g))
 
 	#################################################################################
@@ -94,7 +92,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			setDefault('drawingSegmentType', 'qcurve')
 			self.drawingPreferencesChanged = True
 		self.resetFont(createWindows=True)
-		tthTool.updatePartialFont()
+		tthTool.updatePartialFontIfNeeded()
 		#self.calculateHdmx()
 
 	###################################################################
@@ -160,7 +158,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
 
 		self.resetFont(createWindows=False)
-		tthTool.updatePartialFont()
+		tthTool.updatePartialFontIfNeeded()
 		self.fontClosed = False
 
 	########################################################
@@ -173,7 +171,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# self.assemblyWindow.showOrHide()
 
 		self.resetFont(createWindows=False)
-		tthTool.updatePartialFont()
+		tthTool.updatePartialFontIfNeeded()
 
 	########################################################################################
 	# This function is called by RF whenever the Background of the glyph Window needs redraw

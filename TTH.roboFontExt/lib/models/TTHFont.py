@@ -1,10 +1,11 @@
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
+from mojo.roboFont import CurrentFont, RFont
 
 import tempfile
 
 from commons import helperFunctions, textRenderer
 
-tthTool = None
+from models.TTHTool import uniqueInstance as tthTool
 
 reload(helperFunctions)
 reload(textRenderer)
@@ -103,3 +104,79 @@ class TTHFont():
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
+
+	def generatePartialTempFont(self, glyphSet):
+		#try:
+			tempFont = RFont(showUI=False)
+			info = self.f.info
+			tempFont.info.unitsPerEm = info.unitsPerEm
+			tempFont.info.ascender   = info.ascender
+			tempFont.info.descender  = info.descender
+			tempFont.info.xHeight    = info.xHeight
+			tempFont.info.capHeight  = info.capHeight
+			tempFont.info.familyName = info.familyName
+			tempFont.info.styleName  = info.styleName
+			tempFont.glyphOrder = self.f.glyphOrder
+			lib = self.f.lib
+			for key in ['com.robofont.robohint.cvt ',
+					'com.robofont.robohint.prep',
+					'com.robofont.robohint.fpgm',
+					'com.robofont.robohint.gasp',
+					'com.robofont.robohint.hdmx',
+					'com.robofont.robohint.maxp.maxStorage']:
+				if key in lib:
+					tempFont.lib[key] = lib[key]
+			for name in glyphSet:
+				#print '>'+name+'<'
+				oldG = self.f[name]
+				tempFont[name] = oldG
+				newG = tempFont[name]
+				newG.unicode = oldG.unicode # FIXME: why?
+				key = 'com.robofont.robohint.assembly'
+				if key in oldG.lib:
+					newG.lib[key] = oldG.lib[key]
+			tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+		#except:
+		#	print 'ERROR: Unable to generate temporary font'
+
+	def updatePartialFont(self, glyphSet):
+		"""Typically called directly when the current glyph has been modifed."""
+		self.generatePartialTempFont(glyphSet)
+		self.regenTextRenderer()
+
+	def updatePartialFontIfNeeded(self, g, curSet):
+		"""Re-create the partial font if new glyphs are required."""
+		(text, curGlyphString) = tthTool.prepareText(g, self.f)
+		newSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
+		regenerate = not newSet.issubset(curSet)
+		n = len(curSet)
+		if (n > 128) and (len(newSet) < n):
+			regenerate = True
+		if regenerate:
+			self.updatePartialFont(newSet)
+			return newSet
+		return curSet
+
+	def defineGlyphsForPartialTempFont(self, text, curGlyphName):
+		def addGlyph(s, name):
+			try:
+				s.add(name)
+				for component in self.f[name].components:
+					s.add(component.baseGlyph)
+			except:
+				pass
+		glyphSet = set()
+		addGlyph(glyphSet, 'space')
+		#for i in string.lowercase:
+		#	addGlyph(glyphSet, i)
+		#for i in string.uppercase:
+		#	addGlyph(glyphSet, i)
+		#for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
+		#	addGlyph(glyphSet, i)
+		addGlyph(glyphSet, curGlyphName)
+		for name in text:
+			addGlyph(glyphSet, name)
+		return glyphSet
+

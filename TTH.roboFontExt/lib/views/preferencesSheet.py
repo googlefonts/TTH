@@ -6,7 +6,7 @@ import string
 from commons import helperFunctions
 from models.TTHTool import uniqueInstance as tthTool
 
-reload(helperFunctions)
+#reload(helperFunctions)
 
 class PreferencesSheet(object):
 
@@ -161,7 +161,7 @@ class PreferencesSheet(object):
 		UpdateCurrentGlyphView()
 
 	def gridOpacitySliderCallBack(self, sender):
-		tthTool.setGridOpacity(value)
+		tthTool.setGridOpacity(sender.get())
 		UpdateCurrentGlyphView()
 
 	def displayPixelCentersCheckBoxCallback(self, sender):

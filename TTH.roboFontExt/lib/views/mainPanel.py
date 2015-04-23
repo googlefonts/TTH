@@ -349,7 +349,7 @@ class MainPanel(BaseWindowController):
 			pass
 
 	def showPreviewCallback(self):
-		tthTool.updatePartialFont()
+		tthTool.updatePartialFontIfNeeded()
 		tthTool.previewPanel.show()
 
 	##########
