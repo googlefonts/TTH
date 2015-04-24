@@ -222,7 +222,7 @@ class TTHTool():
 	def becomeInactive(self):
 		self.previewPanel.hide()
 		for fm in self._fontModels.itervalues():
-			fm.killPreviewInGlyphWindowVisibility()
+			fm.killPreviewInGlyphWindow()
 		UpdateCurrentGlyphView()
 
 # - - - - - - - - - - - - - - - - - - - GLYPH WINDOW DRAWING OPTIONS

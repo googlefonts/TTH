@@ -65,7 +65,7 @@ class TTHFont():
 	def previewInGlyphWindow(self):
 		return self._pigw
 
-	def killPreviewInGlyphWindowVisibility(self):
+	def killPreviewInGlyphWindow(self):
 		if self._pigw == None: return
 		self._pigw.setHidden_(True)
 		self._pigw.removeFromSuperview()
