@@ -1,7 +1,7 @@
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
-from mojo.roboFont import CurrentFont
+from mojo.roboFont import CurrentFont, CurrentGlyph
 
 import string
 
@@ -10,24 +10,27 @@ import string
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
-defaultKeyCurrentPPMSize			= DefaultKeyStub + "currentPPMSize"
-defaultKeySelectedAxis			= DefaultKeyStub + "selectedAxis"
-defaultKeyPreviewSampleStrings	= DefaultKeyStub + "previewSampleStrings"
-defaultKeyPreviewFrom			= DefaultKeyStub + "previewFrom"
-defaultKeyPreviewTo				= DefaultKeyStub + "previewTo"
-defaultKeyAlwaysRefresh			= DefaultKeyStub + "alwaysRefresh"
-defaultKeyShowOutline			= DefaultKeyStub + "showOutline"
-defaultKeyOutlineThickness		= DefaultKeyStub + "outlineThickness"
-defaultKeyShowBitmap			= DefaultKeyStub + "showBitmap"
-defaultKeyBitmapOpacity			= DefaultKeyStub + "bitmapOpacity"
-defaultKeyShowGrid				= DefaultKeyStub + "showGrid"
-defaultKeyGridOpacity			= DefaultKeyStub + "gridOpacity"
-defaultKeyShowCenterPixels		= DefaultKeyStub + "showCenterPixels"
-defaultKeyCenterPixelSize		= DefaultKeyStub + "centerPixelSize"
-defaultKeyShowPreviewInGlyphWindow	= DefaultKeyStub + "showPreviewInGlyphWindow"
+defaultKeyCurrentPPMSize           = DefaultKeyStub + "currentPPMSize"
+defaultKeySelectedAxis             = DefaultKeyStub + "selectedAxis"
+defaultKeyPreviewSampleStrings     = DefaultKeyStub + "previewSampleStrings"
+defaultKeyPreviewFrom              = DefaultKeyStub + "previewFrom"
+defaultKeyPreviewTo                = DefaultKeyStub + "previewTo"
+defaultKeyAlwaysRefresh            = DefaultKeyStub + "alwaysRefresh"
+defaultKeyShowOutline              = DefaultKeyStub + "showOutline"
+defaultKeyOutlineThickness         = DefaultKeyStub + "outlineThickness"
+defaultKeyShowBitmap               = DefaultKeyStub + "showBitmap"
+defaultKeyBitmapOpacity            = DefaultKeyStub + "bitmapOpacity"
+defaultKeyShowGrid                 = DefaultKeyStub + "showGrid"
+defaultKeyGridOpacity              = DefaultKeyStub + "gridOpacity"
+defaultKeyShowCenterPixels         = DefaultKeyStub + "showCenterPixels"
+defaultKeyCenterPixelSize          = DefaultKeyStub + "centerPixelSize"
+defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 
 class TTHTool():
 	def __init__(self):
+
+		# For debugging (re)loading order of the modules
+		self._printLoadings = True
 
 		# The current Point/Pixel Per Em size for displaying the hinted preview
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
@@ -53,7 +56,9 @@ class TTHTool():
 		
 		self.previewString = '/?'
 
-		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings, fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789', string.uppercase, string.lowercase])
+		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings,\
+				fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789',\
+						string.uppercase, string.lowercase])
 		self.previewFrom		= getExtensionDefault(defaultKeyPreviewFrom,		fallback=9)
 		self.previewTo		= getExtensionDefault(defaultKeyPreviewTo,		fallback=72)
 		self.alwaysRefresh	= getExtensionDefault(defaultKeyAlwaysRefresh,		fallback=1)
@@ -102,7 +107,8 @@ class TTHTool():
 	def getGAndFontModel(self):
 		if self.eventController != None:
 			return self.eventController.getGAndFontModel()
-		return (None, None)
+		g = CurrentGlyph()
+		return (None, self.fontModelForGlyph(g))
 
 	def fontModelForFont(self, font):
 		key = font.fileName
@@ -292,6 +298,8 @@ class TTHTool():
 
 # THE UNIQUE INSTANCE
 uniqueInstance = TTHTool()
+
+if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
 from views import previewPanel

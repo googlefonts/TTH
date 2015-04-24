@@ -86,3 +86,4 @@ class PreviewInGlyphWindow(NSView):
 		scale = 170.0/ppem
 		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
 
+if tthTool._printLoadings: print "previewInGlyphWindow, ",

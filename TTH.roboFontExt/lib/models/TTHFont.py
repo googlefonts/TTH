@@ -14,8 +14,8 @@ reload(textRenderer)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
-gasp_key = TTFCompilerSettings.roboHintGaspLibKey
-hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
+gasp_key   = TTFCompilerSettings.roboHintGaspLibKey
+hdmx_key   = TTFCompilerSettings.roboHintHdmxLibKey
 
 class TTHFont():
 	def __init__(self, font):
@@ -23,9 +23,9 @@ class TTHFont():
 		self.f = font
 
 		# A plist with custom 'SansPlomb' data
-		self.SP_tth_lib = helperFunctions.getOrPutDefault(self.f.lib, SP_tth_key, {})
+		SPLib = self.getSPLib()
 		# The rasterizer mode: Monochrome, Grayscale, or Subpixel
-		self.bitmapPreviewSelection = helperFunctions.getOrPutDefault(self.SP_tth_lib, "bitmapPreviewSelection", 'Monochrome')
+		self.bitmapPreviewSelection = helperFunctions.getOrPutDefault(SPLib, "bitmapPreviewSelection", 'Monochrome')
 
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
@@ -33,7 +33,7 @@ class TTHFont():
 		self.setControlValues()
 
 		# Option for the generated TTH assembly
-		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(self.SP_tth_lib, "deactivateStemWhenGrayScale", False)
+		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", False)
 
 		self._pigw = None # internal preview in glyph-window
 
@@ -54,6 +54,11 @@ class TTHFont():
 		if self._pigw != None:
 			self._pigw.removeFromSuperview()
 			self._pigw = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
+
+	def getSPLib(self):
+		return helperFunctions.getOrPutDefault(self.f.lib, SP_tth_key, {})
 
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
@@ -137,7 +142,7 @@ class TTHFont():
 		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
 			old = self.bitmapPreviewSelection
 			self.bitmapPreviewSelection = preview
-			self.SP_tth_lib["bitmapPreviewSelection"] = preview
+			self.getSPLib()["bitmapPreviewSelection"] = preview
 			if old != preview:
 				self.regenTextRenderer()
 
@@ -219,3 +224,4 @@ class TTHFont():
 			addGlyph(glyphSet, name)
 		return glyphSet
 
+if tthTool._printLoadings: print "TTHFont, ",

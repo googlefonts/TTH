@@ -150,3 +150,5 @@ class PreviewPanel(TTHWindow):
 
 	def resizeView(self, posSize):
 		self.window.view.getNSView().setFrame_(((0, 0), self.calculateCanvasSize(posSize)))
+
+if tthTool._printLoadings: print "previewPanel, ",

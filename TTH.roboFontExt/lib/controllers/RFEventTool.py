@@ -1,33 +1,25 @@
-from mojo.extensions import ExtensionBundle, setExtensionDefault
-from mojo.events import BaseEventTool#, getActiveEventTool
-from mojo.roboFont import CurrentFont, AllFonts
-from mojo.UI import UpdateCurrentGlyphView
-from robofab.interface.all.dialogs import Message as FabMessage
+from mojo.extensions    import ExtensionBundle, setExtensionDefault
+from mojo.events        import BaseEventTool#, getActiveEventTool
+from mojo.roboFont      import CurrentFont, AllFonts
+from mojo.UI            import UpdateCurrentGlyphView
 from lib.tools.defaults import getDefault, setDefault
+from robofab.interface.all.dialogs import Message as FabMessage
 from AppKit import NSColor, NSBezierPath, NSFontAttributeName, NSFont,\
                    NSForegroundColorAttributeName, NSAttributedString,\
 			 NSShadow, NSGraphicsContext
 
-from models import TTHTool
-from views import mainPanel
-from commons import helperFunctions, textRenderer
-from commons import drawing as DR
+# reloaded in main.py
+from models.TTHTool import uniqueInstance as tthTool
+# reloaded below
+from views   import mainPanel
+from commons import helperFunctions, textRenderer, drawing as DR
 
-#reload(TTHTool)
 reload(mainPanel)
 reload(helperFunctions)
 reload(textRenderer)
-
-tthTool = TTHTool.uniqueInstance
+reload(DR)
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
-
-DefaultKeyStub = "com.sansplomb.TTH."
-
-defaultKeyPreviewSampleStrings = DefaultKeyStub + "previewSampleStrings"
-defaultKeyBitmapOpacity = DefaultKeyStub + "bitmapOpacity"
-defaultKeyPreviewFrom = DefaultKeyStub + "previewFrom"
-defaultKeyPreviewTo = DefaultKeyStub + "previewTo"
 
 whiteColor  = NSColor.whiteColor()
 shadowColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
@@ -47,68 +39,83 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# FIXME: Can we come up with a precise meaning for this boolean?
 		self.ready = False
-		self.curveDrawingPref = None
+
+		# Remembers the cruve drawing preference of RF prior to forcing
+		# quadratic-style
+		self.originalCurveDrawingPref = None
 
 		# Precomputed NSBezierPath'es
 		self.cachedPathes = {'grid':None, 'centers':None}
-		# The 'scale' parameter from the last 'draw()' call.
+
+		# The 'scale' and 'size' parameter from the last 'draw()' call.
 		# Used in drawCenterPixel()
 		self.cachedScale = None
-		# The 'size' parameter during the last 'draw()' call.
-		# Used in drawCenterPixel()
-		self.cachedSize = None
-		
+		self.cachedCenterSize = None
+
 		# Set to True when the current font document is about to be closed.
 		self.fontClosed = False
 		self.popOverIsOpened = False
 		self.messageInFront = False
 
+		# To each zone, associate the position of its label in the GLyphWindow
+		# Used when clicking
 		self.zoneLabelPos = {}
 
+		# Tells the unique TTHTool instance about us
 		tthTool.eventController = self
-		#print "SETTING Event Controller", tthTool.eventController
+		#print "SETTING Event Controller", tthTool.eventController # debug stuff
 
 	def __del__(self):
-		#print "KILLING Event Controller to None"
+		# Tells the unique TTHTool instance goodbye
 		tthTool.eventController = None
+		#print "KILLING Event Controller to None" # debug stuff
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 	def getGAndFontModel(self):
+		'''Returns the current RGlyph and the RFont it belongs to.
+		Used everywhere, since current glyph and current font are NOT
+		remembered.'''
 		g = self.getGlyph()
 		return (g, tthTool.fontModelForGlyph(g))
 
-	#################################################################################
-	# This function is called by RF on the parent class in order to get the tool icon
-	#################################################################################
 	def getToolbarIcon(self):
+		'''This function is called by RF on the parent class in order to
+		get the tool icon'''
 		return toolbarIcon
 
 	def getToolbarTip(self):
-		return "TTH"
+		'''This function is called by RF on the parent class in order to
+		get the tool button tip'''
+		return "TrueType Hinting"
 
-	###############################################################
-	# This function is called by RF when the tool button is pressed
-	###############################################################
 	def becomeActive(self):
-		self.curveDrawingPref = getDefault('drawingSegmentType')
-		if self.curveDrawingPref != 'qcurve':
+		'''This function is called by RF when the tool button is pressed'''
+		# save the original curve drawing mode
+		self.originalCurveDrawingPref = getDefault('drawingSegmentType')
+		# and set quadratic mode
+		if self.originalCurveDrawingPref != 'qcurve':
 			setDefault('drawingSegmentType', 'qcurve')
+
 		self.resetFont(createWindows=True)
+
 		tthTool.becomeActive()
 		#self.calculateHdmx()
 
-	###################################################################
-	# This function is called by RF when another tool button is pressed
-	###################################################################
 	def becomeInactive(self):
+		'''This function is called by RF when another tool button is
+		pressed'''
 		self.mainPanel.close()
-		tthTool.becomeInactive()
-		if self.curveDrawingPref != 'qcurve':
-			setDefault('drawingSegmentType', self.curveDrawingPref)
 
-	###########################################################
-	# This function is called by RF when the Glyph View changed
-	###########################################################
+		tthTool.becomeInactive()
+
+		# restore the original curve drawing mode
+		if self.originalCurveDrawingPref != 'qcurve':
+			setDefault('drawingSegmentType', self.originalCurveDrawingPref)
+
 	def viewDidChangeGlyph(self):
+		'''This function is called by RF when the Glyph View shows another
+		glyph'''
 		if self.fontClosed:
 			return
 		self.resetglyph(self.getGlyph())
@@ -187,7 +194,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		tr = fm.textRenderer
 		tr.set_cur_size(tthTool.PPM_Size)
 		tr.set_pen((0, 0))
-		
+
 		if tthTool.showBitmap == 1 and tr != None:
 			tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
 
@@ -268,8 +275,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch, size):
-		if self.cachedPathes['centers'] == None or self.cachedScale != scale or self.cachedSize != size:
-			self.cachedSize = size
+		if ( self.cachedPathes['centers'] == None or
+			self.cachedScale != scale or
+			self.cachedCenterSize != size ):
+			self.cachedCenterSize = size
 			path = NSBezierPath.bezierPath()
 			r = scale * size
 			r = (r,r)
@@ -302,7 +311,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			pathZone.lineToPoint_((-xpos, y_start+y_end))
 			pathZone.closePath
 			zoneColor.set()
-			pathZone.fill()	
+			pathZone.fill()
 			(width, height) = self.drawTextAtPoint(scale, zoneName, -100*scale, y_start+y_end/2, whiteColor, zoneColorLabel, None)
 
 			self.zoneLabelPos[zoneName] = ((-100*scale, y_start+y_end/2), (width, height))
@@ -352,7 +361,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		height = 13*scale
 		x -= width / 2.0
 		y -= fontSize*scale / 2.0
-		
+
 		shadow = NSShadow.alloc().init()
 		shadow.setShadowColor_(shadowColor)
 		shadow.setShadowOffset_((0, -1))
@@ -365,7 +374,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			selectedShadow.setShadowColor_(selectedColor)
 			selectedShadow.setShadowOffset_((0, 0))
 			selectedShadow.setShadowBlurRadius_(10)
-			
+
 			selectedContext = NSGraphicsContext.currentContext()
 			selectedContext.saveGraphicsState()
 
@@ -377,7 +386,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		thePath = NSBezierPath.bezierPath()
 		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((x, y), (width, height)), 3*scale, 3*scale)
-		
+
 		context = NSGraphicsContext.currentContext()
 		context.saveGraphicsState()
 		shadow.set()
@@ -388,7 +397,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		thePath.stroke()
 
 		context.restoreGraphicsState()
-		
+
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
 
@@ -430,10 +439,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			print 'ERROR: Unable to generate full font'
 
 	def sizeHasChanged(self):
-		self.cachedPathes['centers'] = None
-		self.cachedPathes['grid'] = None
-		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedSize should. Is this correct?
+		self.cachedPathes = {'grid':None, 'centers':None}
+		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedCenterSize should. Is this correct?
 		self.cachedScale = None
+		self.cachedCenterSize = None
 
 	def changeBitmapPreview(self, preview):
 		fontModel.setBitmapPreview(preview)
@@ -442,3 +451,5 @@ class TTH_RF_EventTool(BaseEventTool):
 		if tthTool.previewPanel.isVisible():
 			tthTool.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
+
+if tthTool._printLoadings: print "RFEventTool, ",
