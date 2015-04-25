@@ -1,5 +1,6 @@
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from mojo.roboFont import CurrentFont, RFont
+from mojo.events import getActiveEventTool
 
 import tempfile
 
@@ -65,6 +66,8 @@ class TTHFont():
 	def createPreviewInGlyphWindowIfNeeded(self):
 		if self._pigw == None:
 			self._pigw = self.createPreviewInGlyphWindow()
+			return True
+		return False
 
 	@property
 	def previewInGlyphWindow(self):
@@ -81,7 +84,9 @@ class TTHFont():
 		self._pigw.setHidden_(visible == 0)
 
 	def createPreviewInGlyphWindow(self):
-		superview = tthTool.eventController.getNSView().enclosingScrollView().superview()
+		eventController = getActiveEventTool()
+		if eventController is None: return
+		superview = eventController.getNSView().enclosingScrollView().superview()
 		if superview == None: return
 		newView = PIGW.PreviewInGlyphWindow.alloc().initWithFontAndTool(self, tthTool)
 		superview.addSubview_(newView)
@@ -89,6 +94,17 @@ class TTHFont():
 		if tthTool.showPreviewInGlyphWindow == 0:
 			newView.setHidden_(True)
 		return newView
+
+# - - - - - - - - - - - - - - - -
+
+	def changeBitmapPreviewMode(self, mode):
+		old = self.bitmapPreviewSelection
+		if mode not in ['Monochrome', 'Grayscale', 'Subpixel']: return
+		if old == mode: return False
+		self.bitmapPreviewSelection = mode
+		self.getSPLib()["bitmapPreviewSelection"] = mode
+		self.regenTextRenderer()
+		return True
 
 # - - - - - - - - - - - - - - - -
 
@@ -138,18 +154,22 @@ class TTHFont():
 	def regenTextRenderer(self):
 		self.textRenderer = textRenderer.TextRenderer(self.partialtempfontpath, self.bitmapPreviewSelection)
 
-	def setBitmapPreview(self, preview):
-		if preview in ['Monochrome', 'Grayscale', 'Subpixel']:
-			old = self.bitmapPreviewSelection
-			self.bitmapPreviewSelection = preview
-			self.getSPLib()["bitmapPreviewSelection"] = preview
-			if old != preview:
-				self.regenTextRenderer()
-
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
+
+	def generateFullTempFont(self):
+		try:
+			self.f.generate(self.fulltempfontpath, 'ttf',\
+					decompose = False,\
+					checkOutlines = False,\
+					autohint = False,\
+					releaseMode = False,\
+					glyphOrder=None,\
+					progressBar = None)
+		except:
+			print 'ERROR: Unable to generate full font'
 
 	def generatePartialTempFont(self, glyphSet):
 		#try:

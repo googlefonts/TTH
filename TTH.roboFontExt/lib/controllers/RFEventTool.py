@@ -37,9 +37,6 @@ class TTH_RF_EventTool(BaseEventTool):
 	def __init__(self):
 		super(TTH_RF_EventTool, self).__init__()
 
-		# FIXME: Can we come up with a precise meaning for this boolean?
-		self.ready = False
-
 		# Remembers the cruve drawing preference of RF prior to forcing
 		# quadratic-style
 		self.originalCurveDrawingPref = None
@@ -47,10 +44,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		# Precomputed NSBezierPath'es
 		self.cachedPathes = {'grid':None, 'centers':None}
 
-		# The 'scale' and 'size' parameter from the last 'draw()' call.
+		# The 'radius' of pixel centers from the last 'draw()' call.
 		# Used in drawCenterPixel()
-		self.cachedScale = None
-		self.cachedCenterSize = None
+		self.cachedCenterRadius = None
 
 		# Set to True when the current font document is about to be closed.
 		self.fontClosed = False
@@ -61,23 +57,13 @@ class TTH_RF_EventTool(BaseEventTool):
 		# Used when clicking
 		self.zoneLabelPos = {}
 
-		# Tells the unique TTHTool instance about us
-		tthTool.eventController = self
-		#print "SETTING Event Controller", tthTool.eventController # debug stuff
+		# Stores the current TTHFont model during mouseDown event
+		self.mouseDownFontModel = None
 
 	def __del__(self):
-		# Tells the unique TTHTool instance goodbye
-		tthTool.eventController = None
-		#print "KILLING Event Controller to None" # debug stuff
+		pass
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-	def getGAndFontModel(self):
-		'''Returns the current RGlyph and the RFont it belongs to.
-		Used everywhere, since current glyph and current font are NOT
-		remembered.'''
-		g = self.getGlyph()
-		return (g, tthTool.fontModelForGlyph(g))
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def getToolbarIcon(self):
 		'''This function is called by RF on the parent class in order to
@@ -116,76 +102,90 @@ class TTH_RF_EventTool(BaseEventTool):
 	def viewDidChangeGlyph(self):
 		'''This function is called by RF when the Glyph View shows another
 		glyph'''
+		#print "[TTH RF EVENT] View did change glyph"
 		if self.fontClosed:
 			return
-		self.resetglyph(self.getGlyph())
 		tthTool.updatePartialFontIfNeeded()
 
-	##############################################################
-	# This function is called by RF when the Current Glyph changed
-	##############################################################
 	def currentGlyphChanged(self):
-		self.resetglyph(self.getGlyph())
+		'''This function is called by RF when the Current Glyph changed'''
+		#print "[TTH RF EVENT] Current glyph changed"
 		tthTool.updatePartialFontIfNeeded()
 
-	##############################################################
-	# This function is called by RF before the Current Font closes
-	##############################################################
 	def fontWillClose(self, font):
+		'''This function is called by RF before the Current Font closes'''
+		print "[TTH RF EVENT] Font will close", font.fileName
+		tthTool.delFontModelForFont(font)
+
 		# We hide the pannels only if we close the last font opened
 		if len(AllFonts()) > 1:
 			return
+
 		self.mainPanel.wTools.hide()
 		tthTool.previewPanel.hide()
-		tthTool.delFontModelForFont(font)
 		# self.programWindow.hide()
 		# self.assemblyWindow.hide()
-		self.fontClosed = True
 
-	############################################################################
-	# This function is called by RF when the Current Font is not Current anymore
-	############################################################################
 	def fontResignCurrent(self, font):
-		print "Font resign current", font.fileName
-		if self.fontClosed:
-			return
-		self.resetFont(createWindows=False)
+		'''This function is called by RF when the Current Font is not
+		Current anymore'''
+		print "[TTH RF EVENT] Font resign current", font.fileName
 
-	###############################################################
-	# This function is called by RF when a new Font becomes Current
-	###############################################################
 	def fontBecameCurrent(self, font):
-		if self.fontClosed:
-			return
+		'''This function is called by RF when a new Font becomes Current'''
 		# if hasattr(self.toolsPanel, 'sheetControlValues'):
 		# 	self.toolsPanel.sheetControlValues.c_fontModel = self.c_fontModel
 		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
 		# 	self.toolsPanel.sheetControlValues.resetStemBox()
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
-
 		self.resetFont(createWindows=False)
-		tthTool.updatePartialFontIfNeeded()
+		tthTool.currentFontHasChanged(font)
 		self.fontClosed = False
 
-	########################################################
-	# This function is called by RF when a new Font did Open
-	########################################################
 	def fontDidOpen(self, font):
+		'''This function is called by RF when a new Font did Open'''
 		self.mainPanel.wTools.show()
 		tthTool.previewPanel.showOrHide()
 		# self.programWindow.showOrHide()
 		# self.assemblyWindow.showOrHide()
-
 		self.resetFont(createWindows=False)
-		tthTool.updatePartialFontIfNeeded()
+		tthTool.currentFontHasChanged(font)
 
-	########################################################################################
-	# This function is called by RF whenever the Background of the glyph Window needs redraw
-	########################################################################################
-	def drawBackground(self, scale):
+	def glyphWindowDidOpen(self, window):
+		'''Install the previewInGlyphWindow'''
 		g, fm = self.getGAndFontModel()
-		if g == None:
-			return
+		if fm is not None:
+			fm.createPreviewInGlyphWindowIfNeeded()
+			UpdateCurrentGlyphView()
+
+	def glyphWindowWillClose(self, window):
+		'''Destroy the previewInGlyphWindow'''
+		g, fm = self.getGAndFontModel()
+		if fm is not None:
+			fm.killPreviewInGlyphWindow()
+
+	def numberOfRectsToDraw(self):
+		view = self.getNSView()
+		if view is None: return 0
+		view = view.enclosingScrollView()
+		if view is None: return 0
+		rects, count = view.getRectsBeingDrawn_count_(None, None)
+		return count
+
+	def drawBackground(self, scale):
+		'''This function is called by RF whenever the Background of the
+		glyph Window needs redraw'''
+
+		if 0 == self.numberOfRectsToDraw(): return
+		
+		g, fm = self.getGAndFontModel()
+
+		# we do this here, because it fails to do it in `becomeActive` :-(
+		# (The NSView's superview seems not ready at that time)
+		if fm.createPreviewInGlyphWindowIfNeeded():
+			UpdateCurrentGlyphView()
+
+		if g == None: return
 
 		pitch = fm.getPitch()
 
@@ -211,35 +211,39 @@ class TTH_RF_EventTool(BaseEventTool):
 		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
 		self.drawAscentDescent(scale, pitch, fm)
 
-	########################################################################################
-	# This function is called by RF whenever the Foreground of the glyph Window needs redraw
-	########################################################################################
 	def draw(self, scale):
-		g, fm = self.getGAndFontModel()
-		pigw = fm.createPreviewInGlyphWindowIfNeeded()
+		'''This function is called by RF whenever the Foreground of the
+		glyph Window needs redraw'''
+		pass
 
-	###########################################
-	# This function is called by RF at mouse Up
-	###########################################
 	def mouseDown(self, point, clickCount):
+		'''This function is called by RF at mouse Down'''
 		g, fm = self.getGAndFontModel()
 		self.mouseDownFontModel = fm
 
-	###########################################
-	# This function is called by RF at mouse Up
-	###########################################
 	def mouseUp(self, point):
-		if tthTool.showPreviewInGlyphWindow == 1:
-			x = self.getCurrentEvent().locationInWindow().x
-			y = self.getCurrentEvent().locationInWindow().y
+		'''This function is called by RF at mouse Up'''
+		if self.mouseDownFontModel == None: return
+		pigw = self.mouseDownFontModel.previewInGlyphWindow
+		if pigw == None: return
+		if pigw.isHidden(): return
+		positions = pigw.clickableSizesGlyphWindow
+		loc = self.getCurrentEvent().locationInWindow()
+		for p, s in positions.iteritems():
+			if (p[0] <= loc.x <= p[0]+10) and (p[1] <= loc.y <= p[1]+20):
+				tthTool.changeSize(s)
+		self.mouseDownFontModel = None
 
-			fname = self.mouseDownFontModel.f.fileName
-			pigw = self.mouseDownFontModel.previewInGlyphWindow
-			if pigw != None:
-				for i in pigw.clickableSizesGlyphWindow:
-					if x >= i[0] and x <= i[0]+10 and y >= i[1] and y <= i[1]+20:
-						tthTool.changeSize(pigw.clickableSizesGlyphWindow[i])
-		del self.mouseDownFontModel
+# - - - - - - - - - - - - - - - - - - - - - - - GETTING CURRENT GLYPH AND FONT
+
+	def getGAndFontModel(self):
+		'''Returns the current RGlyph and the RFont it belongs to.
+		Used everywhere, since current glyph and current font are NOT
+		remembered.'''
+		g = self.getGlyph()
+		return (g, tthTool.fontModelForGlyph(g))
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING FUNCTIONS
 
 	def drawSideBearings(self, scale, pitch, name, fontModel):
 		try:
@@ -275,12 +279,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		path.stroke()
 
 	def drawCenterPixel(self, scale, pitch, size):
-		if ( self.cachedPathes['centers'] == None or
-			self.cachedScale != scale or
-			self.cachedCenterSize != size ):
-			self.cachedCenterSize = size
+		r = scale * size
+		if ( self.cachedPathes['centers'] == None or self.cachedCenterRadius != r ):
+			self.cachedCenterRadius = r
 			path = NSBezierPath.bezierPath()
-			r = scale * size
 			r = (r,r)
 			x = - tthTool.PPM_Size * pitch + pitch/2 - r[0]/2
 			yinit = x
@@ -291,7 +293,6 @@ class TTH_RF_EventTool(BaseEventTool):
 					path.appendBezierPathWithOvalInRect_(((x, y), r))
 					y += pitch
 				x += pitch
-			self.cachedScale = scale
 			self.cachedPathes['centers'] = path
 		path = self.cachedPathes['centers']
 		centerpixelsColor.set()
@@ -299,6 +300,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawZones(self, scale, pitch, fontModel):
 		xpos = 5 * fontModel.UPM
+		self.zoneLabelPos = {}
 		for zoneName, zone in fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
@@ -401,6 +403,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	def resetFont(self, createWindows=False):
 		f = CurrentFont()
 		if f == None:
@@ -418,38 +422,13 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.mainPanel = mainPanel.MainPanel(self)
 			tthTool.previewPanel.showOrHide()
 
-		self.resetglyph(self.getGlyph())
-
-	def resetglyph(self, g):
-		if g == None:
-			return
-
-		self.ready = True
-
-		if tthTool.previewPanel.isVisible():
-			tthTool.previewPanel.setNeedsDisplay()
-
-		self.zoneLabelPos = {}
-
-	def generateFullTempFont(self):
-		fontModel = tthTool.fontModelForFont(CurrentFont())
-		try:
-			fontModel.f.generate(fontModel.fulltempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
-		except:
-			print 'ERROR: Unable to generate full font'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def sizeHasChanged(self):
+		'''This function tells the RFEventTool that the PPEM preview size
+		has changed'''
 		self.cachedPathes = {'grid':None, 'centers':None}
-		# FIXME: Sam thinks that cachedScale need not be reset here, but cachedCenterSize should. Is this correct?
-		self.cachedScale = None
-		self.cachedCenterSize = None
 
-	def changeBitmapPreview(self, preview):
-		fontModel.setBitmapPreview(preview)
-		if self.getGlyph() == None:
-			return
-		if tthTool.previewPanel.isVisible():
-			tthTool.previewPanel.setNeedsDisplay()
-		UpdateCurrentGlyphView()
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if tthTool._printLoadings: print "RFEventTool, ",

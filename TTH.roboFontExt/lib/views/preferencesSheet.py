@@ -1,6 +1,6 @@
 from vanilla import *
 from mojo.UI import *
-from mojo.extensions import *
+#from mojo.extensions import *
 import string
 
 from commons import helperFunctions

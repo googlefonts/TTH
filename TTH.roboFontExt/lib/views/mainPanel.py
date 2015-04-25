@@ -209,17 +209,10 @@ class MainPanel(BaseWindowController):
 	###########
 
 	def PPEMSizeComboBoxCallback(self, sender):
-		g = self.tthEventTool.getGlyph()
-		if g == None:
-			return
-		size = sender.get()
 		try:
-			int(size)
+			tthTool.changeSize(int(sender.get()))
 		except:
-			size = tthTool.PPM_Size
-			sender.set(size)
-
-		tthTool.changeSize(size)
+			tthTool.changeSize(tthTool.PPM_Size)
 	
 	def displayPPEMSize(self, size):
 		self.wTools.PPEMSizeComboBox.set(size)
@@ -325,13 +318,14 @@ class MainPanel(BaseWindowController):
 			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.tthEventTool)
 			pass
 
-		if gearOption == 3:
-			self.tthEventTool.changeBitmapPreview("Monochrome")
-		elif gearOption == 4:
-			self.tthEventTool.changeBitmapPreview("Grayscale")
-		elif gearOption == 5:
-			self.tthEventTool.changeBitmapPreview("Subpixel")
+		g, fm = tthTool.getGAndFontModel()
 
+		if gearOption in [3,4,5]:
+			modes = ["Monochrome", "Grayscale", "Subpixel"]
+			if fm != None and fm.changeBitmapPreviewMode(modes[gearOption-3]):
+				if tthTool.previewPanel.isVisible():
+					tthTool.previewPanel.setNeedsDisplay()
+				UpdateCurrentGlyphView()
 		elif gearOption == 7:
 			self.showPreviewCallback()
 		elif gearOption == 8:

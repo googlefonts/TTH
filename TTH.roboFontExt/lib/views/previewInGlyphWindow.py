@@ -1,7 +1,7 @@
 #coding=utf-8
 
-from AppKit import *
-from math import ceil
+from AppKit import NSView, NSBezierPath, NSColor
+from mojo.events import getActiveEventTool
 
 from commons import drawing as DR
 
@@ -59,7 +59,9 @@ class PreviewInGlyphWindow(NSView):
 
 		self.clickableSizesGlyphWindow = {}
 
-		glyph = self.tthTool.eventController.getGlyph()
+		eventController = getActiveEventTool()
+		if eventController is None: return
+		glyph = eventController.getGlyph()
 		if glyph == None: return
 		tr = self.fontModel.textRenderer
 		advance = 40
@@ -85,5 +87,3 @@ class PreviewInGlyphWindow(NSView):
 		tr.set_pen((40, 110))
 		scale = 170.0/ppem
 		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
-
-if tthTool._printLoadings: print "previewInGlyphWindow, ",

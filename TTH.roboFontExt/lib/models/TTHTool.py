@@ -2,6 +2,7 @@ from mojo.extensions import getExtensionDefault, setExtensionDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
 from mojo.roboFont import CurrentFont, CurrentGlyph
+from mojo.events import getActiveEventTool
 
 import string
 
@@ -95,8 +96,6 @@ class TTHTool():
 		# TTHFont instances for each opened font
 		self._fontModels = {}
 
-		#print "INITIALIZING Event Controller to None"
-		self.eventController = None
 		self._previewPanel  = None
 
 	def __del__(self):
@@ -105,8 +104,9 @@ class TTHTool():
 # - - - - - - - - - - - - - - - - - - - - - FONT MODELS
 
 	def getGAndFontModel(self):
-		if self.eventController != None:
-			return self.eventController.getGAndFontModel()
+		eventController = getActiveEventTool()
+		if eventController != None:
+			return eventController.getGAndFontModel()
 		g = CurrentGlyph()
 		return (None, self.fontModelForGlyph(g))
 
@@ -152,19 +152,19 @@ class TTHTool():
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
-	def setSize(self, s):
-		self._PPM_Size = s
-		setExtensionDefault(defaultKeyCurrentPPMSize, s)
-
 	def changeSize(self, size):
 		try:
 			size = int(size)
 		except ValueError:
 			size = 9
-
-		self.setSize(size)
-		self.eventController.mainPanel.displayPPEMSize(size)
-		self.eventController.sizeHasChanged()
+		self.PPM_Size = size
+		setExtensionDefault(defaultKeyCurrentPPMSize, size)
+		eventController = getActiveEventTool()
+		if eventController != None:
+			eventController.mainPanel.displayPPEMSize(size)
+			eventController.mainPanel.displayPPEMSize(2*size)
+			eventController.mainPanel.displayPPEMSize(size)
+			eventController.sizeHasChanged()
 		self.changeDeltaRange(self.PPM_Size, self.PPM_Size)
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
@@ -184,7 +184,9 @@ class TTHTool():
 			value2 = value1
 		self.deltaRange1 = value1
 		self.deltaRange2 = value2
-		self.eventController.mainPanel.displayDeltaRange(value1, value2)
+		eventController = getActiveEventTool()
+		if eventController != None:
+			eventController.mainPanel.displayDeltaRange(value1, value2)
 
 # - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
 
@@ -267,6 +269,10 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def currentFontHasChanged(self, font):
+		fm = self.fontModelForFont(font)
+		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
+
 	def updatePartialFontIfNeeded(self):
 		g, fm = self.getGAndFontModel()
 		self.requiredGlyphsForPartialTempFont = fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
@@ -295,9 +301,12 @@ class TTHTool():
 		output = output[:-1]
 		return (output, curGlyphName)
 
+# - - - - - - - - - - - - - - - - - - - - - - - -
 
 # THE UNIQUE INSTANCE
 uniqueInstance = TTHTool()
+
+# - - - - - - - - - - - - - - - - - - - - - - - -
 
 if uniqueInstance._printLoadings: print "TTHTool, ",
 
