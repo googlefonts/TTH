@@ -4,36 +4,37 @@ from AppKit import *
 from vanilla import *
 from mojo.extensions import *
 
+
 from views import preferencesSheet
 from models.TTHTool import uniqueInstance as tthTool
 
 reload(preferencesSheet)
 
-buttonXPath = ExtensionBundle("TTH").get("buttonX")
-buttonYPath = ExtensionBundle("TTH").get("buttonY")
-buttonAlignPath = ExtensionBundle("TTH").get("buttonAlign")
-buttonSingleLinkPath = ExtensionBundle("TTH").get("buttonSingleLink")
-buttonDoubleLinkPath = ExtensionBundle("TTH").get("buttonDoubleLink")
+# get some icons
+buttonXPath             = ExtensionBundle("TTH").get("buttonX")
+buttonYPath             = ExtensionBundle("TTH").get("buttonY")
+buttonAlignPath         = ExtensionBundle("TTH").get("buttonAlign")
+buttonSingleLinkPath    = ExtensionBundle("TTH").get("buttonSingleLink")
+buttonDoubleLinkPath    = ExtensionBundle("TTH").get("buttonDoubleLink")
 buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
-buttonMiddleDeltaPath = ExtensionBundle("TTH").get("buttonMiddleDelta")
-buttonFinalDeltaPath = ExtensionBundle("TTH").get("buttonFinalDelta")
-buttonSelectionPath = ExtensionBundle("TTH").get("buttonSelection")
+buttonMiddleDeltaPath   = ExtensionBundle("TTH").get("buttonMiddleDelta")
+buttonFinalDeltaPath    = ExtensionBundle("TTH").get("buttonFinalDelta")
+buttonSelectionPath     = ExtensionBundle("TTH").get("buttonSelection")
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
-defaultKeyToolsWindowPosSize = DefaultKeyStub + "toolsWindowPosSize"
-defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
-defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
-defaultKeyAssemblyWindowPosSize = DefaultKeyStub + "assemblyWindowPosSize"
+defaultKeyToolsWindowPosSize       = DefaultKeyStub + "toolsWindowPosSize"
+defaultKeyPreviewWindowPosSize     = DefaultKeyStub + "previewWindowPosSize"
+defaultKeyProgramWindowPosSize     = DefaultKeyStub + "programWindowPosSize"
+defaultKeyAssemblyWindowPosSize    = DefaultKeyStub + "assemblyWindowPosSize"
 
-defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
-defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
+defaultKeyProgramWindowVisibility  = DefaultKeyStub + "programWindowVisibility"
+defaultKeyPreviewWindowVisibility  = DefaultKeyStub + "previewWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 class MainPanel(BaseWindowController):
-	def __init__(self, tthEventTool):
+	def __init__(self):
 		BaseWindowController.__init__(self)
-		self.tthEventTool = tthEventTool
 
 		self.axisList = ['X', 'Y']
 		self.hintingToolsList = [	'Align',
@@ -43,7 +44,7 @@ class MainPanel(BaseWindowController):
 							'Middle Delta',
 							'Final Delta',
 							'Selection']
-		# FIXME Why are these memeber variables set here??
+		# FIXME Why are these member variables set here??
 		if tthTool.selectedAxis == 'X':
 			self.stemTypeList = []#tthTool.stemsListX
 			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
@@ -93,7 +94,7 @@ class MainPanel(BaseWindowController):
 			dict(width=19, imageObject=buttonSelectionPath, toolTip="Selection Tool")
 		]
 
-		self.PPMSizesList = [str(i) for i in range(9, 73)]
+		self.PPMSizesList = [str(i) for i in range(8, 73)]
 
 		self.wTools.PPEMSizeComboBox = ComboBox((10, 14, 40, 16),
 				self.PPMSizesList, sizeStyle = "small",
@@ -203,6 +204,11 @@ class MainPanel(BaseWindowController):
 		self.wTools.open()
 		self.w = self.wTools
 
+	def hide(self):
+		self.wTools.hide()
+
+	def show(self):
+		self.wTools.show()
 
 	###########
 	# Callbacks
@@ -213,9 +219,6 @@ class MainPanel(BaseWindowController):
 			tthTool.changeSize(int(sender.get()))
 		except:
 			tthTool.changeSize(tthTool.PPM_Size)
-	
-	def displayPPEMSize(self, size):
-		self.wTools.PPEMSizeComboBox.set(size)
 
 	def axisSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
@@ -308,10 +311,6 @@ class MainPanel(BaseWindowController):
 			sender.set(size)
 		tthTool.changeDeltaRange(tthTool.deltaRange1, sender.get())
 
-	def displayDeltaRange(self, v1, v2):
-		self.wTools.DeltaRange1ComboBox.set(v1)
-		self.wTools.DeltaRange2ComboBox.set(v2)
-
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
 		if gearOption == 1:
@@ -345,6 +344,17 @@ class MainPanel(BaseWindowController):
 	def showPreviewCallback(self):
 		tthTool.updatePartialFontIfNeeded()
 		tthTool.previewPanel.show()
+
+	#################
+	# Display updates
+	#################
+
+	def displayPPEMSize(self, size):
+		self.wTools.PPEMSizeComboBox.set(size)
+
+	def displayDeltaRange(self, v1, v2):
+		self.wTools.DeltaRange1ComboBox.set(v1)
+		self.wTools.DeltaRange2ComboBox.set(v2)
 
 	##########
 	# Bindings

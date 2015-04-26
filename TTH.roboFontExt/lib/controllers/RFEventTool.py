@@ -11,10 +11,8 @@ from AppKit import NSColor, NSBezierPath, NSFontAttributeName, NSFont,\
 # reloaded in main.py
 from models.TTHTool import uniqueInstance as tthTool
 # reloaded below
-from views   import mainPanel
 from commons import helperFunctions, textRenderer, drawing as DR
 
-reload(mainPanel)
 reload(helperFunctions)
 reload(textRenderer)
 reload(DR)
@@ -49,9 +47,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.cachedCenterRadius = None
 
 		# Set to True when the current font document is about to be closed.
-		self.fontClosed = False
 		self.popOverIsOpened = False
-		self.messageInFront = False
 
 		# To each zone, associate the position of its label in the GLyphWindow
 		# Used when clicking
@@ -77,13 +73,15 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def becomeActive(self):
 		'''This function is called by RF when the tool button is pressed'''
-		# save the original curve drawing mode
-		self.originalCurveDrawingPref = getDefault('drawingSegmentType')
-		# and set quadratic mode
-		if self.originalCurveDrawingPref != 'qcurve':
-			setDefault('drawingSegmentType', 'qcurve')
-
-		self.resetFont(createWindows=True)
+		f = CurrentFont()
+		if (f is None) or (not helperFunctions.fontIsQuadratic(f)):
+		 	FabMessage("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
+		else:
+			# save the original curve drawing mode
+			self.originalCurveDrawingPref = getDefault('drawingSegmentType')
+			# and set quadratic mode
+			if self.originalCurveDrawingPref != 'qcurve':
+				setDefault('drawingSegmentType', 'qcurve')
 
 		tthTool.becomeActive()
 		#self.calculateHdmx()
@@ -91,8 +89,6 @@ class TTH_RF_EventTool(BaseEventTool):
 	def becomeInactive(self):
 		'''This function is called by RF when another tool button is
 		pressed'''
-		self.mainPanel.close()
-
 		tthTool.becomeInactive()
 
 		# restore the original curve drawing mode
@@ -103,28 +99,22 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF when the Glyph View shows another
 		glyph'''
 		#print "[TTH RF EVENT] View did change glyph"
-		if self.fontClosed:
-			return
+		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
 	def currentGlyphChanged(self):
 		'''This function is called by RF when the Current Glyph changed'''
 		#print "[TTH RF EVENT] Current glyph changed"
+		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
 	def fontWillClose(self, font):
 		'''This function is called by RF before the Current Font closes'''
-		print "[TTH RF EVENT] Font will close", font.fileName
+		#print "[TTH RF EVENT] Font will close", font.fileName
 		tthTool.delFontModelForFont(font)
-
-		# We hide the pannels only if we close the last font opened
-		if len(AllFonts()) > 1:
-			return
-
-		self.mainPanel.wTools.hide()
-		tthTool.previewPanel.hide()
-		# self.programWindow.hide()
-		# self.assemblyWindow.hide()
+		# We hide the panels only if we close the last font opened
+		if len(AllFonts()) <= 1:
+			tthTool.hideWindows()
 
 	def fontResignCurrent(self, font):
 		'''This function is called by RF when the Current Font is not
@@ -138,25 +128,20 @@ class TTH_RF_EventTool(BaseEventTool):
 		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
 		# 	self.toolsPanel.sheetControlValues.resetStemBox()
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
-		self.resetFont(createWindows=False)
+		#print "[TTH RF EVENT] Font became current", font.fileName
+		tthTool.showOrHide()
 		tthTool.currentFontHasChanged(font)
-		self.fontClosed = False
 
 	def fontDidOpen(self, font):
 		'''This function is called by RF when a new Font did Open'''
-		self.mainPanel.wTools.show()
-		tthTool.previewPanel.showOrHide()
-		# self.programWindow.showOrHide()
-		# self.assemblyWindow.showOrHide()
-		self.resetFont(createWindows=False)
+		tthTool.showOrHide()
 		tthTool.currentFontHasChanged(font)
 
-	def glyphWindowDidOpen(self, window):
+	def glyphWindowWillOpen(self, window):
 		'''Install the previewInGlyphWindow'''
 		g, fm = self.getGAndFontModel()
 		if fm is not None:
 			fm.createPreviewInGlyphWindowIfNeeded()
-			UpdateCurrentGlyphView()
 
 	def glyphWindowWillClose(self, window):
 		'''Destroy the previewInGlyphWindow'''
@@ -180,10 +165,12 @@ class TTH_RF_EventTool(BaseEventTool):
 		
 		g, fm = self.getGAndFontModel()
 
+		if fm is None: return
+
 		# we do this here, because it fails to do it in `becomeActive` :-(
 		# (The NSView's superview seems not ready at that time)
 		if fm.createPreviewInGlyphWindowIfNeeded():
-			UpdateCurrentGlyphView()
+			self.refreshView()
 
 		if g == None: return
 
@@ -402,25 +389,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		view._drawTextAtPoint(title, attributes, (x+(width/2), y+(height/2)+1*scale), drawBackground=False)
 		return (width, height)
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def resetFont(self, createWindows=False):
-		f = CurrentFont()
-		if f == None:
-			return
-
-		if helperFunctions.checkSegmentType(f) == False:
-			self.messageInFront = True
-		 	FabMessage("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
-			self.messageInFront = False
-			return
-
-		tthTool.fontModelForFont(f).setControlValues()
-
-		if createWindows:
-			self.mainPanel = mainPanel.MainPanel(self)
-			tthTool.previewPanel.showOrHide()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

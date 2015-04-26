@@ -1,10 +1,11 @@
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
-from mojo.roboFont import CurrentFont, CurrentGlyph
+from mojo.roboFont import CurrentGlyph
 from mojo.events import getActiveEventTool
 
 import string
+from commons import helperFunctions
 
 # IMPORTANT: All the modules that use the unique instance of TTHTool and are
 # used in this file should be imported at the bottom of this file.
@@ -96,7 +97,10 @@ class TTHTool():
 		# TTHFont instances for each opened font
 		self._fontModels = {}
 
-		self._previewPanel  = None
+		# Other windows of the TTH extension
+		self.mainPanel    = None
+		self.previewPanel = None
+		self.TTHWindows   = []
 
 	def __del__(self):
 		pass
@@ -111,6 +115,8 @@ class TTHTool():
 		return (None, self.fontModelForGlyph(g))
 
 	def fontModelForFont(self, font):
+		if not helperFunctions.fontIsQuadratic(font):
+			return None
 		key = font.fileName
 		if key not in self._fontModels:
 			model = TTHFont.TTHFont(font)
@@ -127,10 +133,10 @@ class TTHTool():
 
 	def fontModelForGlyph(self, g):
 		if g is None:
-			f = CurrentFont()
-		else:
-			f = g.getParent()
+			return None
+		f = g.getParent()
 		if f is None:
+			print ''
 			return None
 		return self.fontModelForFont(f)
 
@@ -153,6 +159,7 @@ class TTHTool():
 		UpdateCurrentGlyphView()
 
 	def changeSize(self, size):
+		#print "Change size"
 		try:
 			size = int(size)
 		except ValueError:
@@ -161,10 +168,8 @@ class TTHTool():
 		setExtensionDefault(defaultKeyCurrentPPMSize, size)
 		eventController = getActiveEventTool()
 		if eventController != None:
-			eventController.mainPanel.displayPPEMSize(size)
-			eventController.mainPanel.displayPPEMSize(2*size)
-			eventController.mainPanel.displayPPEMSize(size)
 			eventController.sizeHasChanged()
+		self.mainPanel.displayPPEMSize(size)
 		self.changeDeltaRange(self.PPM_Size, self.PPM_Size)
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
@@ -184,9 +189,7 @@ class TTHTool():
 			value2 = value1
 		self.deltaRange1 = value1
 		self.deltaRange2 = value2
-		eventController = getActiveEventTool()
-		if eventController != None:
-			eventController.mainPanel.displayDeltaRange(value1, value2)
+		self.mainPanel.displayDeltaRange(value1, value2)
 
 # - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
 
@@ -206,12 +209,6 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - PREVIEW PANEL & IN GLYPH-WINDOW
 
-	@property
-	def previewPanel(self):
-		if self._previewPanel == None:
-			self._previewPanel  = previewPanel.PreviewPanel()
-		return self._previewPanel
-
 	def setPreviewInGlyphWindowState(self, onOff):
 		self.showPreviewInGlyphWindow = onOff
 		setExtensionDefault(defaultKeyShowPreviewInGlyphWindow, onOff)
@@ -221,17 +218,55 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - ACTIVE / INACTIVE
 
+	def hideWindows(self):
+		for w in self.TTHWindows:
+			w.hide()
+		if self.mainPanel is not None:
+			self.mainPanel.hide()
+
+	def showWindows(self):
+		for w in self.TTHWindows:
+			w.showOrHide()
+		if self.mainPanel is not None:
+			self.mainPanel.show()
+
+	def showOrHide(self):
+		g, fm = self.getGAndFontModel()
+		if fm is None:
+			self.hideWindows()
+		else:
+			self.showWindows()
+
+	def createWindows(self):
+		self.mainPanel    = mainPanel.MainPanel()
+		self.previewPanel = previewPanel.PreviewPanel()
+		self.TTHWindows = [self.previewPanel]
+
+	def deleteWindows(self):
+		self.hideWindows()
+		self.TTHWindows = []
+
+		self.mainPanel.close()
+		self.mainPanel    = None
+
+		del self.previewPanel
+		self.previewPanel = None
+
 	def becomeActive(self):
 		self.updatePartialFontIfNeeded()
 		for fm in self._fontModels.itervalues():
 			fm.setPreviewInGlyphWindowVisibility(self.showPreviewInGlyphWindow)
-		UpdateCurrentGlyphView()
+		# Create the various windows and panels
+		self.createWindows()
+		self.showOrHide()
+		#UpdateCurrentGlyphView()
 
 	def becomeInactive(self):
-		self.previewPanel.hide()
 		for fm in self._fontModels.itervalues():
 			fm.killPreviewInGlyphWindow()
-		UpdateCurrentGlyphView()
+		
+		# Kill the various windows and panels
+		self.deleteWindows()
 
 # - - - - - - - - - - - - - - - - - - - GLYPH WINDOW DRAWING OPTIONS
 
@@ -271,11 +306,14 @@ class TTHTool():
 
 	def currentFontHasChanged(self, font):
 		fm = self.fontModelForFont(font)
+		if fm is None: return
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
 
 	def updatePartialFontIfNeeded(self):
 		g, fm = self.getGAndFontModel()
-		self.requiredGlyphsForPartialTempFont = fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
+		if fm is None: return
+		self.requiredGlyphsForPartialTempFont =\
+			fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
 
 	def prepareText(self, g, font):
 		if g == None:
@@ -311,6 +349,7 @@ uniqueInstance = TTHTool()
 if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
-from views import previewPanel
+from views import previewPanel, mainPanel
 reload(TTHFont)
 reload(previewPanel)
+reload(mainPanel)

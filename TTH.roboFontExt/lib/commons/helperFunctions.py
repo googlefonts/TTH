@@ -180,12 +180,12 @@ def getAngle((x1, y1), (x2, y2)):
 	yDiff= y2-y1 
 	return math.atan2(yDiff, xDiff)
 
-def checkSegmentType(font):
+def fontIsQuadratic(font):
 	try:
 		segmentType = font.preferredSegmentType
 	except:
 		segmentType = font.preferedSegmentType
-	return (segmentType == 'qcurve' or segmentType == 'qCurve')
+	return (segmentType.lower() == 'qcurve')
 
 def roundbase(x, base):
 	return int(base * round(float(x)/base))

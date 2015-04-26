@@ -31,6 +31,7 @@ class TTHFont():
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
+		
 		self.setControlValues()
 
 		# Option for the generated TTH assembly
@@ -64,7 +65,8 @@ class TTHFont():
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
 	def createPreviewInGlyphWindowIfNeeded(self):
-		if self._pigw == None:
+		badFont = not helperFunctions.fontIsQuadratic(self.f)
+		if (not badFont) and self._pigw == None:
 			self._pigw = self.createPreviewInGlyphWindow()
 			return True
 		return False
