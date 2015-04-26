@@ -23,7 +23,7 @@ buttonSelectionPath     = ExtensionBundle("TTH").get("buttonSelection")
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
-defaultKeyToolsWindowPosSize       = DefaultKeyStub + "toolsWindowPosSize"
+defaultKeyMainPanelPosSize       = DefaultKeyStub + "toolsWindowPosSize"
 defaultKeyPreviewWindowPosSize     = DefaultKeyStub + "previewWindowPosSize"
 defaultKeyProgramWindowPosSize     = DefaultKeyStub + "programWindowPosSize"
 defaultKeyAssemblyWindowPosSize    = DefaultKeyStub + "assemblyWindowPosSize"
@@ -36,7 +36,6 @@ class MainPanel(BaseWindowController):
 	def __init__(self):
 		BaseWindowController.__init__(self)
 
-		self.axisList = ['X', 'Y']
 		self.hintingToolsList = [	'Align',
 							'Single Link',
 							'Double Link',
@@ -44,41 +43,47 @@ class MainPanel(BaseWindowController):
 							'Middle Delta',
 							'Final Delta',
 							'Selection']
-		# FIXME Why are these member variables set here??
+		self.prepareAlignmentTypeLists()
+		self.makeMainPanel()
+
+	def prepareAlignmentTypeLists(self):
 		if tthTool.selectedAxis == 'X':
 			self.stemTypeList = []#tthTool.stemsListX
-			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
-									'Left Edge', 'Right Edge',
-									'Center of Pixel',
-									'Double Grid']
-			self.alignmentTypeListLinkDisplay = [	'Do Not Align to Grid',
-										'Closest Pixel Edge',
-										'Left Edge',
-										'Right Edge',
-										'Center of Pixel',
-										'Double Grid']
+			l = [	'Closest Pixel Edge',
+				'Left Edge',
+				'Right Edge',
+				'Center of Pixel',
+				'Double Grid']
+			self.alignmentTypeListDisplay = l
+			l = [	'Do Not Align to Grid',
+				'Closest Pixel Edge',
+				'Left Edge',
+				'Right Edge',
+				'Center of Pixel',
+				'Double Grid']
+			self.alignmentTypeListLinkDisplay = l
 		else:
 			self.stemTypeList = []#tthTool.stemsListY
-			self.alignmentTypeListDisplay = [	'Closest Pixel Edge',
-									'Bottom Edge',
-									'Top Edge',
-									'Center of Pixel',
-									'Double Grid']
-			self.alignmentTypeListLinkDisplay = [	'Do Not Align to Grid',
-										'Closest Pixel Edge',
-										'Bottom Edge',
-										'Top Edge',
-										'Center of Pixel',
-										'Double Grid']
+			l = [	'Closest Pixel Edge',
+				'Bottom Edge',
+				'Top Edge',
+				'Center of Pixel',
+				'Double Grid']
+			self.alignmentTypeListDisplay = l
+			l = [	'Do Not Align to Grid',
+				'Closest Pixel Edge',
+				'Bottom Edge',
+				'Top Edge',
+				'Center of Pixel',
+				'Double Grid']
+			self.alignmentTypeListLinkDisplay = l
 
 		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
 		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
 
-		self.makeMainPanel()
-
 	def makeMainPanel(self):
-		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyToolsWindowPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
-
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
+		
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
 			dict(width=19, imageObject=buttonYPath, toolTip="Vertical Axis")
@@ -96,17 +101,21 @@ class MainPanel(BaseWindowController):
 
 		self.PPMSizesList = [str(i) for i in range(8, 73)]
 
+		# The PPEM Combobox
 		self.wTools.PPEMSizeComboBox = ComboBox((10, 14, 40, 16),
 				self.PPMSizesList, sizeStyle = "small",
 				callback=self.PPEMSizeComboBoxCallback)
 		self.wTools.PPEMSizeComboBox.set(tthTool.PPM_Size)
 
+		# AXIS buttons
 		self.wTools.axisSegmentedButton = SegmentedButton((60, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.axisSegmentedButton.set(0)
 
+		# Tools segmented buttons
 		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(0)
 
+		# UI for alignment type
 		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 16),
 				self.alignmentTypeListDisplay, sizeStyle = "mini",
@@ -114,6 +123,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.AlignmentTypeText.show(True)
 		self.wTools.AlignmentTypePopUpButton.show(True)
 
+		# UI for stem type
 		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
 		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 16),
 				self.stemTypeList, sizeStyle = "mini",
@@ -121,12 +131,14 @@ class MainPanel(BaseWindowController):
 		self.wTools.StemTypeText.show(False)
 		self.wTools.StemTypePopUpButton.show(False)
 
+		# UI for rounding coordinates (checkbox)
 		self.wTools.RoundDistanceText = TextBox((155, 42, 80, 15), "Round Distance:", sizeStyle = "mini")
 		self.wTools.RoundDistanceCheckBox = CheckBox((-25, 44, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
 
+		# UI for delta value
 		self.wTools.DeltaOffsetText = TextBox((10, 38, 40, 15), "Offset:", sizeStyle = "mini")
 		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
@@ -137,6 +149,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaOffsetEditText.set(tthTool.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
+		# UI for delta range
 		self.wTools.DeltaRangeText = TextBox((-120, 57, 40, 15), "Range:", sizeStyle = "mini")
 		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 55, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange1ComboBoxCallback)
@@ -148,6 +161,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.set(tthTool.deltaRange1)
 		self.wTools.DeltaRange2ComboBox.set(tthTool.deltaRange2)
 
+		# UI for applying delta only in Monochrome
 		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
 		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaMonochromeCheckBoxCallback)
@@ -155,6 +169,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaMonochromeCheckBox.show(False)
 		self.wTools.DeltaMonochromeCheckBox.set(tthTool.deltaMonoBool)
 
+		# UI for applying delta only in Grayscale & Subpixel
 		self.wTools.DeltaGrayText = TextBox((150, 38, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
 		self.wTools.DeltaGrayCheckBox = CheckBox((-25, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaGrayCheckBoxCallback)
@@ -162,6 +177,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaGrayCheckBox.show(False)
 		self.wTools.DeltaGrayCheckBox.set(tthTool.deltaGrayBool)
 
+		# The Gear Menu
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
 		self.wTools.gear.getNSPopUpButton().setPullsDown_(True)
 		self.wTools.gear.getNSPopUpButton().setBordered_(False)
@@ -173,11 +189,10 @@ class MainPanel(BaseWindowController):
 		firstItem.setImage_(im)
 		firstItem.setTitle_("")
 
-		previewSubMenu = NSMenu.alloc().init()
-		previewSubMenu.initWithTitle_("Preview")
-
-		previewItem = NSMenuItem.alloc().init()
-		previewItem.setTitle_("Preview")
+		#previewSubMenu = NSMenu.alloc().init()
+		#previewSubMenu.initWithTitle_("Preview")
+		#previewItem = NSMenuItem.alloc().init()
+		#previewItem.setTitle_("Preview")
 
 		self.wTools.gear.setItems(
 			[firstItem,
@@ -222,76 +237,76 @@ class MainPanel(BaseWindowController):
 
 	def axisSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
-			self.tthEventTool.changeAxis('X')
-			self.tthEventTool.makeStemsListsPopUpMenu()
-			self.wTools.StemTypePopUpButton.setItems(tthTool.stemsListX)
-			self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
+			tthTool.changeAxis('X')
+			self.makeStemsLists()
+			self.wTools.StemTypePopUpButton.setItems(self.stemsListX)
+			#tthTool.changeSelectedStemX(tthTool.selectedStemX)
 		else:
-			self.tthEventTool.changeAxis('Y')
-			self.tthEventTool.makeStemsListsPopUpMenu()
-			self.wTools.StemTypePopUpButton.setItems(tthTool.stemsListY)
-			self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
+			tthTool.changeAxis('Y')
+			tthTool.makeStemsLists()
+			self.wTools.StemTypePopUpButton.setItems(self.stemsListY)
+			#tthTool.changeSelectedStemY(tthTool.selectedStemY)
 
 	def toolsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
 			self.AlignSettings()
-			self.tthEventTool.changeSelectedAlignmentTypeAlign(tthTool.selectedAlignmentTypeAlign)
-			self.tthEventTool.changeSelectedHintingTool('Align')
+			tthTool.changeSelectedAlignmentTypeAlign(tthTool.selectedAlignmentTypeAlign)
+			tthTool.changeSelectedHintingTool('Align')
 		if sender.get() == 1:
 			self.LinkSettings()
-			self.tthEventTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
+			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
 			if tthTool.selectedAxis == 'X':
-				self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
+				tthTool.changeSelectedStemX(tthTool.selectedStemX)
 			else:
-				self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
-			self.tthEventTool.changeSelectedHintingTool('Single Link')
+				tthTool.changeSelectedStemY(tthTool.selectedStemY)
+			tthTool.changeSelectedHintingTool('Single Link')
 		if sender.get() == 2:
 			self.DoubleLinkSettings()
 			if tthTool.selectedAxis == 'X':
-				self.tthEventTool.changeSelectedStemX(tthTool.selectedStemX)
+				tthTool.changeSelectedStemX(tthTool.selectedStemX)
 			else:
-				self.tthEventTool.changeSelectedStemY(tthTool.selectedStemY)
-			self.tthEventTool.changeSelectedHintingTool('Double Link')
+				tthTool.changeSelectedStemY(tthTool.selectedStemY)
+			tthTool.changeSelectedHintingTool('Double Link')
 		if sender.get() == 3:
 			self.InterpolationSettings()
-			self.tthEventTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
-			self.tthEventTool.changeSelectedHintingTool('Interpolation')
+			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
+			tthTool.changeSelectedHintingTool('Interpolation')
 		if sender.get() == 4:
 			self.DeltaSettings()
-			self.tthEventTool.changeSelectedHintingTool('Middle Delta')
+			tthTool.changeSelectedHintingTool('Middle Delta')
 		if sender.get() == 5:
 			self.DeltaSettings()
-			self.tthEventTool.changeSelectedHintingTool('Final Delta')
+			tthTool.changeSelectedHintingTool('Final Delta')
 		if sender.get() == 6:
 			self.SelectionSettings()
-			self.tthEventTool.changeSelectedHintingTool('Selection')
+			tthTool.changeSelectedHintingTool('Selection')
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
 		if tthTool.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
-			self.tthEventTool.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
+			tthTool.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
 		elif tthTool.selectedHintingTool == 'Align':
-			self.tthEventTool.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
+			tthTool.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
 
 	def StemTypePopUpButtonCallback(self, sender):
 		if tthTool.selectedAxis == 'X':
-			self.tthEventTool.changeSelectedStemX(tthTool.stemsListX[sender.get()])
+			tthTool.changeSelectedStemX(tthTool.stemsListX[sender.get()])
 		else:
-			self.tthEventTool.changeSelectedStemY(tthTool.stemsListY[sender.get()])
+			tthTool.changeSelectedStemY(tthTool.stemsListY[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
-		self.tthEventTool.changeRoundBool(sender.get())
+		tthTool.changeRoundBool(sender.get())
 
 	def DeltaMonochromeCheckBoxCallback(self, sender):
-		self.tthEventTool.changeDeltaMono(sender.get())
+		tthTool.changeDeltaMono(sender.get())
 
 	def DeltaGrayCheckBoxCallback(self, sender):
-		self.tthEventTool.changeDeltaGray(sender.get())
+		tthTool.changeDeltaGray(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
-		self.tthEventTool.changeDeltaOffset(int(sender.get() - 8))
+		tthTool.changeDeltaOffset(int(sender.get() - 8))
 
 	def DeltaOffsetEditTextCallback(self, sender):
-		self.tthEventTool.changeDeltaOffset(sender.get())
+		tthTool.changeDeltaOffset(sender.get())
 
 	def DeltaRange1ComboBoxCallback(self, sender):
 		size = sender.get()
@@ -336,9 +351,9 @@ class MainPanel(BaseWindowController):
 			self.controlValuesCallback()
 
 		elif gearOption == 13:
-			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools, self.tthEventTool)
+			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:
-			#matching.transfer(self.tthEventTool)
+			#matching.transfer()
 			pass
 
 	def showPreviewCallback(self):
@@ -356,12 +371,23 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.set(v1)
 		self.wTools.DeltaRange2ComboBox.set(v2)
 
+	def makeStemsLists(self):
+		self.stemsListX = ['None', 'Guess']
+		self.stemsListY = ['None', 'Guess']
+		g, fm = tthTool.getGAndFontModel()
+		if fm is None: return
+		for name, stem in fm.stems.iteritems():
+			if stem['horizontal']:
+				self.stemsListY.append(name)
+			else:
+				self.stemsListX.append(name)
+
 	##########
 	# Bindings
 	##########
 
 	def toolsWindowMovedorResized(self, sender):
-		setExtensionDefault(defaultKeyToolsWindowPosSize, self.wTools.getPosSize())
+		setExtensionDefault(defaultKeyMainPanelPosSize, self.wTools.getPosSize())
 
 	def close(self):
 		self.wTools.close()

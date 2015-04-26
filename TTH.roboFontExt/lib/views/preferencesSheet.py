@@ -1,6 +1,7 @@
 from vanilla import *
 from mojo.UI import *
 #from mojo.extensions import *
+from mojo.events import getActiveEventTool
 import string
 
 from commons import helperFunctions
@@ -10,8 +11,7 @@ from models.TTHTool import uniqueInstance as tthTool
 
 class PreferencesSheet(object):
 
-	def __init__(self, parentWindow, tthEventTool):
-		self.tthEventTool = tthEventTool
+	def __init__(self, parentWindow):
 
 		self.w = Sheet((505, 350), parentWindow=parentWindow)
 
@@ -105,14 +105,14 @@ class PreferencesSheet(object):
 		for i in sender.get():
 			for k, v in i.iteritems():
 				updatedSampleStrings.append(v)
-		self.tthEventTool.samplesStringsHaveChanged(updatedSampleStrings)
+		tthTool.samplesStringsHaveChanged(updatedSampleStrings)
 
 	def addStringButtonCallback(self, sender):
 		updatedSampleStrings = tthTool.previewSampleStringsList
 		updatedSampleStrings.append('/?')
 		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
-		self.tthEventTool.samplesStringsHaveChanged(updatedSampleStrings)
-		event = self.tthEventTool.getCurrentEvent()
+		tthTool.samplesStringsHaveChanged(updatedSampleStrings)
+		event = getActiveEventTool().getCurrentEvent()
 		tableview = self.w.viewAndSettingsBox.previewSampleStringsList.getNSTableView()
 		tableview.editColumn_row_withEvent_select_(0, len(self.w.viewAndSettingsBox.previewSampleStringsList)-1, event, True)
 
@@ -123,7 +123,7 @@ class PreferencesSheet(object):
 			if i not in selected:
 				updatedSampleStrings.append(s)
 		self.w.viewAndSettingsBox.previewSampleStringsList.set([{"PreviewString": v} for v in updatedSampleStrings])
-		self.tthEventTool.samplesStringsHaveChanged(updatedSampleStrings)
+		tthTool.samplesStringsHaveChanged(updatedSampleStrings)
 
 	def displayFromEditTextCallback(self, sender):
 		try:

@@ -174,6 +174,12 @@ class TTHTool():
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
+# - - - - - - - - - - - - - - - - - - - - - - - WORKING AXIS
+
+	def changeAxis(self, axis):
+		self.selectedAxis = axis
+		setExtensionDefault(defaultKeySelectedAxis, axis)
+
 # - - - - - - - - - - - - - - - - - - - - - - - DELTA RANGE
 
 	def changeDeltaRange(self, value1, value2):
