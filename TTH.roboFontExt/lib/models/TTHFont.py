@@ -7,11 +7,13 @@ import tempfile
 from commons import helperFunctions, textRenderer
 
 from models.TTHTool import uniqueInstance as tthTool
+from models import TTHGlyph
 
 from views import previewInGlyphWindow as PIGW
 
 reload(helperFunctions)
 reload(textRenderer)
+reload(TTHGlyph)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
@@ -39,6 +41,9 @@ class TTHFont():
 
 		self._pigw = None # internal preview in glyph-window
 
+		# TTHGlyph instances
+		self._glyphModels = {}
+
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
 		self.textRenderer = None
@@ -56,6 +61,23 @@ class TTHFont():
 		if self._pigw != None:
 			self._pigw.removeFromSuperview()
 			self._pigw = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - TTHGlyph
+
+	def glyphModelForGlyph(self, g):
+		key = g.name
+		if key not in self._glyphModels:
+			model = TTHGlyph.TTHGlyph(g)
+			self._glyphModels[key] = model
+			return model
+		return self._glyphModels[key]
+
+	def delGlyphModelForGlyph(self, glyph):
+		key = glyph.name
+		if key in self._glyphModels:
+			model = self._glyphModels[key]
+			del model
+			del self._glyphModels[key]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
 
@@ -134,9 +156,6 @@ class TTHFont():
 			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, hdmx_key, {})
 		except:
 			print "ERROR: can't set font's control values"
-
-	def setFont(self, font):
-		self.f = font
 
 	@property
 	def UPM(self):

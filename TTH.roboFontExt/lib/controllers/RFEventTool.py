@@ -201,7 +201,15 @@ class TTH_RF_EventTool(BaseEventTool):
 	def draw(self, scale):
 		'''This function is called by RF whenever the Foreground of the
 		glyph Window needs redraw'''
-		pass
+		if 0 == self.numberOfRectsToDraw(): return
+		
+		g, fm = self.getGAndFontModel()
+		if (fm is None) or (g is None): return
+		gm = fm.glyphModelForGlyph(g)
+		if gm is None:
+			print "GlyphModel is None"
+			return
+		print 'glyph has',len(gm.hintingCommands),'hinting commands'
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
