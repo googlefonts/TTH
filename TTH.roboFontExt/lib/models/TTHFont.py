@@ -4,7 +4,8 @@ from mojo.events import getActiveEventTool
 
 import tempfile
 
-from commons import helperFunctions, textRenderer
+from commons import helperFunctions
+from drawing import textRenderer
 
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph

@@ -3,6 +3,8 @@ from robofab.plistlib import Data
 
 from models.TTHTool import uniqueInstance as tthTool
 
+from drawing import geom
+
 class TTHGlyph(object):
 
 	def __init__(self, rfGlyph):
@@ -24,6 +26,10 @@ class TTHGlyph(object):
 		self._g = None
 		self.dirtyGeometry()
 		self.dirtyHinting()
+
+	@property
+	def RFGlyph(self):
+		return self._g
 
 	@property
 	def contours(self):
@@ -49,6 +55,15 @@ class TTHGlyph(object):
 			# FIXME: TOPOLOGICAL SORT
 			self._sortedHintingCommands = self.hintingCommands
 		return self._sortedHintingCommands
+
+	def positionForPointName(self, name):
+		if name == 'lsb':
+			return geom.Point(0,0)
+		elif name == 'rsb':
+			return geom.Point(self.RFGlyph.width, 0)
+		else:
+			cont, seg = self.contSegOfPointName(name)
+			return geom.makePoint(self._g[cont][seg].onCurve)
 
 	def dirtyGeometry(self):
 		'''This should be called whenever the geometry of the associated
@@ -89,8 +104,12 @@ class TTHGlyph(object):
 		# write self.hintingCommands to UFO lib.
 		root = ET.Element('ttProgram')
 		listOfCommands = self.sortedHintingCommands
-		for command in listOfCommands:
+		for c in listOfCommands:
 			com = ET.SubElement(root, 'ttc')
+			command = dict(c)
+			for key in ['labelPos']: # cleanup
+				if key in command:
+					del command[key]
 			if 'active' not in command:
 				command['active'] = 'true'
 			if command['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:

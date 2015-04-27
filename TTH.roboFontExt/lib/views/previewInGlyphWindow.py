@@ -3,7 +3,7 @@
 from AppKit import NSView, NSBezierPath, NSColor
 from mojo.events import getActiveEventTool
 
-from commons import drawing as DR
+from drawing import utilities as DR
 
 bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 blackColor = NSColor.blackColor()

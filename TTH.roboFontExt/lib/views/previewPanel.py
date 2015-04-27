@@ -6,7 +6,7 @@ from AppKit import *
 import string
 
 from views import TTHWindow
-from commons import drawing as DR
+from drawing import utilities as DR
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
