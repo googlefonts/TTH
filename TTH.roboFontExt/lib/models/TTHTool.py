@@ -136,8 +136,8 @@ class TTHTool():
 			return None
 		f = g.getParent()
 		if f is None:
-			print ''
 			return None
+		#print "Glyph",g.name,"from font",f.fileName
 		return self.fontModelForFont(f)
 
 	def delFontModelForGlyph(self, g):

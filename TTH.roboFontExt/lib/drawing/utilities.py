@@ -63,21 +63,22 @@ def drawVerticalLines(w, xPositions):
 	path.setLineWidth_(w)
 	path.stroke()
 
-def makeArrowPath(scale, lengthInPixel, direction, tip, path=None):
+def makeArrowPathAndAnchor(scale, lengthInPixel, direction, tip, path=None):
 	dir = lengthInPixel * scale * direction.normalized()
 	orth = 0.35 * dir.rotateCCW()
 	if path is None:
 		pathArrow = NSBezierPath.bezierPath()
 	else:
 		pathArrow = path
+	anchor = tip + dir
 	pathArrow.moveToPoint_(tip)
-	pathArrow.lineToPoint_(tip+dir-orth)
-	pathArrow.lineToPoint_(tip+dir+orth)
+	pathArrow.lineToPoint_(anchor-orth)
+	pathArrow.lineToPoint_(anchor+orth)
 	pathArrow.lineToPoint_(tip)
-	return pathArrow
+	return pathArrow, anchor
 
 def drawArrowAtPoint(scale, r, direction, pos, color):
-	path = makeArrowPath(scale, r, direction, pos)
+	path, anchor = makeArrowPathAndAnchor(scale, r, direction, pos)
 	color.set()
 	path.fill()
 	path.setLineWidth_(scale)

@@ -28,6 +28,7 @@ deltaColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1
 doublinkColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
 #finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
+linkColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 whiteColor        = NSColor.whiteColor()
 zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zoneColorLabel    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
@@ -100,13 +101,13 @@ class TTH_RF_EventTool(BaseEventTool):
 	def viewDidChangeGlyph(self):
 		'''This function is called by RF when the Glyph View shows another
 		glyph'''
-		#print "[TTH RF EVENT] View did change glyph"
+		print "[TTH RF EVENT] View did change glyph"
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
 	def currentGlyphChanged(self):
 		'''This function is called by RF when the Current Glyph changed'''
-		#print "[TTH RF EVENT] Current glyph changed"
+		print "[TTH RF EVENT] Current glyph changed"
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
@@ -130,7 +131,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
 		# 	self.toolsPanel.sheetControlValues.resetStemBox()
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
-		#print "[TTH RF EVENT] Font became current", font.fileName
+		print "[TTH RF EVENT] Font became current", font.fileName
 		tthTool.showOrHide()
 		tthTool.currentFontHasChanged(font)
 
@@ -240,6 +241,13 @@ class TTH_RF_EventTool(BaseEventTool):
 		remembered.'''
 		g = self.getGlyph()
 		return (g, tthTool.fontModelForGlyph(g))
+
+# - - - - - - - - - - - - - - - - - - - - - - - - WHEN THE PPEM SIZE CHANGES
+
+	def sizeHasChanged(self):
+		'''This function tells the RFEventTool that the PPEM preview size
+		has changed'''
+		self.cachedPathes = {'grid':None, 'centers':None}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING FUNCTIONS
 
@@ -365,14 +373,37 @@ class TTH_RF_EventTool(BaseEventTool):
 				whiteColor, arrowColor, self.getNSView(), active))
 		cmd['labelPos'] = (labelPos, labelSize)
 
-	def drawDoubleLink(self, cmd, scale):
+	def computeOffMiddlePoint(self, cmd, scale, gm):
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		#self.drawDoubleLinkDragging(scale, startPoint, endPoint, cmdIndex)
+		diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
 		mid  = 0.5*(pos1 + pos2)
-		diff = (scale*1000.0/fm.UPM/25.0)*(pos2 - pos1).rotateCCW()
-		offCurve = mid + diff
-		# Comput label text
+		return mid + diff		
+
+	def drawDoubleLinkDragging(self, cmd, scale, gm):
+		color = doublinkColor
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		if not active:
+			color = DR.kInactiveColor
+
+		offCurve = self.computeOffMiddlePoint(cmd, scale, gm)
+
+		arrowPath, startAnchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos1, pos1)
+		arrowPath, endAnchor   = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2, arrowPath)
+
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(startAnchor)
+		path.curveToPoint_controlPoint1_controlPoint2_(endAnchor, offCurve, offCurve)
+
+		color.set()
+		path.setLineWidth_(scale)
+		arrowPath.fill()
+		path.stroke()
+		return active, offCurve
+
+	def drawDoubleLink(self, cmd, scale, gm):
+		active, offCurve = self.drawDoubleLinkDragging(cmd, scale, gm)
+		# Compute label text
 		text = 'D'
 		stemName = c['stem']
 		if 'round' in cmd:
@@ -383,11 +414,34 @@ class TTH_RF_EventTool(BaseEventTool):
 					text = 'R'
 		elif stemName != None:
 			text = 'D_' + stemName
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, doublinkColor,\
 				self.getNSView(), active)
 		# compute x, y
 		cmd['labelPos'] = (offCurve, labelSize)
+
+	def drawLinkArrow(self, cmd, scale, gm, color):
+		pos1 = gm.positionForPointName(cmd['point1'])
+		pos2 = gm.positionForPointName(cmd['point2'])
+		offCurve = self.computeOffMiddlePoint(cmd, scale, gm)
+
+		pathArrow, anchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2)
+
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(pos1)
+		path.curveToPoint_controlPoint1_controlPoint2_(anchor, offCurve, offCurve)
+		
+		color.set()
+		path.setLineWidth_(scale)
+		pathArrow.fill()
+		path.stroke()
+		return offCurve
+
+	def drawLink(self, cmd, scale, gm):
+		color = linkColor
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		if not active:
+			color = DR.kInactiveColor
+		offCurve = self.drawLinkArrow(cmd, scale, gm, color)
 
 	def drawCommands(self, scale, fm, gm):
 		for c in gm.hintingCommands:
@@ -406,14 +460,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif X and cmd_code == 'alignh':
 				self.drawAlign(gm, c, scale, geom.Point(1,0))
 
-			elif X and cmd_code == 'doubleh':
-				self.drawDoubleLink(c, scale, fm)
-			elif Y and cmd_code == 'doublev':
-				self.drawDoubleLink(c, scale, fm)
-			#elif X and cmd_code == 'singleh':
-			#	self.drawLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
-			#elif Y and cmd_code == 'singlev':
-			#	self.drawLink(scale, startPoint, endPoint, cmd_stem, cmdIndex)
+			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
+				self.drawDoubleLink(c, scale, gm)
+			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
+				self.drawLink(c, scale, gm)
 
 			#elif cmd_code in ['interpolateh', 'interpolatev']:
 
@@ -468,14 +518,6 @@ class TTH_RF_EventTool(BaseEventTool):
 			#		elif tthTool.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
 			#			self.drawDelta(scale, point, value, cmdIndex, color)
     
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	def sizeHasChanged(self):
-		'''This function tells the RFEventTool that the PPEM preview size
-		has changed'''
-		self.cachedPathes = {'grid':None, 'centers':None}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if tthTool._printLoadings: print "RFEventTool, ",
