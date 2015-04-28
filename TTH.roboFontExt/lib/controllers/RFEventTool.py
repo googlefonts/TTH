@@ -23,12 +23,15 @@ reload(DR)
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
 arrowColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
+blackColor        = NSColor.blackColor()
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
 deltaColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 doublinkColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
-#finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
+finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
+interpolateColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 linkColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
+stemColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
 whiteColor        = NSColor.whiteColor()
 zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zoneColorLabel    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
@@ -101,13 +104,13 @@ class TTH_RF_EventTool(BaseEventTool):
 	def viewDidChangeGlyph(self):
 		'''This function is called by RF when the Glyph View shows another
 		glyph'''
-		print "[TTH RF EVENT] View did change glyph"
+		#print "[TTH RF EVENT] View did change glyph"
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
 	def currentGlyphChanged(self):
 		'''This function is called by RF when the Current Glyph changed'''
-		print "[TTH RF EVENT] Current glyph changed"
+		#print "[TTH RF EVENT] Current glyph changed"
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
@@ -122,7 +125,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	def fontResignCurrent(self, font):
 		'''This function is called by RF when the Current Font is not
 		Current anymore'''
-		print "[TTH RF EVENT] Font resign current", font.fileName
+		#print "[TTH RF EVENT] Font resign current", font.fileName
 
 	def fontBecameCurrent(self, font):
 		'''This function is called by RF when a new Font becomes Current'''
@@ -131,7 +134,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
 		# 	self.toolsPanel.sheetControlValues.resetStemBox()
 		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
-		print "[TTH RF EVENT] Font became current", font.fileName
+		#print "[TTH RF EVENT] Font became current", font.fileName
 		tthTool.showOrHide()
 		tthTool.currentFontHasChanged(font)
 
@@ -165,7 +168,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		glyph Window needs redraw'''
 
 		if 0 == self.numberOfRectsToDraw(): return
-		
+
 		g, fm = self.getGAndFontModel()
 
 		if fm is None: return
@@ -205,7 +208,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF whenever the Foreground of the
 		glyph Window needs redraw'''
 		if 0 == self.numberOfRectsToDraw(): return
-		
+
 		g, fm = self.getGAndFontModel()
 		if (fm is None) or (g is None): return
 		gm = fm.glyphModelForGlyph(g)
@@ -340,53 +343,40 @@ class TTH_RF_EventTool(BaseEventTool):
 					deltaColor.set()
 					path.setLineWidth_(scale)
 					path.stroke()
-					r = 4
-					DR.drawLozengeAtPoint(r*scale, scale, end_x, end_y, deltaColor)
+					DR.drawLozengeAtPoint(scale, 4, end_x, end_y, deltaColor)
 
-	def drawAlign(self, gm, cmd, scale, direction):
-		color = arrowColor
-		if cmd['active'] == 'false':
-			color = DR.kInactiveColor
-		pos = gm.positionForPointName(cmd['point'])
-		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
-		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 
-		if 'align' in cmd:
-			extension = cmd['align']
-			if tthTool.selectedAxis == 'Y':
-				if extension == 'right':
-					extension = 'top'
-				elif extension == 'left':
-					extension = 'bottom'
-			if extension == 'round':
-				extension = 'closest' # FIXME: ?????
-			text = 'A_' + extension
-		elif cmd['code'] == 'alignt' or cmd['code'] == 'alignb':
-			text = 'A_' + cmd['zone']
+	def computeOffMiddlePoint(self, scale, pos1, pos2):
+		#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
+		diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()
+		mid  = 0.5*(pos1 + pos2)
+		return mid + diff
 
-		if cmd['code'] == 'alignt':
-			labelPos = pos + scale * geom.Point(10,+20)
-		else: 
-			labelPos = pos + scale * geom.Point(10,-20)
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
-				whiteColor, arrowColor, self.getNSView(), active))
-		cmd['labelPos'] = (labelPos, labelSize)
-
-	def computeOffMiddlePoint(self, cmd, scale, gm):
+	def drawSingleEndedArrow(self, cmd, scale, gm, color):
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
-		mid  = 0.5*(pos1 + pos2)
-		return mid + diff		
+		offCurve = self.computeOffMiddlePoint(scale, pos1, pos2)
 
-	def drawDoubleLinkDragging(self, cmd, scale, gm):
-		color = doublinkColor
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		if not active:
+		pathArrow, anchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2)
+
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(pos1)
+		path.curveToPoint_controlPoint1_controlPoint2_(anchor, offCurve, offCurve)
+
+		color.set()
+		path.setLineWidth_(scale)
+		pathArrow.fill()
+		path.stroke()
+		return offCurve
+
+	def drawDoubleEndedArrow(self, scale, active, iColor, pos1, pos2):
+		if active:
+			color = iColor
+		else:
 			color = DR.kInactiveColor
 
-		offCurve = self.computeOffMiddlePoint(cmd, scale, gm)
+		offCurve = self.computeOffMiddlePoint(scale, pos1, pos2)
 
 		arrowPath, startAnchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos1, pos1)
 		arrowPath, endAnchor   = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2, arrowPath)
@@ -399,125 +389,187 @@ class TTH_RF_EventTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		arrowPath.fill()
 		path.stroke()
-		return active, offCurve
-
-	def drawDoubleLink(self, cmd, scale, gm):
-		active, offCurve = self.drawDoubleLinkDragging(cmd, scale, gm)
-		# Compute label text
-		text = 'D'
-		stemName = c['stem']
-		if 'round' in cmd:
-			if cmd['round'] == 'true':
-				if stemName != None:
-					text = 'D_' + stemName
-				else:
-					text = 'R'
-		elif stemName != None:
-			text = 'D_' + stemName
-		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, doublinkColor,\
-				self.getNSView(), active)
-		# compute x, y
-		cmd['labelPos'] = (offCurve, labelSize)
-
-	def drawLinkArrow(self, cmd, scale, gm, color):
-		pos1 = gm.positionForPointName(cmd['point1'])
-		pos2 = gm.positionForPointName(cmd['point2'])
-		offCurve = self.computeOffMiddlePoint(cmd, scale, gm)
-
-		pathArrow, anchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2)
-
-		path = NSBezierPath.bezierPath()
-		path.moveToPoint_(pos1)
-		path.curveToPoint_controlPoint1_controlPoint2_(anchor, offCurve, offCurve)
-		
-		color.set()
-		path.setLineWidth_(scale)
-		pathArrow.fill()
-		path.stroke()
 		return offCurve
 
-	def drawLink(self, cmd, scale, gm):
-		color = linkColor
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		if not active:
+	def getCommandAlignLabel(self, cmd):
+		if 'align' in cmd:
+			extension = cmd['align']
+			if tthTool.selectedAxis == 'Y':
+				if extension == 'right': return 'top'
+				elif extension == 'left': return 'bottom'
+			if extension == 'round': return 'closest' # FIXME: ?????
+			return extension
+		else:
+			return ''
+
+	def drawDeltaDragging(self, cmd, scale, gm, cursorPoint, pitch):
+		point  = gm.positionForPointName(cmd['point'])
+		if tthTool.selectedAxis == 'X':
+			idx = 0
+			unit = geom.Point(1.0,0.0)
+		else:
+			idx = 1
+			unit = geom.Point(0.0,1.0)
+		value = int((cursorPoint[idx]-point[idx])*8.0/pitch)
+		value = min(8, max(-8, value))
+		end = point + value/8.0 * unit
+		# FIXME: should pass 'value' directly as argument and
+		# call changeDeltaOffset in the caller
+		#if value != 0:
+		#	self.changeDeltaOffset(value_x)
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(point)
+		path.lineToPoint_(end)
+		color.set()
+		path.setLineWidth_(scale)
+		path.stroke()
+		self.drawLozengeAtPoint(scale, 4, end.x, end.y, color)
+
+	def drawAlign(self, gm, cmd, scale, direction):
+		color = arrowColor
+		if cmd['active'] == 'false':
 			color = DR.kInactiveColor
-		offCurve = self.drawLinkArrow(cmd, scale, gm, color)
+		pos = gm.positionForPointName(cmd['point'])
+		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
+		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
+		if 'align' in cmd:
+			text = 'A_' + self.getCommandAlignLabel(cmd)
+		elif cmd['code'] == 'alignt' or cmd['code'] == 'alignb':
+			text = 'A_' + cmd['zone']
+		if cmd['code'] == 'alignt':
+			labelPos = pos + scale * geom.Point(10,+20)
+		else:
+			labelPos = pos + scale * geom.Point(10,-20)
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
+				whiteColor, arrowColor, self.getNSView(), active))
+		cmd['labelPos'] = (labelPos, labelSize)
+
+	def drawDoubleLink(self, cmd, scale, gm):
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		pos1 = gm.positionForPointName(cmd['point1'])
+		pos2 = gm.positionForPointName(cmd['point2'])
+		offCurve = self.drawDoubleEndedArrow(scale, active, doublinkColor, pos1, pos2)
+		# Compute label text
+		stemName = c['stem']
+		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
+		if isRound:
+			if stemName != None: text = 'D_' + stemName
+			else: text = 'R'
+		elif stemName != None:
+			text = 'D_' + stemName
+		else:
+			text = 'D'
+		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, doublinkColor,\
+				self.getNSView(), active)
+		cmd['labelPos'] = (offCurve, labelSize)
+
+	def drawLink(self, cmd, scale, gm):
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		if active:
+			color = linkColor
+		else:
+			color = DR.kInactiveColor
+		offCurve = self.drawSingleEndedArrow(cmd, scale, gm, color)
+
+		Y = (tthTool.selectedAxis == 'Y')
+		extension = self.getCommandAlignLabel(cmd)
+		stemName = helperFunctions.getOrNone(cmd, 'stem')
+		textColor = whiteColor
+		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
+		if isRound:
+			if stemName == None and extension != '': text = 'R_' + extension
+			elif stemName != None:                   text = 'R_' + stemName
+			else:                                    text = 'R'
+		else:
+			text = 'S'
+			if stemName == None and extension != '': text = 'S_' + extension
+			elif stemName != None:
+				text = 'S_' + stemName
+				textColor = blackColor
+				if active:
+					color = stemColor
+				else:
+					color = inactiveColor
+		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
+		cmd['labelPos'] = (offCurve, labelSize)
+
+	def drawInterpolate(self, cmd, scale, gm):
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		pos  = gm.positionForPointName(cmd['point'])
+		pos1 = gm.positionForPointName(cmd['point1'])
+		pos2 = gm.positionForPointName(cmd['point2'])
+		offCurve = self.drawDoubleEndedArrow(scale, active, interpolateColor, pos1, pos)
+		offCurve = self.drawDoubleEndedArrow(scale, active, interpolateColor, pos, pos2)
+		extension = self.getCommandAlignLabel(cmd)
+		if extension == '':
+			text = 'I'
+		else:
+			text = 'I_' + extension
+		# square root takes the label a bit further when we zoom in
+		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
+		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, interpolateColor, self.getNSView(), active)
+		cmd['labelPos'] = (pos, labelSize)
+
+	def drawDelta(self, cmd, scale, gm, pitch):
+		pos  = gm.positionForPointName(cmd['point'])
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		cmd_code = cmd['code']
+		if active:
+			if cmd_code in ['mdeltah', 'mdeltav']:
+				color = deltaColor
+			else: # final delta
+				color = finalDeltaColor
+		else:
+			color = inactiveColor
+		if cmd_code[-1] == 'h':
+			value = (int(cmd['delta']), 0)
+		else:
+			value = (0, int(cmd['delta']))
+
+		endPt = pos + (1.0/8.0) * pitch * geom.makePointForPair(value)
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(pos)
+		path.lineToPoint_(endPt)
+
+		color.set()
+		path.setLineWidth_(scale)
+		path.stroke()
+		self.drawLozengeAtPoint(scale, 4, endPt.x, endPt.y, color)
+
+		value = cmd['delta']
+		if cmd_code[0] == 'm':
+			text = 'delta_M:'
+		else:
+			text = 'delta_F:'
+		text = text + value
+
+		if cmd['code'][-1] == 'v' and int(value) < 0:
+			labelPos = pos + 10*scale*geom.Point(-1,+1)
+		else:
+			labelPos = pos + 10*scale*geom.Point(-1,-1)
+		labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
+		cmd['labelPos'] = (pos, labelSize)
 
 	def drawCommands(self, scale, fm, gm):
 		for c in gm.hintingCommands:
-			# search elements only once
 			cmd_code = helperFunctions.getOrNone(c, 'code')
-			#cmd_pt   = helperFunctions.getOrNone(c, 'point')
-			#cmd_pt1  = helperFunctions.getOrNone(c, 'point1')
-			#cmd_pt2  = helperFunctions.getOrNone(c, 'point2')
-			#cmd_stem = helperFunctions.getOrNone(c, 'stem')
-
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
-			
 			if Y and cmd_code in ['alignv', 'alignt', 'alignb']:
 				self.drawAlign(gm, c, scale, geom.Point(0,1))
 			elif X and cmd_code == 'alignh':
 				self.drawAlign(gm, c, scale, geom.Point(1,0))
-
 			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
 				self.drawDoubleLink(c, scale, gm)
 			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
 				self.drawLink(c, scale, gm)
+			elif (X and cmd_code == 'interpolateh') or (Y and cmd_code == 'interpolatev'):
+				self.drawInterpolate(c, scale, gm)
+			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
+				if int(c['ppm1']) <= tthTool.PPM_Size <= int(c['ppm2']):
+					self.drawDelta(c, scale, gm, fm.getPitch())
 
-			#elif cmd_code in ['interpolateh', 'interpolatev']:
-
-			#	if cmd_pt == 'lsb':
-			#		middlePoint = (0, 0)
-			#	elif cmd_pt== 'rsb':
-			#		middlePoint = (0, g.width)
-			#	else:
-			#		middlePoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
-
-			#	if cmd_pt1 == 'lsb':
-			#		startPoint = (0, 0)
-			#	elif cmd_pt1== 'rsb':
-			#		startPoint = (0, g.width)
-			#	else:
-			#		startPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt1]]
-
-			#	if cmd_pt2 == 'lsb':
-			#		endPoint = (0, 0)
-			#	elif cmd_pt2 == 'rsb':
-			#		endPoint = (g.width, 0)
-			#	else:
-			#		endPoint = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt2]]
-
-			#	if tthTool.selectedAxis == 'X' and cmd_code == 'interpolateh':
-			#		self.drawInterpolate(scale, startPoint, endPoint, middlePoint, cmdIndex)
-			#	elif tthTool.selectedAxis == 'Y' and cmd_code == 'interpolatev':
-			#		self.drawInterpolate(scale, startPoint, endPoint, middlePoint, cmdIndex)
-
-			#elif cmd_code in ['mdeltah', 'mdeltav', 'fdeltah', 'fdeltav']:
-			#	if cmd_code in ['mdeltah', 'mdeltav']:
-			#		color = deltacolor
-			#	else:
-			#		color = finaldeltacolor
-			#	if cmd_pt == 'lsb':
-			#		point = (0, 0)
-			#	elif cmd_pt== 'rsb':
-			#		point = (g.width, 0)
-			#	else:
-			#		point = self.pointUniqueIDToCoordinates[self.pointNameToUniqueID[cmd_pt]]
-
-			#	if cmd_code[-1] == 'h':
-			#		value = (int(c['delta']), 0)
-			#	elif cmd_code[-1] == 'v':
-			#		value = (0, int(c['delta']))
-			#	else:
-			#		value = 0
-
-			#	if int(tthTool.PPM_Size) in range(int(c['ppm1']), int(c['ppm2'])+1, 1):
-			#		if tthTool.selectedAxis == 'X' and cmd_code in ['mdeltah', 'fdeltah']:
-			#			self.drawDelta(scale, point, value, cmdIndex, color)
-			#		elif tthTool.selectedAxis == 'Y' and cmd_code in ['mdeltav', 'fdeltav']:
-			#			self.drawDelta(scale, point, value, cmdIndex, color)
-    
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if tthTool._printLoadings: print "RFEventTool, ",

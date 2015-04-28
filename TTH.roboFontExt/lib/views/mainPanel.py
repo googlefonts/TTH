@@ -2,7 +2,8 @@ from defconAppKit.windows.baseWindow import BaseWindowController
 from lib.doodleMenus import BaseMenu
 from AppKit import *
 from vanilla import *
-from mojo.extensions import *
+from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
+from mojo.UI import UpdateCurrentGlyphView
 
 
 from views import preferencesSheet
@@ -109,7 +110,11 @@ class MainPanel(BaseWindowController):
 
 		# AXIS buttons
 		self.wTools.axisSegmentedButton = SegmentedButton((60, 12, 70, 18), axisSegmentDescriptions, callback=self.axisSegmentedButtonCallback, sizeStyle="regular")
-		self.wTools.axisSegmentedButton.set(0)
+		if tthTool.selectedAxis == 'X':
+			b = 0
+		else:
+			b = 1
+		self.wTools.axisSegmentedButton.set(b)
 
 		# Tools segmented buttons
 		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
@@ -246,6 +251,7 @@ class MainPanel(BaseWindowController):
 			tthTool.makeStemsLists()
 			self.wTools.StemTypePopUpButton.setItems(self.stemsListY)
 			#tthTool.changeSelectedStemY(tthTool.selectedStemY)
+		UpdateCurrentGlyphView()
 
 	def toolsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:

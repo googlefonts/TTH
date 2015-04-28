@@ -32,12 +32,13 @@ def drawDiscAtPoint(r, x, y, color):
 
 def drawLozengeAtPoint(scale, r, x, y, color):
 	color.set()
+	d =scale * r
 	path = NSBezierPath.bezierPath()
-	path.moveToPoint_((x+r*5, y))
-	path.lineToPoint_((x, y+r*5))
-	path.lineToPoint_((x-r*5, y))
-	path.lineToPoint_((x, y-r*5))
-	path.lineToPoint_((x+r*5, y))
+	path.moveToPoint_((x+d, y))
+	path.lineToPoint_((x, y+d))
+	path.lineToPoint_((x-d, y))
+	path.lineToPoint_((x, y-d))
+	path.lineToPoint_((x+d, y))
 	path.fill()
 
 def drawSideBearingsPointsOfGlyph(scale, size, glyph):
