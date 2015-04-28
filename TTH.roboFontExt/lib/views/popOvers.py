@@ -88,8 +88,8 @@ class PopoverPointMoverCallback(object):
 		else:
 			cont,seg = gm.decreaseContSeg(cont, seg)
 		self.cmd[self.key] = gm._g[cont][seg].onCurve.name
-		#tthTool.updateGlyphProgram(g)
-		#tthTool.hintingProgramHasChanged(g)
+		tthTool.updateGlyphProgram(g)
+		tthTool.hintingProgramHasChanged(g)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #  T T H   C O M M A N D   P O P O V E R
