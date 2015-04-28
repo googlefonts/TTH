@@ -46,6 +46,13 @@ class PreviewInGlyphWindow(NSView):
 		frame.origin.x = 0
 		self.setFrame_(frame)
 
+	def handleClick(self):
+		if self.isHidden(): return
+		loc = getActiveEventTool().getCurrentEvent().locationInWindow()
+		for p, s in self.clickableSizesGlyphWindow.iteritems():
+			if (p[0] <= loc.x <= p[0]+10) and (p[1] <= loc.y <= p[1]+20):
+				self.tthTool.changeSize(s)
+
 	def drawRect_(self, rect):
 		self.recomputeFrame()
 		bkgColor.set()

@@ -5,6 +5,157 @@ from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from drawing import geom
 
+def topologicalSort(l, f):
+	n = len(l)
+	preds = [[] for i in l]
+	visited = [False for i in l]
+	loop = list(visited) # separate copy of visited
+	# build the list of predecessors for each element of |l|
+	for i in range(n):
+		for j in range(i+1,n):
+			(comp, swap) = f(l[i], l[j])
+			if not comp:
+				continue
+			if swap:
+				preds[i].append(j)
+			else:
+				preds[j].append(i)
+	result = []
+	def visit(i):
+		if loop[i]:
+			raise Exception("loop")
+		if visited[i]:
+			return
+		loop[i] = True
+		for p in preds[i]:
+			visit(p)
+		loop[i] = False
+		visited[i] = True
+		result.append(l[i])
+	try:
+		for i in range(n):
+			visit(i)
+		return result
+	except:
+		pass
+	print "ERROR: Found a loop in topological sort"
+	return l
+
+def compareCommands(A, B):
+	order = None
+	ab = 1
+	ba = 2
+	A_isAlign       = A['code'] in ['alignh', 'alignv']
+	B_isAlign       = B['code'] in ['alignh', 'alignv']
+	A_isSingleLink  = A['code'] in ['singleh', 'singlev']
+	B_isSingleLink  = B['code'] in ['singleh', 'singlev']
+	A_isInterpolate = A['code'] in ['interpolateh', 'interpolatev']
+	B_isInterpolate = B['code'] in ['interpolateh', 'interpolatev']
+	A_isMiddleDelta = A['code'] in ['mdeltah', 'mdeltav']
+	B_isMiddleDelta = B['code'] in ['mdeltah', 'mdeltav']
+	A_isFinalDelta  = A['code'] in ['fdeltah', 'fdeltav']
+	B_isFinalDelta  = B['code'] in ['fdeltah', 'fdeltav']
+
+	if A_isSingleLink and B_isAlign:
+		if A['point1'] == B['point']:
+			order = ba
+	elif A_isAlign and B_isSingleLink:
+		if A['point'] == B['point1']:
+			order = ab
+	elif A_isSingleLink and B_isSingleLink:
+		if A['point1'] == B['point2']:
+			order = ba
+		elif A['point2'] == B['point1']:
+			order = ab
+	elif A_isAlign and B_isInterpolate:
+		if A['point'] == B['point1'] or A['point'] == B['point2']:
+			order = ab
+	elif A_isInterpolate and B_isAlign:
+		if B['point'] == A['point1'] or B['point'] == A['point2']:
+			order = ba
+	elif A_isSingleLink and B_isInterpolate:
+		if A['point2'] == B['point1'] or A['point2'] == B['point2']:
+			order = ab
+		elif A['point1'] == B['point']:
+			order = ba
+	elif A_isInterpolate and B_isSingleLink:
+		if B['point2'] == A['point1'] or B['point2'] == A['point2']:
+			order = ba
+		elif A['point'] == B['point1']:
+			order = ab
+	elif A_isAlign and B_isMiddleDelta:
+		if A['point'] == B['point']:
+			order = ab
+	elif A_isMiddleDelta and B_isAlign:
+		if A['point'] == B['point']:
+			order = ba
+	elif A_isAlign and B_isMiddleDelta:
+		if A['point'] == B['point']:
+			order = ab
+	elif A_isMiddleDelta and B_isSingleLink:
+		if A['point'] == B['point1']:
+			order = ab
+		elif A['point'] == B['point2']:
+			order = ba
+	elif A_isSingleLink and B_isMiddleDelta:
+		if A['point1'] == B['point']:
+			order = ba
+		elif A['point2'] == B['point']:
+			order = ab
+	elif A_isMiddleDelta and B_isInterpolate:
+		if A['point'] == B['point1'] or A['point'] == B['point2']:
+			order = ab
+		elif A['point'] == B['point']:
+			order = ba
+	elif A_isInterpolate and B_isMiddleDelta:
+		if A['point1'] == B['point'] or A['point2'] == B['point']:
+			order = ba
+		elif A['point'] == B['point']:
+			order = ab
+	elif ((A_isMiddleDelta and B_isMiddleDelta) and (A['point'] == B['point'])) \
+	or (A_isFinalDelta and B_isFinalDelta):
+		if A['mono'] == 'true':
+			Avalue = 2
+		else:
+			Avalue = 0
+		if A['gray'] == 'true':
+			Avalue += 1
+		if B['mono'] == 'true':
+			Bvalue = 2
+		else:
+			Bvalue = 0
+		if B['gray'] == 'true':
+			Bvalue += 1
+		if Avalue < Bvalue:
+			order = ba
+		elif Avalue > Bvalue:
+			order = ab
+	if order == ab:
+		return (True, False)
+	elif order == ba:
+		return (True, True)
+	return (False, False)
+
+def sortCommands(cmds):
+	x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
+	for c in ccmds:
+		code = c['code']
+		if code == 'fdeltah':
+			fdeltah.append(c)
+		elif code == 'fdeltav':
+			fdeltav.append(c)
+		elif code[-1] in ['h']:
+			x.append(c)
+		elif code[-1] in ['v']:
+			y.append(c)
+		elif code[-1] in ['t', 'b']:
+			ytb.append(c)
+		else:
+			y.append(c)
+	x = topologicalSort(x, compareCommands)
+	x.extend(ytb)
+	return sum([topologicalSort(l, compareCommands) for l in [y,fdeltah,fdeltav]], x)
+
 class TTHGlyph(object):
 
 	def __init__(self, rfGlyph):
@@ -21,7 +172,7 @@ class TTHGlyph(object):
 		self.hintingCommands = []
 		# load stuff from the UFO Lib
 		self.loadFromUFO()
-	
+
 	def __del__(self):
 		self._g = None
 		self.dirtyGeometry()
@@ -52,8 +203,7 @@ class TTHGlyph(object):
 	@property
 	def sortedHintingCommands(self):
 		if None == self._sortedHintingCommands:
-			# FIXME: TOPOLOGICAL SORT
-			self._sortedHintingCommands = self.hintingCommands
+			self._sortedHintingCommands = sortCommands(self.hintingCommands)
 		return self._sortedHintingCommands
 
 	def positionForPointName(self, name):
@@ -77,7 +227,7 @@ class TTHGlyph(object):
 		a command is modified. So this may be called by the
 		command-popovers for example.'''
 		self._sortedHintingCommands = None
-	
+
 	def contSegOfPointName(self, name):
 		if None == self._nameToContSeg:
 			self.buildNameToContSegDict()
@@ -161,10 +311,39 @@ class TTHGlyph(object):
 		text = ET.tostring(root)
 		self._g.lib['com.fontlab.ttprogram'] = Data(text)
 
+	def commandIsOK(self, cmd, verbose = False):
+		for key in ['point', 'point1', 'point2']:
+			if key not in cmd: continue
+			ptName = cmd[key]
+			if ptName in ['lsb', 'rsb']: continue
+			if self.contSegOfPointName(ptName) is None:
+				if verbose:
+					print "WARNING:", key,'"'+ptName+\
+						'" in hinting command for glyph',self._g.name,\
+						"was not found. Killing the command."
+				return False
+			if 'inserted' in ptName:
+				if verbose:
+					print "WARNING:", key,'"'+ptName+\
+						'" in hinting command for glyph',self._g.name,\
+						"contains the word 'inserted'. Killing the command."
+				return False
+		return True
+
+	def cleanCommands(self):
+		self.dirtyHinting()
+		self.hintingCommands = [c for c in self.hintingCommands if self.commandIsOK(c)]
+
+	def updateGlyphProgram(self):
+		self.cleanCommands()
+		self.saveToUFO()
+		#TTHintAsm.writeAssembly(self, g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+
 	def loadFromUFO(self):
 		"""Load what can be loaded from the UFO Lib."""
 		# read self.hintingCommands from UFO lib.
 		self.hintingCommands = []
+		self.dirtyHinting()
 		if 'com.fontlab.ttprogram' not in self._g.lib:
 			return
 		ttprogram = self._g.lib['com.fontlab.ttprogram']
@@ -183,22 +362,7 @@ class TTHGlyph(object):
 					cmd['gray'] = 'true'
 				if 'mono' not in cmd:
 					cmd['mono'] = 'true'
-			goodCmd = True
-			for key in ['point', 'point1', 'point2']:
-				if key not in cmd: continue
-				ptName = cmd[key]
-				if ptName in ['lsb', 'rsb']: continue
-				if self.contSegOfPointName(ptName) is None:
-					print "WARNING:", key,'"'+ptName+\
-						'" in hinting command for glyph',self._g.name,\
-						"was not found. Killing the command."
-					goodCmd = False
-				if 'inserted' in ptName:
-					print "WARNING:", key,'"'+ptName+\
-						'" in hinting command for glyph',self._g.name,\
-						"contains the word 'inserted'. Killing the command."
-					goodCmd = False
-			if goodCmd:
+			if self.commandIsOK(cmd, verbose = True):
 				self.hintingCommands.append(cmd)
 
 if tthTool._printLoadings: print "TTHGlyph, ",

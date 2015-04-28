@@ -221,14 +221,10 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''
+		# Handle click in PIGW
 		if self.mouseDownFontModel != None:
 			pigw = self.mouseDownFontModel.previewInGlyphWindow
-			if (pigw != None) and (not pigw.isHidden()):
-				positions = pigw.clickableSizesGlyphWindow
-				loc = self.getCurrentEvent().locationInWindow()
-				for p, s in positions.iteritems():
-					if (p[0] <= loc.x <= p[0]+10) and (p[1] <= loc.y <= p[1]+20):
-						tthTool.changeSize(s)
+			if pigw != None: pigw.handleClick()
 			self.mouseDownFontModel = None
 
 		if self.currentPopover != None:
@@ -434,7 +430,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		color.set()
 		path.setLineWidth_(scale)
 		path.stroke()
-		self.drawLozengeAtPoint(scale, 4, end.x, end.y, color)
+		DR.drawLozengeAtPoint(scale, 4, end.x, end.y, color)
 
 	def drawAlign(self, gm, cmd, scale, direction):
 		color = arrowColor
@@ -546,7 +542,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		color.set()
 		path.setLineWidth_(scale)
 		path.stroke()
-		self.drawLozengeAtPoint(scale, 4, endPt.x, endPt.y, color)
+		DR.drawLozengeAtPoint(scale, 4, endPt.x, endPt.y, color)
 
 		value = cmd['delta']
 		if cmd_code[0] == 'm':
