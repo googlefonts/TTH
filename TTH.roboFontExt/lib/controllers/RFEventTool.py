@@ -14,9 +14,11 @@ from models.TTHTool import uniqueInstance as tthTool
 # reloaded below
 from commons import helperFunctions
 from drawing import textRenderer, geom, utilities as DR
+from views import popOvers
 
 reload(helperFunctions)
 reload(textRenderer)
+reload(popOvers)
 reload(geom)
 reload(DR)
 
@@ -61,6 +63,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# Stores the current TTHFont model during mouseDown event
 		self.mouseDownFontModel = None
+
+		# Stores the current popover panel when one is opened
+		self.currentPopover = None
 
 	def __del__(self):
 		pass
@@ -145,13 +150,13 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def glyphWindowWillOpen(self, window):
 		'''Install the previewInGlyphWindow'''
-		g, fm = self.getGAndFontModel()
+		fm = tthTool.getFontModel()
 		if fm is not None:
 			fm.createPreviewInGlyphWindowIfNeeded()
 
 	def glyphWindowWillClose(self, window):
 		'''Destroy the previewInGlyphWindow'''
-		g, fm = self.getGAndFontModel()
+		fm = tthTool.getFontModel()
 		if fm is not None:
 			fm.killPreviewInGlyphWindow()
 
@@ -169,7 +174,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if 0 == self.numberOfRectsToDraw(): return
 
-		g, fm = self.getGAndFontModel()
+		g, fm = tthTool.getRGAndFontModel()
 
 		if fm is None: return
 
@@ -208,42 +213,48 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF whenever the Foreground of the
 		glyph Window needs redraw'''
 		if 0 == self.numberOfRectsToDraw(): return
-
-		g, fm = self.getGAndFontModel()
-		if (fm is None) or (g is None): return
-		gm = fm.glyphModelForGlyph(g)
-		if gm is None:
-			print "GlyphModel is None"
-			return
-		#print 'glyph has',len(gm.hintingCommands),'hinting commands'
-		self.drawCommands(scale, fm, gm)
+		self.drawCommands(scale)
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
-		g, fm = self.getGAndFontModel()
-		self.mouseDownFontModel = fm
+		self.mouseDownFontModel = tthTool.getFontModel()
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''
-		if self.mouseDownFontModel == None: return
-		pigw = self.mouseDownFontModel.previewInGlyphWindow
-		if pigw == None: return
-		if pigw.isHidden(): return
-		positions = pigw.clickableSizesGlyphWindow
-		loc = self.getCurrentEvent().locationInWindow()
-		for p, s in positions.iteritems():
-			if (p[0] <= loc.x <= p[0]+10) and (p[1] <= loc.y <= p[1]+20):
-				tthTool.changeSize(s)
-		self.mouseDownFontModel = None
+		if self.mouseDownFontModel != None:
+			pigw = self.mouseDownFontModel.previewInGlyphWindow
+			if (pigw != None) and (not pigw.isHidden()):
+				positions = pigw.clickableSizesGlyphWindow
+				loc = self.getCurrentEvent().locationInWindow()
+				for p, s in positions.iteritems():
+					if (p[0] <= loc.x <= p[0]+10) and (p[1] <= loc.y <= p[1]+20):
+						tthTool.changeSize(s)
+			self.mouseDownFontModel = None
 
-# - - - - - - - - - - - - - - - - - - - - - - - GETTING CURRENT GLYPH AND FONT
+		if self.currentPopover != None:
+			self.currentPopover.close()
+		# Has we clicked on a command label?
+		gm, fm = tthTool.getGlyphAndFontModel()
+		cmd = gm.commandClicked(point)
+		if cmd != None:
+			popOvers.openForCommand(cmd, point)
+		
+# - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 
-	def getGAndFontModel(self):
-		'''Returns the current RGlyph and the RFont it belongs to.
-		Used everywhere, since current glyph and current font are NOT
-		remembered.'''
-		g = self.getGlyph()
-		return (g, tthTool.fontModelForGlyph(g))
+	def popoverOpened(self, sender):
+		#print "Current:", self.currentPopover, "-->", sender.controller
+		self.currentPopover = sender.controller
+
+	def popoverClosed(self, sender):
+		closing = sender.controller
+		#print "Current:", self.currentPopover, "-->",
+		if self.currentPopover is closing:
+			self.currentPopover = None
+			#self.commandClicked = None
+			#print "None."
+		else:
+			pass
+			#print "stays the same."
 
 # - - - - - - - - - - - - - - - - - - - - - - - - WHEN THE PPEM SIZE CHANGES
 
@@ -443,7 +454,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
 				whiteColor, arrowColor, self.getNSView(), active))
-		cmd['labelPos'] = (labelPos, labelSize)
+		cmd['labelPosSize'] = (labelPos, labelSize)
 
 	def drawDoubleLink(self, cmd, scale, gm):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
@@ -462,7 +473,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'D'
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, doublinkColor,\
 				self.getNSView(), active)
-		cmd['labelPos'] = (offCurve, labelSize)
+		cmd['labelPosSize'] = (offCurve, labelSize)
 
 	def drawLink(self, cmd, scale, gm):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
@@ -492,7 +503,7 @@ class TTH_RF_EventTool(BaseEventTool):
 				else:
 					color = inactiveColor
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
-		cmd['labelPos'] = (offCurve, labelSize)
+		cmd['labelPosSize'] = (offCurve, labelSize)
 
 	def drawInterpolate(self, cmd, scale, gm):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
@@ -509,7 +520,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		# square root takes the label a bit further when we zoom in
 		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
 		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, interpolateColor, self.getNSView(), active)
-		cmd['labelPos'] = (pos, labelSize)
+		cmd['labelPosSize'] = (pos, labelSize)
 
 	def drawDelta(self, cmd, scale, gm, pitch):
 		pos  = gm.positionForPointName(cmd['point'])
@@ -549,9 +560,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			labelPos = pos + 10*scale*geom.Point(-1,-1)
 		labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
-		cmd['labelPos'] = (pos, labelSize)
+		cmd['labelPosSize'] = (pos, labelSize)
 
-	def drawCommands(self, scale, fm, gm):
+	def drawCommands(self, scale):
+		gm, fm = tthTool.getGlyphAndFontModel()
 		for c in gm.hintingCommands:
 			cmd_code = helperFunctions.getOrNone(c, 'code')
 			X = (tthTool.selectedAxis == 'X')

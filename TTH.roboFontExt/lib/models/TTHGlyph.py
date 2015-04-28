@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from robofab.plistlib import Data
 
 from models.TTHTool import uniqueInstance as tthTool
-
+from commons import helperFunctions
 from drawing import geom
 
 class TTHGlyph(object):
@@ -86,6 +86,31 @@ class TTHGlyph(object):
 		except:
 			return None
 
+	def decreaseContSeg(self, contour, segment):
+		"""Given a contour index and a segment index, finds the contour
+		index and segment index of the previous segment"""
+		s = segment - 1
+		c = contour
+		if s == -1:
+			c = contour-1
+			if c == -1:
+				c = len(self._g)-1
+			s = len(self._g[c])-1
+		return c, s
+
+	def increaseContSeg(self, contour, segment):
+		"""Given a contour index and a segment index, finds the contour
+		index and segment index of the next segment"""
+		contourLen = len(self._g[contour])
+		s = segment + 1
+		c = contour
+		if s == contourLen:
+			s = 0
+			c = contour + 1
+			if c == len(self._g):
+				c = 0
+		return c, s
+
 	def buildNameToContSegDict(self):
 		'''A `ContSeg` is a pair (cidx,sidx) where cidx is the index of a
 		contour in the glyph _g and sidx is the index of a segment in that
@@ -99,6 +124,21 @@ class TTHGlyph(object):
 			for sidx, seg in enumerate(contour):
 				self._nameToContSeg[seg.onCurve.name] = (cidx, sidx)
 
+	def commandClicked(self, clickPos):
+		if tthTool.selectedAxis == 'X':
+			skipper = ['v','t','b']
+		else:
+			skipper = ['h']
+		for cmd in self.hintingCommands:
+			if cmd['code'][-1] in skipper: continue
+			lPos, lSize = helperFunctions.getOrDefault(cmd, 'labelPosSize', (None, None))
+			if lPos == None: continue
+			lo = lPos - 0.5 * lSize
+			hi = lPos + 0.5 * lSize
+			if lo.x <= clickPos.x <= hi.x and lo.y <= clickPos.y <= hi.y:
+				return cmd
+		return None
+
 	def saveToUFO(self):
 		"""Save what can be saved in the UFO Lib."""
 		# write self.hintingCommands to UFO lib.
@@ -107,7 +147,7 @@ class TTHGlyph(object):
 		for c in listOfCommands:
 			com = ET.SubElement(root, 'ttc')
 			command = dict(c)
-			for key in ['labelPos']: # cleanup
+			for key in ['labelPosSize']: # cleanup
 				if key in command:
 					del command[key]
 			if 'active' not in command:

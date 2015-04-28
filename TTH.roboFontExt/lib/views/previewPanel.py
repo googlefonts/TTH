@@ -71,7 +71,7 @@ class PreviewPanel(TTHWindow):
 		self.setNeedsDisplay()
 
 	def draw(self):
-		glyph, fm = tthTool.getGAndFontModel()
+		glyph, fm = tthTool.getRGAndFontModel()
 		if fm == None: return
 		self.clickableSizes= {}
 		tr = fm.textRenderer

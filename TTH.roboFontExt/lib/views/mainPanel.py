@@ -338,7 +338,7 @@ class MainPanel(BaseWindowController):
 			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.tthEventTool)
 			pass
 
-		g, fm = tthTool.getGAndFontModel()
+		fm = tthTool.getFontModel()
 
 		if gearOption in [3,4,5]:
 			modes = ["Monochrome", "Grayscale", "Subpixel"]
@@ -380,7 +380,7 @@ class MainPanel(BaseWindowController):
 	def makeStemsLists(self):
 		self.stemsListX = ['None', 'Guess']
 		self.stemsListY = ['None', 'Guess']
-		g, fm = tthTool.getGAndFontModel()
+		fm = tthTool.getFontModel()
 		if fm is None: return
 		for name, stem in fm.stems.iteritems():
 			if stem['horizontal']:

@@ -107,12 +107,29 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - - FONT MODELS
 
-	def getGAndFontModel(self):
+	def getRGAndFontModel(self):
 		eventController = getActiveEventTool()
-		if eventController != None:
-			return eventController.getGAndFontModel()
-		g = CurrentGlyph()
-		return (None, self.fontModelForGlyph(g))
+		if eventController:
+			g = eventController.getGlyph()
+		else:
+			g = CurrentGlyph()
+		fm = self.fontModelForGlyph(g)
+		return g, fm
+
+	def getGlyphAndFontModel(self):
+		g, fm = self.getRGAndFontModel()
+		if fm:
+			gm = fm.glyphModelForGlyph(g)
+			return (gm, fm)
+		return (None, None)
+
+	def getGlyphModel(self):
+		gm, fm = self.getGlyphAndFontModel()
+		return gm
+
+	def getFontModel(self):
+		g, fm = self.getRGAndFontModel()
+		return fm
 
 	def fontModelForFont(self, font):
 		if not helperFunctions.fontIsQuadratic(font):
@@ -237,7 +254,7 @@ class TTHTool():
 			self.mainPanel.show()
 
 	def showOrHide(self):
-		g, fm = self.getGAndFontModel()
+		fm = self.getFontModel()
 		if fm is None:
 			self.hideWindows()
 		else:
@@ -316,7 +333,7 @@ class TTHTool():
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
 
 	def updatePartialFontIfNeeded(self):
-		g, fm = self.getGAndFontModel()
+		g, fm = self.getRGAndFontModel()
 		if fm is None: return
 		self.requiredGlyphsForPartialTempFont =\
 			fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
