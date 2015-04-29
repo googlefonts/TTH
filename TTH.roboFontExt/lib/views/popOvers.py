@@ -151,7 +151,7 @@ class TTHCommandPopover(object):
 			commandState = "Active"
 
 		self.popover.stateTitle.set(commandState)
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -197,7 +197,7 @@ class TTHCommandPopover(object):
 			self.cmd['code'] = 'alignv'
 			del self.cmd['zone']
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -233,7 +233,7 @@ class TTHCommandPopover(object):
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -269,7 +269,7 @@ class TTHCommandPopover(object):
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -361,7 +361,7 @@ class AlignPopover(TTHCommandPopover):
 		self.popover.alignmentZoneText.show(not use_type)
 		self.popover.alignmentZonePopUpButton.show(not use_type)
 		self.popover.zoneTitle.set(commandToZone)
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -383,7 +383,7 @@ class AlignPopover(TTHCommandPopover):
 		zoneName = self.zonesListItems[sender.get()]
 		self.handleZone(zoneName)
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -433,7 +433,7 @@ class DeltaPopover(TTHCommandPopover):
 			g = self.gm.RFGlyph
 			g.prepareUndo('Remove Delta')
 			self.controller.glyphTTHCommands.remove(self.cmd)
-			tthTool.updateGlyphProgram(g)
+			self.gm.updateGlyphProgram()
 			tthTool.hintingProgramHasChanged(g)
 			g.performUndo()
 		super(DeltaPopover, self).close()
@@ -444,7 +444,7 @@ class DeltaPopover(TTHCommandPopover):
 		self.controller.changeDeltaOffset(newValue)
 		g.prepareUndo('Change Delta Offset')
 		self.cmd['delta'] = str(newValue)
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -477,7 +477,7 @@ class DeltaPopover(TTHCommandPopover):
 			self.cmd['ppm2'] = v2
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
-			tthTool.updateGlyphProgram(g)
+			self.gm.updateGlyphProgram()
 			tthTool.hintingProgramHasChanged(g)
 			g.performUndo()
 
@@ -490,7 +490,7 @@ class DeltaPopover(TTHCommandPopover):
 			g.prepareUndo("Activate Delta for Grayscale and Subpixel")
 			self.cmd['gray'] = 'true'
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 
@@ -503,7 +503,7 @@ class DeltaPopover(TTHCommandPopover):
 			g.prepareUndo("Activate Delta for Monochrome")
 			self.cmd['mono'] = 'true'
 
-		tthTool.updateGlyphProgram(g)
+		self.gm.updateGlyphProgram()
 		tthTool.hintingProgramHasChanged(g)
 		g.performUndo()
 

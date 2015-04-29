@@ -12,7 +12,7 @@ class Point(object):
 		elif i == 1:
 			return self.y
 		else:
-			raise IndexError("coordinate index out of range")
+			raise IndexError("coordinate index {} out of range [0,1]".format(i))
 	def __repr__(self):
 		return "({:f},{:f})".format(self.x, self.y)
 	def __add__(self, rhs): # rhs = right hand side

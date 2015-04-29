@@ -497,7 +497,7 @@ class TTH_RF_EventTool(BaseEventTool):
 				if active:
 					color = stemColor
 				else:
-					color = inactiveColor
+					color = DR.kInactiveColor
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
 		cmd['labelPosSize'] = (offCurve, labelSize)
 
@@ -528,7 +528,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			else: # final delta
 				color = finalDeltaColor
 		else:
-			color = inactiveColor
+			color = DR.kInactiveColor
 		if cmd_code[-1] == 'h':
 			value = (int(cmd['delta']), 0)
 		else:
