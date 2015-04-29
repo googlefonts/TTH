@@ -22,6 +22,13 @@ def getOrPutDefault(dico, key, default):
 		dico[key] = default
 	return default
 
+def partition(l, p):
+	yes, no = [], []
+	for e in l:
+		if p(e): yes.append(e)
+		else: no.append(e)
+	return (yes, no)
+
 def angleOfVector((vx, vy)):
 	return addAngles(math.atan2(vy, vx) / math.pi * 180.0, 0.0)
 
