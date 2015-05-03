@@ -85,7 +85,7 @@ def getAlign(command, pointIndex, regs):
 
 def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 	Header = [	tt_tables.autoPush(0),
-				'RCVT[ ]' ]
+			'RCVT[ ]' ]
 	IF = ['IF[ ]']
 	ELSE = ['ELSE[ ]']
 	Footer = ['EIF[ ]']
@@ -230,8 +230,8 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 
 		interpolate = [
 						tt_tables.autoPush(pointIndex, point1Index, point2Index),
-						'Sregs.RP1[ ]',
-						'Sregs.RP2[ ]',
+						'SRP1[ ]',
+						'SRP2[ ]',
 						'IP[ ]'
 						]
 		regs.RP1 = point2Index
@@ -265,21 +265,21 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		else:
 			point2Index = pointNameToIndex[command['point2']]
 
-		single_regs.RP0 = []
+		single_RP0 = []
 		single_stem = []
 		single_round = []
 		single_align = []
 		align = []
 
 		if regs.RP0 == None:
-			single_regs.RP0 = [
+			single_RP0 = [
 							tt_tables.autoPush(point1Index),
 							'MDAP[1]'
 							]
 			regs.RP0 = regs.RP1 = point1Index
 
 		else:
-			single_regs.RP0 = [
+			single_RP0 = [
 						tt_tables.autoPush(point1Index),
 						'Sregs.RP0[ ]'
 						]
@@ -336,7 +336,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP2 = point2Index
 
 		singleLink = []
-		singleLink.extend(single_regs.RP0)
+		singleLink.extend(single_RP0)
 		singleLink.extend(single_stem)
 		singleLink.extend(single_round)
 		singleLink.extend(single_align)
@@ -503,20 +503,21 @@ def _processDeltaCommand(command, pointNameToIndex):
 
 	return deltaInstructions
 
-def writeAssembly(g, glyphTTHCommands, pointNameToIndex, regs):
-
+def writeAssembly(gm, pointNameToIndex, stem_to_cvt, zone_to_cvt):
+	g = gm.RFGlyph
 	if g == None:
 		return
 
-	assembly = []
-
 	g.lib['com.robofont.robohint.assembly'] = []
-	if glyphTTHCommands == []:
+	sortedCommands = gm.sortedHintingCommands
+	if sortedCommands == []:
 		return
 
 	nbPointsContour = 0
 	for contour in g:
 		nbPointsContour += len(contour.points)
+
+	regs = Registers()
 
 	regs.lsbIndex = nbPointsContour
 	regs.rsbIndex = nbPointsContour+1
@@ -526,24 +527,25 @@ def writeAssembly(g, glyphTTHCommands, pointNameToIndex, regs):
 	regs.finalDeltasH = []
 	regs.finalDeltasV = []
 
-	groupedCommands = groupCommands(glyphTTHCommands)
+	groupedCommands = groupCommands(sortedCommands)
 
 	for groupType, commands in groupedCommands:
 		if groupType == 'alignToZone':
-			processAlignToZone(commands, pointNameToIndex)
+			processAlignToZone(commands, pointNameToIndex, zone_to_cvt, regs)
 		elif groupType == 'align':
-			processAlign(commands, pointNameToIndex)
+			processAlign(commands, pointNameToIndex, regs)
 		elif groupType == 'double':
-			processDouble(commands, pointNameToIndex)
+			processDouble(commands, pointNameToIndex, stem_to_cvt, regs)
 		elif groupType == 'interpolate':
-			processInterpolate(commands, pointNameToIndex)
+			processInterpolate(commands, pointNameToIndex, regs)
 		elif groupType == 'single':
-			processSingle(commands, pointNameToIndex)
+			processSingle(commands, pointNameToIndex, stem_to_cvt, regs)
 		elif groupType == 'mdelta':
-			processDelta(commands, pointNameToIndex)
+			processDelta(commands, pointNameToIndex, regs)
 		elif groupType == 'fdelta':
-			processDelta(commands, pointNameToIndex)
+			processDelta(commands, pointNameToIndex, regs)
 
+	assembly = []
 	##############################	
 	# if TTHToolInstance.c_fontModel.deactivateStemWhenGrayScale == True:
 	# 	assembly.extend([
@@ -577,10 +579,3 @@ def writeAssembly(g, glyphTTHCommands, pointNameToIndex, regs):
 	assembly.append('SVTCA[0]')
 	assembly.extend(regs.finalDeltasV)
 	g.lib['com.robofont.robohint.assembly'] = assembly
-	regs.RP0 = regs.RP1 = regs.RP2 = None
-	regs.lsbIndex = 0
-	regs.rsbIndex = 1
-	regs.x_instructions = []
-	regs.y_instructions = []
-	regs.finalDeltasH = []
-	regs.finalDeltasV = []

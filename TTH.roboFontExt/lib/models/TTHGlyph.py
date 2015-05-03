@@ -177,6 +177,8 @@ class TTHGlyph(object):
 		return self._sortedHintingCommands
 
 	def positionForPointName(self, name):
+		'''Returns the position of a ON control point with the given name.
+		Coordinates in Font Units.'''
 		if name == 'lsb':
 			return geom.Point(0,0)
 		elif name == 'rsb':

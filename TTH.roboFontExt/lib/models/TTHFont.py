@@ -35,7 +35,7 @@ class TTHFont():
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
 		
-		self.setControlValues()
+		self._readControlValuesFromUFO()
 
 		# Option for the generated TTH assembly
 		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", False)
@@ -133,7 +133,7 @@ class TTHFont():
 
 # - - - - - - - - - - - - - - - -
 
-	def setControlValues(self):
+	def _readControlValuesFromUFO(self):
 		try:
 			tth_lib = helperFunctions.getOrPutDefault(self.f.lib, FL_tth_key, {})
 
