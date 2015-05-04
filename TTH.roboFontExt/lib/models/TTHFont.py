@@ -1,4 +1,3 @@
-from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from mojo.roboFont import CurrentFont, RFont
 from mojo.events import getActiveEventTool
 
@@ -21,8 +20,6 @@ reload(tt_tables)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
-gasp_key   = TTFCompilerSettings.roboHintGaspLibKey
-hdmx_key   = TTFCompilerSettings.roboHintHdmxLibKey
 
 class TTHFont():
 	def __init__(self, font):
@@ -147,20 +144,6 @@ class TTHFont():
 		stem_to_cvt, zone_to_cvt = tt_tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
-		#print "=================== ZONES"
-		#for zoneName, zone in self.zones.iteritems():
-		#	print zoneName,":",zone
-		#print "=================== STEMS"
-		#for stemName, stem in self.stems.iteritems():
-		#	print stemName,":",stem
-		#print "=================== STEM TO CVT"
-		#l = stem_to_cvt.items()
-		#l.sort(key=lambda v : v[1])
-		#print l
-		#print "=================== ZONE TO CVT"
-		#l = zone_to_cvt.items()
-		#l.sort(key=lambda v : v[1])
-		#print l
 
 # - - - - - - - - - - - - - - - -
 
@@ -183,9 +166,9 @@ class TTHFont():
 			self.stemsnap	= helperFunctions.getOrPutDefault(tth_lib, "stemsnap", 17)
 
 			# FIXME: describe this
-			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, gasp_key, {})
+			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, tt_tables.k_gasp_key, {})
 			# FIXME: describe this
-			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, hdmx_key, {})
+			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, tt_tables.k_hdmx_key, {})
 		except:
 			print "ERROR: can't set font's control values"
 
@@ -238,8 +221,8 @@ When do we regenerate a partial font?
 
 	def generateFullTempFont(self):
 		try:
-			if kHdmxKey in self.c_fontModel.f.lib:
-				del self.c_fontModel.f.lib[kHdmxKey]
+			if tt_tables.k_hdmx_key in self.c_fontModel.f.lib:
+				del self.c_fontModel.f.lib[tt_tables.k_hdmx_key]
 			self.f.generate(self.tempFullFontPath, 'ttf',\
 					decompose     = False,\
 					checkOutlines = False,\

@@ -355,13 +355,6 @@ def processDelta(commandsList, pointNameToIndex, regs):
 
 
 def processDeltaCommand(command, pointNameToIndex):
-	#try:
-		return _processDeltaCommand(command, pointNameToIndex)
-	#except:
-	#	print "[TTH ERROR] A  call to processDeltaCommand() failed"
-	#	return []
-
-def _processDeltaCommand(command, pointNameToIndex):
 	if command['active'] == 'false':
 		return []
 
@@ -481,31 +474,6 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 			processDelta(commands, pointNameToIndex, regs)
 
 	assembly = []
-	##############################	
-	# if TTHToolInstance.c_fontModel.deactivateStemWhenGrayScale == True:
-	# 	assembly.extend([
-	# 				'PUSHB[ ] 10',
-	# 				'CALL[ ]',
-	# 				'DUP[ ]',
-	# 				'PUSHB[ ] 0',
-	# 				'SWAP[ ]',
-	# 				'WS[ ]',
-	# 				'PUSHB[ ] 1',
-	# 				'SWAP[ ]',
-	# 				'WS[ ]',
-	# 					])
-	# else:
-	# 	assembly.extend([
-	# 				'PUSHB[ ] 0',
-	# 				'PUSHB[ ] 0',
-	# 				'WS[ ]',
-	# 				'PUSHB[ ] 10',
-	# 				'CALL[ ]',
-	# 				'PUSHB[ ] 1',
-	# 				'SWAP[ ]',
-	# 				'WS[ ]',
-	# 				])
-
 	assembly.extend(regs.x_instructions)
 	assembly.extend(regs.y_instructions)
 	assembly.extend(['IUP[0]', 'IUP[1]'])

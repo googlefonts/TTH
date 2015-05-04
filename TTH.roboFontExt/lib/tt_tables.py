@@ -3,12 +3,13 @@ from fontTools.ttLib.tables._g_a_s_p import GASP_SYMMETRIC_GRIDFIT, GASP_SYMMETR
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from commons import helperFunctions as HF
 
-kHdmxKey = 'com.robofont.robohint.hdmx'
-kVDMXKey = 'com.robofont.robohint.VDMX'
-kLTSHKey = 'com.robofont.robohint.LTSH'
-kCVTKey  = 'com.robofont.robohint.cvt '
-kPrepKey = 'com.robofont.robohint.prep'
-kFpgmKey = 'com.robofont.robohint.FPGM'
+k_hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
+k_VDMX_key = 'com.robofont.robohint.VDMX'
+k_LTSH_key = 'com.robofont.robohint.LTSH'
+k_CVT_key  = 'com.robofont.robohint.cvt '
+k_prep_key = 'com.robofont.robohint.prep'
+k_fpgm_key = 'com.robofont.robohint.FPGM'
+k_gasp_key   = TTFCompilerSettings.roboHintGaspLibKey
 
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
@@ -29,16 +30,16 @@ def autoPush(*args):
 	return (' '.join([mnemonic]+[str(a) for a in args]))
 
 def writehdmx(f, hdmx_ppems):
-	f.lib[kHdmxKey] = hdmx_ppems
+	f.lib[k_hdmx_key] = hdmx_ppems
 
 def writeVDMX(f, VDMX):
-	f.lib[kVDMXKey] = VDMX
+	f.lib[k_VDMX_key] = VDMX
 
 def writeLTSH(f, LTSH):
-	f.lib[kLTSHKey] = LTSH
+	f.lib[k_LTSH_key] = LTSH
 		
 def writegasp(fm):
-	fm.f.lib[TTFCompilerSettings.roboHintGaspLibKey] = fm.gasp_ranges
+	fm.f.lib[k_gasp_key] = fm.gasp_ranges
 
 # def writegasp(f, codeppm):
 # 	try:
@@ -58,7 +59,7 @@ def writegasp(fm):
 # 		"65535":			GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING
 # 	}
 
-# 	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
+# 	f.lib[k_gasp_key] = gasp_ranges
 
 	# print "GASP_SYMMETRIC_GRIDFIT", GASP_SYMMETRIC_GRIDFIT
 	# print "GASP_SYMMETRIC_SMOOTHING", GASP_SYMMETRIC_SMOOTHING
@@ -87,7 +88,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 		zone_to_cvt[name] = len(CVT)-1
 		CVT.append(int(zone['width']))
 
-	f.lib[kCVTKey] = CVT
+	f.lib[k_CVT_key] = CVT
 
 	table_PREP = [ autoPush(0), 'CALL[ ]' ]
 	roundStemHorizontal = [ 'SVTCA[0]' ]
@@ -203,7 +204,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 	table_PREP.extend(deltaZones)
 	table_PREP.extend(installControl)
 	table_PREP.extend(rasterSensitive)
-	f.lib[kPrepKey] = table_PREP
+	f.lib[k_prep_key] = table_PREP
 
 	return (stem_to_cvt, zone_to_cvt)
 
@@ -559,4 +560,4 @@ def writeFPGM(fm):
 	table_FPGM.extend(FPGM_10)
 
 	# print table_FPGM
-	fm.f.lib[kFpgmKey] = table_FPGM
+	fm.f.lib[k_fpgm_key] = table_FPGM
