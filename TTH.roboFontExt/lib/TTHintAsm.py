@@ -340,7 +340,7 @@ def processDelta(commandsList, pointNameToIndex, regs):
 						], ['EIF[ ]']
 		deltaInstructions = \
 				header \
-				+ [processDeltaCommand(c, pointNameToIndex) for c in commands] \
+				+ sum([processDeltaCommand(c, pointNameToIndex) for c in commands], []) \
 				+ footer
 		if horizontal:
 			if middle:
@@ -394,7 +394,7 @@ def _processDeltaCommand(command, pointNameToIndex):
 	if deltasP1:
 		for relativeSize  in deltasP1:
 			arg = (relativeSize << 4 ) + tt_tables.stepToSelector[step]
-			deltaPList.append(arg, pointIndex)
+			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP1))
 		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP1[ ]')
@@ -402,7 +402,7 @@ def _processDeltaCommand(command, pointNameToIndex):
 	elif deltasP2:
 		for relativeSize in deltasP2:
 			arg = ((relativeSize -16) << 4 ) + tt_tables.stepToSelector[step]
-			deltaPList.append(arg, pointIndex)
+			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP2))
 		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP2[ ]')
@@ -410,7 +410,7 @@ def _processDeltaCommand(command, pointNameToIndex):
 	elif deltasP3:
 		for relativeSize in deltasP3:
 			arg = ((relativeSize -32) << 4 ) + tt_tables.stepToSelector[step]
-			deltaPList.append(arg, pointIndex)
+			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP3))
 		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP3[ ]')

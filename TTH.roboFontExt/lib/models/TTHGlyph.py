@@ -6,6 +6,7 @@ from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from drawing import geom
 import TTHintAsm
+
 reload(TTHintAsm)
 
 def topologicalSort(l, f):

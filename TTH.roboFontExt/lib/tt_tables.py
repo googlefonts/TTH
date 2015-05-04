@@ -80,11 +80,11 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 
 	for stem in stemsHorizontal + stemsVertical:
 		CVT.append(int(stem[1]['width']))
-		stem_to_cvt[stem[0]] = len(CVT)
+		stem_to_cvt[stem[0]] = len(CVT)-1
 	
 	for name, zone in fm.zones.iteritems():
 		CVT.append(int(zone['position']))
-		zone_to_cvt[name] = len(CVT)
+		zone_to_cvt[name] = len(CVT)-1
 		CVT.append(int(zone['width']))
 
 	f.lib[kCVTKey] = CVT

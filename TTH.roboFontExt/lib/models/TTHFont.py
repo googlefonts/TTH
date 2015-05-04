@@ -147,6 +147,20 @@ class TTHFont():
 		stem_to_cvt, zone_to_cvt = tt_tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
+		#print "=================== ZONES"
+		#for zoneName, zone in self.zones.iteritems():
+		#	print zoneName,":",zone
+		#print "=================== STEMS"
+		#for stemName, stem in self.stems.iteritems():
+		#	print stemName,":",stem
+		#print "=================== STEM TO CVT"
+		#l = stem_to_cvt.items()
+		#l.sort(key=lambda v : v[1])
+		#print l
+		#print "=================== ZONE TO CVT"
+		#l = zone_to_cvt.items()
+		#l.sort(key=lambda v : v[1])
+		#print l
 
 # - - - - - - - - - - - - - - - -
 
