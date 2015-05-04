@@ -519,7 +519,11 @@ class InterpolatePopover(TTHCommandPopover):
 		self.setupStateUI()
 
 		self.setupAlignmentTypeUI(32, withNone = True, show = True)
-		self.popover.alignmentTypePopUpButton.set(gAlignWithNoneTypeToIndex[cmd['align']])
+		try:
+			alignIdx = gAlignWithNoneTypeToIndex[self.cmd['align']]
+		except:
+			alignIdx = 0
+		self.popover.alignmentTypePopUpButton.set(alignIdx)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-50, 'point1', 'Move Point 1', ll, lw)
