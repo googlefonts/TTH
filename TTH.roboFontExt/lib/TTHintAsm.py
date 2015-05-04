@@ -5,8 +5,6 @@ class Registers(object):
 		self.RP0 = None
 		self.RP1 = None
 		self.RP2 = None
-		self.lsbIndex = 0
-		self.rsbIndex = 1
 		self.x_instructions = []
 		self.y_instructions = []
 		self.finalDeltasH = []
@@ -84,7 +82,7 @@ def getAlign(command, pointIndex, regs):
 	return []
 
 def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
-	Header = [	tt_tables.autoPush(0),
+	Header = [tt_tables.autoPush(0),
 			'RCVT[ ]' ]
 	IF = ['IF[ ]']
 	ELSE = ['ELSE[ ]']
@@ -94,13 +92,11 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 		if command['active'] == 'false':
 			continue
 
-		if command['point'] == 'lsb':
-			pointIndex = regs.lsbIndex
-		elif command['point'] == 'rsb':
-			pointIndex = regs.rsbIndex
+		name = command['point']
+		if name in pointNameToIndex:
+			pointIndex = pointNameToIndex[name]
 		else:
-			if command['point'] in pointNameToIndex:
-				pointIndex = pointNameToIndex[command['point']]
+			print "[TTH ERROR] point {} has no index in the glyph".format(name)
 		
 		zoneCV = zone_to_cvt[command['zone']]
 		IF.extend([
@@ -124,12 +120,11 @@ def processAlign(commandsList, pointNameToIndex, regs):
 		if command['active'] == 'false':
 			continue
 
-		if command['point'] == 'lsb':
-			pointIndex = regs.lsbIndex
-		elif command['point'] == 'rsb':
-			pointIndex = regs.rsbIndex
+		name = command['point']
+		if name in pointNameToIndex:
+			pointIndex = pointNameToIndex[name]
 		else:
-			pointIndex = pointNameToIndex[command['point']]
+			print "[TTH ERROR] point {} has no index in the glyph".format(name)
 
 		align = getAlign(command, pointIndex)
 
@@ -151,39 +146,23 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		if command['active'] == 'false':
 			continue
 
-		if command['point1'] == 'lsb':
-			point1Index = regs.lsbIndex
-		elif command['point1'] == 'rsb':
-			point1Index = regs.rsbIndex
-		else:
+		try:
 			point1Index = pointNameToIndex[command['point1']]
-
-		if command['point2'] == 'lsb':
-			point2Index = regs.lsbIndex
-		elif command['point2'] == 'rsb':
-			point2Index = regs.rsbIndex
-		else:
 			point2Index = pointNameToIndex[command['point2']]
+		except:
+			print "[TTH ERROR] command's point has no index in the glyph"
 
 		if 'stem' in command:
 			stemCV = stem_to_cvt[command['stem']]
-			stem = [
-					tt_tables.autoPush(pointIndex, stemCV, point1Index, 4),
-					'CALL[ ]'
-					]
-			if command['code'] == 'doubleh':
-				IFh.extend(stem)
-			elif command['code'] == 'doublev':
-				IFv.extend(stem)
+			asm = [ tt_tables.autoPush(point2Index, stemCV, point1Index, 4),
+					'CALL[ ]' ]
 		else:
-			nostem = [
-					tt_tables.autoPush(point2Index, point1Index, 3),
-					'CALL[ ]'
-					]
-			if command['code'] == 'doubleh':
-				IFh.extend(nostem)
-			elif command['code'] == 'doublev':
-				IFv.extend(nostem)
+			asm = [ tt_tables.autoPush(point2Index, point1Index, 3),
+					'CALL[ ]' ]
+		if command['code'] == 'doubleh':
+			IFh.extend(asm)
+		elif command['code'] == 'doublev':
+			IFv.extend(asm)
 
 		regs.RP0 = regs.RP1 = regs.RP2 = None
 
@@ -207,26 +186,12 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 		if command['active'] == 'false':
 			continue
 
-		if command['point1'] == 'lsb':
-			point1Index = regs.lsbIndex
-		elif command['point1'] == 'rsb':
-			point1Index = regs.rsbIndex
-		else:
+		try:
+			pointIndex  = pointNameToIndex[command['point']]
 			point1Index = pointNameToIndex[command['point1']]
-
-		if command['point2'] == 'lsb':
-			point2Index = regs.lsbIndex
-		elif command['point2'] == 'rsb':
-			point2Index = regs.rsbIndex
-		else:
 			point2Index = pointNameToIndex[command['point2']]
-
-		if command['point'] == 'lsb':
-			pointIndex = regs.lsbIndex
-		elif command['point'] == 'rsb':
-			pointIndex = regs.rsbIndex
-		else:
-			pointIndex = pointNameToIndex[command['point']]
+		except:
+			print "[TTH ERROR] command's point has no index in the glyph"
 
 		interpolate = [
 						tt_tables.autoPush(pointIndex, point1Index, point2Index),
@@ -251,19 +216,11 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		if command['active'] == 'false':
 			continue
 
-		if command['point1'] == 'lsb':
-			point1Index = regs.lsbIndex
-		elif command['point1'] == 'rsb':
-			point1Index = regs.rsbIndex
-		else:
+		try:
 			point1Index = pointNameToIndex[command['point1']]
-
-		if command['point2'] == 'lsb':
-			point2Index = regs.lsbIndex
-		elif command['point2'] == 'rsb':
-			point2Index = regs.rsbIndex
-		else:
 			point2Index = pointNameToIndex[command['point2']]
+		except:
+			print "[TTH ERROR] command's point has no index in the glyph"
 
 		single_RP0 = []
 		single_stem = []
@@ -281,7 +238,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		else:
 			single_RP0 = [
 						tt_tables.autoPush(point1Index),
-						'Sregs.RP0[ ]'
+						'SRP0[ ]'
 						]
 			regs.RP0 = point1Index
 			
@@ -349,92 +306,59 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 
 def processDelta(commandsList, pointNameToIndex, regs):
+
 	groupedDeltas = groupDeltas(commandsList)
 
-	for deltaGroup in groupedDeltas:
-		if deltaGroup[0] == 'MGh':
-			for command in deltaGroup[1]:
-				deltaInstructions = (processDeltaCommand(command, pointNameToIndex))
-				if command['code'] == 'mdeltah':
-					regs.x_instructions.extend(deltaInstructions)
-				elif command['code'] == 'fdeltah':
-					regs.finalDeltasH.extend(deltaInstructions)
-		elif deltaGroup[0] == 'MGv':
-			for command in deltaGroup[1]:
-				deltaInstructions = (processDeltaCommand(command, pointNameToIndex))
-				if command['code'] == 'mdeltav':
-					regs.y_instructions.extend(deltaInstructions)
-				elif command['code'] == 'fdeltav':
-					regs.finalDeltasV.extend(deltaInstructions)
+	# [0] : first (groupName, Commands) pair
+	# [1] : Commands
+	# [0] : first command in Commands
+	middle = groupedDeltas[0][1][0]['code'][0] == 'm'
 
-		elif deltaGroup[0] == 'Mh':
-			deltaInstructions = [
-						tt_tables.autoPush(1),
+	for groupName, commands in groupedDeltas:
+		horizontal = commands[0]['code'][-1] == 'h'
+		# sanity check : that all delta have the same type: final/middle, horizontal/vertical
+		middlity      = all([(c['code'][0]  == 'm') == final      for c in commands])
+		horizontality = all([(c['code'][-1] == 'h') == horizontal for c in commands])
+		if (not middlity) or (not horizontality):
+			print "[TTH ERROR] Commands in delta group have not all the same type"
+		# end of sanity check
+		if groupName[0:2] == 'MG':
+			header, footer = [], []
+		elif groupName[0] == 'M':
+			header, footer = [
+						HF.autoPush(1),
 						'RS[ ]',
-						tt_tables.autoPush(0),
+						HF.autoPush(0),
 						'EQ[ ]',
 						'IF[ ]',
-						]
-			for command in deltaGroup[1]:
-				deltaInstructions.extend(processDeltaCommand(command, pointNameToIndex))
-			deltaInstructions.append('EIF[ ]')
-			if command['code'] == 'mdeltah':
+						], ['EIF[ ]']
+		else: # groupName[0] == 'G'
+			header, footer = [
+						HF.autoPush(1),
+						'RS[ ]',
+						'IF[ ]',
+						], ['EIF[ ]']
+		deltaInstructions = \
+				header \
+				+ [processDeltaCommands(c, pointNameToIndex) for c in commands] \
+				+ footer
+		if horizontal:
+			if middle:
 				regs.x_instructions.extend(deltaInstructions)
-			elif command['code'] == 'fdeltah':
+			else:
 				regs.finalDeltasH.extend(deltaInstructions)
-
-		elif deltaGroup[0] == 'Mv':
-			deltaInstructions = [
-						tt_tables.autoPush(1),
-						'RS[ ]',
-						tt_tables.autoPush(0),
-						'EQ[ ]',
-						'IF[ ]',
-						]
-			for command in deltaGroup[1]:
-				deltaInstructions.extend(processDeltaCommand(command, pointNameToIndex))
-			deltaInstructions.append('EIF[ ]')
-			if command['code'] == 'mdeltav':
-				regs.y_instructions.extend(deltaInstructions)
-			elif command['code'] == 'fdeltav':
-				regs.finalDeltasV.extend(deltaInstructions)
-
-		elif deltaGroup[0] == 'Gh':
-			deltaInstructions = [
-						tt_tables.autoPush(1),
-						'RS[ ]',
-						'IF[ ]',
-						]
-			for command in deltaGroup[1]:
-				deltaInstructions.extend(processDeltaCommand(command, pointNameToIndex))
-			deltaInstructions.append('EIF[ ]')
-			if command['code'] == 'mdeltah':
-				regs.x_instructions.extend(deltaInstructions)
-			elif command['code'] == 'fdeltah':
-				regs.finalDeltasH.extend(deltaInstructions)
-
-		elif deltaGroup[0] == 'Gv':
-			deltaInstructions = [
-						tt_tables.autoPush(1),
-						'RS[ ]',
-						'IF[ ]',
-						]
-			for command in deltaGroup[1]:
-				deltaInstructions.extend(processDeltaCommand(command, pointNameToIndex))
-			deltaInstructions.append('EIF[ ]')
-			if command['code'] == 'mdeltav':
-				regs.y_instructions.extend(deltaInstructions)
-			elif command['code'] == 'fdeltav':
-				regs.finalDeltasV.extend(deltaInstructions)
-
 		else:
-			continue
+			if middle:
+				regs.y_instructions.extend(deltaInstructions)
+			else:
+				regs.finalDeltasV.extend(deltaInstructions)
 
 
 def processDeltaCommand(command, pointNameToIndex):
 	try:
 		return _processDeltaCommand(command, pointNameToIndex)
 	except:
+		print "[TTH ERROR] A  call to processDeltaCommand() failed"
 		return []
 
 def _processDeltaCommand(command, pointNameToIndex):
@@ -443,23 +367,21 @@ def _processDeltaCommand(command, pointNameToIndex):
 
 	deltaInstructions = []
 
-	if command['point'] == 'lsb':
-		pointIndex = regs.lsbIndex
-	elif command['point'] == 'rsb':
-		pointIndex = regs.rsbIndex
-	else:
+	try:
 		pointIndex = pointNameToIndex[command['point']]
+	except:
+		print "[TTH ERROR] command's point has no index in the glyph"
 
-	ppm1 = command['ppm1']
-	ppm2 = command['ppm2']
+	ppm1 = int(command['ppm1'])
+	ppm2 = int(command['ppm2'])
 	step = int(command['delta'])
-	nbDelta = 1 + int(ppm2) - int(ppm1)
+	nbDelta = 1 + ppm2 - ppm1
 	deltasP1 = []
 	deltasP2 = []
 	deltasP3 = []
 	for i in range(nbDelta):
-		ppm = int(ppm1) + i
-		relativeSize = int(ppm) - 9
+		ppm = ppm1 + i
+		relativeSize = ppm - 9
 		if 0 <= relativeSize <= 15:
 			deltasP1.append(relativeSize)
 		elif 16 <= relativeSize <= 31:
@@ -470,36 +392,28 @@ def _processDeltaCommand(command, pointNameToIndex):
 			print 'delta out of range'
 	deltaPList = []
 	if deltasP1:
-		for i in range(len(deltasP1)):
-			relativeSize = deltasP1[i]
+		for relativeSize  in deltasP1:
 			arg = (relativeSize << 4 ) + tt_tables.stepToSelector[step]
 			deltaPList.append(arg, pointIndex)
-		
 		deltaPList.append(len(deltasP1))
-
-		deltaInstructions.append(tt_tables.autoPush(deltaPList))
+		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP1[ ]')
 
 	elif deltasP2:
-		for i in range(len(deltasP2)):
-			relativeSize = deltasP2[i]
+		for relativeSize in deltasP2:
 			arg = ((relativeSize -16) << 4 ) + tt_tables.stepToSelector[step]
 			deltaPList.append(arg, pointIndex)
-		
 		deltaPList.append(len(deltasP2))
-		deltaInstructions.append(tt_tables.autoPush(deltaPList))
+		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP2[ ]')
 
 	elif deltasP3:
-		for i in range(len(deltasP3)):
-			relativeSize = deltasP3[i]
+		for relativeSize in deltasP3:
 			arg = ((relativeSize -32) << 4 ) + tt_tables.stepToSelector[step]
 			deltaPList.append(arg, pointIndex)
-		
 		deltaPList.append(len(deltasP3))
-		deltaInstructions.append(tt_tables.autoPush(deltaPList))
+		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP3[ ]')
-
 
 	return deltaInstructions
 
@@ -519,8 +433,8 @@ def writeAssembly(gm, pointNameToIndex, stem_to_cvt, zone_to_cvt):
 
 	regs = Registers()
 
-	regs.lsbIndex = nbPointsContour
-	regs.rsbIndex = nbPointsContour+1
+	pointNameToIndex['lsb'] = nbPointsContour
+	pointNameToIndex['rsb'] = nbPointsContour+1
 	regs.x_instructions = ['SVTCA[1]']
 	regs.y_instructions = ['SVTCA[0]']
 	
