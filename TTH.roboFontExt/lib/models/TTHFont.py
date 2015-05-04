@@ -12,9 +12,12 @@ from models import TTHGlyph
 
 from views import previewInGlyphWindow as PIGW
 
+import tt_tables
+
 reload(helperFunctions)
 reload(textRenderer)
 reload(TTHGlyph)
+reload(tt_tables)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
@@ -34,7 +37,7 @@ class TTHFont():
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
-		
+
 		self._readControlValuesFromUFO()
 
 		# Option for the generated TTH assembly
@@ -45,16 +48,23 @@ class TTHFont():
 		# TTHGlyph instances
 		self._glyphModels = {}
 
+		# TrueType tables
+		self.stem_to_cvt = None
+		self.zone_to_cvt = None
+		self.writeCVTandPREP()
+		tt_tables.writeFPGM(self)
+		tt_tables.writegasp(self)
+
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
 		self.textRenderer = None
 		# Path to temporary file for the partial font
 		tempPartial = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		self.partialtempfontpath = tempPartial.name
+		self.tempPartialFontPath = tempPartial.name
 		tempPartial.close()
 		# Path to temporary file for the full font (generated TTF)
 		tempFull = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
-		self.fulltempfontpath = tempFull.name
+		self.tempFullFontPath = tempFull.name
 		tempFull.close()
 
 	def __del__(self):
@@ -133,6 +143,13 @@ class TTHFont():
 
 # - - - - - - - - - - - - - - - -
 
+	def writeCVTandPREP(self):
+		stem_to_cvt, zone_to_cvt = tt_tables.writeCVTandPREP(self)
+		self.stem_to_cvt = stem_to_cvt
+		self.zone_to_cvt = zone_to_cvt
+
+# - - - - - - - - - - - - - - - -
+
 	def _readControlValuesFromUFO(self):
 		try:
 			tth_lib = helperFunctions.getOrPutDefault(self.f.lib, FL_tth_key, {})
@@ -174,24 +191,76 @@ class TTHFont():
 		return self.f.info.openTypeOS2WinDescent
 
 	def regenTextRenderer(self):
-		self.textRenderer = textRenderer.TextRenderer(self.partialtempfontpath, self.bitmapPreviewSelection)
+		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewSelection)
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
+	_helpOnFontGeneration = '''
+What tables are needed?
+CVT , PREP
+	The CVT and PREP table should be re-generated when the 'Control
+	Value Panel' is closed.
+FPGM
+	Always regenerated. This is fast and safe since it never changes.
+	The table depends on 'stemsnap' which is modifiable in the
+	'Control Value Panel'.
+gasp
+	The gasp table should be re-generated when the 'gasp sheet' of
+	the preference panel is closed.
+hdmx
+VDMX
+LTSH
+	It is safe to generate these tables only just before the final
+	complete font generation.
+
+When do we regenerate a partial font?
+	When one of the tables above is re-generated and when a
+	hinting command is added/deleted/modified.
+	(And of course when preview text uses a missing glyph)
+	'''
+
 	def generateFullTempFont(self):
 		try:
-			self.f.generate(self.fulltempfontpath, 'ttf',\
-					decompose = False,\
+			if kHdmxKey in self.c_fontModel.f.lib:
+				del self.c_fontModel.f.lib[kHdmxKey]
+			self.f.generate(self.tempFullFontPath, 'ttf',\
+					decompose     = False,\
 					checkOutlines = False,\
-					autohint = False,\
-					releaseMode = False,\
-					glyphOrder=None,\
-					progressBar = None)
+					autohint      = False,\
+					releaseMode   = False,\
+					glyphOrder    = None,\
+					progressBar   = None)
+			self.editComponentsFlags(self.f, self.tempFullFontPath)
 		except:
 			print 'ERROR: Unable to generate full font'
+
+	def editComponentsFlags(self, workingUFO, destination):
+		(head, tail) = os.path.split(destination)
+		tail = tail[:-4]
+		tail += '_glyf.' + 'ttf'
+		fontpath_glyph = os.path.join(head, tail)
+		tt = ttLib.TTFont(destination)
+		glyfTable = tt['glyf']
+		for glyphName in tt.glyphOrder:
+			glyph = glyfTable[glyphName]
+			if glyph.isComposite():
+				for component in glyph.components:
+					compoFlags = component.flags
+					compoName = component.glyphName
+					if workingUFO[glyphName].width == workingUFO[compoName].width:
+						# turn the tenth bit on
+						compoFlags = compoFlags | 0x200
+					else:
+						# turn the tenth bit off
+						compoFlags = compoFlags & (~0x200)
+					component.flags = compoFlags
+
+		tt.save(fontpath_glyph)
+		os.remove(destination)
+		os.rename(fontpath_glyph, destination)
 
 	def generatePartialTempFont(self, glyphSet):
 		#try:
@@ -223,7 +292,13 @@ class TTHFont():
 				key = 'com.robofont.robohint.assembly'
 				if key in oldG.lib:
 					newG.lib[key] = oldG.lib[key]
-			tempFont.generate(self.partialtempfontpath, 'ttf', decompose = False, checkOutlines = False, autohint = False, releaseMode = False, glyphOrder=None, progressBar = None )
+			tempFont.generate(self.tempPartialFontPath, 'ttf',
+					decompose     = False,
+					checkOutlines = False,
+					autohint      = False,
+					releaseMode   = False,
+					glyphOrder    = None,
+					progressBar   = None )
 		#except:
 		#	print 'ERROR: Unable to generate temporary font'
 

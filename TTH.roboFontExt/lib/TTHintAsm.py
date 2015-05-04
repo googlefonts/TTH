@@ -126,7 +126,7 @@ def processAlign(commandsList, pointNameToIndex, regs):
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
 
-		align = getAlign(command, pointIndex)
+		align = getAlign(command, pointIndex, regs)
 
 		if command['code'] == 'alignh':
 			regs.x_instructions.extend(align)
@@ -202,7 +202,7 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 		regs.RP1 = point2Index
 		regs.RP2 = point1Index
 		if 'align' in command:
-			align = getAlign(command, pointIndex)
+			align = getAlign(command, pointIndex, regs)
 			interpolate.extend(align)
 
 		if command['code'] == 'interpolateh':
@@ -281,7 +281,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 							'MDRP[10100]'
 							]
 
-			align = getAlign(command, point2Index)
+			align = getAlign(command, point2Index, regs)
 				
 				
 		else:
@@ -317,7 +317,7 @@ def processDelta(commandsList, pointNameToIndex, regs):
 	for groupName, commands in groupedDeltas:
 		horizontal = commands[0]['code'][-1] == 'h'
 		# sanity check : that all delta have the same type: final/middle, horizontal/vertical
-		middlity      = all([(c['code'][0]  == 'm') == final      for c in commands])
+		middlity      = all([(c['code'][0]  == 'm') == middle     for c in commands])
 		horizontality = all([(c['code'][-1] == 'h') == horizontal for c in commands])
 		if (not middlity) or (not horizontality):
 			print "[TTH ERROR] Commands in delta group have not all the same type"
@@ -326,21 +326,21 @@ def processDelta(commandsList, pointNameToIndex, regs):
 			header, footer = [], []
 		elif groupName[0] == 'M':
 			header, footer = [
-						HF.autoPush(1),
+						tt_tables.autoPush(1),
 						'RS[ ]',
-						HF.autoPush(0),
+						tt_tables.autoPush(0),
 						'EQ[ ]',
 						'IF[ ]',
 						], ['EIF[ ]']
 		else: # groupName[0] == 'G'
 			header, footer = [
-						HF.autoPush(1),
+						tt_tables.autoPush(1),
 						'RS[ ]',
 						'IF[ ]',
 						], ['EIF[ ]']
 		deltaInstructions = \
 				header \
-				+ [processDeltaCommands(c, pointNameToIndex) for c in commands] \
+				+ [processDeltaCommand(c, pointNameToIndex) for c in commands] \
 				+ footer
 		if horizontal:
 			if middle:
@@ -355,11 +355,11 @@ def processDelta(commandsList, pointNameToIndex, regs):
 
 
 def processDeltaCommand(command, pointNameToIndex):
-	try:
+	#try:
 		return _processDeltaCommand(command, pointNameToIndex)
-	except:
-		print "[TTH ERROR] A  call to processDeltaCommand() failed"
-		return []
+	#except:
+	#	print "[TTH ERROR] A  call to processDeltaCommand() failed"
+	#	return []
 
 def _processDeltaCommand(command, pointNameToIndex):
 	if command['active'] == 'false':
@@ -417,7 +417,27 @@ def _processDeltaCommand(command, pointNameToIndex):
 
 	return deltaInstructions
 
-def writeAssembly(gm, pointNameToIndex, stem_to_cvt, zone_to_cvt):
+def makePointRFNameToIndexDict(g):
+	result = {}
+	index = 0
+	for contour in g:
+		for point in contour.points:
+			uniqueID = point.naked().uniqueID
+			if point.name:
+				name = point.name
+				if 'inserted' not in name:
+					result[name] = index
+				else:
+					result[name] = index
+					point.name = uniqueID
+					result[uniqueID] = index
+			else:
+				result[uniqueID] = index
+				point.name = uniqueID
+			index += 1
+	return result
+
+def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 	g = gm.RFGlyph
 	if g == None:
 		return
@@ -433,6 +453,7 @@ def writeAssembly(gm, pointNameToIndex, stem_to_cvt, zone_to_cvt):
 
 	regs = Registers()
 
+	pointNameToIndex = makePointRFNameToIndexDict(g)
 	pointNameToIndex['lsb'] = nbPointsContour
 	pointNameToIndex['rsb'] = nbPointsContour+1
 	regs.x_instructions = ['SVTCA[1]']

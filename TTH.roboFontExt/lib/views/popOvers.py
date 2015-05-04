@@ -88,8 +88,8 @@ class PopoverPointMoverCallback(object):
 		else:
 			cont,seg = gm.decreaseContSeg(cont, seg)
 		self.cmd[self.key] = gm._g[cont][seg].onCurve.name
-		gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #  T T H   C O M M A N D   P O P O V E R
@@ -97,11 +97,12 @@ class PopoverPointMoverCallback(object):
 
 class TTHCommandPopover(object):
 	'''Base class for popovers that are used to edit hinting commands.'''
-	def __init__(self, gm, cmd, size, point):
+	def __init__(self, gm, fm, cmd, size, point):
 		eventTool = getActiveEventTool()
 		p,v              = makeEmptyPopover(size, point, eventTool.getNSView())
 		p.controller     = self
 		self.gm          = gm
+		self.fm          = fm
 		self._cmd        = cmd
 		self._popover    = p
 		self._viewPos    = v
@@ -151,8 +152,8 @@ class TTHCommandPopover(object):
 			commandState = "Active"
 
 		self.popover.stateTitle.set(commandState)
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	def setupPointMoverUI(self, pos, key, label, labelLeft=72, labelWidth=60):
@@ -197,8 +198,8 @@ class TTHCommandPopover(object):
 			self.cmd['code'] = 'alignv'
 			del self.cmd['zone']
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	def setupRoundDistanceUI(self):
@@ -233,8 +234,8 @@ class TTHCommandPopover(object):
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	def findStemIndex(self):
@@ -269,8 +270,8 @@ class TTHCommandPopover(object):
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -278,8 +279,8 @@ class TTHCommandPopover(object):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class SimplePopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(SimplePopover, self).__init__(gm, cmd, (100,100), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(SimplePopover, self).__init__(gm, fm, cmd, (100,100), point)
 		self.setupStateUI()
 		self.open()
 
@@ -288,8 +289,8 @@ class SimplePopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class AlignPopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(AlignPopover, self).__init__(gm, cmd, (200,110), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(AlignPopover, self).__init__(gm, fm, cmd, (200,110), point)
 
 		popover = self.popover
 
@@ -361,8 +362,8 @@ class AlignPopover(TTHCommandPopover):
 		self.popover.alignmentZoneText.show(not use_type)
 		self.popover.alignmentZonePopUpButton.show(not use_type)
 		self.popover.zoneTitle.set(commandToZone)
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	def handleZone(self, zoneName):
@@ -383,8 +384,8 @@ class AlignPopover(TTHCommandPopover):
 		zoneName = self.zonesListItems[sender.get()]
 		self.handleZone(zoneName)
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -392,8 +393,8 @@ class AlignPopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class DeltaPopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(DeltaPopover, self).__init__(gm, cmd, (200,160), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(DeltaPopover, self).__init__(gm, fm, cmd, (200,160), point)
 
 		popover = self.popover
 
@@ -433,8 +434,8 @@ class DeltaPopover(TTHCommandPopover):
 			g = self.gm.RFGlyph
 			g.prepareUndo('Remove Delta')
 			self.controller.glyphTTHCommands.remove(self.cmd)
-			self.gm.updateGlyphProgram()
-			tthTool.hintingProgramHasChanged(g)
+			self.gm.updateGlyphProgram(self.fm)
+			tthTool.hintingProgramHasChanged(self.gm, self.fm)
 			g.performUndo()
 		super(DeltaPopover, self).close()
 
@@ -444,8 +445,8 @@ class DeltaPopover(TTHCommandPopover):
 		self.controller.changeDeltaOffset(newValue)
 		g.prepareUndo('Change Delta Offset')
 		self.cmd['delta'] = str(newValue)
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	class DeltaRangeComboBoxCallback(object):
@@ -477,8 +478,8 @@ class DeltaPopover(TTHCommandPopover):
 			self.cmd['ppm2'] = v2
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
-			self.gm.updateGlyphProgram()
-			tthTool.hintingProgramHasChanged(g)
+			self.gm.updateGlyphProgram(self.fm)
+			tthTool.hintingProgramHasChanged(self.gm, self.fm)
 			g.performUndo()
 
 	def GrayCheckBoxCallback(self, sender):
@@ -490,8 +491,8 @@ class DeltaPopover(TTHCommandPopover):
 			g.prepareUndo("Activate Delta for Grayscale and Subpixel")
 			self.cmd['gray'] = 'true'
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 	def MonoCheckBoxCallback(self, sender):
@@ -503,8 +504,8 @@ class DeltaPopover(TTHCommandPopover):
 			g.prepareUndo("Activate Delta for Monochrome")
 			self.cmd['mono'] = 'true'
 
-		self.gm.updateGlyphProgram()
-		tthTool.hintingProgramHasChanged(g)
+		self.gm.updateGlyphProgram(self.fm)
+		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -512,8 +513,8 @@ class DeltaPopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class InterpolatePopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(InterpolatePopover, self).__init__(gm, cmd, (200,105), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(InterpolatePopover, self).__init__(gm, fm, cmd, (200,105), point)
 
 		self.setupStateUI()
 
@@ -532,8 +533,8 @@ class InterpolatePopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class SinglePopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(SinglePopover, self).__init__(gm, cmd, (200,130), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(SinglePopover, self).__init__(gm, fm, cmd, (200,130), point)
 
 		self.setupStateUI()
 		self.setupRoundDistanceUI()
@@ -566,8 +567,8 @@ class SinglePopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class DoublePopover(TTHCommandPopover):
-	def __init__(self, gm, point, cmd):
-		super(DoublePopover, self).__init__(gm, cmd, (200,110), point)
+	def __init__(self, gm, fm, point, cmd):
+		super(DoublePopover, self).__init__(gm, fm, cmd, (200,110), point)
 
 		self.setupStateUI()
 		stemsX, stemsY = makeStemsLists()
@@ -590,8 +591,8 @@ class DoublePopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class ZoneDeltaPopover(TTHCommandPopover):
-	def __init__(self, gm, point, zoneName):
-		super(ZoneDeltaPopover, self).__init__(gm, {}, (200,50), point)
+	def __init__(self, gm, fm, point, zoneName):
+		super(ZoneDeltaPopover, self).__init__(gm, fm, {}, (200,50), point)
 		self.zoneName = zoneName
 
 		self.popover.ZoneDeltaOffsetText = TextBox((10, 10, 100, 15), "Zone Delta Offset:", sizeStyle = "small")
@@ -630,14 +631,14 @@ def openForCommand(cmd, point):
 	except:
 		return
 	if code in ['alignh', 'alignv', 'alignt', 'alignb']:
-		AlignPopover(gm, point, cmd)
+		AlignPopover(gm, fm, point, cmd)
 	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-		DeltaPopover(gm, point, cmd)
+		DeltaPopover(gm, fm, point, cmd)
 	elif code in ['singlev', 'singleh']:
-		SinglePopover(gm, point, cmd)
+		SinglePopover(gm, fm, point, cmd)
 	elif code in ['doublev', 'doubleh']:
-		DoublePopover(gm, point, cmd)
+		DoublePopover(gm, fm, point, cmd)
 	elif code in ['interpolatev', 'interpolateh']:
-		InterpolatePopover(gm, point, cmd)
+		InterpolatePopover(gm, fm, point, cmd)
 	else:
-		SimplePopover(point, cmd)
+		SimplePopover(gm, fm, point, cmd)

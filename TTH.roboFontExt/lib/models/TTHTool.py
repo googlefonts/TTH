@@ -31,7 +31,7 @@ defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 class TTHTool():
 	def __init__(self):
 
-		# For debugging (re)loading order of the modules
+		# For debugging the (re)loading order of the modules
 		self._printLoadings = True
 
 		# The current Point/Pixel Per Em size for displaying the hinted preview
@@ -326,6 +326,21 @@ class TTHTool():
 		setExtensionDefault(defaultKeyCenterPixelSize, value)
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
+
+	def hintingProgramHasChanged(self, gm, fm):
+		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
+		#if self.programWindow.isVisible():
+		#	if self.glyphTTHCommands != None:
+		#		self.programWindow.updateProgramList(self.glyphTTHCommands)
+		#	else:
+		#		self.programWindow.updateProgramList([])
+
+		#if self.assemblyWindow.isVisible():
+		#	if 'com.robofont.robohint.assembly' in g.lib:
+		#		self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])
+		#	else:
+		#		self.assemblyWindow.updateAssemblyList([])
+		UpdateCurrentGlyphView()
 
 	def currentFontHasChanged(self, font):
 		fm = self.fontModelForFont(font)

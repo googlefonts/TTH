@@ -5,6 +5,8 @@ import numpy
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from drawing import geom
+import TTHintAsm
+reload(TTHintAsm)
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -261,7 +263,7 @@ class TTHGlyph(object):
 				return cmd
 		return None
 
-	def saveToUFO(self):
+	def saveToUFO(self, fm):
 		"""Save what can be saved in the UFO Lib."""
 		# write self.hintingCommands to UFO lib.
 		root = ET.Element('ttProgram')
@@ -282,6 +284,8 @@ class TTHGlyph(object):
 			com.attrib = command
 		text = ET.tostring(root)
 		self._g.lib['com.fontlab.ttprogram'] = Data(text)
+		# compile to TT assembly language and write it in UFO lib.
+		TTHintAsm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
 
 	def commandIsOK(self, cmd, verbose = False):
 		for key in ['point', 'point1', 'point2']:
@@ -306,10 +310,9 @@ class TTHGlyph(object):
 		self.dirtyHinting()
 		self.hintingCommands = [c for c in self.hintingCommands if self.commandIsOK(c)]
 
-	def updateGlyphProgram(self):
+	def updateGlyphProgram(self, fm):
 		self.cleanCommands()
-		self.saveToUFO()
-		#TTHintAsm.writeAssembly(self, g, self.glyphTTHCommands, self.pointNameToUniqueID, self.pointNameToIndex)
+		self.saveToUFO(fm)
 
 	def loadFromUFO(self):
 		"""Load what can be loaded from the UFO Lib."""

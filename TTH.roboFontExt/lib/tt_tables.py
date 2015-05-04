@@ -3,6 +3,13 @@ from fontTools.ttLib.tables._g_a_s_p import GASP_SYMMETRIC_GRIDFIT, GASP_SYMMETR
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from commons import helperFunctions as HF
 
+kHdmxKey = 'com.robofont.robohint.hdmx'
+kVDMXKey = 'com.robofont.robohint.VDMX'
+kLTSHKey = 'com.robofont.robohint.LTSH'
+kCVTKey  = 'com.robofont.robohint.cvt '
+kPrepKey = 'com.robofont.robohint.prep'
+kFpgmKey = 'com.robofont.robohint.FPGM'
+
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 
 def autoPush(*args):
@@ -22,16 +29,16 @@ def autoPush(*args):
 	return (' '.join([mnemonic]+[str(a) for a in args]))
 
 def writehdmx(f, hdmx_ppems):
-	f.lib['com.robofont.robohint.hdmx'] = hdmx_ppems
+	f.lib[kHdmxKey] = hdmx_ppems
 
 def writeVDMX(f, VDMX):
-	f.lib['com.robofont.robohint.VDMX'] = VDMX
+	f.lib[kVDMXKey] = VDMX
 
 def writeLTSH(f, LTSH):
-	f.lib['com.robofont.robohint.LTSH'] = LTSH
+	f.lib[kLTSHKey] = LTSH
 		
-def writegasp(f, gasp_ranges):
-	f.lib[TTFCompilerSettings.roboHintGaspLibKey] = gasp_ranges
+def writegasp(fm):
+	fm.f.lib[TTFCompilerSettings.roboHintGaspLibKey] = fm.gasp_ranges
 
 # def writegasp(f, codeppm):
 # 	try:
@@ -80,7 +87,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 		zone_to_cvt[name] = len(CVT)
 		CVT.append(int(zone['width']))
 
-	f.lib['com.robofont.robohint.cvt '] = CVT
+	f.lib[kCVTKey] = CVT
 
 	table_PREP = [ autoPush(0), 'CALL[ ]' ]
 	roundStemHorizontal = [ 'SVTCA[0]' ]
@@ -196,13 +203,13 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 	table_PREP.extend(deltaZones)
 	table_PREP.extend(installControl)
 	table_PREP.extend(rasterSensitive)
-	f.lib['com.robofont.robohint.prep'] = table_PREP
+	f.lib[kPrepKey] = table_PREP
 
 	return (stem_to_cvt, zone_to_cvt)
 
-def writeFPGM(f):
+def writeFPGM(fm):
 	table_FPGM = []
-	CVT_cut_in = f.lib["com.fontlab.v2.tth"]["stemsnap"] * 4
+	CVT_cut_in = fm.f.lib["com.fontlab.v2.tth"]["stemsnap"] * 4
 	CutInPush = autoPush(CVT_cut_in)
 
 	FPGM_0= [
@@ -552,4 +559,4 @@ def writeFPGM(f):
 	table_FPGM.extend(FPGM_10)
 
 	# print table_FPGM
-	f.lib['com.robofont.robohint.fpgm'] = table_FPGM
+	fm.f.lib[kFpgmKey] = table_FPGM
