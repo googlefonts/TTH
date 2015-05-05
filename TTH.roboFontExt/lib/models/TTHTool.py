@@ -42,20 +42,6 @@ class TTHTool():
 		self.hintingTools = {}
 		# The CURRENT hinting tool
 		self.selectedHintingTool = None
-		# A parameter for the hinting tool
-		self.selectedAlignmentTypeAlign = 'round'
-		# A parameter for the hinting tool
-		self.selectedAlignmentTypeLink = 'None'
-		# A parameter for the hinting tool
-		self.selectedStemX = 'Guess'
-		# A parameter for the hinting tool
-		self.selectedStemY = 'Guess'
-		self.roundBool = 0
-		self.deltaOffset = 0
-		self.deltaRange1 = 9
-		self.deltaRange2 = 9
-		self.deltaMonoBool = 1
-		self.deltaGrayBool = 1
 		
 		self.previewString = '/?'
 
@@ -188,7 +174,9 @@ class TTHTool():
 		if eventController != None:
 			eventController.sizeHasChanged()
 		self.mainPanel.displayPPEMSize(size)
-		self.changeDeltaRange(self.PPM_Size, self.PPM_Size)
+		self.getTool('Middle Delta').setRange(self.PPM_Size, self.PPM_Size)
+		self.getTool('Final Delta').setRange(self.PPM_Size, self.PPM_Size)
+		self.selectedHintingTool.updateUI()
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
@@ -200,53 +188,16 @@ class TTHTool():
 		if self.selectedHintingTool != None:
 			self.selectedHintingTool.updateUI()
 
-# - - - - - - - - - - - - - - - - - - - - - - - DELTA RANGE
-
-	def changeDeltaRange(self, value1, value2):
-		try:
-			value1 = int(value1)
-		except ValueError:
-			value1 = 9
-		try:
-			value2 = int(value2)
-		except ValueError:
-			value2 = 9
-		if value2 < value1:
-			value2 = value1
-		self.deltaRange1 = value1
-		self.deltaRange2 = value2
-		self.mainPanel.displayDeltaRange(value1, value2)
-
 # - - - - - - - - - - - - - - - - - - - - - - - TOOL
 
-	def changeSelectedHintingTool(self, toolName):
-		if toolName not in self.mainPanel.hintingToolsList:
-			toolName = 'Selection'
-		if toolName in self.hintingTools:
-			self.selectedHintingTool = self.hintingTools[toolName]
-		else:	
-			if toolName == 'Align':           tool = AlignTool()
-			elif toolName == 'Single Link':   tool = SingleLinkTool()
-			elif toolName == 'Double Link':   tool = DoubleLinkTool()
-			elif toolName == 'Interpolation': tool = InterpolationTool()
-			elif toolName == 'Middle Delta':  tool = DeltaTool(final=False)
-			elif toolName == 'Final Delta':   tool = DeltaTool(final=True)
-			else:                             tool = SelectionTool()
-			self.hintingTools[toolName] = tool
-			self.selectedHintingTool = tool
+	def getTool(self, toolName):
+		if toolName not in self.hintingTools:
+			self.hintingTools[toolName] = tools.createTool(toolName)
+		return self.hintingTools[toolName]
+
+	def changeSelectedHintingTool(self, toolIndex):
+		self.selectedHintingTool = self.getTool(tools.kCommandToolNames[toolIndex])
 		self.selectedHintingTool.updateUI()
-
-	def changeSelectedAlignmentTypeAlign(self, align):
-		pass
-
-	def changeSelectedAlignmentTypeLink(self, align):
-		pass
-
-	def changeSelectedStemX(self, stemName):
-		pass
-
-	def changeSelectedStemY(self, stemName):
-		pass
 
 # - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
 
@@ -298,7 +249,7 @@ class TTHTool():
 		self.previewPanel = previewPanel.PreviewPanel()
 		self.TTHWindows = [self.previewPanel]
 		self.mainPanel    = mainPanel.MainPanel()
-		self.changeSelectedHintingTool('Selection')
+		self.changeSelectedHintingTool(tools.kCommandToolNames.index('Selection'))
 
 	def deleteWindows(self):
 		self.hideWindows()
@@ -423,20 +374,8 @@ if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
 from views import previewPanel, mainPanel
+import tools
 reload(TTHFont)
 reload(previewPanel)
 reload(mainPanel)
-import tools, tools.AlignTool, tools.SingleLinkTool, tools.DoubleLinkTool, tools.InterpolationTool, tools.DeltaTool, tools.SelectionTool
 reload(tools)
-reload(tools.AlignTool)
-reload(tools.SingleLinkTool)
-reload(tools.DoubleLinkTool)
-reload(tools.InterpolationTool)
-reload(tools.DeltaTool)
-reload(tools.SelectionTool)
-from tools.AlignTool import AlignTool
-from tools.SingleLinkTool import SingleLinkTool
-from tools.DoubleLinkTool import DoubleLinkTool
-from tools.InterpolationTool import InterpolationTool
-from tools.DeltaTool import DeltaTool
-from tools.SelectionTool import SelectionTool

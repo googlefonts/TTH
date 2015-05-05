@@ -5,18 +5,22 @@ from models.TTHTool import uniqueInstance as tthTool
 class SingleLinkTool(TTHCommandTool):
 
 	def __init__(self):
-		super(SingleLinkTool, self).__init__("Single Link")
+		super(SingleLinkTool, self).__init__('Single Link')
 		self.allowedAlignments = TTHCommandTool.allowedAlignmentTypesWithNone
+		self.stemNameX = 'Guess'
+		self.stemNameY = 'Guess'
+		self.roundDistance = False
 
 	def updateUI(self):
+		
+		self.updateAlignmentUI(withNone = True)
+		self.updateStemUI()
+
+		self.hideUI()
 		if tthTool.mainPanel is None: return
 		w = tthTool.mainPanel.wTools
-		
-		if tthTool.selectedAxis == 'X':
-			w.AlignmentTypePopUpButton.setItems(self.displayXWithNone)
-		else:
-			w.AlignmentTypePopUpButton.setItems(self.displayYWithNone)
-		w.AlignmentTypePopUpButton.set(self.alignment)
+		#update round distance boolean
+		w.RoundDistanceCheckBox.set(self.roundDistance)
 
 		w.AlignmentTypeText.show(True)
 		w.AlignmentTypePopUpButton.show(True)
@@ -24,13 +28,6 @@ class SingleLinkTool(TTHCommandTool):
 		w.StemTypePopUpButton.show(True)
 		w.RoundDistanceText.show(True)
 		w.RoundDistanceCheckBox.show(True)
-		w.DeltaOffsetText.show(False)
-		w.DeltaOffsetSlider.show(False)
-		w.DeltaRangeText.show(False)
-		w.DeltaRange1ComboBox.show(False)
-		w.DeltaRange2ComboBox.show(False)
-		w.DeltaOffsetEditText.show(False)
-		w.DeltaMonochromeText.show(False)
-		w.DeltaMonochromeCheckBox.show(False)
-		w.DeltaGrayText.show(False)
-		w.DeltaGrayCheckBox.show(False)
+
+	def setRoundDistance(self, value):
+		self.roundDistance = (value == 1)

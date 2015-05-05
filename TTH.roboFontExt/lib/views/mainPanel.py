@@ -35,15 +35,16 @@ defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 class MainPanel(BaseWindowController):
 	def __init__(self):
 		BaseWindowController.__init__(self)
-		self.hintingToolsList = [	'Align',
-							'Single Link',
-							'Double Link',
-							'Interpolation',
-							'Middle Delta',
-							'Final Delta',
-							'Selection']
 		self.makeStemsList()
 		self.makeMainPanel()
+		self._lock = False
+
+	def locked(self):
+		return self._lock
+	def lock(self):
+		self._lock = True
+	def unlock(self):
+		self._lock = False
 
 	def makeMainPanel(self):
 		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
@@ -88,8 +89,8 @@ class MainPanel(BaseWindowController):
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 16),
 				['In construction...'], sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
-		self.wTools.AlignmentTypeText.show(True)
-		self.wTools.AlignmentTypePopUpButton.show(True)
+		self.wTools.AlignmentTypeText.show(False)
+		self.wTools.AlignmentTypePopUpButton.show(False)
 
 		# UI for stem type
 		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
@@ -114,7 +115,6 @@ class MainPanel(BaseWindowController):
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
-		self.wTools.DeltaOffsetEditText.set(tthTool.deltaOffset)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 		# UI for delta range
@@ -126,8 +126,6 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
-		self.wTools.DeltaRange1ComboBox.set(tthTool.deltaRange1)
-		self.wTools.DeltaRange2ComboBox.set(tthTool.deltaRange2)
 
 		# UI for applying delta only in Monochrome
 		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
@@ -135,7 +133,6 @@ class MainPanel(BaseWindowController):
 				callback=self.DeltaMonochromeCheckBoxCallback)
 		self.wTools.DeltaMonochromeText.show(False)
 		self.wTools.DeltaMonochromeCheckBox.show(False)
-		self.wTools.DeltaMonochromeCheckBox.set(tthTool.deltaMonoBool)
 
 		# UI for applying delta only in Grayscale & Subpixel
 		self.wTools.DeltaGrayText = TextBox((150, 38, 80, 15), "Gray & Subpixel:", sizeStyle = "mini")
@@ -143,7 +140,6 @@ class MainPanel(BaseWindowController):
 				callback=self.DeltaGrayCheckBoxCallback)
 		self.wTools.DeltaGrayText.show(False)
 		self.wTools.DeltaGrayCheckBox.show(False)
-		self.wTools.DeltaGrayCheckBox.set(tthTool.deltaGrayBool)
 
 		# The Gear Menu
 		self.wTools.gear = PopUpButton((0, -22, 30, 18), [], callback=self.gearMenuCallback, sizeStyle="mini")
@@ -207,78 +203,57 @@ class MainPanel(BaseWindowController):
 		if sender.get() == 0: tthTool.changeAxis('X')
 		else: tthTool.changeAxis('Y')
 		self.makeStemsList()
-		self.wTools.StemTypePopUpButton.setItems(self.stemsList)
-		#if sender.get() == 0: tthTool.changeSelectedStemX(tthTool.selectedStemX)
-		#else: tthTool.changeSelectedStemY(tthTool.selectedStemY)
 		UpdateCurrentGlyphView()
 
 	def toolsSegmentedButtonCallback(self, sender):
-		if sender.get() == 0:
-			tthTool.changeSelectedHintingTool('Align')
-		if sender.get() == 1:
-			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
-			if tthTool.selectedAxis == 'X':
-				tthTool.changeSelectedStemX(tthTool.selectedStemX)
-			else:
-				tthTool.changeSelectedStemY(tthTool.selectedStemY)
-			tthTool.changeSelectedHintingTool('Single Link')
-		if sender.get() == 2:
-			if tthTool.selectedAxis == 'X':
-				tthTool.changeSelectedStemX(tthTool.selectedStemX)
-			else:
-				tthTool.changeSelectedStemY(tthTool.selectedStemY)
-			tthTool.changeSelectedHintingTool('Double Link')
-		if sender.get() == 3:
-			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
-			tthTool.changeSelectedHintingTool('Interpolation')
-		if sender.get() == 4:
-			tthTool.changeSelectedHintingTool('Middle Delta')
-		if sender.get() == 5:
-			tthTool.changeSelectedHintingTool('Final Delta')
-		if sender.get() == 6:
-			tthTool.changeSelectedHintingTool('Selection')
+		tthTool.changeSelectedHintingTool(sender.get())
+		UpdateCurrentGlyphView()
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
 		tthTool.selectedHintingTool.setAlignment(sender.get())
 
 	def StemTypePopUpButtonCallback(self, sender):
-		if tthTool.selectedAxis == 'X':
-			tthTool.changeSelectedStemX(self.stemsList[sender.get()])
-		else:
-			tthTool.changeSelectedStemY(self.stemsList[sender.get()])
+		tthTool.selectedHintingTool.setStem(self.stemsList[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
-		tthTool.changeRoundBool(sender.get())
+		tthTool.selectedHintingTool.setRoundDistance(sender.get())
 
 	def DeltaMonochromeCheckBoxCallback(self, sender):
-		tthTool.changeDeltaMono(sender.get())
+		tthTool.selectedHintingTool.setMono(sender.get())
 
 	def DeltaGrayCheckBoxCallback(self, sender):
-		tthTool.changeDeltaGray(sender.get())
+		tthTool.selectedHintingTool.setGray(sender.get())
 
 	def DeltaOffsetSliderCallback(self, sender):
-		tthTool.changeDeltaOffset(int(sender.get() - 8))
+		tthTool.selectedHintingTool.setOffset(int(sender.get() - 8))
 
 	def DeltaOffsetEditTextCallback(self, sender):
-		tthTool.changeDeltaOffset(sender.get())
+		if self.locked(): return
+		self.lock()
+		tthTool.selectedHintingTool.setOffset(sender.get())
+		self.unlock()
 
 	def DeltaRange1ComboBoxCallback(self, sender):
-		size = sender.get()
+		if self.locked(): return
+		self.lock()
 		try:
-			int(size)
+			size = max(9, int(sender.get()))
 		except:
-			size = tthTool.deltaRange1
-			sender.set(size)
-		tthTool.changeDeltaRange(sender.get(), tthTool.deltaRange2)
+			size = tthTool.selectedHintingTool.range1
+		sender.set(str(size))
+		tthTool.selectedHintingTool.setRange(sender.get(), tthTool.selectedHintingTool.range2)
+		self.unlock()
 
 	def DeltaRange2ComboBoxCallback(self, sender):
-		size = sender.get()
+		if self.locked(): return
+		self.lock()
 		try:
-			int(size)
+			size = max(9, int(sender.get()))
 		except:
-			size = tthTool.deltaRange2
-			sender.set(size)
-		tthTool.changeDeltaRange(tthTool.deltaRange1, sender.get())
+			size = tthTool.selectedHintingTool.range2
+		sender.set(str(size))
+		tthTool.selectedHintingTool.setRange(tthTool.selectedHintingTool.range1, sender.get())
+		self.unlock()
 
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
