@@ -25,7 +25,7 @@ class DeltaTool(TTHCommandTool):
 		w.DeltaGrayCheckBox.set(self.gray)
 		w.DeltaOffsetSlider.set(self.offset + 8)
 		tthTool.mainPanel.lock()
-		w.DeltaOffsetEditText.set(self.offset)
+		w.DeltaOffsetEditText.set(str(self.offset))
 		w.DeltaRange1ComboBox.set(str(self.range1))
 		w.DeltaRange2ComboBox.set(str(self.range2))
 		tthTool.mainPanel.unlock()
@@ -56,7 +56,7 @@ class DeltaTool(TTHCommandTool):
 		if tthTool.mainPanel is None: return
 		w = tthTool.mainPanel.wTools
 		w.DeltaOffsetSlider.set(self.offset + 8)
-		w.DeltaOffsetEditText.set(self.offset)
+		w.DeltaOffsetEditText.set(str(self.offset))
 
 	def setRange(self, value1, value2):
 		if value2 < value1:

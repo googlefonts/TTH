@@ -174,8 +174,8 @@ class TTHTool():
 		if eventController != None:
 			eventController.sizeHasChanged()
 		self.mainPanel.displayPPEMSize(size)
-		self.getTool('Middle Delta').setRange(self.PPM_Size, self.PPM_Size)
-		self.getTool('Final Delta').setRange(self.PPM_Size, self.PPM_Size)
+		for tool in ['Middle Delta', 'Final Delta']:
+			self.getTool(tool).setRange(self.PPM_Size, self.PPM_Size)
 		self.selectedHintingTool.updateUI()
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
