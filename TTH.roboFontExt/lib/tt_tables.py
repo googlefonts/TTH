@@ -77,7 +77,8 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 
 	CVT.append(int(math.floor(fm.UPM / fm.alignppm)))
 
-	stemsHorizontal, stemsVertical = HF.partition(fm.stems.iteritems(), lambda s: s[1]['horizontal'] == 'true')
+	stemsHorizontal = fm.horizontalStems.items()
+	stemsVertical   = fm.verticalStems.items()
 
 	for stem in stemsHorizontal + stemsVertical:
 		CVT.append(int(stem[1]['width']))

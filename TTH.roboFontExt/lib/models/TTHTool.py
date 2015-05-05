@@ -39,8 +39,9 @@ class TTHTool():
 		# The current hinting axis: 'X' or 'Y'
 		self.selectedAxis = getExtensionDefault(defaultKeySelectedAxis, fallback='X')
 
+		self.hintingTools = {}
 		# The CURRENT hinting tool
-		self.selectedHintingTool = 'Align'
+		self.selectedHintingTool = None
 		# A parameter for the hinting tool
 		self.selectedAlignmentTypeAlign = 'round'
 		# A parameter for the hinting tool
@@ -61,17 +62,17 @@ class TTHTool():
 		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings,\
 				fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789',\
 						string.uppercase, string.lowercase])
-		self.previewFrom		= getExtensionDefault(defaultKeyPreviewFrom,		fallback=9)
-		self.previewTo		= getExtensionDefault(defaultKeyPreviewTo,		fallback=72)
-		self.alwaysRefresh	= getExtensionDefault(defaultKeyAlwaysRefresh,		fallback=1)
-		self.showOutline		= getExtensionDefault(defaultKeyShowOutline,		fallback=0)
-		self.outlineThickness	= getExtensionDefault(defaultKeyOutlineThickness,	fallback=2)
-		self.showBitmap		= getExtensionDefault(defaultKeyShowBitmap,		fallback=0)
-		self.bitmapOpacity	= getExtensionDefault(defaultKeyBitmapOpacity,		fallback=0.4)
-		self.showGrid		= getExtensionDefault(defaultKeyShowGrid,			fallback=0)
-		self.gridOpacity		= getExtensionDefault(defaultKeyGridOpacity,		fallback=0.4)
-		self.showCenterPixel	= getExtensionDefault(defaultKeyShowCenterPixels,	fallback=0)
-		self.centerPixelSize	= getExtensionDefault(defaultKeyCenterPixelSize,	fallback=3)
+		self.previewFrom      = getExtensionDefault(defaultKeyPreviewFrom,      fallback=9)
+		self.previewTo        = getExtensionDefault(defaultKeyPreviewTo,        fallback=72)
+		self.alwaysRefresh    = getExtensionDefault(defaultKeyAlwaysRefresh,    fallback=1)
+		self.showOutline      = getExtensionDefault(defaultKeyShowOutline,      fallback=0)
+		self.outlineThickness = getExtensionDefault(defaultKeyOutlineThickness, fallback=2)
+		self.showBitmap       = getExtensionDefault(defaultKeyShowBitmap,       fallback=0)
+		self.bitmapOpacity    = getExtensionDefault(defaultKeyBitmapOpacity,    fallback=0.4)
+		self.showGrid         = getExtensionDefault(defaultKeyShowGrid,         fallback=0)
+		self.gridOpacity      = getExtensionDefault(defaultKeyGridOpacity,      fallback=0.4)
+		self.showCenterPixel  = getExtensionDefault(defaultKeyShowCenterPixels, fallback=0)
+		self.centerPixelSize  = getExtensionDefault(defaultKeyCenterPixelSize,  fallback=3)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
 		self.requiredGlyphsForPartialTempFont = set()
@@ -196,6 +197,8 @@ class TTHTool():
 	def changeAxis(self, axis):
 		self.selectedAxis = axis
 		setExtensionDefault(defaultKeySelectedAxis, axis)
+		if self.selectedHintingTool != None:
+			self.selectedHintingTool.updateUI()
 
 # - - - - - - - - - - - - - - - - - - - - - - - DELTA RANGE
 
@@ -213,6 +216,37 @@ class TTHTool():
 		self.deltaRange1 = value1
 		self.deltaRange2 = value2
 		self.mainPanel.displayDeltaRange(value1, value2)
+
+# - - - - - - - - - - - - - - - - - - - - - - - TOOL
+
+	def changeSelectedHintingTool(self, toolName):
+		if toolName not in self.mainPanel.hintingToolsList:
+			toolName = 'Selection'
+		if toolName in self.hintingTools:
+			self.selectedHintingTool = self.hintingTools[toolName]
+		else:	
+			if toolName == 'Align':           tool = AlignTool()
+			elif toolName == 'Single Link':   tool = SingleLinkTool()
+			elif toolName == 'Double Link':   tool = DoubleLinkTool()
+			elif toolName == 'Interpolation': tool = InterpolationTool()
+			elif toolName == 'Middle Delta':  tool = DeltaTool(final=False)
+			elif toolName == 'Final Delta':   tool = DeltaTool(final=True)
+			else:                             tool = SelectionTool()
+			self.hintingTools[toolName] = tool
+			self.selectedHintingTool = tool
+		self.selectedHintingTool.updateUI()
+
+	def changeSelectedAlignmentTypeAlign(self, align):
+		pass
+
+	def changeSelectedAlignmentTypeLink(self, align):
+		pass
+
+	def changeSelectedStemX(self, stemName):
+		pass
+
+	def changeSelectedStemY(self, stemName):
+		pass
 
 # - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
 
@@ -261,9 +295,10 @@ class TTHTool():
 			self.showWindows()
 
 	def createWindows(self):
-		self.mainPanel    = mainPanel.MainPanel()
 		self.previewPanel = previewPanel.PreviewPanel()
 		self.TTHWindows = [self.previewPanel]
+		self.mainPanel    = mainPanel.MainPanel()
+		self.changeSelectedHintingTool('Selection')
 
 	def deleteWindows(self):
 		self.hideWindows()
@@ -391,3 +426,17 @@ from views import previewPanel, mainPanel
 reload(TTHFont)
 reload(previewPanel)
 reload(mainPanel)
+import tools, tools.AlignTool, tools.SingleLinkTool, tools.DoubleLinkTool, tools.InterpolationTool, tools.DeltaTool, tools.SelectionTool
+reload(tools)
+reload(tools.AlignTool)
+reload(tools.SingleLinkTool)
+reload(tools.DoubleLinkTool)
+reload(tools.InterpolationTool)
+reload(tools.DeltaTool)
+reload(tools.SelectionTool)
+from tools.AlignTool import AlignTool
+from tools.SingleLinkTool import SingleLinkTool
+from tools.DoubleLinkTool import DoubleLinkTool
+from tools.InterpolationTool import InterpolationTool
+from tools.DeltaTool import DeltaTool
+from tools.SelectionTool import SelectionTool

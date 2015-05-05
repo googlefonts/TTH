@@ -155,9 +155,11 @@ class TTHFont():
 			# UFO, we recover some useful data for hinting
 
 			# Descriptions of zones
-			self.zones 		= helperFunctions.getOrPutDefault(tth_lib, "zones", {})
+			self.zones = helperFunctions.getOrPutDefault(tth_lib, "zones", {})
 			# Descriptions of typical stem widths
-			self.stems 		= helperFunctions.getOrPutDefault(tth_lib, "stems", {})
+			stems = helperFunctions.getOrPutDefault(tth_lib, "stems", {})
+			self.horizontalStems = dict((n,s) for (n,s) in stems.iteritems() if s['horizontal'])
+			self.verticalStems   = dict((n,s) for (n,s) in stems.iteritems() if not s['horizontal'])
 			# FIXME: describe this
 			self.codeppm	= helperFunctions.getOrPutDefault(tth_lib, "codeppm", 72)
 			# FIXME: describe this
@@ -170,7 +172,7 @@ class TTHFont():
 			# FIXME: describe this
 			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, tt_tables.k_hdmx_key, {})
 		except:
-			print "ERROR: can't set font's control values"
+			print "[TTH ERROR]: Can't read font's control values"
 
 	@property
 	def UPM(self):

@@ -5,7 +5,6 @@ from vanilla import *
 from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
 from mojo.UI import UpdateCurrentGlyphView
 
-
 from views import preferencesSheet
 from models.TTHTool import uniqueInstance as tthTool
 
@@ -36,7 +35,6 @@ defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 class MainPanel(BaseWindowController):
 	def __init__(self):
 		BaseWindowController.__init__(self)
-
 		self.hintingToolsList = [	'Align',
 							'Single Link',
 							'Double Link',
@@ -44,43 +42,8 @@ class MainPanel(BaseWindowController):
 							'Middle Delta',
 							'Final Delta',
 							'Selection']
-		self.prepareAlignmentTypeLists()
+		self.makeStemsList()
 		self.makeMainPanel()
-
-	def prepareAlignmentTypeLists(self):
-		if tthTool.selectedAxis == 'X':
-			self.stemTypeList = []#tthTool.stemsListX
-			l = [	'Closest Pixel Edge',
-				'Left Edge',
-				'Right Edge',
-				'Center of Pixel',
-				'Double Grid']
-			self.alignmentTypeListDisplay = l
-			l = [	'Do Not Align to Grid',
-				'Closest Pixel Edge',
-				'Left Edge',
-				'Right Edge',
-				'Center of Pixel',
-				'Double Grid']
-			self.alignmentTypeListLinkDisplay = l
-		else:
-			self.stemTypeList = []#tthTool.stemsListY
-			l = [	'Closest Pixel Edge',
-				'Bottom Edge',
-				'Top Edge',
-				'Center of Pixel',
-				'Double Grid']
-			self.alignmentTypeListDisplay = l
-			l = [	'Do Not Align to Grid',
-				'Closest Pixel Edge',
-				'Bottom Edge',
-				'Top Edge',
-				'Center of Pixel',
-				'Double Grid']
-			self.alignmentTypeListLinkDisplay = l
-
-		self.alignmentTypeList = ['round', 'left', 'right', 'center', 'double']
-		self.alignmentTypeListLink = ['None', 'round', 'left', 'right', 'center', 'double']
 
 	def makeMainPanel(self):
 		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
@@ -118,12 +81,12 @@ class MainPanel(BaseWindowController):
 
 		# Tools segmented buttons
 		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
-		self.wTools.toolsSegmentedButton.set(0)
+		self.wTools.toolsSegmentedButton.set(6)
 
 		# UI for alignment type
 		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 16),
-				self.alignmentTypeListDisplay, sizeStyle = "mini",
+				['In construction...'], sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
 		self.wTools.AlignmentTypeText.show(True)
 		self.wTools.AlignmentTypePopUpButton.show(True)
@@ -131,7 +94,7 @@ class MainPanel(BaseWindowController):
 		# UI for stem type
 		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
 		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 16),
-				self.stemTypeList, sizeStyle = "mini",
+				self.stemsList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
 		self.wTools.StemTypeText.show(False)
 		self.wTools.StemTypePopUpButton.show(False)
@@ -241,25 +204,18 @@ class MainPanel(BaseWindowController):
 			tthTool.changeSize(tthTool.PPM_Size)
 
 	def axisSegmentedButtonCallback(self, sender):
-		if sender.get() == 0:
-			tthTool.changeAxis('X')
-			self.makeStemsLists()
-			self.wTools.StemTypePopUpButton.setItems(self.stemsListX)
-			#tthTool.changeSelectedStemX(tthTool.selectedStemX)
-		else:
-			tthTool.changeAxis('Y')
-			tthTool.makeStemsLists()
-			self.wTools.StemTypePopUpButton.setItems(self.stemsListY)
-			#tthTool.changeSelectedStemY(tthTool.selectedStemY)
+		if sender.get() == 0: tthTool.changeAxis('X')
+		else: tthTool.changeAxis('Y')
+		self.makeStemsList()
+		self.wTools.StemTypePopUpButton.setItems(self.stemsList)
+		#if sender.get() == 0: tthTool.changeSelectedStemX(tthTool.selectedStemX)
+		#else: tthTool.changeSelectedStemY(tthTool.selectedStemY)
 		UpdateCurrentGlyphView()
 
 	def toolsSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
-			self.AlignSettings()
-			tthTool.changeSelectedAlignmentTypeAlign(tthTool.selectedAlignmentTypeAlign)
 			tthTool.changeSelectedHintingTool('Align')
 		if sender.get() == 1:
-			self.LinkSettings()
 			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
 			if tthTool.selectedAxis == 'X':
 				tthTool.changeSelectedStemX(tthTool.selectedStemX)
@@ -267,37 +223,29 @@ class MainPanel(BaseWindowController):
 				tthTool.changeSelectedStemY(tthTool.selectedStemY)
 			tthTool.changeSelectedHintingTool('Single Link')
 		if sender.get() == 2:
-			self.DoubleLinkSettings()
 			if tthTool.selectedAxis == 'X':
 				tthTool.changeSelectedStemX(tthTool.selectedStemX)
 			else:
 				tthTool.changeSelectedStemY(tthTool.selectedStemY)
 			tthTool.changeSelectedHintingTool('Double Link')
 		if sender.get() == 3:
-			self.InterpolationSettings()
 			tthTool.changeSelectedAlignmentTypeLink(tthTool.selectedAlignmentTypeLink)
 			tthTool.changeSelectedHintingTool('Interpolation')
 		if sender.get() == 4:
-			self.DeltaSettings()
 			tthTool.changeSelectedHintingTool('Middle Delta')
 		if sender.get() == 5:
-			self.DeltaSettings()
 			tthTool.changeSelectedHintingTool('Final Delta')
 		if sender.get() == 6:
-			self.SelectionSettings()
 			tthTool.changeSelectedHintingTool('Selection')
 
 	def AlignmentTypePopUpButtonCallback(self, sender):
-		if tthTool.selectedHintingTool in ['Single Link', 'Double Link', 'Interpolation']:
-			tthTool.changeSelectedAlignmentTypeLink(self.alignmentTypeListLink[sender.get()])
-		elif tthTool.selectedHintingTool == 'Align':
-			tthTool.changeSelectedAlignmentTypeAlign(self.alignmentTypeList[sender.get()])
+		tthTool.selectedHintingTool.setAlignment(sender.get())
 
 	def StemTypePopUpButtonCallback(self, sender):
 		if tthTool.selectedAxis == 'X':
-			tthTool.changeSelectedStemX(tthTool.stemsListX[sender.get()])
+			tthTool.changeSelectedStemX(self.stemsList[sender.get()])
 		else:
-			tthTool.changeSelectedStemY(tthTool.stemsListY[sender.get()])
+			tthTool.changeSelectedStemY(self.stemsList[sender.get()])
 
 	def RoundDistanceCheckBoxCallback(self, sender):
 		tthTool.changeRoundBool(sender.get())
@@ -377,16 +325,14 @@ class MainPanel(BaseWindowController):
 		self.wTools.DeltaRange1ComboBox.set(v1)
 		self.wTools.DeltaRange2ComboBox.set(v2)
 
-	def makeStemsLists(self):
-		self.stemsListX = ['None', 'Guess']
-		self.stemsListY = ['None', 'Guess']
+	def makeStemsList(self):
+		self.stemsList = ['None', 'Guess']
 		fm = tthTool.getFontModel()
 		if fm is None: return
-		for name, stem in fm.stems.iteritems():
-			if stem['horizontal']:
-				self.stemsListY.append(name)
-			else:
-				self.stemsListX.append(name)
+		if tthTool.selectedAxis == 'X':
+			self.stemsList += fm.verticalStems.keys()
+		else:
+			self.stemsList += fm.horizontalStems.keys()
 
 	##########
 	# Bindings
@@ -397,3 +343,5 @@ class MainPanel(BaseWindowController):
 
 	def close(self):
 		self.wTools.close()
+
+if tthTool._printLoadings: print "mainPanel, ",

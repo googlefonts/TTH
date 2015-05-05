@@ -288,22 +288,16 @@ class TTHGlyph(object):
 		# compile to TT assembly language and write it in UFO lib.
 		TTHintAsm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
 
-	def commandIsOK(self, cmd, verbose = False):
+	def commandIsOK(self, cmd, verbose = False, absent = [], badName = []):
 		for key in ['point', 'point1', 'point2']:
 			if key not in cmd: continue
 			ptName = cmd[key]
 			if ptName in ['lsb', 'rsb']: continue
 			if self.contSegOfPointName(ptName) is None:
-				if verbose:
-					print "WARNING:", key,'"'+ptName+\
-						'" in hinting command for glyph',self._g.name,\
-						"was not found. Killing the command."
+				if verbose: absent.append((cmd['code'], key, ptName))
 				return False
 			if 'inserted' in ptName:
-				if verbose:
-					print "WARNING:", key,'"'+ptName+\
-						'" in hinting command for glyph',self._g.name,\
-						"contains the word 'inserted'. Killing the command."
+				if verbose: badName.append((cmd['code'], key, ptName))
 				return False
 		return True
 
@@ -329,6 +323,8 @@ class TTHGlyph(object):
 		else:
 			ttprogram = strTTProgram[6:-2]
 		root = ET.fromstring(ttprogram)
+		absent = []
+		badName = []
 		for child in root:
 			cmd = child.attrib
 			if 'active' not in cmd:
@@ -338,7 +334,17 @@ class TTHGlyph(object):
 					cmd['gray'] = 'true'
 				if 'mono' not in cmd:
 					cmd['mono'] = 'true'
-			if self.commandIsOK(cmd, verbose = True):
+			if self.commandIsOK(cmd, verbose = True, absent = absent, badName = badName):
 				self.hintingCommands.append(cmd)
+		if absent or badName:
+			print "[TTH WARNING] In glyph", self._g.name,":"
+		if absent:
+			print "The following points do not exist. Commands acting on these points have been erased:"
+			for e in absent: print e
+		if badName:
+			print "The following points have a name containing the word 'inserted'. Commands acting on these points have been erased:"
+			for e in badName: print e
+		if absent or badName:
+			print "[END OF TTH WARNING]"
 
 if tthTool._printLoadings: print "TTHGlyph, ",
