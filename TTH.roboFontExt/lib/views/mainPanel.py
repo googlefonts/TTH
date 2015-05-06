@@ -85,7 +85,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.toolsSegmentedButton.set(6)
 
 		# UI for alignment type
-		self.wTools.AlignmentTypeText = TextBox((10, 42, 30, 15), "Align:", sizeStyle = "mini")
+		self.wTools.AlignmentTypeText = TextBox((10, 41, 30, 15), "Align:", sizeStyle = "mini")
 		self.wTools.AlignmentTypePopUpButton = PopUpButton((40, 40, 105, 16),
 				['In construction...'], sizeStyle = "mini",
 				callback=self.AlignmentTypePopUpButtonCallback)
@@ -93,7 +93,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.AlignmentTypePopUpButton.show(False)
 
 		# UI for stem type
-		self.wTools.StemTypeText = TextBox((10, 59, 30, 15), "Stem:", sizeStyle = "mini")
+		self.wTools.StemTypeText = TextBox((10, 58, 30, 15), "Stem:", sizeStyle = "mini")
 		self.wTools.StemTypePopUpButton = PopUpButton((40, 57, 105, 16),
 				self.stemsList, sizeStyle = "mini",
 				callback=self.StemTypePopUpButtonCallback)
@@ -101,34 +101,34 @@ class MainPanel(BaseWindowController):
 		self.wTools.StemTypePopUpButton.show(False)
 
 		# UI for rounding coordinates (checkbox)
-		self.wTools.RoundDistanceText = TextBox((155, 42, 80, 15), "Round Distance:", sizeStyle = "mini")
-		self.wTools.RoundDistanceCheckBox = CheckBox((-25, 44, 15, 15), "", sizeStyle = "mini",
+		self.wTools.RoundDistanceText = TextBox((155, 41, 80, 15), "Round Distance:", sizeStyle = "mini")
+		self.wTools.RoundDistanceCheckBox = CheckBox((-25, 41, 15, 15), "", sizeStyle = "mini",
 				callback=self.RoundDistanceCheckBoxCallback)
 		self.wTools.RoundDistanceText.show(False)
 		self.wTools.RoundDistanceCheckBox.show(False)
 
 		# UI for delta value
 		self.wTools.DeltaOffsetText = TextBox((10, 38, 40, 15), "Offset:", sizeStyle = "mini")
+		self.wTools.DeltaOffsetEditText = EditText((50, 37, 30, 15), sizeStyle = "mini", 
+				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
-		self.wTools.DeltaOffsetEditText = EditText((50, 38, 30, 15), sizeStyle = "mini", 
-				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetText.show(False)
 		self.wTools.DeltaOffsetSlider.show(False)
 		self.wTools.DeltaOffsetEditText.show(False)
 
 		# UI for delta range
-		self.wTools.DeltaRangeText = TextBox((-120, 57, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 55, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRangeText = TextBox((-120, 58, 40, 15), "Range:", sizeStyle = "mini")
+		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange1ComboBoxCallback)
-		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 55, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
 				callback=self.DeltaRange2ComboBoxCallback)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
 
 		# UI for applying delta only in Monochrome
-		self.wTools.DeltaMonochromeText = TextBox((90, 38, 40, 15), "Mono:", sizeStyle = "mini")
+		self.wTools.DeltaMonochromeText = TextBox((90, 39, 40, 15), "Mono:", sizeStyle = "mini")
 		self.wTools.DeltaMonochromeCheckBox = CheckBox((130, 38, 15, 15), "", sizeStyle = "mini",
 				callback=self.DeltaMonochromeCheckBoxCallback)
 		self.wTools.DeltaMonochromeText.show(False)
