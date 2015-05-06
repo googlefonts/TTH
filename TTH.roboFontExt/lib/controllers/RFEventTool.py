@@ -26,7 +26,6 @@ arrowColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5,
 blackColor        = NSColor.blackColor()
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
 deltaColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
-doublinkColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
 finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 interpolateColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
@@ -457,7 +456,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		offCurve = self.drawDoubleEndedArrow(scale, active, doublinkColor, pos1, pos2)
+		offCurve = self.drawDoubleEndedArrow(scale, active, kDoublinkColor, pos1, pos2)
 		# Compute label text
 		stemName = c['stem']
 		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
@@ -468,7 +467,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'D_' + stemName
 		else:
 			text = 'D'
-		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, doublinkColor,\
+		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, kDoublinkColor,\
 				self.getNSView(), active)
 		cmd['labelPosSize'] = (offCurve, labelSize)
 

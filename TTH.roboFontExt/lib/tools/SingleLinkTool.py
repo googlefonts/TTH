@@ -36,4 +36,4 @@ class SingleLinkTool(TTHCommandTool):
 
 	def draw(self, scale):
 		if not self.dragging: return
-		DR.drawSingleArrow(scale, geom.makePoint(self.startPoint[0]), self.mouseDraggedPos, DR.kLinkColor)
+		DR.drawSingleArrow(scale, geom.makePoint(self.startPoint[0]), self.mouseDraggedPos, DR.kLinkColor, 30)
