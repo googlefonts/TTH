@@ -32,7 +32,7 @@ class TextRenderer(object):
 			print 'ERROR: FreeType could not load temporary font:', face_path
 		# a dictionary mapping text size in pixel to the TRCache
 		# storing the glyphs images/bitmaps/advances already loaded.
-		self.caches = {} 
+		self.caches = {}
 		# The TRCache for the current text pixel-size
 		self.cache = None
 		# current text pixel-size
@@ -278,7 +278,7 @@ def drawBitmapMono(bmg, scale, advance, height, alpha):
 			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
 	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
-	
+
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1:
 		Quartz.CGContextSetAlpha(port, alpha)
@@ -315,7 +315,7 @@ def drawBitmapGray(bmg, scale, advance, height, alpha):
 			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
 	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
-	
+
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1.0:
 		Quartz.CGContextSetAlpha(port, alpha)

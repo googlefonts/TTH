@@ -42,7 +42,7 @@ class TTHTool():
 		self.hintingTools = {}
 		# The CURRENT hinting tool
 		self.selectedHintingTool = None
-		
+
 		self.previewString = '/?'
 
 		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings,\
@@ -273,7 +273,6 @@ class TTHTool():
 	def becomeInactive(self):
 		for fm in self._fontModels.itervalues():
 			fm.killPreviewInGlyphWindow()
-		
 		# Kill the various windows and panels
 		self.deleteWindows()
 

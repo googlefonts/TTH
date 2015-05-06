@@ -98,7 +98,7 @@ def compareCommands(A, B):
 	if AbeforeB and BbeforeA:
 		A_isAlign       = A['code'] in ['alignh', 'alignv']
 		B_isAlign       = B['code'] in ['alignh', 'alignv']
-		if A_isAlign and B_isMiddleDelta: # special case 
+		if A_isAlign and B_isMiddleDelta: # special case
 			return (True, False) # order == A->B
 		elif A_isMiddleDelta and B_isAlign: # special
 			return (True, True) # order == B->A

@@ -12,7 +12,6 @@ class SingleLinkTool(TTHCommandTool):
 		self.roundDistance = False
 
 	def updateUI(self):
-		
 		self.updateAlignmentUI(withNone = True)
 		self.updateStemUI()
 

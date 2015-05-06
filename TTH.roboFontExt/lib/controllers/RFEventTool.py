@@ -55,15 +55,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		# Set to True when the current font document is about to be closed.
 		self.popOverIsOpened = False
 
-		# To each zone, associate the position of its label in the GLyphWindow
-		# Used when clicking
-		self.zoneLabelPos = {}
+		# Stores the current popover panel when one is opened
+		self.currentPopover = None
 
 		# Stores the click position during mouseDown event
 		self.mouseDownClickPos = None
-
-		# Stores the current popover panel when one is opened
-		self.currentPopover = None
 
 	def __del__(self):
 		pass
@@ -236,7 +232,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		tool = tthTool.selectedHintingTool
 		if tool != None:
 			tool.mouseUp(point)
-		
+
 # - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 
 	def popoverOpened(self, sender):
@@ -319,7 +315,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawZones(self, scale, pitch, fontModel):
 		xpos = 5 * fontModel.UPM
-		self.zoneLabelPos = {}
 		for zoneName, zone in fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
@@ -333,10 +328,12 @@ class TTH_RF_EventTool(BaseEventTool):
 			pathZone.closePath
 			zoneColor.set()
 			pathZone.fill()
-			(width, height) = DR.drawTextAtPoint(scale, zoneName, geom.Point(-100*scale, y_start+y_end/2),\
-					whiteColor, zoneColorLabel, self.getNSView(), False)
+			labelPos = geom.Point(-100*scale, y_start+y_end/2)
+			labelSize = geom.Point(*DR.drawTextAtPoint(scale, zoneName, labelPos,\
+					whiteColor, zoneColorLabel, self.getNSView(), active=True))
 
-			self.zoneLabelPos[zoneName] = ((-100*scale, y_start+y_end/2), (width, height))
+			# we store the label position and size directly in the zone's dictionary
+			zone['labelPosSize'] = (labelPos, labelSize)
 
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
@@ -344,15 +341,14 @@ class TTH_RF_EventTool(BaseEventTool):
 					if int(deltaPPM) != tthTool.PPM_Size or deltaValue == 0:
 						continue
 					path = NSBezierPath.bezierPath()
-					path.moveToPoint_((point[0], point[1]))
-					end_x = point[0]
-					end_y = point[1] + (deltaValue/8.0) * pitch
-					path.lineToPoint_((end_x, end_y))
+					path.moveToPoint_(labelPos)
+					endPos = labelPos + geom.Point(0.0, (deltaValue/8.0) * pitch)
+					path.lineToPoint_(endPos)
 
 					deltaColor.set()
 					path.setLineWidth_(scale)
 					path.stroke()
-					DR.drawLozengeAtPoint(scale, 4, end_x, end_y, deltaColor)
+					DR.drawLozengeAtPoint(scale, 4, endPos.x, endPos.y, deltaColor)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 

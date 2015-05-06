@@ -48,7 +48,7 @@ class MainPanel(BaseWindowController):
 
 	def makeMainPanel(self):
 		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
-		
+
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
 			dict(width=19, imageObject=buttonYPath, toolTip="Vertical Axis")
@@ -109,7 +109,7 @@ class MainPanel(BaseWindowController):
 
 		# UI for delta value
 		self.wTools.DeltaOffsetText = TextBox((10, 38, 40, 15), "Offset:", sizeStyle = "mini")
-		self.wTools.DeltaOffsetEditText = EditText((50, 37, 30, 15), sizeStyle = "mini", 
+		self.wTools.DeltaOffsetEditText = EditText((50, 37, 30, 15), sizeStyle = "mini",
 				callback=self.DeltaOffsetEditTextCallback)
 		self.wTools.DeltaOffsetSlider = Slider((10, 57, 130, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 				callback=self.DeltaOffsetSliderCallback)
@@ -119,9 +119,9 @@ class MainPanel(BaseWindowController):
 
 		# UI for delta range
 		self.wTools.DeltaRangeText = TextBox((-120, 58, 40, 15), "Range:", sizeStyle = "mini")
-		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini",
 				callback=self.DeltaRange1ComboBoxCallback)
-		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini", 
+		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini",
 				callback=self.DeltaRange2ComboBoxCallback)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)

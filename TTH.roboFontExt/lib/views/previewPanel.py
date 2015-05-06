@@ -124,7 +124,7 @@ class PreviewPanel(TTHWindow):
 
 		# render current glyph at various sizes
 		advance = 10
-		
+
 		for size in range(tthTool.previewFrom, tthTool.previewTo+1, 1):
 
 			self.clickableSizes[(advance, ps[3] - 170)] = size
@@ -134,7 +134,7 @@ class PreviewPanel(TTHWindow):
 				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, redColor)
 			else:
 				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, blackColor)
-			
+
 			tr.set_cur_size(size)
 			tr.set_pen((advance, ps[3] - 135))
 			delta_pos = tr.render_named_glyph_list([curGlyphName])

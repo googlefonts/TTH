@@ -87,7 +87,7 @@ class TTHCommandTool(object):
 		else:
 			return self.stemNameY
 
-	def updateStemUI(self):	
+	def updateStemUI(self):
 		if tthTool.mainPanel is None: return
 		w = tthTool.mainPanel.wTools
 		tthTool.mainPanel.makeStemsList()

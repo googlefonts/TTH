@@ -41,7 +41,7 @@ class TTHWindow(object):
 
 	def setNeedsDisplay(self):
 		self.window.getNSWindow()._setViewsNeedDisplay(True)
-		
+
 	###########
 	# callbacks
 	###########
