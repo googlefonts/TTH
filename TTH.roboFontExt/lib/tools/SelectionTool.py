@@ -1,6 +1,7 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
+from drawing import geom
 from views import popOvers
 reload(popOvers)
 
@@ -11,6 +12,10 @@ class SelectionTool(TTHCommandTool):
 
 	def updateUI(self):
 		self.hideUI()
+
+	def mouseDown(self, point, clickCount):
+		self.mouseDownClickPos = geom.makePoint(point)
+		self.dragging = False
 
 	def mouseUp(self, point):
 		if not self.realClick(point): return

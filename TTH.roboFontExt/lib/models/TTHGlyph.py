@@ -249,8 +249,8 @@ class TTHGlyph(object):
 			for sidx, seg in enumerate(contour):
 				self._nameToContSeg[seg.onCurve.name] = (cidx, sidx)
 
-	def pointClicked(self, clickPos):
-		if len(self._g) == 0: return (None, False)
+	def pointClicked(self, clickPos, alsoOff = False):
+		if len(self._g) == 0: return (None, False, -1.0)
 		# 'best', 'dist' and 'on' are lists of length one: This is a
 		# workaround in python2 to access the variables in the outer scope
 		# (in function 'update' below). python3 would use the 'nonlocal'
@@ -267,12 +267,13 @@ class TTHGlyph(object):
 		for cont, contour in enumerate(self._g):
 			for seg, segment in enumerate(contour):
 				update(segment.onCurve, cont, seg, 0, True)
+				if not alsoOff: continue
 				for idx, p in enumerate(segment.offCurve):
 					update(p, cont, seg, idx, False)
 		if dist[0] <= 10.0 * 10.0:
 			return (best[0], on[0], dist[0])
 		else:
-			return (None, False)
+			return (None, False, -1.0)
 
 	def commandClicked(self, clickPos):
 		if tthTool.selectedAxis == 'X':

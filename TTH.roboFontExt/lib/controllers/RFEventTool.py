@@ -1,5 +1,5 @@
 from mojo.extensions    import ExtensionBundle, setExtensionDefault
-from mojo.events        import BaseEventTool#, getActiveEventTool
+from mojo.events        import BaseEventTool
 from mojo.roboFont      import CurrentFont, AllFonts
 from mojo.UI            import UpdateCurrentGlyphView
 from lib.tools.defaults import getDefault, setDefault
@@ -214,8 +214,14 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF at mouse Down'''
 		self.mouseDownClickPos = geom.makePoint(point)
 		tool = tthTool.selectedHintingTool
-		if tool != None:
-			tool.mouseDown(point, clickCount)
+		if tool: tool.mouseDown(point, clickCount)
+
+	def mouseDragged(self, point, delta):
+		'''This function is called by RF at mouse dragged (while left-clicked)'''
+		tool = tthTool.selectedHintingTool
+		if tool is None: return
+		if not tool.dragging: return
+		tool.mouseDragged(point)
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''

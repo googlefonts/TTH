@@ -8,6 +8,8 @@ class TTHCommandTool(object):
 		self.name = name
 		self.alignment = 0
 		self.allowedAlignments = ['Unused']
+		self.mouseDownClickPos = None
+		self.dragging = False
 
 	allowedAlignmentTypes = ['round', 'left', 'right', 'center', 'double']
 	displayX = [	'Closest Pixel Edge',
@@ -114,11 +116,20 @@ class TTHCommandTool(object):
 
 	def mouseDown(self, point, clickCount):
 		self.mouseDownClickPos = geom.makePoint(point)
+		gm = tthTool.getGlyphModel()
+		(src, isOn, dist) = gm.pointClicked(geom.makePoint(point))
+		if src:
+			self.dragging = True
+			print "Departure from", (src, isOn, dist)
+
+	def mouseDragged(self, point):
+		pass
 
 	def mouseUp(self, point):
-		if not self.realClick(point): return
-		gm = tthTool.getGlyphModel()
-		print gm.pointClicked(geom.makePoint(point))
+		if self.dragging:
+			self.dragging = False
+			gm = tthTool.getGlyphModel()
+			print "Arrived at",gm.pointClicked(geom.makePoint(point))
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = FUNCTIONS
 

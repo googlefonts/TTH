@@ -130,6 +130,10 @@ class TTHFont():
 # - - - - - - - - - - - - - - - - ZONES & ZONE LABELS
 
 	def saveZonesToUFO(self):
+		key = 'labelPosSize'
+		copyZones = dict((n,z.copy()) for (n,z) in self.zones.iteritems())
+		for (n,z) in copyZones.iteritems():
+			if key in z: del z[key]
 		self.f.lib[FL_tth_key]["zones"] = self.zones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
