@@ -1,5 +1,6 @@
 
 from models.TTHTool import uniqueInstance as tthTool
+from drawing import geom
 
 class TTHCommandTool(object):
 
@@ -105,6 +106,15 @@ class TTHCommandTool(object):
 			self.stemNameY = stems[i]
 		w.StemTypePopUpButton.set(i)
 
+	def realClick(self, point):
+		upPoint = geom.makePoint(point)
+		return (upPoint - self.mouseDownClickPos).squaredLength() <= 25.0
+
+	def mouseDown(self, point, clickCount):
+		self.mouseDownClickPos = geom.makePoint(point)
+
+	def mouseUp(self, point):
+		if self.realClick(point): print 'Click'
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = FUNCTIONS
 

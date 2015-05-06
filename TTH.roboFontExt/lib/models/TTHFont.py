@@ -203,7 +203,7 @@ CVT , PREP
 	The CVT and PREP table should be re-generated when the 'Control
 	Value Panel' is closed.
 FPGM
-	Always regenerated. This is fast and safe since it never changes.
+	Always regenerated. This is fast and safe.
 	The table depends on 'stemsnap' which is modifiable in the
 	'Control Value Panel'.
 gasp
@@ -218,8 +218,7 @@ LTSH
 When do we regenerate a partial font?
 	When one of the tables above is re-generated and when a
 	hinting command is added/deleted/modified.
-	(And of course when preview text uses a missing glyph)
-	'''
+	(And of course when preview text uses a missing glyph.)'''
 
 	def generateFullTempFont(self):
 		try:

@@ -14,11 +14,9 @@ from models.TTHTool import uniqueInstance as tthTool
 # reloaded below
 from commons import helperFunctions
 from drawing import textRenderer, geom, utilities as DR
-from views import popOvers
 
 reload(helperFunctions)
 reload(textRenderer)
-reload(popOvers)
 reload(geom)
 reload(DR)
 
@@ -61,8 +59,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		# Used when clicking
 		self.zoneLabelPos = {}
 
-		# Stores the current TTHFont model during mouseDown event
-		self.mouseDownFontModel = None
+		# Stores the click position during mouseDown event
+		self.mouseDownClickPos = None
 
 		# Stores the current popover panel when one is opened
 		self.currentPopover = None
@@ -94,6 +92,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			if self.originalCurveDrawingPref != 'qcurve':
 				setDefault('drawingSegmentType', 'qcurve')
 
+		self.sizeHasChanged()
 		tthTool.becomeActive()
 		#self.calculateHdmx()
 
@@ -217,23 +216,26 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
-		self.mouseDownFontModel = tthTool.getFontModel()
+		self.mouseDownClickPos = geom.makePoint(point)
+		tool = tthTool.selectedHintingTool
+		if tool != None:
+			tool.mouseDown(point, clickCount)
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''
+		gm, fm = tthTool.getGlyphAndFontModel()
+		upPoint = geom.makePoint(point)
+		realClick = (upPoint - self.mouseDownClickPos).squaredLength() <= 25.0
 		# Handle click in PIGW
-		if self.mouseDownFontModel != None:
-			pigw = self.mouseDownFontModel.previewInGlyphWindow
+		if fm != None and realClick:
+			pigw = fm.previewInGlyphWindow
 			if pigw != None: pigw.handleClick()
-			self.mouseDownFontModel = None
 
 		if self.currentPopover != None:
 			self.currentPopover.close()
-		# Has we clicked on a command label?
-		gm, fm = tthTool.getGlyphAndFontModel()
-		cmd = gm.commandClicked(point)
-		if cmd != None:
-			popOvers.openForCommand(cmd, point)
+		tool = tthTool.selectedHintingTool
+		if tool != None:
+			tool.mouseUp(point)
 		
 # - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 
@@ -279,11 +281,11 @@ class TTH_RF_EventTool(BaseEventTool):
 	def drawGrid(self, scale, pitch, opacity, fontModel):
 		if self.cachedPathes['grid'] == None:
 			path = NSBezierPath.bezierPath()
-			upm = -fontModel.UPM
-			upm2 = -2*upm
-			pos = - int(upm/pitch) * pitch
-			maxi = -2 * pos
-			while pos < maxi:
+			upm  = fontModel.UPM
+			upm2 = 2.0 * upm
+			pos  = -int(upm/pitch) * pitch
+			upm  = -upm
+			while pos < upm2:
 				path.moveToPoint_((pos, upm))
 				path.lineToPoint_((pos, upm2))
 				path.moveToPoint_((upm, pos))
@@ -556,7 +558,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			labelPos = pos + 10*scale*geom.Point(-1,-1)
 		labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
-		cmd['labelPosSize'] = (pos, labelSize)
+		cmd['labelPosSize'] = (labelPos, labelSize)
 
 	def drawCommands(self, scale):
 		gm, fm = tthTool.getGlyphAndFontModel()

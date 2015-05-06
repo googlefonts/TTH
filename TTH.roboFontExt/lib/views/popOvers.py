@@ -58,13 +58,9 @@ def activeStateName(cmd):
 def makeStemsLists():
 	x = ['None']
 	y = ['None']
-
 	fm = tthTool.getFontModel()
-	for name, stem in fm.stems.iteritems():
-		if stem['horizontal'] == True:
-			y.append(name)
-		else:
-			x.append(name)
+	x.extend(fm.verticalStems.keys())
+	y.extend(fm.horizontalStems.keys())
 	return x, y
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -466,7 +462,8 @@ class DeltaPopover(TTHCommandPopover):
 					size = tthTool.deltaRange2
 				sender.set(size)
 
-			g = self.gm.RFGlyph
+			gm = self.popoverController.gm
+			g = gm.RFGlyph
 			g.prepareUndo('Change Delta Range')
 			if self.firstLimit:
 				tthTool.changeDeltaRange(str(size), self.cmd['ppm2'])
@@ -478,8 +475,8 @@ class DeltaPopover(TTHCommandPopover):
 			self.cmd['ppm2'] = v2
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
-			self.gm.updateGlyphProgram(self.fm)
-			tthTool.hintingProgramHasChanged(self.gm, self.fm)
+			gm.updateGlyphProgram(self.fm)
+			tthTool.hintingProgramHasChanged(gm, self.fm)
 			g.performUndo()
 
 	def GrayCheckBoxCallback(self, sender):
