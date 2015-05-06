@@ -152,8 +152,13 @@ def drawSingleArrow(scale, pos1, pos2, color, size=10):
 	pathArrow.fill()
 	path.setLineWidth_(scale*size/10.0)
 	path.stroke()
+	return offCurve
 
-def drawDoubleArrow(scale, pos1, pos2, color, size=10):
+def drawDoubleArrow(scale, pos1, pos2, active, iColor, size=10):
+	if active:
+		color = iColor
+	else:
+		color = kInactiveColor
 	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
 	pathArrow1, anchor1 = makeArrowPathAndAnchor(scale, size, offCurve-pos1, pos1)
 	pathArrow2, anchor2 = makeArrowPathAndAnchor(scale, size, offCurve-pos2, pos2)
@@ -165,3 +170,4 @@ def drawDoubleArrow(scale, pos1, pos2, color, size=10):
 	pathArrow2.fill()
 	path.setLineWidth_(scale*size/10.0)
 	path.stroke()
+	return offCurve

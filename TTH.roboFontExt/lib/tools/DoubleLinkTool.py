@@ -22,4 +22,4 @@ class DoubleLinkTool(TTHCommandTool):
 
 	def draw(self, scale):
 		if not self.dragging: return
-		DR.drawDoubleArrow(scale, geom.makePoint(self.startPoint[0]), self.mouseDraggedPos, DR.kDoublinkColor, 30)
+		DR.drawDoubleArrow(scale, geom.makePoint(self.startPoint[0]), self.mouseDraggedPos, True, DR.kDoublinkColor, 20)
