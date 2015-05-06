@@ -106,6 +106,8 @@ class TTHCommandTool(object):
 			self.stemNameY = stems[i]
 		w.StemTypePopUpButton.set(i)
 
+	# - - - - MOUSE EVENTS
+
 	def realClick(self, point):
 		upPoint = geom.makePoint(point)
 		return (upPoint - self.mouseDownClickPos).squaredLength() <= 25.0
@@ -114,7 +116,9 @@ class TTHCommandTool(object):
 		self.mouseDownClickPos = geom.makePoint(point)
 
 	def mouseUp(self, point):
-		if self.realClick(point): print 'Click'
+		if not self.realClick(point): return
+		gm = tthTool.getGlyphModel()
+		print gm.pointClicked(geom.makePoint(point))
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = FUNCTIONS
 

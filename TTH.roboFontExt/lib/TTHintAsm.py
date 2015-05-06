@@ -97,7 +97,7 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
-		
+
 		zoneCV = zone_to_cvt[command['zone']]
 		IF.extend([
 					tt_tables.autoPush(pointIndex),
@@ -179,7 +179,7 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		doublev.extend(IFv)
 		doublev.extend(Footer)
 		regs.y_instructions.extend(doublev)
-			
+
 
 def processInterpolate(commandsList, pointNameToIndex, regs):
 	for command in commandsList:
@@ -241,7 +241,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 						'SRP0[ ]'
 						]
 			regs.RP0 = point1Index
-			
+
 		if 'stem' in command:
 			stemCV = stem_to_cvt[command['stem']]
 			single_stem = [
@@ -263,7 +263,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 							tt_tables.autoPush(point2Index),
 							'MDRP[11100]'
 							]
-			regs.RP1 = regs.RP0 
+			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
 
@@ -272,7 +272,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 							tt_tables.autoPush(point2Index),
 							'MDRP[10000]',
 							]
-			regs.RP1 = regs.RP0 
+			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
 			if command['align'] == 'round':
@@ -282,8 +282,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 							]
 
 			align = getAlign(command, point2Index, regs)
-				
-				
+
 		else:
 			single_align = [
 							tt_tables.autoPush(point2Index),
@@ -451,7 +450,7 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 	pointNameToIndex['rsb'] = nbPointsContour+1
 	regs.x_instructions = ['SVTCA[1]']
 	regs.y_instructions = ['SVTCA[0]']
-	
+
 	regs.finalDeltasH = []
 	regs.finalDeltasV = []
 

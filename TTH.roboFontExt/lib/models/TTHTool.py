@@ -32,7 +32,7 @@ class TTHTool():
 	def __init__(self):
 
 		# For debugging the (re)loading order of the modules
-		self._printLoadings = False
+		self._printLoadings = True
 
 		# The current Point/Pixel Per Em size for displaying the hinted preview
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)

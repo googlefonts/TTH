@@ -17,7 +17,7 @@ def autoPush(*args):
 	# The '*' indicates that autoPush can have any number of
 	# arguments and they are all gathered in the tuple 'args'
 	nArgs = len(args)
-	# Check and Fix mnemonic 
+	# Check and Fix mnemonic
 	if max(args) > 255 or min(args) < 0:
 		mnemonic = "PUSHW[ ]"
 	else:
@@ -37,7 +37,7 @@ def writeVDMX(f, VDMX):
 
 def writeLTSH(f, LTSH):
 	f.lib[k_LTSH_key] = LTSH
-		
+
 def writegasp(fm):
 	fm.f.lib[k_gasp_key] = fm.gasp_ranges
 
@@ -83,7 +83,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 	for stem in stemsHorizontal + stemsVertical:
 		CVT.append(int(stem[1]['width']))
 		stem_to_cvt[stem[0]] = len(CVT)-1
-	
+
 	for name, zone in fm.zones.iteritems():
 		CVT.append(int(zone['position']))
 		zone_to_cvt[name] = len(CVT)-1
@@ -352,7 +352,7 @@ def writeFPGM(fm):
 		'IF[ ]',
 			'SWAP[ ]',
 			'ROLL[ ]',
-		'EIF[ ]',      
+		'EIF[ ]',
 		'MDAP[1]',
 		'MIRP[11101]',
 	'ENDF[ ]'
@@ -420,7 +420,7 @@ def writeFPGM(fm):
 		autoPush(6),
 		'LOOPCALL[ ]',
 	'ENDF[ ]'
-	]	
+	]
 	table_FPGM.extend(FPGM_7)
 	FPGM_8 = [
 	autoPush(8),
