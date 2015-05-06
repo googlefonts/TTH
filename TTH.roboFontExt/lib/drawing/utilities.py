@@ -8,6 +8,7 @@ from drawing import geom
 kBorderColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 kDiscColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 kInactiveColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, .5, .5, 0.2)
+kLinkColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 kOutlineColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 kShadowColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 kSidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
@@ -140,3 +141,13 @@ def drawTextAtPoint(scale, title, pos, textColor, backgroundColor, view, active=
 	view._drawTextAtPoint(title, kLabelTextAttributes, p+0.5*size+geom.Point(0,scale), drawBackground=False)
 	return size
 
+def drawSingleArrow(scale, pos1, pos2, color):
+	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
+	pathArrow, anchor = makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2)
+	path = NSBezierPath.bezierPath()
+	path.moveToPoint_(pos1)
+	path.curveToPoint_controlPoint1_controlPoint2_(anchor, offCurve, offCurve)
+	color.set()
+	path.setLineWidth_(scale)
+	pathArrow.fill()
+	path.stroke()

@@ -30,7 +30,6 @@ doublinkColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 
 finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 interpolateColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
-linkColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 stemColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
 whiteColor        = NSColor.whiteColor()
 zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
@@ -208,7 +207,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF whenever the Foreground of the
 		glyph Window needs redraw'''
 		if 0 == self.numberOfRectsToDraw(): return
-		self.drawCommands(scale)
+		tool = tthTool.selectedHintingTool
+		if tool and tool.dragging:
+			tool.draw(scale)
+		else:
+			self.drawCommands(scale)
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
@@ -358,16 +361,10 @@ class TTH_RF_EventTool(BaseEventTool):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 
-	def computeOffMiddlePoint(self, scale, pos1, pos2):
-		#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
-		diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()
-		mid  = 0.5*(pos1 + pos2)
-		return mid + diff
-
 	def drawSingleEndedArrow(self, cmd, scale, gm, color):
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		offCurve = self.computeOffMiddlePoint(scale, pos1, pos2)
+		offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
 
 		pathArrow, anchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2)
 
@@ -387,7 +384,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			color = DR.kInactiveColor
 
-		offCurve = self.computeOffMiddlePoint(scale, pos1, pos2)
+		offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
 
 		arrowPath, startAnchor = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos1, pos1)
 		arrowPath, endAnchor   = DR.makeArrowPathAndAnchor(scale, 10, offCurve-pos2, pos2, arrowPath)
@@ -478,7 +475,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	def drawLink(self, cmd, scale, gm):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		if active:
-			color = linkColor
+			color = DR.kLinkColor
 		else:
 			color = DR.kInactiveColor
 		offCurve = self.drawSingleEndedArrow(cmd, scale, gm, color)

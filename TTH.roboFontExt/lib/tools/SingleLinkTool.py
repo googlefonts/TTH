@@ -1,6 +1,7 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
+from drawing import geom, utilities as DR
 
 class SingleLinkTool(TTHCommandTool):
 
@@ -30,3 +31,9 @@ class SingleLinkTool(TTHCommandTool):
 
 	def setRoundDistance(self, value):
 		self.roundDistance = (value == 1)
+
+	# - - - - DRAW
+
+	def draw(self, scale):
+		if not self.dragging: return
+		DR.drawSingleArrow(scale, geom.makePoint(self.startPoint[0]), self.mouseDraggedPos, DR.kLinkColor)

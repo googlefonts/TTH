@@ -74,3 +74,9 @@ def makePointForPair(p):
 
 def lerp(t, a, b):
 	return (t * b) + ((1.0 - t) * a)
+
+def computeOffMiddlePoint(scale, pos1, pos2):
+	#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
+	diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()
+	mid  = 0.5*(pos1 + pos2)
+	return mid + diff
