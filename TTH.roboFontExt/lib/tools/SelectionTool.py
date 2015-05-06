@@ -14,8 +14,13 @@ class SelectionTool(TTHCommandTool):
 
 	def mouseUp(self, point):
 		if not self.realClick(point): return
-		gm = tthTool.getGlyphModel()
+		gm, fm = tthTool.getGlyphAndFontModel()
 		# Have we clicked on a command label?
 		cmd = gm.commandClicked(point)
-		if cmd != None:
+		if cmd:
 			popOvers.openForCommand(cmd, point)
+		else:
+			# Have we clicked on a zone label?
+			zoneName, zone = fm.zoneClicked(point)
+			if zone:
+				popOvers.ZoneDeltaPopover(gm, fm, point, zoneName, zone)

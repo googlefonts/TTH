@@ -592,8 +592,9 @@ class DoublePopover(TTHCommandPopover):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class ZoneDeltaPopover(TTHCommandPopover):
-	def __init__(self, gm, fm, point, zoneName):
+	def __init__(self, gm, fm, point, zoneName, zone):
 		super(ZoneDeltaPopover, self).__init__(gm, fm, {}, (200,50), point)
+		self.zone = zone
 		self.zoneName = zoneName
 
 		self.popover.ZoneDeltaOffsetText = TextBox((10, 10, 100, 15), "Zone Delta Offset:", sizeStyle = "small")
@@ -606,15 +607,14 @@ class ZoneDeltaPopover(TTHCommandPopover):
 	def zoneDeltaOffsetSliderCallback(self, sender):
 		g = self.gm.RFGlyph
 		zoneDeltaOffset = int(sender.get() - 8)
-		tthTool.setZoneDeltas(self.zoneName, tthTool.PPM_Size, zoneDeltaOffset)
+		self.fm.setZoneDelta((self.zoneName, self.zone), tthTool.PPM_Size, zoneDeltaOffset)
 		g.performUndo()
 
 	def sizeHasChanged(self, size):
-		zone = self.controller.c_fontModel.zones[self.zoneName]
-		if 'delta' in zone:
+		if 'delta' in self.zone:
 			ppmStr = str(size)
-			if ppmStr in zone['delta']:
-				self.popover.ZoneDeltaOffsetSlider.set(zone['delta'][ppmStr] + 8)
+			if ppmStr in self.zone['delta']:
+				self.popover.ZoneDeltaOffsetSlider.set(self.zone['delta'][ppmStr] + 8)
 			else:
 				self.popover.ZoneDeltaOffsetSlider.set(8)
 

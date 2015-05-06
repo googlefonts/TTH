@@ -127,6 +127,37 @@ class TTHFont():
 			newView.setHidden_(True)
 		return newView
 
+# - - - - - - - - - - - - - - - - ZONES & ZONE LABELS
+
+	def saveZonesToUFO(self):
+		self.f.lib[FL_tth_key]["zones"] = self.zones
+
+	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
+		assert(zoneName in self.zones)
+		if 'delta' not in zone:
+			if deltaValue != 0: zone['delta'] = {}
+			else: return
+		deltas = zone['delta']
+		key    = str(PPMSize)
+		if deltaValue == 0:
+			if key in deltas:
+				del deltas[key]
+				if len(deltas) == 0:
+					del zone['delta']
+		else:
+			deltas[key] = deltaValue
+		self.saveZonesToUFO()
+
+	def zoneClicked(self, clickPos):
+		for zoneName, zone in self.zones.iteritems():
+			lPos, lSize = helperFunctions.getOrDefault(zone, 'labelPosSize', (None, None))
+			if lPos == None: continue
+			lo = lPos - 0.5 * lSize
+			hi = lPos + 0.5 * lSize
+			if lo.x <= clickPos.x <= hi.x and lo.y <= clickPos.y <= hi.y:
+				return (zoneName, zone)
+		return None, None
+
 # - - - - - - - - - - - - - - - -
 
 	def changeBitmapPreviewMode(self, mode):
