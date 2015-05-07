@@ -3,10 +3,11 @@ from mojo.events        import BaseEventTool
 from mojo.roboFont      import CurrentFont, AllFonts
 from mojo.UI            import UpdateCurrentGlyphView
 from lib.tools.defaults import getDefault, setDefault
+from lib.doodleMenus import BaseMenu
 from robofab.interface.all.dialogs import Message as FabMessage
 from AppKit import NSColor, NSBezierPath, NSFontAttributeName, NSFont,\
                    NSForegroundColorAttributeName, NSAttributedString,\
-			 NSShadow, NSGraphicsContext
+			 NSShadow, NSGraphicsContext, NSMenu, NSMenuItem
 import math
 
 # reloaded in main.py
@@ -247,6 +248,42 @@ class TTH_RF_EventTool(BaseEventTool):
 		tool = tthTool.selectedHintingTool
 		if tool != None:
 			tool.mouseUp(point)
+
+	def rightMouseDown(self, point, clickCount):
+		gm = tthTool.getGlyphModel()
+		separator = NSMenuItem.separatorItem()
+		items = []
+		menuAction = NSMenu.alloc().init()
+		menuController = BaseMenu()
+		src = gm.pointClicked(geom.makePoint(point))
+		if src[0] == None:
+			items.append(('Clear All Program', gm.deleteAllCommands))
+			items.append(('Clear X Commands', gm.deleteXCommands))
+			items.append(('Clear Y Commands', gm.deleteYCommands))
+			items.append(('Clear All Deltas', gm.deleteAllDeltas))
+			items.append(separator)
+			items.append(('Deactivate All Commands', gm.deactivateAllCommands))
+			items.append(('Activate All Commands', gm.activateAllCommands))
+			menuController.buildAdditionContectualMenuItems(menuAction, items)
+		else:
+			return
+			items.append(('Delete Command', self.deleteCommandCallback))
+
+			if clickedCommand['code'] in ['doubleh', 'doublev']:
+				if clickedCommand['code'] == 'doubleh':
+					items.append(('Convert to Single Link', self.convertToSinglehCallback))
+				else:
+					items.append(('Convert to Single Link', self.convertToSinglevCallback))
+
+			if clickedCommand['code'] in ['singleh', 'singlev']:
+				items.append(('Reverse Direction', self.reverseSingleCallback))
+				if clickedCommand['code'] == 'singleh':
+					items.append(('Convert to Double Link', self.convertToDoublehCallback))
+				else:
+					items.append(('Convert to Double Link', self.convertToDoublevCallback))
+			menuController.buildAdditionContectualMenuItems(menuAction, items)
+			menuAction.insertItem_atIndex_(separator, 1)
+		NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 

@@ -343,6 +343,45 @@ class TTHGlyph(object):
 			self.hintingCommands.pop(i)
 			self.dirtyHinting()
 
+	def deactivateAllCommands(self, item=0):
+		for c in self.hintingCommands:
+			c['active'] = 'false'
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
+
+	def activateAllCommands(self, item=0):
+		for c in self.hintingCommands:
+			c['active'] = 'true'
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
+
+	def deleteAllCommands(self, item=0):
+		self.hintingCommands = []
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
+
+	def deleteXYCommands(self, hv):
+		commandsToDelete = [i for (i,cmd) in enumerate(self.hintingCommands) if cmd['code'][-1:] in hv]
+		commandsToDelete.sort()
+		for offset,i in enumerate(commandsToDelete):
+			self.hintingCommands.pop(i-offset)
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
+
+	def deleteXCommands(self, item=0):
+		self.deleteXYCommands(['h'])
+
+	def deleteYCommands(self, item=0):
+		self.deleteXYCommands(['v', 't', 'b'])
+
+	def deleteAllDeltas(self, item=0):
+		commandsToDelete = [i for (i,cmd) in enumerate(self.hintingCommands) if 'delta' in cmd['code']]
+		commandsToDelete.sort()
+		for offset,i in enumerate(commandsToDelete):
+			self.hintingCommands.pop(i-offset)
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
+
 	def cleanCommands(self):
 		self.dirtyHinting()
 		self.hintingCommands = [c for c in self.hintingCommands if self.commandIsOK(c)]
