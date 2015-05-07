@@ -22,13 +22,9 @@ reload(DR)
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
-arrowColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
 blackColor        = NSColor.blackColor()
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
-deltaColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
-finalDeltaColor   = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
-interpolateColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 stemColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
 whiteColor        = NSColor.whiteColor()
 zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
@@ -180,6 +176,14 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		pitch = fm.getPitch()
 
+		tool = tthTool.selectedHintingTool
+		simpleDrawing = tool and tool.dragging
+
+		if tthTool.showGrid == 1 and ((not simpleDrawing) or 'Delta' in tool.name):
+			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
+
+		if simpleDrawing: return
+
 		self.drawZones(scale, pitch, fm)
 
 		tr = fm.textRenderer
@@ -188,9 +192,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if tthTool.showBitmap == 1 and tr != None:
 			tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
-
-		if tthTool.showGrid == 1:
-			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
 
 		if tthTool.showCenterPixel == 1:
 			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
@@ -218,6 +219,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		self.mouseDownClickPos = geom.makePoint(point)
 		tool = tthTool.selectedHintingTool
 		if tool: tool.mouseDown(point, clickCount)
+
+	def mouseMoved(self, point):
+		'''This function is called by RF at mouse moved (while not clicked)'''
+		self.mouseDragged(point, geom.Point(0,0))
+		self.refreshView()
 
 	def mouseDragged(self, point, delta):
 		'''This function is called by RF at mouse dragged (while left-clicked)'''
@@ -372,36 +378,14 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			return ''
 
-	def drawDeltaDragging(self, cmd, scale, gm, cursorPoint, pitch):
-		point  = gm.positionForPointName(cmd['point'])
-		if tthTool.selectedAxis == 'X':
-			idx = 0
-			unit = geom.Point(1.0,0.0)
-		else:
-			idx = 1
-			unit = geom.Point(0.0,1.0)
-		value = int((cursorPoint[idx]-point[idx])*8.0/pitch)
-		value = min(8, max(-8, value))
-		end = point + value/8.0 * unit
-		# FIXME: should pass 'value' directly as argument and
-		# call changeDeltaOffset in the caller
-		#if value != 0:
-		#	self.changeDeltaOffset(value_x)
-		path = NSBezierPath.bezierPath()
-		path.moveToPoint_(point)
-		path.lineToPoint_(end)
-		color.set()
-		path.setLineWidth_(scale)
-		path.stroke()
-		DR.drawLozengeAtPoint(scale, 4, end.x, end.y, color)
-
-	def drawAlign(self, gm, cmd, scale, direction):
-		color = arrowColor
+	def drawAlign(self, gm, cmd, scale, direction, simple):
+		color = DR.kArrowColor
 		if cmd['active'] == 'false':
 			color = DR.kInactiveColor
 		pos = gm.positionForPointName(cmd['point'])
 		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
 		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
+		if simple: return
 		if 'align' in cmd:
 			text = 'A_' + self.getCommandAlignLabel(cmd)
 		elif cmd['code'] == 'alignt' or cmd['code'] == 'alignb':
@@ -412,7 +396,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			labelPos = pos + scale * geom.Point(10,-20)
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
-				whiteColor, arrowColor, self.getNSView(), active))
+				whiteColor, DR.kArrowColor, self.getNSView(), active))
 		cmd['labelPosSize'] = (labelPos, labelSize)
 
 	def drawDoubleLink(self, cmd, scale, gm, simple):
@@ -473,8 +457,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		pos  = gm.positionForPointName(cmd['point'])
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		offCurve = DR.drawDoubleArrow(scale, pos1, pos, active, interpolateColor)
-		offCurve = DR.drawDoubleArrow(scale, pos, pos2, active, interpolateColor)
+		offCurve = DR.drawDoubleArrow(scale, pos1, pos, active, DR.kInterpolateColor)
+		offCurve = DR.drawDoubleArrow(scale, pos, pos2, active, DR.kInterpolateColor)
 		if simple: return
 		extension = self.getCommandAlignLabel(cmd)
 		if extension == '':
@@ -483,18 +467,18 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'I_' + extension
 		# square root takes the label a bit further when we zoom in
 		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
-		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, interpolateColor, self.getNSView(), active)
+		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
 		cmd['labelPosSize'] = (pos, labelSize)
 
-	def drawDelta(self, cmd, scale, gm, pitch):
+	def drawDelta(self, cmd, scale, gm, pitch, simple):
 		pos  = gm.positionForPointName(cmd['point'])
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		cmd_code = cmd['code']
 		if active:
 			if cmd_code in ['mdeltah', 'mdeltav']:
-				color = deltaColor
+				color = DR.kDeltaColor
 			else: # final delta
-				color = finalDeltaColor
+				color = DR.kFinalDeltaColor
 		else:
 			color = DR.kInactiveColor
 		if cmd_code[-1] == 'h':
@@ -511,6 +495,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		path.setLineWidth_(scale)
 		path.stroke()
 		DR.drawLozengeAtPoint(scale, 4, endPt.x, endPt.y, color)
+		if simple: return
 
 		value = cmd['delta']
 		if cmd_code[0] == 'm':
@@ -533,9 +518,9 @@ class TTH_RF_EventTool(BaseEventTool):
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
 			if Y and cmd_code in ['alignv', 'alignt', 'alignb']:
-				self.drawAlign(gm, c, scale, geom.Point(0,1))
+				self.drawAlign(gm, c, scale, geom.Point(0,1), simple)
 			elif X and cmd_code == 'alignh':
-				self.drawAlign(gm, c, scale, geom.Point(1,0))
+				self.drawAlign(gm, c, scale, geom.Point(1,0), simple)
 			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
 				self.drawDoubleLink(c, scale, gm, simple)
 			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
@@ -544,7 +529,7 @@ class TTH_RF_EventTool(BaseEventTool):
 				self.drawInterpolate(c, scale, gm, simple)
 			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
 				if int(c['ppm1']) <= tthTool.PPM_Size <= int(c['ppm2']):
-					self.drawDelta(c, scale, gm, fm.getPitch())
+					self.drawDelta(c, scale, gm, fm.getPitch(), simple)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

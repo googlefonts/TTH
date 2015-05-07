@@ -188,6 +188,11 @@ class TTHTool():
 		if self.selectedHintingTool != None:
 			self.selectedHintingTool.updateUI()
 
+# - - - - - - - - - - - - - - - - - - - - - - - DELTA
+
+	def changeDeltaOffset(self, toolName, value):
+		self.getTool(toolName).setOffset(value)
+
 # - - - - - - - - - - - - - - - - - - - - - - - TOOL
 
 	def getTool(self, toolName):

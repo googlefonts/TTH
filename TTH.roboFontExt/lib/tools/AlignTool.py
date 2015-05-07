@@ -1,7 +1,7 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
-from drawing import geom
+from drawing import geom, utilities as DR
 
 class AlignTool(TTHCommandTool):
 
@@ -17,12 +17,18 @@ class AlignTool(TTHCommandTool):
 		w.AlignmentTypeText.show(True)
 		w.AlignmentTypePopUpButton.show(True)
 
-	def mouseDown(self, point, clickCount):
-		self.mouseDownClickPos = geom.makePoint(point)
-		self.dragging = False
-
 	def mouseUp(self, point):
+		self.dragging = False
 		if not self.realClick(point): return
-		gm, fm = tthTool.getGlyphAndFontModel()
-		# Have we clicked on a control point?
-		(point, isOn, dist) = gm.pointClicked(geom.makePoint(point))
+		#gm, fm = tthTool.getGlyphAndFontModel()
+
+	def draw(self, scale):
+		if not self.dragging: return
+		if not self.realClick(self.mouseDraggedPos): return
+		if tthTool.selectedAxis == 'X':
+			direction = geom.Point(1, 0)
+		else:
+			direction = geom.Point(0, 1)
+		pos = geom.makePoint(self.startPoint[0])
+		DR.drawArrowAtPoint(scale, 20, direction, pos, DR.kArrowColor)
+		DR.drawArrowAtPoint(scale, 20, direction.opposite(), pos, DR.kArrowColor)

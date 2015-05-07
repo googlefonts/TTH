@@ -5,10 +5,14 @@ from AppKit import NSColor, NSFont, NSFontAttributeName,\
 
 from drawing import geom
 
+kArrowColor       = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
 kBorderColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
+kDeltaColor       = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 kDiscColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
 kDoublinkColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
+kFinalDeltaColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 kInactiveColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, .5, .5, 0.2)
+kInterpolateColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 kLinkColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 kOutlineColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
 kShadowColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
@@ -143,7 +147,8 @@ def drawTextAtPoint(scale, title, pos, textColor, backgroundColor, view, active=
 	return size
 
 def drawSingleArrow(scale, pos1, pos2, color, size=10):
-	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
+	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2, size < 0)
+	size = abs(size)
 	pathArrow, anchor = makeArrowPathAndAnchor(scale, size, offCurve-pos2, pos2)
 	path = NSBezierPath.bezierPath()
 	path.moveToPoint_(pos1)

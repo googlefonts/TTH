@@ -1,13 +1,16 @@
 import xml.etree.ElementTree as ET
 from robofab.plistlib import Data
+from robofab.objects.objectsRF import RPoint
 import numpy
 
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from drawing import geom
 import TTHintAsm
-
 reload(TTHintAsm)
+
+def makeRPoint(pos, name):
+	return RPoint(pos.x, pos.y, None, name)
 
 def topologicalSort(l, f):
 	n = len(l)
@@ -270,6 +273,10 @@ class TTHGlyph(object):
 				if not alsoOff: continue
 				for idx, p in enumerate(segment.offCurve):
 					update(p, cont, seg, idx, False)
+		fakeLSB = makeRPoint(self.positionForPointName('lsb'), 'lsb')
+		fakeRSB = makeRPoint(self.positionForPointName('rsb'), 'rsb')
+		update(fakeLSB, 0, 0, 0, True)
+		update(fakeRSB, 0, 0, 0, True)
 		if dist[0] <= 10.0 * 10.0:
 			return (best[0], on[0], dist[0])
 		else:
@@ -326,6 +333,15 @@ class TTHGlyph(object):
 				if verbose: badName.append((cmd['code'], key, ptName))
 				return False
 		return True
+
+	def removeHintingCommand(self, cmd):
+		try:
+			i = self.hintingCommands.index(cmd)
+		except:
+			return
+		if i >= 0:
+			self.hintingCommands.pop(i)
+			self.dirtyHinting()
 
 	def cleanCommands(self):
 		self.dirtyHinting()

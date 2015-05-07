@@ -115,10 +115,6 @@ class TTHCommandPopover(object):
 		return self._popover
 
 	@property
-	def controller(self):
-		return getActiveEventTool()
-
-	@property
 	def cmd(self):
 		return self._cmd
 
@@ -126,7 +122,7 @@ class TTHCommandPopover(object):
 		self.popover.close()
 
 	def open(self):
-		self.popover.open(parentView=self.controller.getNSView(), relativeRect=self.relativeRect)
+		self.popover.open(parentView=getActiveEventTool().getNSView(), relativeRect=self.relativeRect)
 
 	def setupStateUI(self):
 		popo = self.popover
@@ -429,7 +425,7 @@ class DeltaPopover(TTHCommandPopover):
 			print "DeltaPopover closed: delta=0 --> deleting the command"
 			g = self.gm.RFGlyph
 			g.prepareUndo('Remove Delta')
-			self.controller.glyphTTHCommands.remove(self.cmd)
+			gm.removeHintingCommand(self.cmd)
 			self.gm.updateGlyphProgram(self.fm)
 			tthTool.hintingProgramHasChanged(self.gm, self.fm)
 			g.performUndo()
@@ -438,10 +434,13 @@ class DeltaPopover(TTHCommandPopover):
 	def DeltaOffsetSliderCallback(self, sender):
 		newValue = max(-8, min(8, int(sender.get() - 8)))
 		g = self.gm.RFGlyph
-		self.controller.changeDeltaOffset(newValue)
 		g.prepareUndo('Change Delta Offset')
 		self.cmd['delta'] = str(newValue)
 		self.gm.updateGlyphProgram(self.fm)
+		if self.cmd['code'][0] == 'm':
+			tthTool.changeDeltaOffset('Middle Delta', newValue)
+		else:
+			tthTool.changeDeltaOffset('Final Delta', newValue)
 		tthTool.hintingProgramHasChanged(self.gm, self.fm)
 		g.performUndo()
 

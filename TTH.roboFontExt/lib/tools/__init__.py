@@ -11,6 +11,7 @@ class TTHCommandTool(object):
 		self.mouseDownClickPos = None
 		self.mouseDraggedPos = None
 		self.dragging = False
+		self.startPoint = None
 
 	allowedAlignmentTypes = ['round', 'left', 'right', 'center', 'double']
 	displayX = [	'Closest Pixel Edge',
@@ -113,7 +114,7 @@ class TTHCommandTool(object):
 
 	def realClick(self, point):
 		upPoint = geom.makePoint(point)
-		return (upPoint - self.mouseDownClickPos).squaredLength() <= 25.0
+		return (upPoint - self.mouseDownClickPos).squaredLength() <= 42.0
 
 	def mouseDown(self, point, clickCount):
 		self.mouseDownClickPos = geom.makePoint(point)
@@ -124,15 +125,15 @@ class TTHCommandTool(object):
 			self.dragging = True
 			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, 0)
 			#print "Departure from", src
+		else:
+			self.dragging = False
+			self.startPoint = None
 
 	def mouseDragged(self, point):
 		self.mouseDraggedPos = geom.makePoint(point)
 
 	def mouseUp(self, point):
-		if self.dragging:
-			self.dragging = False
-			gm = tthTool.getGlyphModel()
-			#print "Arrived at",gm.pointClicked(geom.makePoint(point))
+		self.dragging = False
 
 	# - - - - DRAW
 

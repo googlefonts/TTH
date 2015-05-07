@@ -1,6 +1,8 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
+from drawing import geom, utilities as DR
+from AppKit import NSBezierPath
 
 class DeltaTool(TTHCommandTool):
 
@@ -15,6 +17,12 @@ class DeltaTool(TTHCommandTool):
 		self.offset = 0
 		self.range1 = 9
 		self.range2 = 9
+		# for drawing
+		self.pitch = tthTool.getFontModel().getPitch()
+		if final:
+			self.color = DR.kFinalDeltaColor
+		else:
+			self.color = DR.kDeltaColor
 
 	def updateUI(self):
 		self.hideUI()
@@ -67,3 +75,37 @@ class DeltaTool(TTHCommandTool):
 		w = tthTool.mainPanel.wTools
 		w.DeltaRange1ComboBox.set(str(self.range1))
 		w.DeltaRange2ComboBox.set(str(self.range2))
+
+	def mouseDown(self, point, clickCount):
+		super(DeltaTool, self).mouseDown(point,  clickCount)
+		self.pitch = tthTool.getFontModel().getPitch()
+		self.originalOffset = self.offset
+
+	def mouseUp(self, point):
+		self.dragging = False
+
+	def draw(self, scale):
+		if not self.dragging: return
+		unit = geom.Point(1.0,0.0)
+		perp = geom.Point(0.0,1.0)
+		if tthTool.selectedAxis == 'X':
+			coord = 0
+		else:
+			coord = 1
+			unit,perp = perp,unit
+		startPt = geom.makePoint(self.startPoint[0])
+		value  = 8.0/self.pitch * (self.mouseDraggedPos[coord] - startPt[coord])
+		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
+		if abs(pvalue) > abs(value):
+			self.setOffset(self.originalOffset)
+			return
+		value = min(8, max(-8, int(value)))
+		end = startPt + value*self.pitch/8.0 * unit
+		self.setOffset(value)
+		path = NSBezierPath.bezierPath()
+		path.moveToPoint_(startPt)
+		path.lineToPoint_(end)
+		self.color.set()
+		path.setLineWidth_(scale*2)
+		path.stroke()
+		DR.drawLozengeAtPoint(scale, 8, end.x, end.y, self.color)
