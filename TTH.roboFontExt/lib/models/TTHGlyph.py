@@ -347,6 +347,7 @@ class TTHGlyph(object):
 		for c in self.hintingCommands:
 			c['active'] = 'false'
 		self.dirtyHinting()
+		# fixme: TTHGlyph should store 'fm' in a weakref
 		self.updateGlyphProgram(tthTool.getFontModel())
 
 	def activateAllCommands(self, item=0):
@@ -389,6 +390,7 @@ class TTHGlyph(object):
 	def updateGlyphProgram(self, fm):
 		self.cleanCommands()
 		self.saveToUFO(fm)
+		tthTool.hintingProgramHasChanged(self, fm)
 
 	def loadFromUFO(self):
 		"""Load what can be loaded from the UFO Lib."""

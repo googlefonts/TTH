@@ -71,8 +71,8 @@ class InterpolationTool(TTHCommandTool):
 		if self.lookingForPoint2:
 			startPos = geom.makePoint(self.interpolatedPoint1[0])
 			midPos = geom.makePoint(self.interpolatedPoint[0])
-			DR.drawSingleArrow(scale, midPos, startPos, DR.kInterpolateColor, 20)
-			DR.drawSingleArrow(scale, midPos, self.mouseDraggedPos, DR.kInterpolateColor, -20)
+			DR.drawDoubleArrow(scale, midPos, startPos, True, DR.kInterpolateColor, 20)
+			DR.drawDoubleArrow(scale, midPos, self.mouseDraggedPos, True, DR.kInterpolateColor, -20)
 		else:
 			startPos = geom.makePoint(self.startPoint[0])
-			DR.drawSingleArrow(scale, self.mouseDraggedPos, startPos, DR.kInterpolateColor, 20)
+			DR.drawDoubleArrow(scale, self.mouseDraggedPos, startPos, True, DR.kInterpolateColor, 20)

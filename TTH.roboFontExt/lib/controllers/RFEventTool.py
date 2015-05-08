@@ -397,10 +397,10 @@ class TTH_RF_EventTool(BaseEventTool):
 					endPos = labelPos + geom.Point(0.0, (deltaValue/8.0) * pitch)
 					path.lineToPoint_(endPos)
 
-					deltaColor.set()
+					DR.kDeltaColor.set()
 					path.setLineWidth_(scale)
 					path.stroke()
-					DR.drawLozengeAtPoint(scale, 4, endPos.x, endPos.y, deltaColor)
+					DR.drawLozengeAtPoint(scale, 4, endPos.x, endPos.y, DR.kDeltaColor)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 

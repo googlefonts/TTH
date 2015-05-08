@@ -164,7 +164,8 @@ def drawDoubleArrow(scale, pos1, pos2, active, iColor, size=10):
 		color = iColor
 	else:
 		color = kInactiveColor
-	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2)
+	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2, size < 0)
+	size = abs(size)
 	pathArrow1, anchor1 = makeArrowPathAndAnchor(scale, size, offCurve-pos1, pos1)
 	pathArrow2, anchor2 = makeArrowPathAndAnchor(scale, size, offCurve-pos2, pos2)
 	path = NSBezierPath.bezierPath()
