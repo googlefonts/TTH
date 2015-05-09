@@ -419,7 +419,7 @@ class DeltaPopover(TTHCommandPopover):
 			print "DeltaPopover closed: delta = 0 ==> deleting the command"
 			g = self.gm.RFGlyph
 			g.prepareUndo('Remove Delta')
-			gm.removeHintingCommand(self.cmd)
+			self.gm.removeHintingCommand(self.cmd)
 			self.gm.updateGlyphProgram(self.fm)
 			g.performUndo()
 		super(DeltaPopover, self).close()
