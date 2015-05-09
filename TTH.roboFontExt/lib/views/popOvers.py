@@ -416,7 +416,7 @@ class DeltaPopover(TTHCommandPopover):
 		# If the delta is zero upon closing the popover, then we delete the
 		# command:
 		if int(self.cmd['delta']) == 0:
-			print "DeltaPopover closed: delta=0 --> deleting the command"
+			print "DeltaPopover closed: delta = 0 ==> deleting the command"
 			g = self.gm.RFGlyph
 			g.prepareUndo('Remove Delta')
 			gm.removeHintingCommand(self.cmd)
@@ -428,6 +428,10 @@ class DeltaPopover(TTHCommandPopover):
 		newValue = max(-8, min(8, int(sender.get() - 8)))
 		g = self.gm.RFGlyph
 		g.prepareUndo('Change Delta Offset')
+		if newValue == 0:
+			self.cmd['active'] = 'false'
+		else:
+			self.cmd['active'] = 'true'
 		self.cmd['delta'] = str(newValue)
 		if self.cmd['code'][0] == 'm':
 			tthTool.changeDeltaOffset('Middle Delta', newValue)
@@ -457,16 +461,21 @@ class DeltaPopover(TTHCommandPopover):
 			g = gm.RFGlyph
 			g.prepareUndo('Change Delta Range')
 			if self.firstLimit:
-				tthTool.changeDeltaRange(str(size), self.cmd['ppm2'])
+				v1, v2 = size, int(self.cmd['ppm2'])
 			else:
-				tthTool.changeDeltaRange(self.cmd['ppm1'], str(size))
-			v1 = str(tthTool.deltaRange1)
-			v2 = str(tthTool.deltaRange2)
+				v1, v2 = int(self.cmd['ppm1']), size
+			if self.cmd['code'][0] == 'f':
+				tool = tthTool.getTool('Final Delta')
+			else:
+				tool = tthTool.getTool('Middle Delta')
+			tool.setRange(v1, v2)
+			v1 = str(tool.range1)
+			v2 = str(tool.range2)
 			self.cmd['ppm1'] = v1
 			self.cmd['ppm2'] = v2
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
-			gm.updateGlyphProgram(self.fm)
+			gm.updateGlyphProgram(self.popoverController.fm)
 			g.performUndo()
 
 	def GrayCheckBoxCallback(self, sender):
