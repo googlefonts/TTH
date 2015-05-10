@@ -20,6 +20,22 @@ class InterpolationTool(TTHCommandTool):
 		w.AlignmentTypeText.show(True)
 		w.AlignmentTypePopUpButton.show(True)
 
+	def addCommand(self):
+		gm, fm = tthTool.getGlyphAndFontModel()
+		if tthTool.selectedAxis == 'X':
+			code = 'interpolateh'
+		else:
+			code = 'interpolatev'
+		cmd = {	'code': code,
+				'point1': self.interpolatedPoint1[0].name,
+				'point': self.interpolatedPoint[0].name,
+				'point2': self.startPoint[0].name,
+			}
+		align = self.getAlignment()
+		if align != 'None':
+			cmd['align'] = align
+		gm.addCommand(cmd)
+
 	def mouseDown(self, point, clickCount):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
@@ -58,8 +74,7 @@ class InterpolationTool(TTHCommandTool):
 				s = self.interpolatedPoint1[0]
 				m = self.interpolatedPoint[0]
 				if (s.x != e.x or s.y != e.y) and (m.x != e.x or m.y != e.y):
-					print "Got a new interpolation"
-					# add new interpolation
+					self.addCommand()
 			self.lookingForPoint2 = False
 			self.dragging = False
 			self.interpolatedPoint = None

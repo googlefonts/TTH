@@ -78,13 +78,46 @@ class DeltaTool(TTHCommandTool):
 		w.DeltaRange1ComboBox.set(str(self.range1))
 		w.DeltaRange2ComboBox.set(str(self.range2))
 
+	def addCommand(self):
+		if self.offset == 0:
+			return
+		gm, fm = tthTool.getGlyphAndFontModel()
+		if self.final:
+			code = 'fdelta'
+		else:
+			code = 'mdelta'
+		if tthTool.selectedAxis == 'X':
+			code += 'h'
+		else:
+			code += 'v'
+		cmd = {	'code': code,
+				'point': self.startPoint[0].name,
+				'ppm1': str(self.range1),
+				'ppm2': str(self.range2),
+				'delta': str(self.offset)
+			}
+		if self.gray:
+			cmd['gray'] = 'true'
+		else:
+			cmd['gray'] = 'false'
+		if self.mono:
+			cmd['mono'] = 'true'
+		else:
+			cmd['mono'] = 'false'
+		gm.addCommand(cmd)
+
 	def mouseDown(self, point, clickCount):
 		super(DeltaTool, self).mouseDown(point,  clickCount)
 		self.pitch = tthTool.getFontModel().getPitch()
 		self.originalOffset = self.offset
+		self.cancel = False
 
 	def mouseUp(self, point):
 		self.dragging = False
+		if self.cancel:
+			self.cancel = False
+			return
+		self.addCommand()
 
 	def draw(self, scale):
 		if not self.dragging: return
@@ -100,7 +133,9 @@ class DeltaTool(TTHCommandTool):
 		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
 		if abs(pvalue) > abs(value):
 			self.setOffset(self.originalOffset)
+			self.cancel = True
 			return
+		self.cancel = False
 		value = min(8, max(-8, int(value)))
 		end = startPt + value*self.pitch/8.0 * unit
 		self.setOffset(value)

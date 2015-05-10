@@ -308,6 +308,8 @@ def processDelta(commandsList, pointNameToIndex, regs):
 
 	groupedDeltas = groupDeltas(commandsList)
 
+	if groupedDeltas == []: return
+
 	# [0] : first (groupName, Commands) pair
 	# [1] : Commands
 	# [0] : first command in Commands

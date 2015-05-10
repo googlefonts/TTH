@@ -25,8 +25,10 @@ class AlignTool(TTHCommandTool):
 			code = 'alignv'
 		cmd = {	'code': code,
 				'point': self.startPoint[0].name,
-				'align': self.getAlignment()
 			}
+		align = self.getAlignment()
+		if align != 'None':
+			cmd['align'] = align
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):

@@ -29,8 +29,10 @@ class DoubleLinkTool(TTHCommandTool):
 		cmd = {	'code': code,
 				'point1': self.startPoint[0].name,
 				'point2': target.name,
-				'align': self.getAlignment(),
 			}
+		align = self.getAlignment()
+		if align != 'None':
+			cmd['align'] = align
 		if stem == 'None':
 			stem = None
 		if stem == 'Guess':
