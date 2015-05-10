@@ -132,6 +132,45 @@ def sortCommands(cmds):
 	x.extend(ytb)
 	return sum([topologicalSort(l, compareCommands) for l in [y,fdeltah,fdeltav]], x)
 
+class CommandRemover(object):
+	def __init__(self, gm, cmd):
+		self.gm = gm
+		self.cmd = cmd
+	def __call__(self, menuIdx = 0):
+		self.gm.removeHintingCommand(self.cmd)
+
+class CommandConverter(object):
+	def __init__(self, gm, cmd):
+		self.gm = gm
+		self.cmd = cmd
+	def __call__(self, menuIdx = 0):
+		g = self.gm.RFGlyph
+		g.prepareUndo('Convert Command')
+		code = self.cmd['code']
+		if 'double' in code:
+			code = 'single' + code[-1]
+		elif 'single' in code:
+			code = 'double' + code[-1]
+		self.cmd['code'] = code
+		g.performUndo()
+		self.gm.dirtyHinting()
+		self.gm.updateGlyphProgram(tthTool.getFontModel())
+
+class CommandReverser(object):
+	def __init__(self, gm, cmd):
+		self.gm = gm
+		self.cmd = cmd
+	def __call__(self, menuIdx = 0):
+		g = self.gm.RFGlyph
+		g.prepareUndo('Reverse Link')
+		p1 = self.cmd['point1']
+		p2 = self.cmd['point2']
+		self.cmd['point1'] = p2
+		self.cmd['point2'] = p1
+		g.performUndo()
+		self.gm.dirtyHinting()
+		self.gm.updateGlyphProgram(tthTool.getFontModel())
+
 class TTHGlyph(object):
 
 	def __init__(self, rfGlyph):
@@ -342,6 +381,7 @@ class TTHGlyph(object):
 		if i >= 0:
 			self.hintingCommands.pop(i)
 			self.dirtyHinting()
+			self.updateGlyphProgram(tthTool.getFontModel())
 
 	def deactivateAllCommands(self, item=0):
 		for c in self.hintingCommands:

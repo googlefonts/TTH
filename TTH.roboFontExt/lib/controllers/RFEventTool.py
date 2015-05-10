@@ -15,6 +15,8 @@ from models.TTHTool import uniqueInstance as tthTool
 # reloaded below
 from commons import helperFunctions
 from drawing import textRenderer, geom, utilities as DR
+# reloaded elsewhere
+from models import TTHGlyph
 
 reload(helperFunctions)
 reload(textRenderer)
@@ -255,8 +257,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		items = []
 		menuAction = NSMenu.alloc().init()
 		menuController = BaseMenu()
-		src = gm.pointClicked(geom.makePoint(point))
-		if src[0] == None:
+		cmd = gm.commandClicked(geom.makePoint(point))
+		if cmd is None:
 			items.append(('Clear All Program', gm.deleteAllCommands))
 			items.append(('Clear X Commands', gm.deleteXCommands))
 			items.append(('Clear Y Commands', gm.deleteYCommands))
@@ -264,24 +266,19 @@ class TTH_RF_EventTool(BaseEventTool):
 			items.append(separator)
 			items.append(('Deactivate All Commands', gm.deactivateAllCommands))
 			items.append(('Activate All Commands', gm.activateAllCommands))
-			menuController.buildAdditionContectualMenuItems(menuAction, items)
 		else:
-			return
-			items.append(('Delete Command', self.deleteCommandCallback))
-
-			if clickedCommand['code'] in ['doubleh', 'doublev']:
-				if clickedCommand['code'] == 'doubleh':
-					items.append(('Convert to Single Link', self.convertToSinglehCallback))
-				else:
-					items.append(('Convert to Single Link', self.convertToSinglevCallback))
-
-			if clickedCommand['code'] in ['singleh', 'singlev']:
-				items.append(('Reverse Direction', self.reverseSingleCallback))
-				if clickedCommand['code'] == 'singleh':
-					items.append(('Convert to Double Link', self.convertToDoublehCallback))
-				else:
-					items.append(('Convert to Double Link', self.convertToDoublevCallback))
+			items.append(('Delete Command', TTHGlyph.CommandRemover(gm, cmd)))
+			code = cmd['code']
+			if 'double' in code:
+				items.append(('Convert to Single Link', TTHGlyph.CommandConverter(gm, cmd)))
+			if 'single' in code:
+				items.append(('Reverse Direction', TTHGlyph.CommandReverser(gm, cmd)))
+				items.append(('Convert to Double Link', TTHGlyph.CommandConverter(gm, cmd)))
+		if hasattr(menuController, 'buildAdditionContextualMenuItems'):
+			menuController.buildAdditionContextualMenuItems(menuAction, items)
+		else:
 			menuController.buildAdditionContectualMenuItems(menuAction, items)
+		if cmd != None:
 			menuAction.insertItem_atIndex_(separator, 1)
 		NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
 
@@ -440,10 +437,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		pos1 = gm.positionForPointName(cmd['point1'])
 		pos2 = gm.positionForPointName(cmd['point2'])
-		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, kDoublinkColor)
+		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, DR.kDoublinkColor)
 		if simple: return
 		# Compute label text
-		stemName = c['stem']
+		stemName = helperFunctions.getOrNone(cmd, 'stem')
 		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
 		if isRound:
 			if stemName != None: text = 'D_' + stemName
@@ -452,7 +449,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'D_' + stemName
 		else:
 			text = 'D'
-		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, kDoublinkColor,\
+		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
 				self.getNSView(), active)
 		cmd['labelPosSize'] = (offCurve, labelSize)
 

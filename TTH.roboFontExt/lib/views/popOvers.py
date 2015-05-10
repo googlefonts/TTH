@@ -413,22 +413,29 @@ class DeltaPopover(TTHCommandPopover):
 		self.open()
 
 	def close(self):
+		self.removeCommandIfNeeded()
+		super(DeltaPopover, self).close()
+
+	def removeCommandIfNeeded(self):
 		# If the delta is zero upon closing the popover, then we delete the
 		# command:
-		if int(self.cmd['delta']) == 0:
-			print "DeltaPopover closed: delta = 0 ==> deleting the command"
-			g = self.gm.RFGlyph
-			g.prepareUndo('Remove Delta')
-			self.gm.removeHintingCommand(self.cmd)
-			self.gm.updateGlyphProgram(self.fm)
-			g.performUndo()
-		super(DeltaPopover, self).close()
+		if int(self.cmd['delta']) != 0: return
+		print "DeltaPopover closed: delta = 0 ==> deleting the command"
+		g = self.gm.RFGlyph
+		g.prepareUndo('Remove Delta')
+		self.gm.removeHintingCommand(self.cmd)
+		self.gm.updateGlyphProgram(self.fm)
+		g.performUndo()
 
 	def DeltaOffsetSliderCallback(self, sender):
 		newValue = max(-8, min(8, int(sender.get() - 8)))
+		if newValue == 0:
+			oldValue = int(self.cmd['delta'])
+			self.popover.DeltaOffsetSlider.set(oldValue+8)
+			return
 		g = self.gm.RFGlyph
 		g.prepareUndo('Change Delta Offset')
-		if newValue == 0:
+		if newValue == 0: # should never happen due to the test above
 			self.cmd['active'] = 'false'
 		else:
 			self.cmd['active'] = 'true'
