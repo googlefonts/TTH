@@ -414,7 +414,8 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawAlign(self, gm, cmd, scale, direction, simple):
 		color = DR.kArrowColor
-		if helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'false':
+		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		if not active:
 			color = DR.kInactiveColor
 		pos = gm.positionForPointName(cmd['point'])
 		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
@@ -428,7 +429,6 @@ class TTH_RF_EventTool(BaseEventTool):
 			labelPos = pos + scale * geom.Point(10,+20)
 		else:
 			labelPos = pos + scale * geom.Point(10,-20)
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
 		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
 				whiteColor, DR.kArrowColor, self.getNSView(), active))
 		cmd['labelPosSize'] = (labelPos, labelSize)

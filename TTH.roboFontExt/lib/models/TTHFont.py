@@ -4,7 +4,7 @@ from mojo.events import getActiveEventTool
 import tempfile
 
 from commons import helperFunctions
-from drawing import textRenderer
+from drawing import textRenderer, geom
 
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
@@ -229,6 +229,27 @@ class TTHFont():
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - STEMS
+
+	def guessStem(self, point1, point2):
+		diff = geom.makePoint(point1) - geom.makePoint(point2)
+		if tthTool.selectedAxis == 'X':
+			dist = abs(diff.x)
+		else:
+			dist = abs(diff.y)
+		if tthTool.selectedAxis == 'Y':
+			candidates = self.horizontalStems
+		else:
+			candidates = self.verticalStems
+		candidates = [(abs(int(stem['width'])-dist), stemName) for (stemName, stem) in candidates.iteritems()]
+		if len(candidates) == 0:
+			return None
+		candidates.sort()
+		if candidates[0][0] <= 0.3 * dist:
+			return candidates[0][1]
+		else:
+			return None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 

@@ -33,7 +33,7 @@ class SingleLinkTool(TTHCommandTool):
 		self.roundDistance = (value == 1)
 
 	def addCommand(self, target):
-		gm = tthTool.getGlyphModel()
+		gm, fm = tthTool.getGlyphAndFontModel()
 		if tthTool.selectedAxis == 'X':
 			code = 'singleh'
 			stem = self.stemNameX
@@ -42,14 +42,15 @@ class SingleLinkTool(TTHCommandTool):
 			stem = self.stemNameY
 		cmd = {	'code': code,
 				'point1': self.startPoint[0].name,
-				'point2': target,
+				'point2': target.name,
 				'align': self.getAlignment(),
 			}
+		if stem == 'None':
+			stem = None
+		if stem == 'Guess':
+			stem = fm.guessStem(self.startPoint[0], target)
 		if stem != None:
-			if stem == 'Guess':
-				pass #TODO: guess stem
-			else:
-				cmd['stem'] = stem
+			cmd['stem'] = stem
 		elif self.roundDistance:
 			cmd['round'] = 'true'
 		gm.addCommand(cmd)
@@ -61,7 +62,7 @@ class SingleLinkTool(TTHCommandTool):
 			s = self.startPoint[0]
 			t = tgt[0][0]
 			if (s.x != t.x or s.y != t.y):
-				self.addCommand(tgt[0][0].name)
+				self.addCommand(tgt[0][0])
 		super(SingleLinkTool, self).mouseUp(point)
 
 	# - - - - DRAW
