@@ -32,6 +32,38 @@ class SingleLinkTool(TTHCommandTool):
 	def setRoundDistance(self, value):
 		self.roundDistance = (value == 1)
 
+	def addCommand(self, target):
+		gm = tthTool.getGlyphModel()
+		if tthTool.selectedAxis == 'X':
+			code = 'singleh'
+			stem = self.stemNameX
+		else:
+			code = 'singlev'
+			stem = self.stemNameY
+		cmd = {	'code': code,
+				'point1': self.startPoint[0].name,
+				'point2': target,
+				'align': self.getAlignment(),
+			}
+		if stem != None:
+			if stem == 'Guess':
+				pass #TODO: guess stem
+			else:
+				cmd['stem'] = stem
+		elif self.roundDistance:
+			cmd['round'] = 'true'
+		gm.addCommand(cmd)
+
+	def mouseUp(self, point):
+		gm = tthTool.getGlyphModel()
+		tgt = gm.pointClicked(geom.makePoint(point))
+		if tgt[0]:
+			s = self.startPoint[0]
+			t = tgt[0][0]
+			if (s.x != t.x or s.y != t.y):
+				self.addCommand(tgt[0][0].name)
+		super(SingleLinkTool, self).mouseUp(point)
+
 	# - - - - DRAW
 
 	def draw(self, scale):

@@ -371,7 +371,15 @@ class TTHGlyph(object):
 			if 'inserted' in ptName:
 				if verbose: badName.append((cmd['code'], key, ptName))
 				return False
+		if 'active' not in cmd:
+			cmd['active'] = 'true'
 		return True
+
+	def addCommand(self, cmd):
+		if not self.commandIsOK(cmd): return
+		self.hintingCommands.append(cmd)
+		self.dirtyHinting()
+		self.updateGlyphProgram(tthTool.getFontModel())
 
 	def removeHintingCommand(self, cmd):
 		try:

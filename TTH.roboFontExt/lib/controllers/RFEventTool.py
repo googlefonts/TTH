@@ -414,7 +414,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawAlign(self, gm, cmd, scale, direction, simple):
 		color = DR.kArrowColor
-		if cmd['active'] == 'false':
+		if helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'false':
 			color = DR.kInactiveColor
 		pos = gm.positionForPointName(cmd['point'])
 		DR.drawArrowAtPoint(scale, 10, direction, pos, color)

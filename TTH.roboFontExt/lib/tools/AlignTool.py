@@ -17,10 +17,22 @@ class AlignTool(TTHCommandTool):
 		w.AlignmentTypeText.show(True)
 		w.AlignmentTypePopUpButton.show(True)
 
+	def addCommand(self):
+		gm = tthTool.getGlyphModel()
+		if tthTool.selectedAxis == 'X':
+			code = 'alignh'
+		else:
+			code = 'alignv'
+		cmd = {	'code': code,
+				'point': self.startPoint[0].name,
+				'align': self.getAlignment()
+			}
+		gm.addCommand(cmd)
+
 	def mouseUp(self, point):
 		self.dragging = False
 		if not self.realClick(point): return
-		#gm, fm = tthTool.getGlyphAndFontModel()
+		self.addCommand()
 
 	def draw(self, scale):
 		if not self.dragging: return
