@@ -112,7 +112,7 @@ class TTHCommandTool(object):
 
 	# - - - - MOUSE EVENTS
 
-	def magnet(self,):
+	def magnet(self):
 		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos)
 		if tgt[0]:
 			return geom.makePoint(tgt[0][0])

@@ -134,7 +134,7 @@ class TTHFont():
 		copyZones = dict((n,z.copy()) for (n,z) in self.zones.iteritems())
 		for (n,z) in copyZones.iteritems():
 			if key in z: del z[key]
-		self.f.lib[FL_tth_key]["zones"] = self.zones
+		self.f.lib[FL_tth_key]["zones"] = copyZones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
 		assert(zoneName in self.zones)
