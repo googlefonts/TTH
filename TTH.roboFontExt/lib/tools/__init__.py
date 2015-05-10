@@ -112,6 +112,13 @@ class TTHCommandTool(object):
 
 	# - - - - MOUSE EVENTS
 
+	def magnet(self,):
+		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos)
+		if tgt[0]:
+			return geom.makePoint(tgt[0][0])
+		else:
+			return self.mouseDraggedPos
+
 	def realClick(self, point):
 		upPoint = geom.makePoint(point)
 		return (upPoint - self.mouseDownClickPos).squaredLength() <= 42.0
