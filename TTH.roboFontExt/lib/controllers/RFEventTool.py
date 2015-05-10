@@ -364,6 +364,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawZones(self, scale, pitch, fontModel):
 		xpos = 5 * fontModel.UPM
+		fontModel.zoneLabels = {}
 		for zoneName, zone in fontModel.zones.iteritems():
 			y_start = int(zone['position'])
 			y_end = int(zone['width'])
@@ -382,7 +383,7 @@ class TTH_RF_EventTool(BaseEventTool):
 					whiteColor, zoneColorLabel, self.getNSView(), active=True))
 
 			# we store the label position and size directly in the zone's dictionary
-			zone['labelPosSize'] = (labelPos, labelSize)
+			fontModel.zoneLabels[zoneName] = (labelPos, labelSize)
 
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:

@@ -343,7 +343,7 @@ class TTHGlyph(object):
 		listOfCommands = self.sortedHintingCommands
 		for c in listOfCommands:
 			com = ET.SubElement(root, 'ttc')
-			command = dict(c) # copy
+			command = c.copy()
 			for key in ['labelPosSize']: # cleanup
 				if key in command:
 					del command[key]

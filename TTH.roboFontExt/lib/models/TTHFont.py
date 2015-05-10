@@ -37,6 +37,9 @@ class TTHFont():
 
 		self._readControlValuesFromUFO()
 
+		# For storing the position and size of the zone labels
+		self.zoneLabels = {}
+
 		# Option for the generated TTH assembly
 		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", False)
 
@@ -130,11 +133,8 @@ class TTHFont():
 # - - - - - - - - - - - - - - - - ZONES & ZONE LABELS
 
 	def saveZonesToUFO(self):
-		key = 'labelPosSize'
-		copyZones = dict((n,z.copy()) for (n,z) in self.zones.iteritems())
-		for (n,z) in copyZones.iteritems():
-			if key in z: del z[key]
-		self.f.lib[FL_tth_key]["zones"] = copyZones
+		# useless because they ARE the same dictionary
+		self.f.lib[FL_tth_key]["zones"] = self.zones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
 		assert(zoneName in self.zones)
@@ -153,13 +153,12 @@ class TTHFont():
 		self.saveZonesToUFO()
 
 	def zoneClicked(self, clickPos):
-		for zoneName, zone in self.zones.iteritems():
-			lPos, lSize = helperFunctions.getOrDefault(zone, 'labelPosSize', (None, None))
+		for zoneName, (lPos, lSize) in self.zoneLabels:
 			if lPos == None: continue
 			lo = lPos - 0.5 * lSize
 			hi = lPos + 0.5 * lSize
 			if lo.x <= clickPos.x <= hi.x and lo.y <= clickPos.y <= hi.y:
-				return (zoneName, zone)
+				return (zoneName, self.zones[zoneName])
 		return None, None
 
 # - - - - - - - - - - - - - - - -
