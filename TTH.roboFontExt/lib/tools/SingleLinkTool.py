@@ -58,6 +58,7 @@ class SingleLinkTool(TTHCommandTool):
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):
+		if not self.dragging: return
 		gm = tthTool.getGlyphModel()
 		tgt = gm.pointClicked(geom.makePoint(point))
 		if tgt[0]:

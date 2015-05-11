@@ -32,9 +32,11 @@ class AlignTool(TTHCommandTool):
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):
+		if not self.dragging: return
 		self.dragging = False
 		if not self.realClick(point): return
-		self.addCommand()
+		if self.startPoint != None:
+			self.addCommand()
 
 	def draw(self, scale):
 		if not self.dragging: return

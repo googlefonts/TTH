@@ -113,6 +113,7 @@ class DeltaTool(TTHCommandTool):
 		self.cancel = False
 
 	def mouseUp(self, point):
+		if not self.dragging: return
 		self.dragging = False
 		if self.cancel:
 			self.cancel = False
