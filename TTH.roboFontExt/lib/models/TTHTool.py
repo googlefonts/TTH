@@ -148,6 +148,11 @@ class TTHTool():
 		if g != None:
 			return self.delFontModelForFont(g.getParent())
 
+# - - - - - - - - - - - - - - - - - - - - - DISPLAY UPDATE
+
+	def updateDisplay(self):
+		self.previewPanel.setNeedsDisplay()
+
 # - - - - - - - - - - - - - - - - - - - - - PREVIEW and CURRENT SIZE
 
 	def setPreviewSizeRange(self, fromS, toS, prefsSheet):

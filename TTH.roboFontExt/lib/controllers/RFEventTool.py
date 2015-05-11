@@ -104,6 +104,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		#print "[TTH RF EVENT] View did change glyph"
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
+		tthTool.updateDisplay()
 
 	def currentGlyphChanged(self):
 		'''This function is called by RF when the Current Glyph changed'''
