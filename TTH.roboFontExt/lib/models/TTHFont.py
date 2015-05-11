@@ -153,7 +153,7 @@ class TTHFont():
 		self.saveZonesToUFO()
 
 	def zoneClicked(self, clickPos):
-		for zoneName, (lPos, lSize) in self.zoneLabels:
+		for zoneName, (lPos, lSize) in self.zoneLabels.iteritems():
 			if lPos == None: continue
 			lo = lPos - 0.5 * lSize
 			hi = lPos + 0.5 * lSize
