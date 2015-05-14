@@ -9,7 +9,7 @@ k_LTSH_key = 'com.robofont.robohint.LTSH'
 k_CVT_key  = 'com.robofont.robohint.cvt '
 k_prep_key = 'com.robofont.robohint.prep'
 k_fpgm_key = 'com.robofont.robohint.FPGM'
-k_gasp_key   = TTFCompilerSettings.roboHintGaspLibKey
+k_gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
 

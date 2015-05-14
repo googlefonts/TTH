@@ -1,4 +1,4 @@
-import tt_tables
+from tt import tables
 
 class Registers(object):
 	def __init__(self):
@@ -53,36 +53,36 @@ def getAlign(command, pointIndex, regs):
 	alignType = command['align']
 	if alignType == 'round':
 		regs.RP0 = regs.RP1 = pointIndex
-		return [	tt_tables.autoPush(pointIndex),
+		return [	tables.autoPush(pointIndex),
 				'MDAP[1]' ]
 	elif alignType in ['left', 'bottom']:
 		regs.RP0 = regs.RP1 = pointIndex
 		return [	'RDTG[ ]',
-				tt_tables.autoPush(pointIndex),
+				tables.autoPush(pointIndex),
 				'MDAP[1]',
 				'RTG[ ]' ]
 	elif alignType in ['right', 'top']:
 		regs.RP0 = regs.RP1 = pointIndex
 		return [	'RUTG[ ]',
-				tt_tables.autoPush(pointIndex),
+				tables.autoPush(pointIndex),
 				'MDAP[1]',
 				'RTG[ ]' ]
 	elif alignType == 'double':
 		regs.RP0 = regs.RP1 = pointIndex
 		return [	'RTDG[ ]',
-				tt_tables.autoPush(pointIndex),
+				tables.autoPush(pointIndex),
 				'MDAP[1]',
 				'RTG[ ]' ]
 	elif alignType == 'center':
 		regs.RP0 = regs.RP1 = pointIndex
 		return [	'RTHG[ ]',
-				tt_tables.autoPush(pointIndex),
+				tables.autoPush(pointIndex),
 				'MDAP[1]',
 				'RTG[ ]' ]
 	return []
 
 def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
-	Header = [tt_tables.autoPush(0),
+	Header = [tables.autoPush(0),
 			'RCVT[ ]' ]
 	IF = ['IF[ ]']
 	ELSE = ['ELSE[ ]']
@@ -100,10 +100,10 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 
 		zoneCV = zone_to_cvt[command['zone']]
 		IF.extend([
-					tt_tables.autoPush(pointIndex),
+					tables.autoPush(pointIndex),
 					'MDAP[1]'])
 		ELSE.extend([
-					tt_tables.autoPush(pointIndex, zoneCV),
+					tables.autoPush(pointIndex, zoneCV),
 					'MIAP[0]'])
 		regs.RP0 = regs.RP1 = pointIndex
 
@@ -134,9 +134,9 @@ def processAlign(commandsList, pointNameToIndex, regs):
 			regs.y_instructions.extend(align)
 
 def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
-	Header = [ tt_tables.autoPush(0),
+	Header = [ tables.autoPush(0),
 			'RS[ ]',
-			tt_tables.autoPush(0),
+			tables.autoPush(0),
 			'EQ[ ]' ]
 	IFh = ['IF[ ]']
 	IFv = ['IF[ ]']
@@ -154,10 +154,10 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 		if 'stem' in command:
 			stemCV = stem_to_cvt[command['stem']]
-			asm = [ tt_tables.autoPush(point2Index, stemCV, point1Index, 4),
+			asm = [ tables.autoPush(point2Index, stemCV, point1Index, 4),
 					'CALL[ ]' ]
 		else:
-			asm = [ tt_tables.autoPush(point2Index, point1Index, 3),
+			asm = [ tables.autoPush(point2Index, point1Index, 3),
 					'CALL[ ]' ]
 		if command['code'] == 'doubleh':
 			IFh.extend(asm)
@@ -194,7 +194,7 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 			print "[TTH ERROR] command's point has no index in the glyph"
 
 		interpolate = [
-						tt_tables.autoPush(pointIndex, point1Index, point2Index),
+						tables.autoPush(pointIndex, point1Index, point2Index),
 						'SRP1[ ]',
 						'SRP2[ ]',
 						'IP[ ]'
@@ -230,14 +230,14 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 		if regs.RP0 == None:
 			single_RP0 = [
-							tt_tables.autoPush(point1Index),
+							tables.autoPush(point1Index),
 							'MDAP[1]'
 							]
 			regs.RP0 = regs.RP1 = point1Index
 
 		else:
 			single_RP0 = [
-						tt_tables.autoPush(point1Index),
+						tables.autoPush(point1Index),
 						'SRP0[ ]'
 						]
 			regs.RP0 = point1Index
@@ -245,13 +245,13 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		if 'stem' in command:
 			stemCV = stem_to_cvt[command['stem']]
 			single_stem = [
-							tt_tables.autoPush(0),
+							tables.autoPush(0),
 							'RS[ ]',
 							'IF[ ]',
-								tt_tables.autoPush(point2Index),
+								tables.autoPush(point2Index),
 								'MDRP[10000]',
 							'ELSE[ ]',
-								tt_tables.autoPush(point2Index, stemCV),
+								tables.autoPush(point2Index, stemCV),
 								'MIRP[10100]',
 							'EIF[ ]'
 							]
@@ -260,7 +260,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 		elif 'round' in command:
 			single_round = [
-							tt_tables.autoPush(point2Index),
+							tables.autoPush(point2Index),
 							'MDRP[11100]'
 							]
 			regs.RP1 = regs.RP0
@@ -269,7 +269,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 		elif 'align' in command:
 			single_align = [
-							tt_tables.autoPush(point2Index),
+							tables.autoPush(point2Index),
 							'MDRP[10000]',
 							]
 			regs.RP1 = regs.RP0
@@ -277,7 +277,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 			if command['align'] == 'round':
 				single_align = [
-							tt_tables.autoPush(point2Index),
+							tables.autoPush(point2Index),
 							'MDRP[10100]'
 							]
 
@@ -285,7 +285,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 		else:
 			single_align = [
-							tt_tables.autoPush(point2Index),
+							tables.autoPush(point2Index),
 							'MDRP[10000]'
 							]
 			regs.RP1 = regs.RP0
@@ -327,15 +327,15 @@ def processDelta(commandsList, pointNameToIndex, regs):
 			header, footer = [], []
 		elif groupName[0] == 'M':
 			header, footer = [
-						tt_tables.autoPush(1),
+						tables.autoPush(1),
 						'RS[ ]',
-						tt_tables.autoPush(0),
+						tables.autoPush(0),
 						'EQ[ ]',
 						'IF[ ]',
 						], ['EIF[ ]']
 		else: # groupName[0] == 'G'
 			header, footer = [
-						tt_tables.autoPush(1),
+						tables.autoPush(1),
 						'RS[ ]',
 						'IF[ ]',
 						], ['EIF[ ]']
@@ -387,26 +387,26 @@ def processDeltaCommand(command, pointNameToIndex):
 	deltaPList = []
 	if deltasP1:
 		for relativeSize  in deltasP1:
-			arg = (relativeSize << 4 ) + tt_tables.stepToSelector[step]
+			arg = (relativeSize << 4 ) + tables.stepToSelector[step]
 			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP1))
-		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
+		deltaInstructions.append(tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP1[ ]')
 
 	elif deltasP2:
 		for relativeSize in deltasP2:
-			arg = ((relativeSize -16) << 4 ) + tt_tables.stepToSelector[step]
+			arg = ((relativeSize -16) << 4 ) + tables.stepToSelector[step]
 			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP2))
-		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
+		deltaInstructions.append(tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP2[ ]')
 
 	elif deltasP3:
 		for relativeSize in deltasP3:
-			arg = ((relativeSize -32) << 4 ) + tt_tables.stepToSelector[step]
+			arg = ((relativeSize -32) << 4 ) + tables.stepToSelector[step]
 			deltaPList += [arg, pointIndex]
 		deltaPList.append(len(deltasP3))
-		deltaInstructions.append(tt_tables.autoPush(*deltaPList))
+		deltaInstructions.append(tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP3[ ]')
 
 	return deltaInstructions

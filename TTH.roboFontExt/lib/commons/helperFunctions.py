@@ -1,4 +1,4 @@
-import math
+import math, numpy
 
 def makeListItemToIndexDict(l):
 	return dict((e,i) for i,e in enumerate(l))
@@ -199,3 +199,41 @@ def fontIsQuadratic(font):
 
 def roundbase(x, base):
 	return int(base * round(float(x)/base))
+
+def topologicalSort(l, f):
+	n = len(l)
+	preds = [[] for i in l]
+	#visited = [False for i in l]
+	#loop = list(visited) # separate copy of visited
+	visited = numpy.zeros(n, dtype='bool')
+	loop    = numpy.zeros(n, dtype='bool')
+	try:
+		# build the list of predecessors for each element of |l|
+		for i in range(n):
+			for j in range(i+1,n):
+				(comp, swap) = f(l[i], l[j])
+				if not comp: # not comparable
+					continue
+				if swap:
+					preds[i].append(j)
+				else:
+					preds[j].append(i)
+		result = []
+		def visit(i):
+			if loop[i]:
+				print "LOOP",l[i]
+				raise Exception("loop")
+			if visited[i]:
+				return
+			loop[i] = True
+			for p in preds[i]:
+				visit(p)
+			loop[i] = False
+			visited[i] = True
+			result.append(l[i])
+		for i in range(n):
+			visit(i)
+		return result
+	except Exception:
+		print "ERROR: Found a loop in topological sort"
+		return l

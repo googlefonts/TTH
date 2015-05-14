@@ -11,12 +11,12 @@ from models import TTHGlyph
 
 from views import previewInGlyphWindow as PIGW
 
-import tt_tables
+from tt import tables
 
 reload(helperFunctions)
 reload(textRenderer)
 reload(TTHGlyph)
-reload(tt_tables)
+reload(tables)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
@@ -52,8 +52,8 @@ class TTHFont():
 		self.stem_to_cvt = None
 		self.zone_to_cvt = None
 		self.writeCVTandPREP()
-		tt_tables.writeFPGM(self)
-		tt_tables.writegasp(self)
+		tables.writeFPGM(self)
+		tables.writegasp(self)
 
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
@@ -175,7 +175,7 @@ class TTHFont():
 # - - - - - - - - - - - - - - - -
 
 	def writeCVTandPREP(self):
-		stem_to_cvt, zone_to_cvt = tt_tables.writeCVTandPREP(self)
+		stem_to_cvt, zone_to_cvt = tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
 
@@ -202,9 +202,9 @@ class TTHFont():
 			self.stemsnap	= helperFunctions.getOrPutDefault(tth_lib, "stemsnap", 17)
 
 			# FIXME: describe this
-			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, tt_tables.k_gasp_key, {})
+			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, tables.k_gasp_key, {})
 			# FIXME: describe this
-			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, tt_tables.k_hdmx_key, {})
+			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, tables.k_hdmx_key, {})
 		except:
 			print "[TTH ERROR]: Can't read font's control values"
 
@@ -277,8 +277,8 @@ When do we regenerate a partial font?
 
 	def generateFullTempFont(self):
 		try:
-			if tt_tables.k_hdmx_key in self.c_fontModel.f.lib:
-				del self.c_fontModel.f.lib[tt_tables.k_hdmx_key]
+			if tables.k_hdmx_key in self.c_fontModel.f.lib:
+				del self.c_fontModel.f.lib[tables.k_hdmx_key]
 			self.f.generate(self.tempFullFontPath, 'ttf',\
 					decompose     = False,\
 					checkOutlines = False,\

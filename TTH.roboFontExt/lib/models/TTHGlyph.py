@@ -1,136 +1,17 @@
 import xml.etree.ElementTree as ET
 from robofab.plistlib import Data
 from robofab.objects.objectsRF import RPoint
-import numpy
 
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from drawing import geom
-import TTHintAsm
-reload(TTHintAsm)
+import tt
+from tt import asm
+reload(tt)
+reload(asm)
 
 def makeRPoint(pos, name):
 	return RPoint(pos.x, pos.y, None, name)
-
-def topologicalSort(l, f):
-	n = len(l)
-	preds = [[] for i in l]
-	#visited = [False for i in l]
-	#loop = list(visited) # separate copy of visited
-	visited = numpy.zeros(n, dtype='bool')
-	loop    = numpy.zeros(n, dtype='bool')
-	try:
-		# build the list of predecessors for each element of |l|
-		for i in range(n):
-			for j in range(i+1,n):
-				(comp, swap) = f(l[i], l[j])
-				if not comp: # not comparable
-					continue
-				if swap:
-					preds[i].append(j)
-				else:
-					preds[j].append(i)
-		result = []
-		def visit(i):
-			if loop[i]:
-				print "LOOP",l[i]
-				raise Exception("loop")
-			if visited[i]:
-				return
-			loop[i] = True
-			for p in preds[i]:
-				visit(p)
-			loop[i] = False
-			visited[i] = True
-			result.append(l[i])
-		for i in range(n):
-			visit(i)
-		return result
-	except Exception:
-		print "ERROR: Found a loop in topological sort"
-		return l
-
-def compareCommands(A, B):
-	#A_isSingleLink  = A['code'] in ['singleh', 'singlev']
-	#B_isSingleLink  = B['code'] in ['singleh', 'singlev']
-	#A_isInterpolate = A['code'] in ['interpolateh', 'interpolatev']
-	#B_isInterpolate = B['code'] in ['interpolateh', 'interpolatev']
-	A_isMiddleDelta = A['code'] in ['mdeltah', 'mdeltav']
-	B_isMiddleDelta = B['code'] in ['mdeltah', 'mdeltav']
-	A_isFinalDelta  = A['code'] in ['fdeltah', 'fdeltav']
-	B_isFinalDelta  = B['code'] in ['fdeltah', 'fdeltav']
-
-	if ((A_isMiddleDelta and B_isMiddleDelta) and (A['point'] == B['point'])) \
-	or (A_isFinalDelta and B_isFinalDelta):
-		if A['mono'] == 'true': Avalue = 2
-		else: Avalue = 0
-		if A['gray'] == 'true': Avalue += 1
-		if B['mono'] == 'true': Bvalue = 2
-		else: Bvalue = 0
-		if B['gray'] == 'true': Bvalue += 1
-		if Avalue < Bvalue:   return (True, True) # order == B->A
-		elif Avalue > Bvalue: return (True, False) # order == A->B
-		else: return (False, False)
-	elif A_isFinalDelta:
-		return (True, True) # order == B->A
-	elif B_isFinalDelta:
-		return (True, False) # order == A->B
-
-	keys = ['point', 'point1', 'point2']
-	sources = []
-	target = []
-	for c in [A,B]:
-		cKeys = [k for k in keys if k in c]
-		n = len(cKeys)
-		if n == 1: # Align, MiddleDelta, FinalDelta
-			target.append(c['point'])
-			sources.append([c['point']])
-		elif n == 2: # SingleLink
-			target.append(c['point2'])
-			sources.append([c['point1']])
-		elif n == 3: # Interpolate
-			target.append(c['point'])
-			sources.append([c['point1'], c['point2']])
-		else:
-			print "[WARNING] Command has a problem!"
-			target.append(None)
-			sources.append([])
-
-	AbeforeB = (target[0] != None) and (target[0] in sources[1])
-	BbeforeA = (target[1] != None) and (target[1] in sources[0])
-	if AbeforeB and BbeforeA:
-		A_isAlign       = A['code'] in ['alignh', 'alignv']
-		B_isAlign       = B['code'] in ['alignh', 'alignv']
-		if A_isAlign and B_isMiddleDelta: # special case
-			return (True, False) # order == A->B
-		elif A_isMiddleDelta and B_isAlign: # special
-			return (True, True) # order == B->A
-		else:
-			print "COMPARE_LOOP",A,B
-			raise Exception("loop")
-	if   AbeforeB: return (True, False)
-	elif BbeforeA: return (True, True)
-	else: return (False, False)
-
-def sortCommands(cmds):
-	x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
-	for c in cmds:
-		code = c['code']
-		if code == 'fdeltah':
-			fdeltah.append(c)
-		elif code == 'fdeltav':
-			fdeltav.append(c)
-		elif code[-1] in ['h']:
-			x.append(c)
-		elif code[-1] in ['v']:
-			y.append(c)
-		elif code[-1] in ['t', 'b']:
-			ytb.append(c)
-		else:
-			y.append(c)
-	x = topologicalSort(x, compareCommands)
-	x.extend(ytb)
-	return sum([topologicalSort(l, compareCommands) for l in [y,fdeltah,fdeltav]], x)
 
 class CommandRemover(object):
 	def __init__(self, gm, cmd):
@@ -218,7 +99,7 @@ class TTHGlyph(object):
 	@property
 	def sortedHintingCommands(self):
 		if None == self._sortedHintingCommands:
-			self._sortedHintingCommands = sortCommands(self.hintingCommands)
+			self._sortedHintingCommands = tt.sort(self.hintingCommands)
 		return self._sortedHintingCommands
 
 	def positionForPointName(self, name):
@@ -358,7 +239,7 @@ class TTHGlyph(object):
 		text = ET.tostring(root)
 		self._g.lib['com.fontlab.ttprogram'] = Data(text)
 		# compile to TT assembly language and write it in UFO lib.
-		TTHintAsm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
+		tt.asm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
 
 	def commandIsOK(self, cmd, verbose = False, absent = [], badName = []):
 		for key in ['point', 'point1', 'point2']:
