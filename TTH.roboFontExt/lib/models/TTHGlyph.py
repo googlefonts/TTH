@@ -316,6 +316,16 @@ class TTHGlyph(object):
 		self.dirtyHinting()
 		self.hintingCommands = [c for c in self.hintingCommands if self.commandIsOK(c)]
 
+	def glyphProgramDoesNotTouchLSBOrRSB(self):
+		if len(self._g.components) > 0:
+			# FIXME: this is temporary, ideally, we should look
+			#at the component that the USE_MY_METRICS flag
+			return False
+		for cmd in self.hintingCommands:
+			if tt.commandModifiesLSBOrRSB(cmd):
+				return False
+		return True
+
 	def updateGlyphProgram(self, fm):
 		self.cleanCommands()
 		self.saveToUFO(fm)

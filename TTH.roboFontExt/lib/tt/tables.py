@@ -1,7 +1,10 @@
-import math
+import math, time
 from fontTools.ttLib.tables._g_a_s_p import GASP_SYMMETRIC_GRIDFIT, GASP_SYMMETRIC_SMOOTHING, GASP_DOGRAY, GASP_GRIDFIT
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from commons import helperFunctions as HF
+from drawing import textRenderer as TR
+
+#import novo
 
 k_hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
 k_VDMX_key = 'com.robofont.robohint.VDMX'
@@ -35,8 +38,91 @@ def writehdmx(f, hdmx_ppems):
 def writeVDMX(f, VDMX):
 	f.lib[k_VDMX_key] = VDMX
 
-def writeLTSH(f, LTSH):
-	f.lib[k_LTSH_key] = LTSH
+def writeLTSH(fm, maxSize = 255):
+	clock0 = time.time()
+	fm.generateFullTempFont()
+	font = fm.f
+	thresholds = dict((g.name, maxSize) for g in font)
+
+	clock1 = time.time()
+	print "[LTSH] Font generated in", (clock1-clock0), "seconds"
+	clock0 = clock1
+
+	#import gc
+	#gc.disable()
+	#glyphsToCheck = {}
+	#for name in font.glyphOrder:
+	#	g = font[name]
+	#	if self.glyphProgramDoesNotTouchLSBOrRSB(g):
+	#		thresholds[name] = 1
+	#	else:
+	#		glyphsToCheck[name] = g
+	#self.readGlyphFLTTProgram(self.getGlyph())
+	glyphsToCheck = dict((g.name, g) for g in font)
+	#glyphsToCheck = dict((name, font[name]) for name in ['.notdef', 'A'])
+
+	clock1 = time.time()
+	print "[LTSH] Glyph set generated in", (clock1-clock0), "seconds"
+	clock0 = clock1
+	#gc.enable()
+
+	upm = fm.UPM
+	halfUpm = upm / 2
+	out = ''
+	for size in range(maxSize-1, 0, -1):
+		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
+		tr.set_cur_size(size)
+		toRemove = []
+		for name, g in glyphsToCheck.iteritems():
+			if thresholds[name] > size + 1:
+				toRemove.append(name)
+				continue
+			# the scaled widths are rounded on the fine pixel grid (1/64 pixel)
+			scaled_instructed_width = tr.get_name_advance(name)[0]
+			scaled_linear_width     = (g.width * 64 * size + halfUpm) / upm
+			# the widths are rounded on the full pixel grid (1 pixel)
+			riw = (scaled_instructed_width + 32) / 64
+			rlw = (scaled_linear_width     + 32) / 64
+			#rlw = (g.width * size + halfUpm) / upm
+			#--------------
+			#out += name+'@'+str(size)+': '
+			#out += '; RIW: ' + str(riw)
+			#out += '; RLW: ' + str(rlw)
+			#out += ', ' + str(float(g.width * size + 0) / upm)
+			#out += '\n'
+			#--------------
+			linear_scaling = (riw == rlw)
+			if not linear_scaling and size >= 50:
+				linear_scaling = 50 * abs(riw-rlw) <= rlw
+			if linear_scaling:
+				if size < 9:
+					toRemove.append(name)
+					thresholds[name] = 1
+				else:
+					thresholds[name] = size
+		for name in toRemove:
+			del glyphsToCheck[name]
+	print out
+	if False:
+		s = []
+		names = list(font.glyphOrder)
+		names.sort()
+		count = 0
+		for name in names:
+			nv = novo.novoval[name]
+			if nv != thresholds[name]:
+				count += 1
+				s.append(	str(font[name].index).rjust(4)
+						+' / '+name.ljust(19)+': '+str(thresholds[name]).rjust(3)\
+						+', should be '+str(nv)+'\n')
+		print count,"errors:"
+		print(''.join(s))
+
+	clock1 = time.time()
+	print "LTSH dictionary generated in", (clock1-clock0), "seconds"
+	clock0 = clock1
+
+	font.lib[k_LTSH_key] = thresholds
 
 def writegasp(fm):
 	fm.f.lib[k_gasp_key] = fm.gasp_ranges

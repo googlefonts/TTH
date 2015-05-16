@@ -201,7 +201,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
 
 		if tthTool.showOutline == 1 and tr != None:
-			tr.drawOutlineOfNameWithThickness(scale, pitch, g.name, tthTool.outlineThickness)
+			tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
 			self.drawSideBearings(scale, pitch, g.name, fm)
 
 		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
@@ -226,15 +226,16 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def mouseMoved(self, point):
 		'''This function is called by RF at mouse moved (while not clicked)'''
-		self.mouseDragged(point, geom.Point(0,0))
-		self.refreshView()
+		if self.mouseDragged(point, geom.Point(0,0)):
+			self.refreshView()
 
 	def mouseDragged(self, point, delta):
 		'''This function is called by RF at mouse dragged (while left-clicked)'''
 		tool = tthTool.selectedHintingTool
-		if tool is None: return
-		if not tool.dragging: return
+		if tool is None: return False
+		if not tool.dragging: return False
 		tool.mouseDragged(point)
+		return True
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''

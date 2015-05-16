@@ -1,7 +1,8 @@
 from mojo.roboFont import CurrentFont, RFont
 from mojo.events import getActiveEventTool
+from fontTools import ttLib
 
-import tempfile
+import os, tempfile
 
 from commons import helperFunctions
 from drawing import textRenderer, geom
@@ -275,10 +276,13 @@ When do we regenerate a partial font?
 	hinting command is added/deleted/modified.
 	(And of course when preview text uses a missing glyph.)'''
 
+	def computeLTSH(self):
+		tables.writeLTSH(self)
+
 	def generateFullTempFont(self):
-		try:
-			if tables.k_hdmx_key in self.c_fontModel.f.lib:
-				del self.c_fontModel.f.lib[tables.k_hdmx_key]
+		#try:
+			if tables.k_hdmx_key in self.f.lib:
+				del self.f.lib[tables.k_hdmx_key]
 			self.f.generate(self.tempFullFontPath, 'ttf',\
 					decompose     = False,\
 					checkOutlines = False,\
@@ -287,8 +291,8 @@ When do we regenerate a partial font?
 					glyphOrder    = None,\
 					progressBar   = None)
 			self.editComponentsFlags(self.f, self.tempFullFontPath)
-		except:
-			print 'ERROR: Unable to generate full font'
+		#except:
+		#	print 'ERROR: Unable to generate full font'
 
 	def editComponentsFlags(self, workingUFO, destination):
 		(head, tail) = os.path.split(destination)

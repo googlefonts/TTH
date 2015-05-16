@@ -1,3 +1,4 @@
+
 from objc import allocateBuffer
 from AppKit import *
 import Quartz
@@ -10,17 +11,17 @@ except:
 grayCS = Quartz.CGColorSpaceCreateDeviceGray()
 rgbCS = Quartz.CGColorSpaceCreateDeviceRGB()
 
-class TRCache (object):
+class TRGlyphData(object):
 	def __init__(self):
-		self.images = {}
-		self.contours_points_and_tags = {}
-		self.bezier_paths = {}
-		self.bitmaps = {}
-		self.advances = {}
-
+		self.image = None
+		self.contours_points_and_tags = None
+		self.bezier_paths = None
+		self.bitmap = None
+		self.advance = None
 
 class TextRenderer(object):
-	def __init__(self, face_path, renderMode):
+
+	def __init__(self, face_path, renderMode, cacheContours = True):
 		try:
 			self.face = FT.Face(face_path)
 			# the glyph slot in the face, from which we extract the images
@@ -29,12 +30,14 @@ class TextRenderer(object):
 			self.slot = self.face.glyph
 		except:
 			self.face = None
-			print 'ERROR: FreeType could not load temporary font:', face_path
-		# a dictionary mapping text size in pixel to the TRCache
-		# storing the glyphs images/bitmaps/advances already loaded.
+			print 'ERROR: FreeType could not load temporary font'
+		# a dictionary mapping text size in pixel to  dict index->TRGlyphData
+		# storing the glyph's image/bitmap/advance/... already loaded.
 		self.caches = {}
-		# The TRCache for the current text pixel-size
+		# The cache for the current text pixel-size
 		self.cache = None
+		# Should we keep the contours in the cache?
+		self.cacheContours = cacheContours
 		# current text pixel-size
 		self.curSize = 0
 		# drawing position
@@ -61,6 +64,11 @@ class TextRenderer(object):
 		else:
 			self.load_mode = self.load_mode | FT.FT_LOAD_TARGET_NORMAL
 
+	def __del__(self):
+		self.face = None
+		self.slot = None
+		self.cache = None
+
 	def set_pen(self, p):
 		self.pen = p
 
@@ -72,35 +80,31 @@ class TextRenderer(object):
 			self.curSize = 4
 		else:
 			self.curSize = int(size)
-		# select the TRCache of proper size
+		# select the cache of proper size
 		if self.curSize not in self.caches:
-			self.caches[self.curSize] = TRCache()
+			self.caches[self.curSize] = {}
 		self.cache = self.caches[self.curSize]
 
 	def render_text_with_scale_and_alpha(self, text, scale, alpha):
-		if self.face == None:
-			return
-		org = self.pen
-		for c in text:
-			index = self.face.get_char_index(c)
-			self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
-			self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
-		return (self.pen[0] - org[0], self.pen[1] - org[1])
+		if self.face == None: return
+		gl = [self.face.get_char_index(c) for c in text]
+		return self.render_indexed_glyph_list(gl, scale, alpha)
 
 	def render_text(self, text):
 		return self.render_text_with_scale_and_alpha(text, 1, 1.0)
 
 	def render_indexed_glyph_list(self, idxes, scale=1, alpha=1.0):
-		if self.face == None:
-			return
-		org = self.pen
+		if self.face == None: return
+		ox, oy = self.pen
+		x = ox
 		try:
 			for index in idxes:
-				self.render_func(self.get_glyph_bitmap(index), scale, self.pen[0], self.pen[1], alpha)
-				self.pen = (self.pen[0] + int( self.get_advance(index)[0] / 64 ), self.pen[1])
+				self.render_func(self.get_glyph_bitmap(index), scale, x, oy, alpha)
+				x += int((self.get_advance(index)[0]+32)/64)
 		except:
 			pass
-		return (self.pen[0] - org[0], self.pen[1] - org[1])
+		self.pen = x, oy
+		return (x - ox, 0)
 
 	def names_to_indices(self, names):
 		return [self.face.get_name_index(name) for name in names]
@@ -110,7 +114,11 @@ class TextRenderer(object):
 		return self.render_indexed_glyph_list(indices, scale, alpha)
 
 	def get_advance(self, index):
-		return self.cache.advances[index]
+		try:
+			return self.cache[index].advance
+		except:
+			self.get_glyph_image(index)
+			return self.cache[index].advance
 
 	def get_char_advance(self, char):
 		return self.get_advance(self.face.get_char_index(char))
@@ -119,9 +127,11 @@ class TextRenderer(object):
 		return self.get_advance(self.face.get_name_index(name))
 
 	def get_glyph_contours_points_and_tags(self, index):
-		if index not in self.cache.contours_points_and_tags:
+		try:
+			return self.cache[index].contours_points_and_tags
+		except:
 			self.get_glyph_image(index)
-		return self.cache.contours_points_and_tags[index]
+			return self.cache[index].contours_points_and_tags
 
 	def get_char_contours_points_and_tags(self, char):
 		return self.get_glyph_contours_points_and_tags(self.face.get_char_index(char))
@@ -130,46 +140,44 @@ class TextRenderer(object):
 		# a glyph image (contours) is requested. If not in the cache,
 		# we load it with freetype and save it in the cache and return
 		# it
-		if index not in self.cache.images:
+		try:
+			return self.cache[index].image
+		except:
+			glyphCache = TRGlyphData()
+			self.cache[index] = glyphCache
 			self.face.set_pixel_sizes(0, int(self.curSize))
 			self.face.load_glyph(index, self.load_mode)
 
 			result = self.slot.get_glyph() # this returns a copy
-			self.cache.images[index] = result
-			self.cache.advances[index] = (self.slot.advance.x, self.slot.advance.y)
-			pts = list(self.slot.outline.points) # copy
-			cts = list(self.slot.outline.contours) # copy
-			tgs = list(self.slot.outline.tags) # copy
-			self.cache.contours_points_and_tags[index] = (cts, pts, tgs)
+			glyphCache.image = result
+			glyphCache.advance = (self.slot.advance.x, self.slot.advance.y)
+			if self.cacheContours:
+				pts = list(self.slot.outline.points) # copy
+				cts = list(self.slot.outline.contours) # copy
+				tgs = list(self.slot.outline.tags) # copy
+				glyphCache.contours_points_and_tags = (cts, pts, tgs)
 			return result
-		else:
-			return self.cache.images[index]
 
 	def get_char_image(self, char):
 		# convert unicode-char to glyph-index and then call get_glyph_image
 		return self.get_glyph_image(self.face.get_char_index(char))
 
-	def get_glyph_advance_at_size(self, name, size):
-		self.face.set_pixel_sizes(0, int(size))
-		self.set_cur_size(size)
-		self.face.load_glyph(self.face.get_name_index(name), self.load_mode)
-		self.slot.get_glyph()
-		return self.slot.advance.x
+	def get_name_bitmap(self, name):
+		return self.get_glyph_bitmap(self.face.get_name_index(name))
 
 	def get_glyph_bitmap(self, index):
 		# a glyph bitmap (pixel buffer) is requested. If not in the cache,
 		# we render it with freetype and save it in the cache and return
 		# it
-		if index not in self.cache.bitmaps:
-			#print "!! ", self.get_glyph_image(index).format,
-			result = self.get_glyph_image(index).to_bitmap(self.render_mode, 0)
+		image = self.get_glyph_image(index)
+		glyphCache = self.cache[index]
+		if glyphCache.bitmap == None:
+			result = image.to_bitmap(self.render_mode, 0)
 			if self.render_mode == FT.FT_RENDER_MODE_LCD:
 				result = (result, desaturateBufferFromFTBuffer(result))
 			#print self.get_glyph_image(index).format
-			self.cache.bitmaps[index] = result
-			return result
-		else:
-			return self.cache.bitmaps[index]
+			glyphCache.bitmap = result
+		return glyphCache.bitmap
 
 	def get_char_bitmap(self, char):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
@@ -183,10 +191,10 @@ class TextRenderer(object):
 			p.setLineWidth_(scale*thickness)
 			p.stroke()
 
-	def drawOutlineOfChar(self, scale, pitch, char):
-		self.drawOutline(scale, self.getBezierPathOfChar(scale, pitch, char))
+	def drawOutlineOfChar(self, scale, pitch, char, thickness):
+		self.drawOutline(scale, self.getBezierPathOfChar(scale, pitch, char), thickness)
 
-	def drawOutlineOfNameWithThickness(self, scale, pitch, name, thickness):
+	def drawOutlineOfName(self, scale, pitch, name, thickness):
 		self.drawOutline(scale, self.getBezierPathOfName(scale, pitch, name), thickness)
 
 	def getBezierPathOfName(self, scale, pitch, name):
@@ -199,10 +207,10 @@ class TextRenderer(object):
 
 	def getBezierPath(self, scale, pitch, index):
 		try:
-			return self.cache.bezier_paths[index]
+			bp = self.cache[index].bezier_paths
+			if bp != None: return bp
 		except:
 			pass
-		#print outline.contours
 
 		(contours, points, itags) = self.get_glyph_contours_points_and_tags(index)
 		if len(contours) == 0:
@@ -243,7 +251,7 @@ class TextRenderer(object):
 					pathContour.curveToPoint_controlPoint1_controlPoint2_(nextOn, antenne1, antenne2)
 			start = end+1
 			paths.append(pathContour)
-		self.cache.bezier_paths[index] = paths
+		self.cache[index].bezier_paths = paths
 		return paths
 
 

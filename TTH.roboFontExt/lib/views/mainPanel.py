@@ -175,6 +175,8 @@ class MainPanel(BaseWindowController):
 			"Preferences",
 			NSMenuItem.separatorItem(),
 			"Transfer",
+			NSMenuItem.separatorItem(),
+			"LTSH debug",
 			]
 			)
 
@@ -282,8 +284,10 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 13:
 			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:
-			#matching.transfer()
 			pass
+			#matching.transfer()
+		elif gearOption == 17:
+			fm.computeLTSH()
 
 	def showPreviewCallback(self):
 		tthTool.updatePartialFontIfNeeded()

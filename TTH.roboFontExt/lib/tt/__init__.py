@@ -1,6 +1,22 @@
 
 from commons import helperFunctions as HF
 
+def modifiesLSBOrRSB(cmd):
+	code = cmd['code']
+	targets = ['lsb', 'rsb']
+	if code in ['alignh', 'alignv', 'alignt', 'alignb']:
+		return cmd['point'] in targets
+	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+		return cmd['point'] in targets
+	elif code in ['singlev', 'singleh']:
+		return cmd['point2'] in targets
+	elif code in ['doublev', 'doubleh']:
+		return (cmd['point1'] in targets) or (cmd['point2'] in targets)
+	elif code in ['interpolatev', 'interpolateh']:
+		return cmd['point'] in targets
+	else:
+		return False
+
 def compare(A, B):
 	A_isMiddleDelta = A['code'] in ['mdeltah', 'mdeltav']
 	B_isMiddleDelta = B['code'] in ['mdeltah', 'mdeltav']
