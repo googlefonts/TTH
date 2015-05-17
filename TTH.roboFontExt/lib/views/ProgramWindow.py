@@ -39,6 +39,7 @@ class ProgramWindow(TTHWindow):
 			]
 		win.programList = List((0, 0, -0, -0), [],
 					columnDescriptions=columnDescriptions,
+					allowsMultipleSelection=False,
 					enableDelete=False,
 					showColumnTitles=True,
 					selectionCallback=self.selectionCallback,
@@ -56,24 +57,22 @@ class ProgramWindow(TTHWindow):
 		#print sender.getSelection()
 
 	def editCallback(self, sender):
-		if self.lock or (sender.getSelection() == []):
+		selectList = sender.getSelection()
+		if self.lock or (selectList == []):
 			return
 		self.lock = True
-		updatedCommands = []
+		assert len(selectList) == 1
+		selectedIdx = selectList[0]
 		gm, fm = tthTool.getGlyphAndFontModel()
 		g = gm.RFGlyph
 		g.prepareUndo('Edit Program')
-		for commandUI in sender.get():
-			command = { k : str(commandUI[k]) for k in commandKeys if commandUI[k] != '' }
-			if commandUI['active'] == 1:
-				command['active'] = 'true'
-			else:
-				command['active'] = 'false'
-			if commandUI['delta'] != '':
-				command['delta'] = str(int(commandUI['delta']))
-			updatedCommands.append(command)
-
-		#gm.hintingCommands = updatedCommands
+		uiCmd = sender.get()[selectedIdx]
+		cmdIdx = uiCmd['index']
+		cmd = gm.sortedHintingCommands[cmdIdx]
+		if uiCmd['active']:
+			cmd['active'] = 'true'
+		else:
+			cmd['active'] = 'false'
 		gm.updateGlyphProgram(fm)
 		g.performUndo()
 		self.lock = False

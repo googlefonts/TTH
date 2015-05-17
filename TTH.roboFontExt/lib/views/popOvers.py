@@ -48,13 +48,6 @@ def makeEmptyPopover(size, pos, view):
 	offsetX, offsetY = view.offset()
 	return (p, (pos.x+offsetX, pos.y+offsetY))
 
-def activeStateName(cmd):
-	'''Used for display in the popovers' UI'''
-	if cmd['active'] == 'true':
-		return "Active"
-	else:
-		return "Inactive"
-
 def makeStemsLists():
 	x = ['None']
 	y = ['None']
@@ -128,7 +121,7 @@ class TTHCommandPopover(object):
 		popo = self.popover
 		popo.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.stateCheckBoxCallback, sizeStyle='small')
 		popo.stateCheckBox.set(self.cmd['active'] == 'true')
-		popo.stateTitle = TextBox((10, 14, -30, 20), activeStateName(self.cmd), sizeStyle='small')
+		popo.stateTitle = TextBox((10, 14, -30, 20), 'Active', sizeStyle='small')
 
 	def stateCheckBoxCallback(self, senderCheckBox):
 		g = self.gm.RFGlyph
@@ -137,13 +130,10 @@ class TTHCommandPopover(object):
 			# It might be beeter to do that on TTHGLyph, if we impleemnt support for undo in it
 			g.prepareUndo("Deactivate Command")
 			self.cmd['active'] = 'false'
-			commandState = "Inactive"
 		else:
 			g.prepareUndo("Activate Command")
 			self.cmd['active'] = 'true'
-			commandState = "Active"
 
-		self.popover.stateTitle.set(commandState)
 		self.gm.updateGlyphProgram(self.fm)
 		g.performUndo()
 

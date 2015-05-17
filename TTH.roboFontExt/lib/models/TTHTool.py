@@ -390,6 +390,7 @@ from views import previewPanel, mainPanel, AssemblyWindow, ProgramWindow
 import tools
 reload(TTHFont)
 reload(AssemblyWindow)
+reload(ProgramWindow)
 reload(previewPanel)
 reload(mainPanel)
 reload(tools)
