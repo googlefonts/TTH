@@ -2,7 +2,7 @@ from mojo.extensions import *
 from vanilla import *
 from mojo.canvas import Canvas
 from mojo.UI import *
-from AppKit import *
+#from AppKit import *
 import string
 
 from views import TTHWindow
@@ -12,9 +12,6 @@ DefaultKeyStub = "com.sansplomb.TTH."
 
 defaultKeyPreviewWindowPosSize = DefaultKeyStub + "previewWindowPosSize"
 defaultKeyPreviewWindowVisibility = DefaultKeyStub + "previewWindowVisibility"
-
-blackColor = NSColor.blackColor()
-redColor = NSColor.redColor()
 
 from models.TTHTool import uniqueInstance as tthTool
 
@@ -108,9 +105,9 @@ class PreviewPanel(TTHWindow):
 
 			displaysize = str(size)
 			if size == tthTool.PPM_Size:
-				DR.drawPreviewSize(displaysize, x-20, y, redColor)
+				DR.drawPreviewSize(displaysize, x-20, y, DR.kRedColor)
 			else:
-				DR.drawPreviewSize(displaysize, x-20, y, blackColor)
+				DR.drawPreviewSize(displaysize, x-20, y, DR.kBlackColor)
 
 			tr.set_cur_size(size)
 			tr.set_pen((x, y))
@@ -131,9 +128,9 @@ class PreviewPanel(TTHWindow):
 
 			displaysize = str(size)
 			if size == tthTool.PPM_Size:
-				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, redColor)
+				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, DR.kRedColor)
 			else:
-				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, blackColor)
+				DR.drawPreviewSize(displaysize, advance, ps[3] - 170, DR.kBlackColor)
 
 			tr.set_cur_size(size)
 			tr.set_pen((advance, ps[3] - 135))

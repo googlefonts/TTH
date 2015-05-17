@@ -72,4 +72,7 @@ class SingleLinkTool(TTHCommandTool):
 
 	def draw(self, scale):
 		if not self.dragging: return
-		DR.drawSingleArrow(scale, geom.makePoint(self.startPoint[0]), self.magnet(), DR.kLinkColor, 20)
+		locked, p = self.magnet()
+		DR.drawSingleArrow(scale, geom.makePoint(self.startPoint[0]), p, DR.kLinkColor, 20)
+		if locked:
+			DR.drawCircleAtPoint(10*scale, p.x, p.y, DR.kLinkColor)

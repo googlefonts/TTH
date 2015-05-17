@@ -16,6 +16,7 @@ class TTHWindow(object):
 	@property
 	def window(self):
 		return self._window
+
 	@window.setter
 	def window(self, w):
 		self._window = w
@@ -40,7 +41,7 @@ class TTHWindow(object):
 		self.window.hide()
 
 	def setNeedsDisplay(self):
-		self.window.getNSWindow()._setViewsNeedDisplay(True)
+		self.window.getNSWindow().setViewsNeedDisplay_(True)
 
 	###########
 	# callbacks

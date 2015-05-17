@@ -293,6 +293,9 @@ class MainPanel(BaseWindowController):
 		tthTool.updatePartialFontIfNeeded()
 		tthTool.previewPanel.show()
 
+	def showAssemblyCallback(self):
+		tthTool.assemblyWindow.show()
+
 	#################
 	# Display updates
 	#################

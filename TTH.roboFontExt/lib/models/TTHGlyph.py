@@ -217,6 +217,11 @@ class TTHGlyph(object):
 				return cmd
 		return None
 
+	def getAssembly(self):
+		key = 'com.robofont.robohint.assembly'
+		g = self.RFGlyph
+		return helperFunctions.getOrDefault(g.lib, key, [])
+
 	def saveToUFO(self, fm):
 		"""Save what can be saved in the UFO Lib."""
 		# write self.hintingCommands to UFO lib.

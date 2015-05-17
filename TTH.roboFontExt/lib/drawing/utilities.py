@@ -6,6 +6,7 @@ from AppKit import NSColor, NSFont, NSFontAttributeName,\
 from drawing import geom
 
 kArrowColor       = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, .5, 1)
+kBlackColor       = NSColor.blackColor()
 kBorderColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 kDeltaColor       = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 kDiscColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
@@ -15,6 +16,7 @@ kInactiveColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, .5, .5,
 kInterpolateColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.25, .8, 0, 1)
 kLinkColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, 0, 0, 1)
 kOutlineColor     = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .5)
+kRedColor         = NSColor.redColor()
 kShadowColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, .8)
 kSidebearingColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
 
@@ -35,6 +37,12 @@ def drawPreviewSize(title, x, y, color):
 def drawDiscAtPoint(r, x, y, color):
 	color.set()
 	NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
+
+def drawCircleAtPoint(r, x, y, color):
+	color.set()
+	path = NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
+	path.setLineWidth_(2)
+	path.stroke()
 
 def drawLozengeAtPoint(scale, r, x, y, color):
 	color.set()

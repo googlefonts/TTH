@@ -85,9 +85,10 @@ class TTHTool():
 		self._fontModels = {}
 
 		# Other windows of the TTH extension
-		self.mainPanel    = None
-		self.previewPanel = None
-		self.TTHWindows   = []
+		self.mainPanel      = None
+		self.previewPanel   = None
+		self.assemblyWindow = None
+		self.TTHWindows     = []
 
 	def __del__(self):
 		pass
@@ -151,6 +152,8 @@ class TTHTool():
 # - - - - - - - - - - - - - - - - - - - - - DISPLAY UPDATE
 
 	def updateDisplay(self):
+		self.assemblyWindow.updateAssemblyList()
+		self.assemblyWindow.setNeedsDisplay()
 		self.previewPanel.setNeedsDisplay()
 
 # - - - - - - - - - - - - - - - - - - - - - PREVIEW and CURRENT SIZE
@@ -256,9 +259,11 @@ class TTHTool():
 			self.showWindows()
 
 	def createWindows(self):
-		self.previewPanel = previewPanel.PreviewPanel()
-		self.TTHWindows = [self.previewPanel]
-		self.mainPanel    = mainPanel.MainPanel()
+		self.previewPanel   = previewPanel.PreviewPanel()
+		self.assemblyWindow = AssemblyWindow.AssemblyWindow()
+		self.TTHWindows     = [self.previewPanel, self.assemblyWindow]
+		self.mainPanel      = mainPanel.MainPanel()
+
 		self.changeSelectedHintingTool(tools.kCommandToolNames.index('Selection'))
 
 	def deleteWindows(self):
@@ -270,6 +275,8 @@ class TTHTool():
 
 		del self.previewPanel
 		self.previewPanel = None
+		del self.assemblyWindow
+		self.assemblyWindow = None
 
 	def becomeActive(self):
 		self.updatePartialFontIfNeeded()
@@ -322,6 +329,8 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
+	
+
 	def hintingProgramHasChanged(self, gm, fm):
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
 		#if self.programWindow.isVisible():
@@ -330,11 +339,8 @@ class TTHTool():
 		#	else:
 		#		self.programWindow.updateProgramList([])
 
-		#if self.assemblyWindow.isVisible():
-		#	if 'com.robofont.robohint.assembly' in g.lib:
-		#		self.assemblyWindow.updateAssemblyList(g.lib['com.robofont.robohint.assembly'])
-		#	else:
-		#		self.assemblyWindow.updateAssemblyList([])
+		if self.assemblyWindow.isVisible():
+			self.assemblyWindow.updateAssemblyList()
 		UpdateCurrentGlyphView()
 
 	def currentFontHasChanged(self, font):
@@ -382,9 +388,10 @@ uniqueInstance = TTHTool()
 if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
-from views import previewPanel, mainPanel
+from views import previewPanel, mainPanel, AssemblyWindow
 import tools
 reload(TTHFont)
+reload(AssemblyWindow)
 reload(previewPanel)
 reload(mainPanel)
 reload(tools)

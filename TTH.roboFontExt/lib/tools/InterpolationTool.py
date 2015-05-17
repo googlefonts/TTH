@@ -83,11 +83,14 @@ class InterpolationTool(TTHCommandTool):
 
 	def draw(self, scale):
 		if not self.dragging: return
+		locked, p = self.magnet()
 		if self.lookingForPoint2:
 			startPos = geom.makePoint(self.interpolatedPoint1[0])
 			midPos = geom.makePoint(self.interpolatedPoint[0])
 			DR.drawDoubleArrow(scale, midPos, startPos, True, DR.kInterpolateColor, 20)
-			DR.drawDoubleArrow(scale, midPos, self.magnet(), True, DR.kInterpolateColor, -20)
+			DR.drawDoubleArrow(scale, midPos, p, True, DR.kInterpolateColor, -20)
 		else:
 			startPos = geom.makePoint(self.startPoint[0])
-			DR.drawDoubleArrow(scale, self.magnet(), startPos, True, DR.kInterpolateColor, 20)
+			DR.drawDoubleArrow(scale, p, startPos, True, DR.kInterpolateColor, 20)
+		if locked:
+			DR.drawCircleAtPoint(10*scale, p.x, p.y, DR.kInterpolateColor)

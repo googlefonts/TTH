@@ -115,9 +115,9 @@ class TTHCommandTool(object):
 	def magnet(self):
 		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos)
 		if tgt[0]:
-			return geom.makePoint(tgt[0][0])
+			return True, geom.makePoint(tgt[0][0])
 		else:
-			return self.mouseDraggedPos
+			return False, self.mouseDraggedPos
 
 	def realClick(self, point):
 		upPoint = geom.makePoint(point)
