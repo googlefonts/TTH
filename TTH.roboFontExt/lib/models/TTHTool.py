@@ -88,6 +88,7 @@ class TTHTool():
 		self.mainPanel      = None
 		self.previewPanel   = None
 		self.assemblyWindow = None
+		self.programWindow  = None
 		self.TTHWindows     = []
 
 	def __del__(self):
@@ -152,8 +153,8 @@ class TTHTool():
 # - - - - - - - - - - - - - - - - - - - - - DISPLAY UPDATE
 
 	def updateDisplay(self):
+		self.programWindow.updateProgramList()
 		self.assemblyWindow.updateAssemblyList()
-		self.assemblyWindow.setNeedsDisplay()
 		self.previewPanel.setNeedsDisplay()
 
 # - - - - - - - - - - - - - - - - - - - - - PREVIEW and CURRENT SIZE
@@ -260,8 +261,9 @@ class TTHTool():
 
 	def createWindows(self):
 		self.previewPanel   = previewPanel.PreviewPanel()
+		self.programWindow  = ProgramWindow.ProgramWindow()
 		self.assemblyWindow = AssemblyWindow.AssemblyWindow()
-		self.TTHWindows     = [self.previewPanel, self.assemblyWindow]
+		self.TTHWindows     = [self.previewPanel, self.assemblyWindow, self.programWindow]
 		self.mainPanel      = mainPanel.MainPanel()
 
 		self.changeSelectedHintingTool(tools.kCommandToolNames.index('Selection'))
@@ -277,6 +279,8 @@ class TTHTool():
 		self.previewPanel = None
 		del self.assemblyWindow
 		self.assemblyWindow = None
+		del self.programWindow
+		self.programWindow = None
 
 	def becomeActive(self):
 		self.updatePartialFontIfNeeded()
@@ -329,16 +333,10 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
-	
-
 	def hintingProgramHasChanged(self, gm, fm):
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
-		#if self.programWindow.isVisible():
-		#	if self.glyphTTHCommands != None:
-		#		self.programWindow.updateProgramList(self.glyphTTHCommands)
-		#	else:
-		#		self.programWindow.updateProgramList([])
-
+		if self.programWindow.isVisible():
+			self.programWindow.updateProgramList()
 		if self.assemblyWindow.isVisible():
 			self.assemblyWindow.updateAssemblyList()
 		UpdateCurrentGlyphView()
@@ -388,7 +386,7 @@ uniqueInstance = TTHTool()
 if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
-from views import previewPanel, mainPanel, AssemblyWindow
+from views import previewPanel, mainPanel, AssemblyWindow, ProgramWindow
 import tools
 reload(TTHFont)
 reload(AssemblyWindow)

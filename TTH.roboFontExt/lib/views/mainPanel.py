@@ -293,8 +293,14 @@ class MainPanel(BaseWindowController):
 		tthTool.updatePartialFontIfNeeded()
 		tthTool.previewPanel.show()
 
+	def showProgramCallback(self):
+		tthTool.programWindow.show()
+
 	def showAssemblyCallback(self):
 		tthTool.assemblyWindow.show()
+
+	def controlValuesCallback(self):
+		print "[TTH ERROR] Not yet implemented."
 
 	#################
 	# Display updates
