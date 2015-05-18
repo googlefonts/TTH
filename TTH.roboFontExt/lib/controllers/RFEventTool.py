@@ -127,11 +127,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def fontBecameCurrent(self, font):
 		'''This function is called by RF when a new Font becomes Current'''
-		# if hasattr(self.toolsPanel, 'sheetControlValues'):
-		# 	self.toolsPanel.sheetControlValues.c_fontModel = self.c_fontModel
-		# 	self.toolsPanel.sheetControlValues.resetGeneralBox()
-		# 	self.toolsPanel.sheetControlValues.resetStemBox()
-		# 	self.toolsPanel.sheetControlValues.resetZoneBox()
 		#print "[TTH RF EVENT] Font became current", font.fileName
 		tthTool.showOrHide()
 		tthTool.currentFontHasChanged(font)

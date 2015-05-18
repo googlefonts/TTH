@@ -39,6 +39,7 @@ class MainPanel(BaseWindowController):
 		self.makeStemsList()
 		self.makeMainPanel()
 		self._lock = False
+		self.cvSheet = None
 
 	def locked(self):
 		return self._lock
@@ -280,7 +281,7 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 9:
 			tthTool.assemblyWindow.show()
 		elif gearOption == 11:
-			ControlValues.ControlValuesSheet(self.wTools)
+			self.cvSheet = ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 13:
 			preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:

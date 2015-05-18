@@ -10,6 +10,8 @@ from tt import asm
 reload(tt)
 reload(asm)
 
+silent = False
+
 def makeRPoint(pos, name):
 	return RPoint(pos.x, pos.y, None, name)
 
@@ -364,14 +366,17 @@ class TTHGlyph(object):
 					cmd['mono'] = 'true'
 			if self.commandIsOK(cmd, verbose = True, absent = absent, badName = badName):
 				self.hintingCommands.append(cmd)
-		if absent or badName:
-			print "[TTH WARNING] In glyph", self._g.name,":\n\t",
+		if silent: return
+		message = "[TTH WARNING] In glyph "+self._g.name+":"
 		if absent:
-			print "The following points do not exist. Commands acting on these points have been erased:"
-			print '\n\t'.join([repr(e) for e in absent])
+			message += "The following points do not exist. "
+			message += "Commands acting on these points have been erased:\n\t"
+			message += '\n\t'.join([repr(e) for e in absent])
 		if badName:
-			print "The following points have a name containing the word 'inserted'. Commands acting on these points have been erased:"
-			print '\n\t'.join([repr(e) for e in badName])
+			message += "The following points have a name containing the word 'inserted'. "
+			message += "Commands acting on these points have been erased:\n\t"
+			message += '\n\t'.join([repr(e) for e in badName])
+		if absent or badName: print message
 
 	def renameZone(self, oldName, newName):
 		'''Use newName = '' to transform the align-to-zone to a simple alignv'''
@@ -380,7 +385,7 @@ class TTHGlyph(object):
 			if not (command['code'] in ['alignt', 'alignb']): continue
 			if command['zone'] != oldName: continue
 			modified = True
-			if newName != '': # change name
+			if newName != None: # change name
 				command['zone'] = newName
 			else: # delete zone
 				del command['zone']

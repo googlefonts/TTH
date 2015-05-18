@@ -13,8 +13,10 @@ from tt import asm, tables
 
 class ZoneView(object):
 	def __init__(self, zoneBox, height, title, ID):
+		self.uiZoneNameCopy = None
 		self.lock = False
 		self.ID = ID
+		self.friend = None
 		self.zonesTitle = TextBox((10, height-24, -10, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 142))
 		# put the title as a sub-widget of the zoneS box
@@ -25,7 +27,7 @@ class ZoneView(object):
 		box.zones_List = List((0, 0, -0, -22), [],
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
 					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
-			editCallback = self.UIZones_EditCallBack,
+			editCallback = self.UIZones_EditCallback,
 			allowsMultipleSelection = False)
 		box.buttonRemoveZone = SquareButton((0, -22, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
 		box.editTextZoneName = EditText(    (22, -22, 160, 22), sizeStyle = "small")
@@ -34,16 +36,22 @@ class ZoneView(object):
 		box.editTextZoneDelta = EditText(   (292, -22, 135, 22), sizeStyle = "small")
 		box.buttonAddZone     = SquareButton((-22, -22, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddZoneCallback)
 		self.reset()
-		self.tracker = commons.RenameTracker(z['Name'] for z in self.UIZones)
+
+	def __del__(self):
+		self.friend = None
 
 	def reset(self):
-		buildTop = self.ID == 'top'
+		buildTop = (self.ID == 'top')
 		fm = tthTool.getFontModel()
-		self.UIZones = [self.uiZoneOfZone(zone, name) for name, zone in fm.zones.iteritems() if zone['top'] == buildTop]
+		zoneNames = fm.zones.keys()
+		zoneNames.sort()
+		UIZones = [self.uiZoneOfZone(fm.zones[name], name) for name in zoneNames if fm.zones[name]['top'] == buildTop]
 		self.box.zones_List.setSelection([])
-		self.box.zones_List.set(self.UIZones)
+		self.box.zones_List.set(UIZones)
+		self.uiZoneNameCopy = [z['Name'] for z in UIZones]
+		self.nameChangeTracker = commons.RenameTracker(self.uiZoneNameCopy)
 
-	def UIZones_EditCallBack(self, sender):
+	def UIZones_EditCallback(self, sender):
 		if self.lock or (sender.getSelection() == []):
 			return
 		self.lock = True
@@ -51,52 +59,73 @@ class ZoneView(object):
 		sender.setSelection([])
 		sel = selection[0]
 		try:
-			oldZoneName = self.UIZones[sel]['Name']
+			oldZoneName = self.uiZoneNameCopy[sel]
 		except:
 			oldZoneName = "" # probably a new zone was created
-			print "ERROR SHOULD NEVER HAPPEN in ZoneView.UIZones_EditCallBack"
-
+			print "ERROR SHOULD NEVER HAPPEN in ZoneView.UIZones_EditCallback"
 		uiZone = sender[sel]
-
 		if 'Name' in uiZone:
 			newZoneName = uiZone['Name']
 		else:
 			newZoneName = self.ID + '_' + str(sel)
-			sender[sel]['Name'] = newZoneName
+			uiZone['Name'] = newZoneName
 
 		fm = tthTool.getFontModel()
 		if oldZoneName != newZoneName:
-			#print "Original zone name = ", oldZoneName, ", new zone name = ", newZoneName
-			if newZoneName in fm.zones:
+			if (newZoneName == '')	or (newZoneName in self.uiZoneNameCopy) \
+								or (newZoneName in self.friend.uiZoneNameCopy):
 				print "ERROR: Can't use an already existing name."
 				newZoneName = oldZoneName
-				sender[sel]['Name'] = newZoneName
+				uiZone['Name'] = newZoneName
 				self.lock = False
 				return
 			else:
-				del fm.zones[oldZoneName]
-		print "OLD", self.UIZones[sel]
-		print "NEW", sender[sel]
-		self.UIZones[sel] = sender[sel].copy()
-
-		# fill missing data
-		if not ('Position' in uiZone): uiZone['Position'] = 0
-		if not ('Width' in uiZone):    uiZone['Width'] = 0
-		if not ('Delta' in uiZone):    uiZone['Delta'] = '0@0'
-		
-		self.tracker.rename(oldZoneName, newZoneName)
-		print self.tracker
-		fm.editZone(oldZoneName, newZoneName, uiZone, self.ID == 'top')
+				self.nameChangeTracker.rename(oldZoneName, newZoneName)
+		self.uiZoneNameCopy[sel] = uiZone['Name']
 		self.lock = False
 
 	def buttonRemoveZoneCallback(self, sender):
 		UIList = self.box.zones_List
 		selection = UIList.getSelection()
 		UIList.setSelection([])
+		selection.sort()
 		selected = [UIList[i]['Name'] for i in selection]
 		self.lock = True
-		tthTool.getFontModel().deleteZones(selected)
-		self.reset()
+		for pos, sel in enumerate(selection):
+			i = sel-pos
+			self.nameChangeTracker.rename(UIList[i]['Name'], None)
+			self.uiZoneNameCopy.pop(i)
+			items = self.box.zones_List.get()
+			items.pop(i)
+			self.box.zones_List.set(items)
+		self.lock = False
+
+	def buttonAddZoneCallback(self, sender):
+		name = self.box.editTextZoneName.get()
+		fm = tthTool.getFontModel()
+		if (name == '') or (name in self.uiZoneNameCopy) or (name in self.friend.uiZoneNameCopy):
+			print "ERROR: Can't use an already existing name."
+			return
+		position = int(self.box.editTextZonePosition.get())
+		width = int(self.box.editTextZoneWidth.get())
+		delta = self.box.editTextZoneDelta.get()
+		deltaDict = helperFunctions.deltaDictFromString(delta)
+
+		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width }
+		if deltaDict == {}:
+			newZone['delta'] = deltaDict
+		self.box.zones_List.setSelection([])
+		self.lock = True
+
+		items = self.box.zones_List.get()
+		items.append(self.uiZoneOfZone(newZone, name))
+		self.box.zones_List.set(items)
+		self.uiZoneNameCopy.append(name)
+
+		self.box.editTextZoneName.set("")
+		self.box.editTextZonePosition.set("")
+		self.box.editTextZoneWidth.set("")
+		self.box.editTextZoneDelta.set("")
 		self.lock = False
 
 	def editTextZoneIntegerCallback(self, sender):
@@ -110,7 +139,7 @@ class ZoneView(object):
 			sender.set(value)
 
 	def uiZoneOfZone(self, zone, name):
-		c_zoneDict = { 'Name': name, 'Position': int(zone['position']), 'Width': int(zone['width']) }
+		c_zoneDict = { 'Name': name, 'Position': zone['position'], 'Width': zone['width'] }
 		deltaString = ''
 		if 'delta' in zone:
 			deltas = zone['delta']
@@ -121,28 +150,6 @@ class ZoneView(object):
 		else:
 			c_zoneDict['Delta'] = '0@0'
 		return c_zoneDict
-
-	def buttonAddZoneCallback(self, sender):
-		name = self.box.editTextZoneName.get()
-		if name == '' or name in tthTool.getFontModel().zones:
-			return
-		position = int(self.box.editTextZonePosition.get())
-		width = int(self.box.editTextZoneWidth.get())
-		delta = self.box.editTextZoneDelta.get()
-		deltaDict = tthTool.deltaDictFromString(delta)
-
-		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width }
-		if deltaDict == {}:
-			newZone['delta'] = deltaDict
-		self.box.zones_List.setSelection([])
-		self.lock = True
-		tthTool.addZone(name, newZone, self)
-		self.reset()
-		self.box.editTextZoneName.set("")
-		self.box.editTextZonePosition.set("")
-		self.box.editTextZoneWidth.set("")
-		self.box.editTextZoneDelta.set("")
-		self.lock = False
 
 # ===========================================================================
 
@@ -199,7 +206,7 @@ class StemView(object):
 			oldStemName = self.UIStems[sel]['Name']
 		except:
 			oldStemName = "" # probably a new stem was created
-			print "ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallBack"
+			print "ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallback"
 
 		stemDict = sender[sel]
 
@@ -368,6 +375,8 @@ class ControlValuesSheet(object):
 		w.zoneBox = Box((10, 19, -10, -40))
 		self.topZoneView = ZoneView(w.zoneBox, 34, "Top zones", 'top')
 		self.bottomZoneView = ZoneView(w.zoneBox, height-260, "Bottom zones", 'bottom')
+		self.topZoneView.friend = self.bottomZoneView
+		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		# STEM EDITOR
@@ -391,7 +400,7 @@ class ControlValuesSheet(object):
 			{"title": "GridFit",        "width": 100, "key": "GF",    "editable": True, "cell": CheckBoxListCell()},
 			{"title": "Sym. GridFit",   "width": 100, "key": "SGF",   "editable": True, "cell": CheckBoxListCell()},
 			{"title": "Sym. Smoothing", "width": 100, "key": "SS",    "editable": True, "cell": CheckBoxListCell()}],
-			editCallback = self.gaspSettingsList_EditCallBack,
+			editCallback = self.gaspSettingsList_EditCallback,
 			selectionCallback = self.gaspSettingsList_SelectionCallback)
 		self.setGaspRangesListUI()
 
@@ -461,7 +470,7 @@ class ControlValuesSheet(object):
 		selectedRow = sender.getSelection()[0]
 		self.oldRangeValue = sender[selectedRow]['range']
 
-	def gaspSettingsList_EditCallBack(self, sender):
+	def gaspSettingsList_EditCallback(self, sender):
 		edited = sender.getEditedColumnAndRow()
 
 		if self.lock or (sender.getSelection() == []):
@@ -564,20 +573,26 @@ class ControlValuesSheet(object):
 		self.automation.autoStems(fm.f, self.w.stemBox.AutoStemProgressBar)
 		self.w.stemBox.AutoStemProgressBar.show(0)
 
+	def close(self):
+		self.w.close()
+		tthTool.mainPanel.cvSheet = None
+
 	def closeButtonCallback(self, sender):
 		self.applyButtonCallback(sender)
-		self.w.close()
+		self.close()
 
 	def applyButtonCallback(self, sender):
-		pass
+		fm = tthTool.getFontModel()
+		fm.zones = {}
+		fm.applyChangesFromUIZones(
+				self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List,
+				[self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker])
+		tthTool.hintingProgramHasChanged(fm)
+		tthTool.updateDisplay()
 		###self.controller.changeStemSnap(fm.f, self.w.generalBox.editTextStemSnap.get())
 		###self.controller.changeAlignppm(fm.f, self.w.generalBox.editTextAlignment.get())
 		###self.controller.changeCodeppm(fm.f, self.w.generalBox.editTextInstructions.get())
 		###tt_tables.writegasp(fm.f, fm.gasp_ranges)
-		###self.controller.resetFont()
-		###self.controller.updateGlyphProgram(self.controller.getGlyph())
-		###self.controller.refreshGlyph(self.controller.getGlyph())
-		###self.controller.previewWindow.setNeedsDisplay()
 
 	def editTextStemSnapCallback(self, sender):
 		try:

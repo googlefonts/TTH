@@ -167,53 +167,48 @@ class TTHFont():
 				return (zoneName, self.zones[zoneName])
 		return None, None
 
-	def editZone(self, oldZoneName, zoneName, uiZone, isTop):
-		self.storeZone(zoneName, uiZone, isTop)
-		self.saveZonesToUFO()
-		if oldZoneName == zoneName: return
-		# zone name has changed, we must upate all the hinting Commands
-		for g in self.f:
-			hasG = self.hasGlyphModelForGlyph(g)
-			gm = self.glyphModelForGlyph(g)
-			if gm.renameZone(oldZoneName, zoneName):
-				gm.saveToUFO(self)
-			if not hasG: self.delGlyphModelForGlyph(g)
-		self.dirtyCVT()
-		tthTool.hintingProgramHasChanged(self)
-
-	def storeZone(self, zoneName, entry, isTop):
-		if zoneName not in self.zones:
-			self.zones[zoneName] = {}
-		zone = self.zones[zoneName]
-		zone['top'] = isTop
-		zone['position'] = int(entry['Position'])
-		zone['width'] = int(entry['Width'])
-		deltaDict = helperFunctions.deltaDictFromString(entry['Delta'])
-		if deltaDict != {}:
-			zone['delta'] = deltaDict
-		elif 'delta' in zone:
-			del zone['delta']
-
-	def deleteZones(self, selected):
-		if selected == []: return
-		for zoneName in selected:
-			try: del self.f.lib[FL_tth_key]["zones"][zoneName]
-			except: pass
-			try: del self.zones[zoneName]
-			except: pass
-		for g in self.f:
-			hasG = self.hasGlyphModelForGlyph(g)
-			gm = self.glyphModelForGlyph(g)
-			if gm.renameZone(oldZoneName, ''):
-				gm.saveToUFO(self)
-			if not hasG: self.delGlyphModelForGlyph(g)
-		self.dirtyCVT()
-		tthTool.hintingProgramHasChanged(self)
-
 	def addZone(self, name, newZone):
 		self.zones[name] = newZone
 		self.saveZonesToUFO()
 		self.dirtyCVT()
+
+	def applyChangesFromUIZones(self, topUIZones, bottomUIZones, nameTrackers):
+		for top, uiZones in [(True, topUIZones), (False, bottomUIZones)]:
+			for uiZone in uiZones:
+				# fill missing data
+				if not ('Position' in uiZone): uiZone['Position'] = 0
+				if not ('Width' in uiZone):    uiZone['Width'] = 0
+				if not ('Delta' in uiZone):    uiZone['Delta'] = '0@0'
+				self.addZone(uiZone['Name'], self.zoneOfUIZone(uiZone, top))
+		nameChanges = []
+		for tracker in nameTrackers:
+			for org in tracker.originals():
+				new = tracker.newNameOf(org)
+				if new == org: continue
+				if org in self.zones: continue
+				nameChanges.append((org, new))
+		if nameChanges:
+			TTHGlyph.silent = True
+			for g in self.f:
+				hasG = self.hasGlyphModelForGlyph(g)
+				gm = self.glyphModelForGlyph(g)
+				glyphChanged = False
+				for (org, new) in nameChanges:
+					if gm.renameZone(org, new): glyphChanged = True
+				if glyphChanged:
+					gm.saveToUFO(self)
+				if not hasG: self.delGlyphModelForGlyph(g)
+			TTHGlyph.silent = False
+		self.saveZonesToUFO()
+		self.dirtyCVT()
+
+	def zoneOfUIZone(self, uiZone, top):
+		return {
+				'position': uiZone['Position'],
+				'width': uiZone['Width'],
+				'delta': helperFunctions.deltaDictFromString(uiZone['Delta']),
+				'top': top,
+			}
 
 # - - - - - - - - - - - - - - - -
 

@@ -1,30 +1,33 @@
 
 class RenameTracker(object):
 	def __init__(self, originals):
-		self.renamings = [(o,o) for o in originals]
+		self.renamings = dict((o,o) for o in originals)
 		self.history = []
 
+	def originals(self):
+		return self.renamings.keys()
+
+	def isOriginal(self, name):
+		return (name in self.renamings)
+
 	def newNameOf(self, name):
-		for (o,n) in self.renamings:
-			if o == name:
-				return n
-		return None
+		if self.isOriginal(name):
+			return self.renamings[name]
+		else:
+			return None
 
 	def rename(self, old, new):
 		if old == new: return True
 		if old == None: return False
-		for (o,n) in self.renamings:
-			if n != None and n == new: return False
-		idx = -1
-		for i, (o,n) in enumerate(self.renamings):
+		key = None
+		for (o,n) in self.renamings.iteritems():
 			if n == old:
-				idx = i
+				key = o
 				break
-		if idx == -1: return False
-		o, n = self.renamings[i]
-		self.renamings[i] = (o, new)
+		if key is None: return False
+		self.renamings[key] = new
 		self.history.append((old, new))
 		return True
 
 	def __repr__(self):
-		return '\n'.join(' -> '.join([o,n]) for (o,n) in self.renamings)
+		return '\n'.join(' -> '.join([str(k),str(v)]) for (k,v) in self.renamings.iteritems())

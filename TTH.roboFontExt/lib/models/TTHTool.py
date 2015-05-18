@@ -345,6 +345,9 @@ class TTHTool():
 		fm = self.fontModelForFont(font)
 		if fm is None: return
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
+		if self.mainPanel.cvSheet != None:
+			self.mainPanel.cvSheet.close()
+			self.mainPanel.cvSheet = None
 
 	def updatePartialFontIfNeeded(self):
 		g, fm = self.getRGAndFontModel()
