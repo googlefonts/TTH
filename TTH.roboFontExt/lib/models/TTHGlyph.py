@@ -244,6 +244,7 @@ class TTHGlyph(object):
 		text = ET.tostring(root)
 		self._g.lib['com.fontlab.ttprogram'] = Data(text)
 		# compile to TT assembly language and write it in UFO lib.
+		if fm.stem_to_cvt is None: fm.writeCVTandPREP()
 		tt.asm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
 
 	def commandIsOK(self, cmd, verbose = False, absent = [], badName = []):
@@ -334,7 +335,7 @@ class TTHGlyph(object):
 	def updateGlyphProgram(self, fm):
 		self.cleanCommands()
 		self.saveToUFO(fm)
-		tthTool.hintingProgramHasChanged(self, fm)
+		tthTool.hintingProgramHasChanged(fm)
 
 	def loadFromUFO(self):
 		"""Load what can be loaded from the UFO Lib."""
@@ -364,14 +365,28 @@ class TTHGlyph(object):
 			if self.commandIsOK(cmd, verbose = True, absent = absent, badName = badName):
 				self.hintingCommands.append(cmd)
 		if absent or badName:
-			print "[TTH WARNING] In glyph", self._g.name,":"
+			print "[TTH WARNING] In glyph", self._g.name,":\n\t",
 		if absent:
 			print "The following points do not exist. Commands acting on these points have been erased:"
-			for e in absent: print e
+			print '\n\t'.join([repr(e) for e in absent])
 		if badName:
 			print "The following points have a name containing the word 'inserted'. Commands acting on these points have been erased:"
-			for e in badName: print e
-		if absent or badName:
-			print "[END OF TTH WARNING]"
+			print '\n\t'.join([repr(e) for e in badName])
+
+	def renameZone(self, oldName, newName):
+		'''Use newName = '' to transform the align-to-zone to a simple alignv'''
+		modified = False
+		for command in self.hintingCommands:
+			if not (command['code'] in ['alignt', 'alignb']): continue
+			if command['zone'] != oldName: continue
+			modified = True
+			if newName != '': # change name
+				command['zone'] = newName
+			else: # delete zone
+				del command['zone']
+				command['code'] = 'alignv'
+				command['align'] = 'round'
+		if modified: self.dirtyHinting()
+		return modified
 
 if tthTool._printLoadings: print "TTHGlyph, ",

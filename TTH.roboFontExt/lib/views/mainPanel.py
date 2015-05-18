@@ -5,10 +5,11 @@ from vanilla import *
 from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
 from mojo.UI import UpdateCurrentGlyphView
 
-from views import preferencesSheet
+from views import preferencesSheet, ControlValues
 from models.TTHTool import uniqueInstance as tthTool
 
 reload(preferencesSheet)
+reload(ControlValues)
 
 # get some icons
 buttonXPath             = ExtensionBundle("TTH").get("buttonX")
@@ -272,35 +273,20 @@ class MainPanel(BaseWindowController):
 					tthTool.previewPanel.setNeedsDisplay()
 				UpdateCurrentGlyphView()
 		elif gearOption == 7:
-			self.showPreviewCallback()
+			tthTool.updatePartialFontIfNeeded()
+			tthTool.previewPanel.show()
 		elif gearOption == 8:
-			self.showProgramCallback()
+			tthTool.programWindow.show()
 		elif gearOption == 9:
-			self.showAssemblyCallback()
-
+			tthTool.assemblyWindow.show()
 		elif gearOption == 11:
-			self.controlValuesCallback()
-
+			ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 13:
-			self.preferencesSheet = preferencesSheet.PreferencesSheet(self.wTools)
+			preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:
-			pass
-			#matching.transfer()
+			pass #matching.transfer()
 		elif gearOption == 17:
 			fm.computeLTSH()
-
-	def showPreviewCallback(self):
-		tthTool.updatePartialFontIfNeeded()
-		tthTool.previewPanel.show()
-
-	def showProgramCallback(self):
-		tthTool.programWindow.show()
-
-	def showAssemblyCallback(self):
-		tthTool.assemblyWindow.show()
-
-	def controlValuesCallback(self):
-		print "[TTH ERROR] Not yet implemented."
 
 	#################
 	# Display updates

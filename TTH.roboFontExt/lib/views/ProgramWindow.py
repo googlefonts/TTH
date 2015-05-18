@@ -42,19 +42,12 @@ class ProgramWindow(TTHWindow):
 					allowsMultipleSelection=False,
 					enableDelete=False,
 					showColumnTitles=True,
-					selectionCallback=self.selectionCallback,
+					#selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
+		self.window = win
 
-		self.window = win # this will not rebind the events, since they are already bound.
-
-	def selectionCallback(self, sender):
-		pass
-		# if sender.getSelection() != []:
-		# 	self.TTHToolInstance.popOverIsOpened = True
-		# 	self.TTHToolInstance.commandClicked = sender.getSelection()[0]
-		# 	self.TTHToolInstance.selectedCommand = self.TTHToolInstance.glyphTTHCommands[self.TTHToolInstance.commandClicked]
-		# 	UpdateCurrentGlyphView()
-		#print sender.getSelection()
+	#def selectionCallback(self, sender):
+	#	pass
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()

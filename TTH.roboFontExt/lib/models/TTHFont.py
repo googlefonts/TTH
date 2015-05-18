@@ -12,15 +12,13 @@ from models import TTHGlyph
 
 from views import previewInGlyphWindow as PIGW
 
+import tt
 from tt import tables
 
 reload(helperFunctions)
 reload(textRenderer)
 reload(TTHGlyph)
 reload(tables)
-
-FL_tth_key = "com.fontlab.v2.tth"
-SP_tth_key = "com.sansplomb.tth"
 
 class TTHFont():
 	def __init__(self, font):
@@ -50,8 +48,7 @@ class TTHFont():
 		self._glyphModels = {}
 
 		# TrueType tables
-		self.stem_to_cvt = None
-		self.zone_to_cvt = None
+		self.dirtyCVT()
 		self.writeCVTandPREP()
 		tables.writeFPGM(self)
 		tables.writegasp(self)
@@ -74,11 +71,19 @@ class TTHFont():
 			self._pigw.removeFromSuperview()
 			self._pigw = None
 
+	def dirtyCVT(self):
+		self.stem_to_cvt = None
+		self.zone_to_cvt = None
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - TTHGlyph
+
+	def hasGlyphModelForGlyph(self, g):
+		key = g.name
+		return (key in self._glyphModels)
 
 	def glyphModelForGlyph(self, g):
 		key = g.name
-		if key not in self._glyphModels:
+		if not self.hasGlyphModelForGlyph(g):
 			model = TTHGlyph.TTHGlyph(g)
 			self._glyphModels[key] = model
 			return model
@@ -94,7 +99,7 @@ class TTHFont():
 # - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
 
 	def getSPLib(self):
-		return helperFunctions.getOrPutDefault(self.f.lib, SP_tth_key, {})
+		return helperFunctions.getOrPutDefault(self.f.lib, tt.SP_tth_key, {})
 
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
@@ -135,7 +140,7 @@ class TTHFont():
 
 	def saveZonesToUFO(self):
 		# useless because they ARE the same dictionary
-		self.f.lib[FL_tth_key]["zones"] = self.zones
+		self.f.lib[tt.FL_tth_key]["zones"] = self.zones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
 		assert(zoneName in self.zones)
@@ -162,6 +167,54 @@ class TTHFont():
 				return (zoneName, self.zones[zoneName])
 		return None, None
 
+	def editZone(self, oldZoneName, zoneName, uiZone, isTop):
+		self.storeZone(zoneName, uiZone, isTop)
+		self.saveZonesToUFO()
+		if oldZoneName == zoneName: return
+		# zone name has changed, we must upate all the hinting Commands
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g)
+			if gm.renameZone(oldZoneName, zoneName):
+				gm.saveToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+		self.dirtyCVT()
+		tthTool.hintingProgramHasChanged(self)
+
+	def storeZone(self, zoneName, entry, isTop):
+		if zoneName not in self.zones:
+			self.zones[zoneName] = {}
+		zone = self.zones[zoneName]
+		zone['top'] = isTop
+		zone['position'] = int(entry['Position'])
+		zone['width'] = int(entry['Width'])
+		deltaDict = helperFunctions.deltaDictFromString(entry['Delta'])
+		if deltaDict != {}:
+			zone['delta'] = deltaDict
+		elif 'delta' in zone:
+			del zone['delta']
+
+	def deleteZones(self, selected):
+		if selected == []: return
+		for zoneName in selected:
+			try: del self.f.lib[FL_tth_key]["zones"][zoneName]
+			except: pass
+			try: del self.zones[zoneName]
+			except: pass
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g)
+			if gm.renameZone(oldZoneName, ''):
+				gm.saveToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+		self.dirtyCVT()
+		tthTool.hintingProgramHasChanged(self)
+
+	def addZone(self, name, newZone):
+		self.zones[name] = newZone
+		self.saveZonesToUFO()
+		self.dirtyCVT()
+
 # - - - - - - - - - - - - - - - -
 
 	def changeBitmapPreviewMode(self, mode):
@@ -184,7 +237,7 @@ class TTHFont():
 
 	def _readControlValuesFromUFO(self):
 		try:
-			tth_lib = helperFunctions.getOrPutDefault(self.f.lib, FL_tth_key, {})
+			tth_lib = helperFunctions.getOrPutDefault(self.f.lib, tt.FL_tth_key, {})
 
 			# From the plist written by FontLab when exporting a font to
 			# UFO, we recover some useful data for hinting
@@ -256,8 +309,9 @@ class TTHFont():
 	_helpOnFontGeneration = '''
 What tables are needed?
 CVT , PREP
-	The CVT and PREP table should be re-generated when the 'Control
-	Value Panel' is closed.
+	The CVT and PREP table should be re-generated
+	- when the 'Control Value Panel' is closed?
+	- when the zones change
 FPGM
 	Always regenerated. This is fast and safe.
 	The table depends on 'stemsnap' which is modifiable in the

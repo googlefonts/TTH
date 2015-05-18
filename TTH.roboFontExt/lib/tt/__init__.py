@@ -1,6 +1,9 @@
 
 from commons import helperFunctions as HF
 
+FL_tth_key = "com.fontlab.v2.tth"
+SP_tth_key = "com.sansplomb.tth"
+
 def modifiesLSBOrRSB(cmd):
 	code = cmd['code']
 	targets = ['lsb', 'rsb']

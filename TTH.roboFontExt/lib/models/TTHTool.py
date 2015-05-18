@@ -333,7 +333,7 @@ class TTHTool():
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
-	def hintingProgramHasChanged(self, gm, fm):
+	def hintingProgramHasChanged(self, fm):
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
 		if self.programWindow.isVisible():
 			self.programWindow.updateProgramList()

@@ -93,9 +93,6 @@ def exists(l, p):
 			return True
 	return False
 
-def roundbase(x, base):
-	return int(base * round(float(x)/base))
-
 def mean(l):
 	return float(sum(l))/float(len(l))
 
@@ -237,3 +234,12 @@ def topologicalSort(l, f):
 	except Exception:
 		print "ERROR: Found a loop in topological sort"
 		return l
+
+def deltaDictFromString(s):
+	try:
+		if s == '0@0': return {}
+		listOfLists = [[int(i) for i in reversed(x.split('@'))] for x in s.split(',')]
+		for li in listOfLists: li[0] = str(li[0])
+		return dict(listOfLists)
+	except:
+		return {}

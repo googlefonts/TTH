@@ -186,6 +186,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		if tthTool.showGrid == 1 and ((not simpleDrawing) or 'Delta' in tool.name):
 			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
 
+		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
 		if simpleDrawing: return
 
 		self.drawZones(scale, pitch, fm)
@@ -204,7 +205,6 @@ class TTH_RF_EventTool(BaseEventTool):
 			tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
 			self.drawSideBearings(scale, pitch, g.name, fm)
 
-		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
 		self.drawAscentDescent(scale, pitch, fm)
 
 	def draw(self, scale):
