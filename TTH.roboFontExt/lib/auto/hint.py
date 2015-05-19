@@ -1,4 +1,5 @@
 
+import weakref
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 
@@ -106,6 +107,22 @@ class Group:
 	def add(self, pos):
 		self.alignments.add(pos)
 		self.bounds = min(self.bounds[0], pos[0]), max(self.bounds[1], pos[0])
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def getWidthOfTwoPointsStem(p1, p2, isHorizontal):
+	try:
+		if isHorizontal:
+			return abs(p1.shearedPos.y - p2.shearedPos.y)
+		else:
+			return abs(p1.shearedPos.x - p2.shearedPos.x)
+	except:
+		#print "warning: no access to sheared pos"
+		if isHorizontal:
+			return abs(p1.y - p2.y)
+		else:
+			return abs(p1.x - p2.x)
+
 def zoneData((zoneName, zone)):
 	isTop = zone['top']
 	if isTop:
