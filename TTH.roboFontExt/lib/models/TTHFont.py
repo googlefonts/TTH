@@ -172,7 +172,7 @@ class TTHFont():
 		self.saveZonesToUFO()
 		self.dirtyCVT()
 
-	def applyChangesFromUIZones(self, topUIZones, bottomUIZones, nameTrackers):
+	def applyChangesFromUIZones(self, topUIZones, bottomUIZones, nameTrackers, progress):
 		for top, uiZones in [(True, topUIZones), (False, bottomUIZones)]:
 			for uiZone in uiZones:
 				# fill missing data
@@ -189,6 +189,10 @@ class TTHFont():
 				nameChanges.append((org, new))
 		if nameChanges:
 			TTHGlyph.silent = True
+			progress.set(0)
+			progress.show(1)
+			counter = 0
+			maxCount = len(self.f)
 			for g in self.f:
 				hasG = self.hasGlyphModelForGlyph(g)
 				gm = self.glyphModelForGlyph(g)
@@ -198,6 +202,10 @@ class TTHFont():
 				if glyphChanged:
 					gm.saveToUFO(self)
 				if not hasG: self.delGlyphModelForGlyph(g)
+				counter += 1
+				if counter % 20 == 0:
+					progress.increment(20.0*100.0/maxCount)
+			progress.show(0)
 			TTHGlyph.silent = False
 		self.saveZonesToUFO()
 		self.dirtyCVT()

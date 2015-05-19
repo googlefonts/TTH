@@ -1,14 +1,10 @@
 #coding=utf-8
 from vanilla import Box, Button, CheckBox, CheckBoxListCell, EditText, List, ProgressBar, SegmentedButton, Sheet, SquareButton, TextBox
 import string
-
-from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
-
 from models.TTHTool import uniqueInstance as tthTool
 import commons
 from commons import helperFunctions
 import tt
-from tt import asm, tables
 #import Automation
 
 class ZoneView(object):
@@ -49,6 +45,9 @@ class ZoneView(object):
 		self.box.zones_List.setSelection([])
 		self.box.zones_List.set(UIZones)
 		self.uiZoneNameCopy = [z['Name'] for z in UIZones]
+		self.resetTracker()
+
+	def resetTracker(self):
 		self.nameChangeTracker = commons.RenameTracker(self.uiZoneNameCopy)
 
 	def UIZones_EditCallback(self, sender):
@@ -85,19 +84,17 @@ class ZoneView(object):
 		self.lock = False
 
 	def buttonRemoveZoneCallback(self, sender):
-		UIList = self.box.zones_List
-		selection = UIList.getSelection()
-		UIList.setSelection([])
+		selection = self.box.zones_List.getSelection()
+		self.box.zones_List.setSelection([])
+		items = self.box.zones_List.get()
 		selection.sort()
-		selected = [UIList[i]['Name'] for i in selection]
 		self.lock = True
 		for pos, sel in enumerate(selection):
-			i = sel-pos
-			self.nameChangeTracker.rename(UIList[i]['Name'], None)
+			i = sel - pos
+			self.nameChangeTracker.rename(items[i]['Name'], None)
 			self.uiZoneNameCopy.pop(i)
-			items = self.box.zones_List.get()
 			items.pop(i)
-			self.box.zones_List.set(items)
+		self.box.zones_List.set(items)
 		self.lock = False
 
 	def buttonAddZoneCallback(self, sender):
@@ -155,11 +152,11 @@ class ZoneView(object):
 
 class StemView(object):
 
-	def __init__(self, controller, height, title, isHorizontal, stemsList):
+	def __init__(self, stemBox, height, title, isHorizontal, stemsList):
 		self.lock = False
-		self.controller = controller
 		self.isHorizontal = isHorizontal
 		self.UIStems = stemsList
+		self.progressBar = stemBox.AutoStemProgressBar
 		self.titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 152))
 		box = self.box
@@ -167,9 +164,9 @@ class StemView(object):
 		if self.isHorizontal:
 			prefix = "horizontal"
 		# put the title as a sub-widget of the zones window
-		controller.w.stemBox.__setattr__(prefix + 'StemViewTitle', self.titlebox)
+		stemBox.__setattr__(prefix + 'StemViewTitle', self.titlebox)
 		# put the box as a sub-widget of the zones window
-		controller.w.stemBox.__setattr__(prefix + 'StemViewBox', box)
+		stemBox.__setattr__(prefix + 'StemViewBox', box)
 
 		box.stemsList = List((0, 0, -0, -22), stemsList,
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Width", "editable": True},
@@ -281,9 +278,9 @@ class StemView(object):
 		UI.setSelection([])
 		selected = [UI[i]['Name'] for i in selection]
 		self.lock = True
-		self.controller.w.stemBox.AutoStemProgressBar.show(1)
-		tthTool.deleteStems(selected, self, self.controller.w.stemBox.AutoStemProgressBar)
-		self.controller.w.stemBox.AutoStemProgressBar.show(0)
+		self.progressBar.show(1)
+		tthTool.deleteStems(selected, self, self.progressBar)
+		self.progressBar.show(0)
 		self.lock = False
 
 	def sanitizeStem(self, name, width, px1, px2, px3, px4, px5, px6):
@@ -378,16 +375,18 @@ class ControlValuesSheet(object):
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
+		w.zoneBox.progressBar  = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
+		w.zoneBox.progressBar.show(0)
 
 		# STEM EDITOR
 		w.stemBox = Box((10, 19, -10, -40))
 		sb = w.stemBox
 		sb.show(0)
-		self.horizontalStemView = StemView(self, 34, "Y Stems", True, [])#fm.buildStemsUIList(True))
-		self.verticalStemView   = StemView(self, 220, "X Stems", False, [])#fm.buildStemsUIList(False))
-		sb.autoStemButton       = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 		sb.AutoStemProgressBar  = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
 		sb.AutoStemProgressBar.show(0)
+		self.horizontalStemView = StemView(sb, 34,  "Y Stems", True,  [])#fm.buildStemsUIList(True))
+		self.verticalStemView   = StemView(sb, 220, "X Stems", False, [])#fm.buildStemsUIList(False))
+		sb.autoStemButton       = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 
 		# GASP EDITOR
 		w.gaspBox = Box((10, 19, -10, -40))
@@ -584,15 +583,18 @@ class ControlValuesSheet(object):
 	def applyButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
 		fm.zones = {}
+		trackers = [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]
 		fm.applyChangesFromUIZones(
 				self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List,
-				[self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker])
+				trackers, self.w.zoneBox.progressBar)
+		self.topZoneView.resetTracker()
+		self.bottomZoneView.resetTracker()
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()
 		###self.controller.changeStemSnap(fm.f, self.w.generalBox.editTextStemSnap.get())
 		###self.controller.changeAlignppm(fm.f, self.w.generalBox.editTextAlignment.get())
 		###self.controller.changeCodeppm(fm.f, self.w.generalBox.editTextInstructions.get())
-		###tt_tables.writegasp(fm.f, fm.gasp_ranges)
+		###tt.tables.writegasp(fm.f, fm.gasp_ranges)
 
 	def editTextStemSnapCallback(self, sender):
 		try:
@@ -624,7 +626,6 @@ class ControlValuesSheet(object):
 		fm.f.lib[tt.FL_tth_key]["codeppm"] = value
 		fm.codeppm = value
 
-reload(tables)
-reload(asm)
+reload(tt)
 reload(commons)
 #reload(Automation)
