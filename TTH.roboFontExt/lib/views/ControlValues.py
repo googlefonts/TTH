@@ -356,7 +356,7 @@ class ControlValuesSheet(object):
 
 	def __init__(self, parentWindow):
 		self.lock = False
-		self.oldRangeValue = None
+		self.oldRangeValue = 8
 
 		fm = tthTool.getFontModel()
 
@@ -374,10 +374,11 @@ class ControlValuesSheet(object):
 		gb.InstructionsLabel = TextBox((10, 54, 250, 22), "Do not execute instructions above (ppEm)", sizeStyle = "small")
 		gb.NoStemsWhenGLabel = TextBox((10, 76, 300, 22), "Deactivate stems for grayscale and subpixel", sizeStyle = "small")
 
-		gb.editTextStemSnap  = EditText((-40, 10, 30, 17), sizeStyle = "small", callback=self.editTextStemSnapCallback)
-		gb.editTextAlignment = EditText((-40, 32, 30, 17), sizeStyle = "small", callback=self.editTextAlignmentCallback)
-		gb.editTextInstructions = EditText((-40, 54, 30, 17), sizeStyle = "small", callback=self.editTextInstructionsCallback)
-		gb.checkBoxDeactivateStemsWhenGrayscale = CheckBox((-40, 76, 30, 22), "", callback=self.checkBoxDeactivateStemsWhenGrayscaleCallback, value=fm.deactivateStemWhenGrayScale, sizeStyle = "small")
+		gb.editTextStemSnap  = EditText((-40, 10, 30, 17), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		gb.editTextAlignment = EditText((-40, 32, 30, 17), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		gb.editTextInstructions = EditText((-40, 54, 30, 17), sizeStyle = "small", callback=self.editTextIntegerCallback)
+		gb.checkBoxDeactivateStemsWhenGrayscale = CheckBox((-40, 76, 30, 22), "", callback=None,
+				value=fm.deactivateStemWhenGrayScale, sizeStyle = "small")
 		gb.editTextStemSnap.set(fm.stemsnap)
 		gb.editTextAlignment.set(fm.alignppm)
 		gb.editTextInstructions.set(fm.codeppm)
@@ -417,8 +418,9 @@ class ControlValuesSheet(object):
 			{"title": "Sym. GridFit",   "width": 100, "key": "SGF",   "editable": True, "cell": CheckBoxListCell()},
 			{"title": "Sym. Smoothing", "width": 100, "key": "SS",    "editable": True, "cell": CheckBoxListCell()}],
 			editCallback = self.gaspSettingsList_EditCallback,
-			selectionCallback = self.gaspSettingsList_SelectionCallback)
-		self.setGaspRangesListUI()
+			selectionCallback = self.gaspSettingsList_SelectionCallback,
+			allowsMultipleSelection = False)
+		self.resetGASPBox()
 
 		gb.buttonRemoveRange = SquareButton((10, -32, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveRangeCallback)
 		gb.rangeEditText = EditText((32, -32, 40, 22), sizeStyle = "small", callback=self.gaspRangeEditTextCallback)
@@ -441,7 +443,7 @@ class ControlValuesSheet(object):
 		w.controlsSegmentedButton.set(0) # 0 ==> show zone box
 
 		# SHEET BOTTOM BUTTONS
-		w.closeButton = Button((-260, -32, 60, 22), "Close", sizeStyle = "small", callback=self.close)
+		w.closeButton = Button((10, -32, 60, 22), "Close", sizeStyle = "small", callback=self.close)
 		w.applyButton = Button((-190, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.applyAndCloseButton = Button((-120, -32, 110, 22), "Apply and Close", sizeStyle = "small", callback=self.applyAndCloseButtonCallback)
 
@@ -469,85 +471,58 @@ class ControlValuesSheet(object):
 		self.w.zoneBox.progressBar.setPosSize((10, -28, -90, 16))
 		self.w.stemBox.AutoStemProgressBar.setPosSize((10, -28, -90, 16))
 
-	def resetGeneralBox(self):
-		self.w.generalBox.editTextStemSnap.set(fm.stemsnap)
-		self.w.generalBox.editTextAlignment.set(fm.alignppm)
-		self.w.generalBox.editTextInstructions.set(fm.codeppm)
-
-	def resetStemBox(self):
-		self.horizontalStemView.reset()
-		self.verticalStemView.reset()
-
-	def resetZoneBox(self):
-		self.topZoneView.reset()
-		self.bottomZoneView.reset()
-
-	def checkBoxDeactivateStemsWhenGrayscaleCallback(self, sender):
-		fm.setDeactivateStemWhenGrayScale(sender.get())
+	# - - - - - - - - - - - - - - - - - - - - - - - - GASP FUNCTIONS
 
 	def gaspSettingsList_SelectionCallback(self, sender):
-		if sender.getSelection() == []:
-			return
-		selectedRow = sender.getSelection()[0]
-		self.oldRangeValue = sender[selectedRow]['range']
+		selection = sender.getSelection()
+		if not selection: return
+		self.oldRangeValue = sender[selection[0]]['range']
 
 	def gaspSettingsList_EditCallback(self, sender):
+		if self.lock or (sender.getSelection() == []): return
+
 		edited = sender.getEditedColumnAndRow()
-
-		if self.lock or (sender.getSelection() == []):
-			return
-		self.lock = True
-		fm.gasp_ranges = {}
-		for rangeUI in sender.get():
-			GF = rangeUI['GF'] * 1
-			GAA = rangeUI['GAA'] * 2
-			SGF = rangeUI['SGF'] * 4
-			SS = rangeUI['SS'] * 8
-			fm.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
-		self.lock = False
-
 		if edited == (-1, -1):
 			return
 		self.lock = True
 		key = 'range'
-		rangeValue = None
-
-		rangeValue = sender[edited[1]][key]
+		rangeUI = sender[edited[1]]
+		rangeValue = rangeUI[key]
 		try:
-			sender[edited[1]][key] = int(rangeValue)
+			rangeUI[key] = int(rangeValue)
 		except:
-			sender[edited[1]][key] = self.oldRangeValue
+			rangeUI[key] = self.oldRangeValue
 		self.lock = False
 
 	def gaspRangeEditTextCallback(self, sender):
 		try:
 			value = int(sender.get())
 		except ValueError:
-			value = 8
 			sender.set(8)
 
 	def buttonAddRangeCallback(self, sender):
 		gasp_range = str(self.w.gaspBox.rangeEditText.get())
-		GF = self.w.gaspBox.GF_PopUpButton.get() * 1
-		GAA = self.w.gaspBox.GAA_PopUpButton.get() * 2
-		SGF = self.w.gaspBox.SGF_PopUpButton.get() * 4
-		SS = self.w.gaspBox.SS_PopUpButton.get() * 8
-
-		fm.gasp_ranges[gasp_range] = GF + GAA + SGF + SS
-		self.setGaspRangesListUI()
+		gf = self.w.gaspBox.GF_PopUpButton.get()
+		gaa = self.w.gaspBox.GAA_PopUpButton.get()
+		sgf = self.w.gaspBox.SGF_PopUpButton.get()
+		ss = self.w.gaspBox.SS_PopUpButton.get()
+		items = self.w.gaspBox.gaspSettingsList.get()
+		gaspUI = {"range": gasp_range, "GAA": gaa, "GF": gf, "SGF": sgf, "SS": ss}
+		items.append(gaspUI)
+		items.sort(key=lambda gaspUI: int(gaspUI['range']))
+		self.w.gaspBox.gaspSettingsList.set(items)
 
 	def buttonRemoveRangeCallback(self, sender):
 		UI = self.w.gaspBox.gaspSettingsList
 		selection = UI.getSelection()
-		UI.setSelection([])
-		selected = [UI[i]['range'] for i in selection]
 		self.lock = True
-		for sel in selected:
-			del fm.gasp_ranges[sel]
-		self.setGaspRangesListUI()
+		UI.setSelection([])
+		items = self.w.gaspBox.gaspSettingsList.get()
+		items.pop(selection[0])
+		self.w.gaspBox.gaspSettingsList.set(items)
 		self.lock = False
 
-	def setGaspRangesListUI(self):
+	def resetGASPBox(self):
 		gaspRangesListUI = []
 		fm = tthTool.getFontModel()
 		for gaspRange, value in fm.gasp_ranges.iteritems():
@@ -560,39 +535,28 @@ class ControlValuesSheet(object):
 		gaspRangesListUI.sort(key=lambda x: int(x["range"]))
 		self.w.gaspBox.gaspSettingsList.set(gaspRangesListUI)
 
+	# - - - - - - - - - - - - - - - - - - - - - - - - CHOOSING THE CONTROLS
+
 	def controlsSegmentedButtonCallback(self, sender):
-		if sender.get() == 0:
-			self.w.zoneBox.show(1)
-			self.w.stemBox.show(0)
-			self.w.generalBox.show(0)
-			self.w.gaspBox.show(0)
-			self.w.resize(505, 480)
-		if sender.get() == 1:
-			self.w.zoneBox.show(0)
-			self.w.stemBox.show(1)
-			self.w.generalBox.show(0)
-			self.w.gaspBox.show(0)
-			self.w.resize(505, 480)
-		if sender.get() == 2:
-			self.w.zoneBox.show(0)
-			self.w.stemBox.show(0)
-			self.w.generalBox.show(1)
-			self.w.gaspBox.show(0)
-			self.w.resize(505, 220)
-		if sender.get() == 3:
-			self.w.zoneBox.show(0)
-			self.w.stemBox.show(0)
-			self.w.generalBox.show(0)
-			self.w.gaspBox.show(1)
-			self.w.resize(505, 220)
+		b = sender.get()
+		if b < 0 or b > 3: return
+		boxes = [self.w.zoneBox, self.w.stemBox, self.w.generalBox, self.w.gaspBox]
+		for i in range(4):
+			boxes[i].show(i==b)
+		if b <= 1: self.w.resize(505, 480)
+		else:      self.w.resize(505, 220)
 
 	def autoZoneButtonCallback(self, sender):
-		self.automation.autoZones(fm.f)
+		pass
+		#self.automation.autoZones(fm.f)
 
 	def autoStemButtonCallback(self, sender):
-		self.w.stemBox.AutoStemProgressBar.show(1)
-		self.automation.autoStems(fm.f, self.w.stemBox.AutoStemProgressBar)
-		self.w.stemBox.AutoStemProgressBar.show(0)
+		pass
+		#self.w.stemBox.AutoStemProgressBar.show(1)
+		#self.automation.autoStems(fm.f, self.w.stemBox.AutoStemProgressBar)
+		#self.w.stemBox.AutoStemProgressBar.show(0)
+
+	# - - - - - - - - - - - - - - - - - - - - - - - - CLOSING FUNCTIONS
 
 	def close(self, sender = None):
 		self.w.close()
@@ -621,43 +585,34 @@ class ControlValuesSheet(object):
 				trackers, self.w.stemBox.AutoStemProgressBar)
 		self.horizontalStemView.resetTracker()
 		self.verticalStemView.resetTracker()
-		# Finally
+		# General
+		stemsnap = int(self.w.generalBox.editTextStemSnap.get())
+		alignppm = int(self.w.generalBox.editTextAlignment.get())
+		codeppm = int(self.w.generalBox.editTextInstructions.get())
+		dswgs = self.w.generalBox.checkBoxDeactivateStemsWhenGrayscale.get()
+		fm.setOptions(stemsnap, alignppm, codeppm, dswgs)
+		# GASP
+		fm.gasp_ranges = {}
+		for rangeUI in self.w.gaspBox.gaspSettingsList:
+			GF  = rangeUI['GF']  * 1
+			GAA = rangeUI['GAA'] * 2
+			SGF = rangeUI['SGF'] * 4
+			SS  = rangeUI['SS']  * 8
+			fm.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
+		# Finally, write the tables
+		fm.dirtyCVT()
+		fm.writeCVTandPREP()
+		tt.tables.writeFPGM(fm)
+		tt.tables.writegasp(fm)
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()
-		###self.controller.changeStemSnap(fm.f, self.w.generalBox.editTextStemSnap.get())
-		###self.controller.changeAlignppm(fm.f, self.w.generalBox.editTextAlignment.get())
-		###self.controller.changeCodeppm(fm.f, self.w.generalBox.editTextInstructions.get())
-		###tt.tables.writegasp(fm.f, fm.gasp_ranges)
 
-	def editTextStemSnapCallback(self, sender):
+	def editTextIntegerCallback(self, sender):
 		try:
 			value = int(sender.get())
 		except ValueError:
 			value = 0
-			sender.set(0)
-
-		fm.f.lib[tt.FL_tth_key]["stemsnap"] = value
-		fm.stemsnap = value
-
-	def editTextAlignmentCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-		fm.f.lib[tt.FL_tth_key]["alignppm"] = value
-		fm.alignppm = value
-
-	def editTextInstructionsCallback(self, sender):
-		try:
-			value = int(sender.get())
-		except ValueError:
-			value = 0
-			sender.set(0)
-
-		fm.f.lib[tt.FL_tth_key]["codeppm"] = value
-		fm.codeppm = value
+		sender.set(value)
 
 reload(tt)
 reload(commons)

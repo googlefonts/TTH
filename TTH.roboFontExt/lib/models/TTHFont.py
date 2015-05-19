@@ -75,6 +75,17 @@ class TTHFont():
 		self.stem_to_cvt = None
 		self.zone_to_cvt = None
 
+	def setOptions(self, stemsnap, alignppm, codeppm, dswgs):
+		self.f.lib[tt.FL_tth_key]["stemsnap"] = stemsnap
+		self.f.lib[tt.FL_tth_key]["alignppm"] = alignppm
+		self.f.lib[tt.FL_tth_key]["codeppm"] = codeppm
+		self.f.lib[tt.SP_tth_key]["deactivateStemWhenGrayScale"] = dswgs
+		self.stemsnap = stemsnap
+		self.alignppm = alignppm
+		self.codeppm = codeppm
+		self.deactivateStemWhenGrayScale = dswgs
+		self.dirtyCVT()
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - TTHGlyph
 
 	def hasGlyphModelForGlyph(self, g):
