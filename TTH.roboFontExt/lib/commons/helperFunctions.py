@@ -22,6 +22,9 @@ def getOrPutDefault(dico, key, default):
 		dico[key] = default
 	return default
 
+def invertedDictionary(dic):
+	return dict([(v,k) for (k,v) in dic.iteritems()])
+
 def partition(l, p):
 	yes, no = [], []
 	for e in l:

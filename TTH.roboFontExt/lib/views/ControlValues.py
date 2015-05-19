@@ -78,8 +78,7 @@ class ZoneView(object):
 				uiZone['Name'] = newZoneName
 				self.lock = False
 				return
-			else:
-				self.nameChangeTracker.rename(oldZoneName, newZoneName)
+			self.nameChangeTracker.rename(oldZoneName, newZoneName)
 		self.uiZoneNameCopy[sel] = uiZone['Name']
 		self.lock = False
 
@@ -152,10 +151,9 @@ class ZoneView(object):
 
 class StemView(object):
 
-	def __init__(self, stemBox, height, title, isHorizontal, stemsList):
+	def __init__(self, stemBox, height, title, isHorizontal):
 		self.lock = False
 		self.isHorizontal = isHorizontal
-		self.UIStems = stemsList
 		self.progressBar = stemBox.AutoStemProgressBar
 		self.titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 152))
@@ -168,7 +166,7 @@ class StemView(object):
 		# put the box as a sub-widget of the zones window
 		stemBox.__setattr__(prefix + 'StemViewBox', box)
 
-		box.stemsList = List((0, 0, -0, -22), stemsList,
+		box.stemsList = List((0, 0, -0, -22), [],
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Width", "editable": True},
 				{"title": "1 px", "editable": True}, {"title": "2 px", "editable": True},
 				{"title": "3 px", "editable": True}, {"title": "4 px", "editable": True},
@@ -187,76 +185,45 @@ class StemView(object):
 		box.editTextStem6px = EditText((395, -22, 33, 22), sizeStyle = "small", callback=self.editTextIntegerCallback)
 		box.buttonAddStem = SquareButton((-22, -22, 22, 22), u"↵", sizeStyle = 'small', callback=self.buttonAddCallback)
 
-	def set(self, uiStems):
+		self.reset()
+
+	def reset(self):
+		fm = tthTool.getFontModel()
+		if self.isHorizontal:
+			fmStems = fm.horizontalStems
+		else:
+			fmStems = fm.verticalStems
+		names = fmStems.keys()
+		names.sort()
+		uiStems = [self.uiStemOfStem(fmStems[name], name) for name in names]
 		self.UIStems = uiStems
 		self.box.stemsList.setSelection([])
 		self.box.stemsList.set(uiStems)
+		self.resetTracker()
 
-	def stemsList_editCallback(self, sender):
-		if self.lock or (sender.getSelection() == []):
-			return
-		self.lock = True
-		selection = sender.getSelection()
-		sender.setSelection([])
-		sel = selection[0]
-		try:
-			oldStemName = self.UIStems[sel]['Name']
-		except:
-			oldStemName = "" # probably a new stem was created
-			print "ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallback"
+	def allCurrentStemNames(self):
+		return [stem['Name'] for stem in self.UIStems]
 
-		stemDict = sender[sel]
+	def allStemNames(self):
+		return [stem['Name'] for stem in self.box.stemsList]
 
-		if 'Name' in stemDict:
-			newStemName = stemDict['Name']
-		else:
-			newStemName = self.ID + '_' + str(sel)
-			sender[sel]['Name'] = newStemName
-
-		if self.sanitizeStem(newStemName, int(sender[sel]['Width']), int(sender[sel]['1 px']), int(sender[sel]['2 px']), int(sender[sel]['3 px']), int(sender[sel]['4 px']), int(sender[sel]['5 px']), int(sender[sel]['6 px'])) == False:
-			sender[sel]['Name'] = oldStemName
-			sender[sel]['1 px'] = self.UIStems[sel]['1 px']
-			sender[sel]['2 px'] = self.UIStems[sel]['2 px']
-			sender[sel]['3 px'] = self.UIStems[sel]['3 px']
-			sender[sel]['4 px'] = self.UIStems[sel]['4 px']
-			sender[sel]['5 px'] = self.UIStems[sel]['5 px']
-			sender[sel]['6 px'] = self.UIStems[sel]['6 px']
-			self.lock = False
-			return
-
-		if oldStemName != newStemName:
-			#print "Original stem name = ", oldStemName, ", new stem name = ", newStemName
-			if newStemName in fm.stems:
-				print "ERROR: Can't use an already existing name."
-				newStemName = oldStemName
-				sender[sel]['Name'] = newStemName
-				self.lock = False
-				return
-			else:
-				del fm.stems[oldStemName]
-		self.UIStems[sel] = sender[sel]
-
-		tthTool.EditStem(oldStemName, newStemName, stemDict, self.isHorizontal)
-		if self.isHorizontal:
-			self.box.stemsList.set(fm.buildStemsUIList(horizontal=True))
-		else:
-			self.box.stemsList.set(fm.buildStemsUIList(horizontal=False))
-		self.lock = False
+	def resetTracker(self):
+		self.nameChangeTracker = commons.RenameTracker(self.allStemNames())
 
 	def editTextWidthCallback(self, sender):
-		if self.lock:
-			return
+		if self.lock: return
 		self.lock = True
 		try:
 			value = int(sender.get())
 		except ValueError:
 			value = 1
 		sender.set(value)
-		roundedStem = roundbase(value, 20)
+		roundedStem = helperFunctions.roundbase(value, 20)
+		upm = float(tthTool.getFontModel().UPM)
 		if roundedStem != 0:
-			stemPitch = float(fm.UPM)/roundedStem
+			stemPitch = upm/roundedStem
 		else:
-			stemPitch = float(fm.UPM)/value
+			stemPitch = upm/value
 		self.box.editTextStem1px.set(str(0))
 		self.box.editTextStem2px.set(str(int(2*stemPitch)))
 		self.box.editTextStem3px.set(str(int(3*stemPitch)))
@@ -272,59 +239,75 @@ class StemView(object):
 			value = 0
 		sender.set(value)
 
-	def buttonRemoveCallback(self, sender):
-		UI = self.box.stemsList
-		selection = UI.getSelection()
-		UI.setSelection([])
-		selected = [UI[i]['Name'] for i in selection]
+	def stemsList_editCallback(self, sender):
+		if self.lock or (sender.getSelection() == []):
+			return
 		self.lock = True
-		self.progressBar.show(1)
-		tthTool.deleteStems(selected, self, self.progressBar)
-		self.progressBar.show(0)
+		selection = sender.getSelection()
+		sender.setSelection([])
+		sel = selection[0]
+		try:
+			oldStemName = self.UIStems[sel]['Name']
+		except:
+			oldStemName = "" # probably a new stem was created
+			print "ERROR SHOULD NEVER HAPPEN in StemView.stemsList_EditCallback"
+		uiStem = sender[sel]
+		if 'Name' in uiStem:
+			newStemName = uiStem['Name']
+		else:
+			newStemName = self.ID + '_' + str(sel)
+			uiStem['Name'] = newStemName
+
+		if not self.sanitizeStem(newStemName, uiStem):
+			sender[sel] = self.UIStems[sel]
+			sender[sel]['Name'] = oldStemName
+			self.lock = False
+			return
+
+		allStemNames = self.allCurrentStemNames()+self.friend.allCurrentStemNames()+['']
+		if oldStemName != newStemName:
+			if newStemName in allStemNames:
+				print "ERROR: Can't use an already existing name."
+				newStemName = oldStemName
+				sender[sel]['Name'] = newStemName
+				self.lock = False
+				return
+			self.nameChangeTracker.rename(oldStemName, newStemName)
+		self.UIStems[sel] = sender[sel].copy()
 		self.lock = False
 
-	def sanitizeStem(self, name, width, px1, px2, px3, px4, px5, px6):
-		try:
-			width = int(width)
-		except:
-			print 'enter a width before adding stem'
-			return False
-
-		if name == '':
-			print 'enter a name before adding stem'
-			return False
-
-		allowed = list(string.letters)
-		allowed.extend(list(string.digits))
-		allowed.extend(['_', '-', ':', ' '])
-		for c in name:
-			if c not in allowed:
-				print 'stem name can only contain characters:', allowed
-				return False
-
-		if (int(px1) > int(px2)) or (int(px2) > int(px3)) or (int(px3) > int(px4)) or (int(px4) > int(px5)) or (int(px5) > int(px6)):
-			print 'pixel jumps must be in ascending order'
-			return False
-
-		return True
+	def buttonRemoveCallback(self, sender):
+		selection = sender.getSelection()
+		sender.setSelection([])
+		self.lock = True
+		items = self.box.stemsList.get()
+		selection.sort()
+		for pos, sel in enumerate(selection):
+			i = sel - pos
+			self.nameChangeTracker.rename(items[i]['Name'], None)
+			self.UIStems.pop(i)
+			items.pop(i)
+		self.box.stemsList.set(items)
+		self.lock = False
 
 	def buttonAddCallback(self, sender):
 		name = self.box.editTextStemName.get()
-		horizontal = self.isHorizontal
+		allStemNames = self.allStemNames()+self.friend.allStemNames()
+		if name in allStemNames: return
 		width = self.box.editTextStemWidth.get()
-
-		px1 = str(self.box.editTextStem1px.get())
-		px2 = str(self.box.editTextStem2px.get())
-		px3 = str(self.box.editTextStem3px.get())
-		px4 = str(self.box.editTextStem4px.get())
-		px5 = str(self.box.editTextStem5px.get())
-		px6 = str(self.box.editTextStem6px.get())
-		if self.sanitizeStem(name, width, px1, px2, px3, px4, px5, px6) == False:
-			return
-
-		stemDict = {'horizontal': self.isHorizontal, 'width': str(width), 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		px1 = self.box.editTextStem1px.get()
+		px2 = self.box.editTextStem2px.get()
+		px3 = self.box.editTextStem3px.get()
+		px4 = self.box.editTextStem4px.get()
+		px5 = self.box.editTextStem5px.get()
+		px6 = self.box.editTextStem6px.get()
+		uiStem = {'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
+		if not self.sanitizeStem(name, uiStem): return
 		self.lock = True
-		tthTool.addStem(name, stemDict, self)
+		items = self.box.stemsList.get()
+		items.append(uiStem)
+		self.UIStems.append(uiStem.copy())
+		self.box.stemsList.set(items)
 		self.box.editTextStemName.set("")
 		self.box.editTextStemWidth.set("")
 		self.box.editTextStem1px.set("")
@@ -334,6 +317,38 @@ class StemView(object):
 		self.box.editTextStem5px.set("")
 		self.box.editTextStem6px.set("")
 		self.lock = False
+
+	def uiStemOfStem(self, stem, name):
+		uiStem = { 'Name': name, 'Width': int(stem['width']) }
+		invDico = helperFunctions.invertedDictionary(stem['round'])
+		for i in range(1,7):
+			uiStem[str(i)+' px'] = helperFunctions.getOrDefault(invDico, i, '0')
+		return uiStem
+
+	def sanitizeStem(self, name, uiStem):
+		try:
+			width = int(uiStem['Width'])
+		except:
+			print 'Enter a width before adding stem'
+			return False
+
+		if name == '':
+			print 'Enter a name before adding stem'
+			return False
+
+		allowed = list(string.letters)
+		allowed.extend(list(string.digits))
+		allowed.extend(['_', '-', ':', ' '])
+		if not all(c in allowed for c in name):
+			print 'stem name can only contain characters:', allowed
+			return False
+
+		px = [int(uiStem[str(i)+' px']) for i in range(1,7)]
+		if not all(px[i]<=px[i+1] for i in range(5)):
+			print 'pixel jumps must be in ascending order'
+			return False
+
+		return True
 
 # ===========================================================================
 
@@ -375,17 +390,19 @@ class ControlValuesSheet(object):
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
-		w.zoneBox.progressBar  = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
+		w.zoneBox.progressBar  = ProgressBar((10, -28, -90, 16), sizeStyle = "small",  maxValue=100)
 		w.zoneBox.progressBar.show(0)
 
 		# STEM EDITOR
 		w.stemBox = Box((10, 19, -10, -40))
 		sb = w.stemBox
 		sb.show(0)
-		sb.AutoStemProgressBar  = ProgressBar((10, 384, -90, 16), sizeStyle = "small",  maxValue=100)
+		sb.AutoStemProgressBar  = ProgressBar((10, -28, -90, 16), sizeStyle = "small",  maxValue=100)
 		sb.AutoStemProgressBar.show(0)
-		self.horizontalStemView = StemView(sb, 34,  "Y Stems", True,  [])#fm.buildStemsUIList(True))
-		self.verticalStemView   = StemView(sb, 220, "X Stems", False, [])#fm.buildStemsUIList(False))
+		self.horizontalStemView = StemView(sb, 34,  "Y Stems", True)
+		self.verticalStemView   = StemView(sb, 220, "X Stems", False)
+		self.horizontalStemView.friend = self.verticalStemView
+		self.verticalStemView.friend = self.horizontalStemView
 		sb.autoStemButton       = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 
 		# GASP EDITOR
@@ -423,8 +440,10 @@ class ControlValuesSheet(object):
 		w.controlsSegmentedButton = SegmentedButton((137, 10, 220, 18), controlsSegmentDescriptions, callback=self.controlsSegmentedButtonCallback, sizeStyle="mini")
 		w.controlsSegmentedButton.set(0) # 0 ==> show zone box
 
-		w.applyButton = Button((-140, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
-		w.closeButton = Button((-70, -32, 60, 22), "OK", sizeStyle = "small", callback=self.closeButtonCallback)
+		# SHEET BOTTOM BUTTONS
+		w.closeButton = Button((-260, -32, 60, 22), "Close", sizeStyle = "small", callback=self.close)
+		w.applyButton = Button((-190, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
+		w.applyAndCloseButton = Button((-120, -32, 110, 22), "Apply and Close", sizeStyle = "small", callback=self.applyAndCloseButtonCallback)
 
 		w.bind("resize", self.sheetResizing)
 		w.open()
@@ -447,14 +466,17 @@ class ControlValuesSheet(object):
 		self.verticalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
 		self.verticalStemView.titlebox.setPosSize((10, height-(height/2.0)-44, -10, 14))
 
+		self.w.zoneBox.progressBar.setPosSize((10, -28, -90, 16))
+		self.w.stemBox.AutoStemProgressBar.setPosSize((10, -28, -90, 16))
+
 	def resetGeneralBox(self):
 		self.w.generalBox.editTextStemSnap.set(fm.stemsnap)
 		self.w.generalBox.editTextAlignment.set(fm.alignppm)
 		self.w.generalBox.editTextInstructions.set(fm.codeppm)
 
 	def resetStemBox(self):
-		self.horizontalStemView.set(fm.buildStemsUIList(True))
-		self.verticalStemView.set(fm.buildStemsUIList(False))
+		self.horizontalStemView.reset()
+		self.verticalStemView.reset()
 
 	def resetZoneBox(self):
 		self.topZoneView.reset()
@@ -572,16 +594,17 @@ class ControlValuesSheet(object):
 		self.automation.autoStems(fm.f, self.w.stemBox.AutoStemProgressBar)
 		self.w.stemBox.AutoStemProgressBar.show(0)
 
-	def close(self):
+	def close(self, sender = None):
 		self.w.close()
 		tthTool.mainPanel.cvSheet = None
 
-	def closeButtonCallback(self, sender):
+	def applyAndCloseButtonCallback(self, sender):
 		self.applyButtonCallback(sender)
 		self.close()
 
 	def applyButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
+		# Zones
 		fm.zones = {}
 		trackers = [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]
 		fm.applyChangesFromUIZones(
@@ -589,6 +612,16 @@ class ControlValuesSheet(object):
 				trackers, self.w.zoneBox.progressBar)
 		self.topZoneView.resetTracker()
 		self.bottomZoneView.resetTracker()
+		# Stems
+		fm.horizontalStems = {}
+		fm.verticalStems = {}
+		trackers = [self.horizontalStemView.nameChangeTracker, self.verticalStemView.nameChangeTracker]
+		fm.applyChangesFromUIStems(
+				self.horizontalStemView.box.stemsList, self.verticalStemView.box.stemsList,
+				trackers, self.w.stemBox.AutoStemProgressBar)
+		self.horizontalStemView.resetTracker()
+		self.verticalStemView.resetTracker()
+		# Finally
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()
 		###self.controller.changeStemSnap(fm.f, self.w.generalBox.editTextStemSnap.get())

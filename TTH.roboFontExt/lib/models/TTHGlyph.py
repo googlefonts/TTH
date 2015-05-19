@@ -378,8 +378,22 @@ class TTHGlyph(object):
 			message += '\n\t'.join([repr(e) for e in badName])
 		if absent or badName: print message
 
+	def renameStem(self, oldName, newName):
+		'''Use newName = '' to transform the stem into a simple round'''
+		modified = False
+		for command in self.hintingCommands:
+			if not ('stem' in command): continue
+			if command['stem'] != oldName: continue
+			modified = True
+			if newName != None: # change name
+				command['stem'] = newName
+			else: # delete stem, replace with rounding
+				del command['stem']
+		if modified: self.dirtyHinting()
+		return modified
+
 	def renameZone(self, oldName, newName):
-		'''Use newName = '' to transform the align-to-zone to a simple alignv'''
+		'''Use newName = '' to transform the align-to-zone into a simple alignv'''
 		modified = False
 		for command in self.hintingCommands:
 			if not (command['code'] in ['alignt', 'alignb']): continue

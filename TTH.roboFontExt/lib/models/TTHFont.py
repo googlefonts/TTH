@@ -288,6 +288,11 @@ class TTHFont():
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - STEMS
 
+	def saveStemsToUFO(self):
+		stems = self.horizontalStems.copy()
+		stems.update(self.verticalStems)
+		self.f.lib[tt.FL_tth_key]["stems"] = stems
+
 	def guessStem(self, point1, point2):
 		diff = geom.makePoint(point1) - geom.makePoint(point2)
 		if tthTool.selectedAxis == 'X':
@@ -306,6 +311,51 @@ class TTHFont():
 			return candidates[0][1]
 		else:
 			return None
+
+	def applyChangesFromUIStems(self, horizontalUIStems, verticalUIStems, nameTrackers, progress):
+		names = []
+		for uiStem in horizontalUIStems:
+			self.horizontalStems[uiStem['Name']] = self.stemOfUIStem(uiStem, True)
+			names.append(uiStem['Name'])
+		for uiStem in verticalUIStems:
+			self.horizontalStems[uiStem['Name']] = self.stemOfUIStem(uiStem, False)
+			names.append(uiStem['Name'])
+		nameChanges = []
+		for tracker in nameTrackers:
+			for org in tracker.originals():
+				new = tracker.newNameOf(org)
+				if new == org: continue
+				if org in names: continue
+				nameChanges.append((org, new))
+		if nameChanges:
+			TTHGlyph.silent = True
+			progress.set(0)
+			progress.show(1)
+			counter = 0
+			maxCount = len(self.f)
+			for g in self.f:
+				hasG = self.hasGlyphModelForGlyph(g)
+				gm = self.glyphModelForGlyph(g)
+				glyphChanged = False
+				for (org, new) in nameChanges:
+					if gm.renameStem(org, new): glyphChanged = True
+				if glyphChanged:
+					gm.saveToUFO(self)
+				if not hasG: self.delGlyphModelForGlyph(g)
+				counter += 1
+				if counter % 20 == 0:
+					progress.increment(20.0*100.0/maxCount)
+			progress.show(0)
+			TTHGlyph.silent = False
+		self.saveStemsToUFO()
+		self.dirtyCVT()
+
+	def stemOfUIStem(self, uiStem, isHorizontal):
+		return {
+				'horizontal': isHorizontal,
+				'width': uiStem['Width'],
+				'round': dict((str(uiStem[str(i)+' px']),i) for i in range(1,7)),
+				}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
