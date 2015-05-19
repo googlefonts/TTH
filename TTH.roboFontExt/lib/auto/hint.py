@@ -553,4 +553,3 @@ class AutoHinting():
 		if not ry: ry = g.name
 		else: ry = None
 		return rx, ry
-
