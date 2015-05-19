@@ -1,9 +1,9 @@
 
 def autoZones(font):
-	baselineZone = None
-	capHeightZone = None
-	xHeightZone = None
-	ascendersZone = None
+	baselineZone   = None
+	capHeightZone  = None
+	xHeightZone    = None
+	ascendersZone  = None
 	descendersZone = None
 
 	if "O" in font and "H" in font:
@@ -21,15 +21,15 @@ def autoZones(font):
 			descendersZone = (font["p"].box[1], - (font["g"].box[1] - font["p"].box[1]) )
 
 	uiZones = []
-	if baselineZone != None:
-		uiZones.append(makeUIZone('baseline', False, baselineZone[0], baselineZone[1]))
-	if capHeightZone != None:
-		uiZones.append(makeUIZone('cap-height', True, capHeightZone[0], capHeightZone[1]))
-	if xHeightZone != None:
-		uiZones.append(makeUIZone('x-height', True, xHeightZone[0], xHeightZone[1]))
-	if ascendersZone != None:
-		uiZones.append(makeUIZone('ascenders', True, ascendersZone[0], ascendersZone[1]))
-	if descendersZone != None:
+	if baselineZone:
+		uiZones.append(makeUIZone('baseline',   False, baselineZone[0],   baselineZone[1]  ))
+	if capHeightZone:
+		uiZones.append(makeUIZone('cap-height', True,  capHeightZone[0],  capHeightZone[1] ))
+	if xHeightZone:
+		uiZones.append(makeUIZone('x-height',   True,  xHeightZone[0],    xHeightZone[1]   ))
+	if ascendersZone:
+		uiZones.append(makeUIZone('ascenders',  True,  ascendersZone[0],  ascendersZone[1] ))
+	if descendersZone:
 		uiZones.append(makeUIZone('descenders', False, descendersZone[0], descendersZone[1]))
 	return uiZones
 

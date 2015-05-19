@@ -183,7 +183,8 @@ class TTHFont():
 		self.saveZonesToUFO()
 		self.dirtyCVT()
 
-	def applyChangesFromUIZones(self, topUIZones, bottomUIZones, nameTrackers, progress):
+	def applyChangesFromUIZones(self, topUIZones, bottomUIZones):
+		self.zones = {}
 		for top, uiZones in [(True, topUIZones), (False, bottomUIZones)]:
 			for uiZone in uiZones:
 				# fill missing data
@@ -191,6 +192,10 @@ class TTHFont():
 				if not ('Width' in uiZone):    uiZone['Width'] = 0
 				if not ('Delta' in uiZone):    uiZone['Delta'] = '0@0'
 				self.addZone(uiZone['Name'], self.zoneOfUIZone(uiZone, top))
+		self.saveZonesToUFO()
+		self.dirtyCVT()
+
+	def renameZonesInGlyphs(self, nameTrackers, progress, writeUFO=False):
 		nameChanges = []
 		for tracker in nameTrackers:
 			for org in tracker.originals():
@@ -198,28 +203,26 @@ class TTHFont():
 				if new == org: continue
 				if org in self.zones: continue
 				nameChanges.append((org, new))
-		if nameChanges:
-			TTHGlyph.silent = True
-			progress.set(0)
-			progress.show(1)
-			counter = 0
-			maxCount = len(self.f)
-			for g in self.f:
-				hasG = self.hasGlyphModelForGlyph(g)
-				gm = self.glyphModelForGlyph(g)
-				glyphChanged = False
-				for (org, new) in nameChanges:
-					if gm.renameZone(org, new): glyphChanged = True
-				if glyphChanged:
-					gm.saveToUFO(self)
-				if not hasG: self.delGlyphModelForGlyph(g)
-				counter += 1
-				if counter % 20 == 0:
-					progress.increment(20.0*100.0/maxCount)
-			progress.show(0)
-			TTHGlyph.silent = False
-		self.saveZonesToUFO()
-		self.dirtyCVT()
+		if not nameChanges: return
+		TTHGlyph.silent = True
+		progress.set(0)
+		progress.show(1)
+		counter = 0
+		maxCount = len(self.f)
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g)
+			glyphChanged = False
+			for (org, new) in nameChanges:
+				if gm.renameZone(org, new): glyphChanged = True
+			if writeUFO and hasG: #glyphChanged:
+				gm.saveToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+			counter += 1
+			if counter % 20 == 0:
+				progress.increment(20)
+		progress.show(0)
+		TTHGlyph.silent = False
 
 	def zoneOfUIZone(self, uiZone, top):
 		return {
@@ -323,14 +326,18 @@ class TTHFont():
 		else:
 			return None
 
-	def applyChangesFromUIStems(self, horizontalUIStems, verticalUIStems, nameTrackers, progress):
-		names = []
+	def applyChangesFromUIStems(self, horizontalUIStems, verticalUIStems):
+		self.horizontalStems = {}
+		self.verticalStems = {}
 		for uiStem in horizontalUIStems:
 			self.horizontalStems[uiStem['Name']] = self.stemOfUIStem(uiStem, True)
-			names.append(uiStem['Name'])
 		for uiStem in verticalUIStems:
-			self.horizontalStems[uiStem['Name']] = self.stemOfUIStem(uiStem, False)
-			names.append(uiStem['Name'])
+			self.verticalStems[uiStem['Name']] = self.stemOfUIStem(uiStem, False)
+		self.saveStemsToUFO()
+		self.dirtyCVT()
+
+	def renameStemsInGlyphs(self, nameTrackers, progress):
+		names = set(self.horizontalStems.keys() + self.verticalStems.keys())
 		nameChanges = []
 		for tracker in nameTrackers:
 			for org in tracker.originals():
@@ -338,28 +345,26 @@ class TTHFont():
 				if new == org: continue
 				if org in names: continue
 				nameChanges.append((org, new))
-		if nameChanges:
-			TTHGlyph.silent = True
-			progress.set(0)
-			progress.show(1)
-			counter = 0
-			maxCount = len(self.f)
-			for g in self.f:
-				hasG = self.hasGlyphModelForGlyph(g)
-				gm = self.glyphModelForGlyph(g)
-				glyphChanged = False
-				for (org, new) in nameChanges:
-					if gm.renameStem(org, new): glyphChanged = True
-				if glyphChanged:
-					gm.saveToUFO(self)
-				if not hasG: self.delGlyphModelForGlyph(g)
-				counter += 1
-				if counter % 20 == 0:
-					progress.increment(20.0*100.0/maxCount)
-			progress.show(0)
-			TTHGlyph.silent = False
-		self.saveStemsToUFO()
-		self.dirtyCVT()
+		if not nameChanges: return
+		TTHGlyph.silent = True
+		progress.set(0)
+		progress.show(1)
+		counter = 0
+		maxCount = len(self.f)
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g)
+			glyphChanged = False
+			for (org, new) in nameChanges:
+				if gm.renameStem(org, new): glyphChanged = True
+			if hasG:# glyphChanged:
+				gm.saveToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+			counter += 1
+			if counter % 20 == 0:
+				progress.increment(20)
+		progress.show(0)
+		TTHGlyph.silent = False
 
 	def stemOfUIStem(self, uiStem, isHorizontal):
 		return {

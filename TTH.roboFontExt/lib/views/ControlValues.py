@@ -155,7 +155,6 @@ class StemView(object):
 	def __init__(self, stemBox, height, title, isHorizontal):
 		self.lock = False
 		self.isHorizontal = isHorizontal
-		self.progressBar = stemBox.AutoStemProgressBar
 		self.titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 152))
 		box = self.box
@@ -392,15 +391,11 @@ class ControlValuesSheet(object):
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
-		w.zoneBox.progressBar  = ProgressBar((10, -28, -90, 16), sizeStyle = "small",  maxValue=100)
-		w.zoneBox.progressBar.show(0)
 
 		# STEM EDITOR
 		w.stemBox = Box((10, 19, -10, -40))
 		sb = w.stemBox
 		sb.show(0)
-		sb.AutoStemProgressBar  = ProgressBar((10, -28, -90, 16), sizeStyle = "small",  maxValue=100)
-		sb.AutoStemProgressBar.show(0)
 		self.horizontalStemView = StemView(sb, 34,  "Y Stems", True)
 		self.verticalStemView   = StemView(sb, 220, "X Stems", False)
 		self.horizontalStemView.friend = self.verticalStemView
@@ -443,8 +438,11 @@ class ControlValuesSheet(object):
 		w.controlsSegmentedButton = SegmentedButton((137, 10, 220, 18), controlsSegmentDescriptions, callback=self.controlsSegmentedButtonCallback, sizeStyle="mini")
 		w.controlsSegmentedButton.set(0) # 0 ==> show zone box
 
-		# SHEET BOTTOM BUTTONS
+		# SHEET BOTTOM BUTTONS AND BAR
 		w.closeButton = Button((10, -32, 60, 22), "Close", sizeStyle = "small", callback=self.close)
+		#w.progressLabel  = TextBox((80, -28, 50, 16), '', sizeStyle = "small")
+		w.progressBar  = ProgressBar((80, -28, -200, 16), sizeStyle = "small",  maxValue=len(fm.f))
+		w.progressBar.show(0)
 		w.applyButton = Button((-190, -32, 60, 22), "Apply", sizeStyle = "small", callback=self.applyButtonCallback)
 		w.applyAndCloseButton = Button((-120, -32, 110, 22), "Apply and Close", sizeStyle = "small", callback=self.applyAndCloseButtonCallback)
 
@@ -468,9 +466,6 @@ class ControlValuesSheet(object):
 		self.verticalStemView.box.setPosSize((10, height-(height/2.0)-20, -10, height*(112/480)-50))
 		self.verticalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
 		self.verticalStemView.titlebox.setPosSize((10, height-(height/2.0)-44, -10, 14))
-
-		self.w.zoneBox.progressBar.setPosSize((10, -28, -90, 16))
-		self.w.stemBox.AutoStemProgressBar.setPosSize((10, -28, -90, 16))
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - GASP FUNCTIONS
 
@@ -593,22 +588,9 @@ class ControlValuesSheet(object):
 	def applyButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
 		# Zones
-		fm.zones = {}
-		trackers = [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]
-		fm.applyChangesFromUIZones(
-				self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List,
-				trackers, self.w.zoneBox.progressBar)
-		self.topZoneView.resetTracker()
-		self.bottomZoneView.resetTracker()
+		fm.applyChangesFromUIZones(self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List)
 		# Stems
-		fm.horizontalStems = {}
-		fm.verticalStems = {}
-		trackers = [self.horizontalStemView.nameChangeTracker, self.verticalStemView.nameChangeTracker]
-		fm.applyChangesFromUIStems(
-				self.horizontalStemView.box.stemsList, self.verticalStemView.box.stemsList,
-				trackers, self.w.stemBox.AutoStemProgressBar)
-		self.horizontalStemView.resetTracker()
-		self.verticalStemView.resetTracker()
+		fm.applyChangesFromUIStems(self.horizontalStemView.box.stemsList, self.verticalStemView.box.stemsList)
 		# General
 		stemsnap = int(self.w.generalBox.editTextStemSnap.get())
 		alignppm = int(self.w.generalBox.editTextAlignment.get())
@@ -624,10 +606,26 @@ class ControlValuesSheet(object):
 			SS  = rangeUI['SS']  * 8
 			fm.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 		# Finally, write the tables
-		fm.dirtyCVT()
 		fm.writeCVTandPREP()
 		tt.tables.writeFPGM(fm)
 		tt.tables.writegasp(fm)
+		# We rename the stems and zone at the end, *after* the tables have
+		# been rewritten, so that we can use the new zone and stem CVT number
+		# when we write the assembly of a glyph...
+		# rename zones
+		#self.w.progressLabel.set('Zones')
+		trackers = [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]
+		fm.renameZonesInGlyphs(trackers, self.w.progressBar)
+		self.topZoneView.resetTracker()
+		self.bottomZoneView.resetTracker()
+		# rename stems
+		#self.w.progressLabel.set('Stems')
+		trackers = [self.horizontalStemView.nameChangeTracker, self.verticalStemView.nameChangeTracker]
+		fm.renameStemsInGlyphs(trackers, self.w.progressBar)
+		self.horizontalStemView.resetTracker()
+		self.verticalStemView.resetTracker()
+		# cleanup
+		#self.w.progressLabel.set('')
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()
 
