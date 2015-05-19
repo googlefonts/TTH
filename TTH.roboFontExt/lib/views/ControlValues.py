@@ -2,6 +2,7 @@
 from vanilla import Box, Button, CheckBox, CheckBoxListCell, EditText, List, ProgressBar, SegmentedButton, Sheet, SquareButton, TextBox
 import string
 from models.TTHTool import uniqueInstance as tthTool
+from auto import zones
 import commons
 from commons import helperFunctions
 import tt
@@ -546,9 +547,32 @@ class ControlValuesSheet(object):
 		if b <= 1: self.w.resize(505, 480)
 		else:      self.w.resize(505, 220)
 
+	def addUIZoneWithRename(self, uiZone, items, names, otherNames):
+		orgName = uiZone['Name']
+		r = 0
+		while uiZone['Name'] in otherNames:
+			uiZone['Name'] = orgName + '_' + str(r)
+			r += 1
+		try:
+			i = names.index(uiZone['Name'])
+			items[i] = uiZone
+		except:
+			items.append(uiZone)
+
 	def autoZoneButtonCallback(self, sender):
-		pass
-		#self.automation.autoZones(fm.f)
+		fm = tthTool.getFontModel()
+		uiZones = auto.zones.autoZones(fm.f)
+		topItems    = self.topZoneView.box.zones_List.get()
+		bottomItems = self.bottomZoneView.box.zones_List.get()
+		topNames = [z['Name'] for z in topItems]
+		bottomNames = [z['Name'] for z in bottomItems]
+		for uiZone in uiZones:
+			if uiZone['top']:
+				self.addUIZoneWithRename(uiZone, topItems, topNames, bottomNames)
+			else:
+				self.addUIZoneWithRename(uiZone, bottomItems, bottomNames, topNames)
+		self.topZoneView.box.zones_List.set(topItems)
+		self.bottomZoneView.box.zones_List.set(bottomItems)
 
 	def autoStemButtonCallback(self, sender):
 		pass
@@ -616,4 +640,4 @@ class ControlValuesSheet(object):
 
 reload(tt)
 reload(commons)
-#reload(Automation)
+reload(zones)
