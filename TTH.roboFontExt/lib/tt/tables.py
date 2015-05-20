@@ -152,48 +152,59 @@ def writegasp(fm):
 	# print "GASP_DOGRAY", GASP_DOGRAY
 	# print "GASP_GRIDFIT", GASP_GRIDFIT
 
-def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
-	f = fm.f
-	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 11
-	f.lib[TTFCompilerSettings.roboHintMaxpMaxStorageLibKey] = 5
-
+def computeCVT(fm):
 	stem_to_cvt = {}
 	zone_to_cvt = {}
 	CVT = []
 
 	CVT.append(int(math.floor(fm.UPM / fm.alignppm)))
 
-	stemsHorizontal = fm.horizontalStems.items()
-	stemsVertical   = fm.verticalStems.items()
+	stemsH = fm.horizontalStems.items()
+	stemsV = fm.verticalStems.items()
+	stemsH.sort() # sort by NAME
+	stemsV.sort() # sort by NAME
 
-	for stem in stemsHorizontal + stemsVertical:
-		CVT.append(int(stem[1]['width']))
-		stem_to_cvt[stem[0]] = len(CVT)-1
+	for name, stem in stemsH:
+		CVT.append(int(stem['width']))
+		stem_to_cvt[name] = len(CVT)-1
+	for name, stem in stemsV:
+		CVT.append(int(stem['width']))
+		stem_to_cvt[name] = len(CVT)-1
 
-	for name, zone in fm.zones.iteritems():
+	zones = fm.zones.items()
+	zones.sort() # sort by NAME
+
+	for name, zone in zones:
 		CVT.append(int(zone['position']))
 		zone_to_cvt[name] = len(CVT)-1
 		CVT.append(int(zone['width']))
+	return (stemsH, stemsV, stem_to_cvt, zone_to_cvt, CVT)
 
+def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
+	f = fm.f
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 11
+	f.lib[TTFCompilerSettings.roboHintMaxpMaxStorageLibKey] = 5
+
+	stemsH, stemsV, stem_to_cvt, zone_to_cvt, CVT = computeCVT(fm)
 	f.lib[k_CVT_key] = CVT
 
 	table_PREP = [ autoPush(0), 'CALL[ ]' ]
 	roundStemHorizontal = [ 'SVTCA[0]' ]
-	if stemsHorizontal != []:
+	if stemsH != []:
 		callFunction2 = [ # index of first ControlValue for horizontal stems, number of horizontal stems
-				autoPush(stem_to_cvt[stemsHorizontal[0][0]], len(stemsHorizontal), 2),
+				autoPush(stem_to_cvt[stemsH[0][0]], len(stemsH), 2),
 				'CALL[ ]' ]
 		roundStemHorizontal.extend(callFunction2)
 
 	roundStemVertical = [ 'SVTCA[1]' ]
-	if stemsVertical != []:
+	if stemsV != []:
 		callFunction2 = [ # index of first ControlValue for vertical stems, number of horizontal stems
-				autoPush(stem_to_cvt[stemsVertical[0][0]], len(stemsVertical), 2),
+				autoPush(stem_to_cvt[stemsV[0][0]], len(stemsV), 2),
 				'CALL[ ]' ]
 		roundStemVertical.extend(callFunction2)
 
 	pixelsStemHorizontal = [ 'SVTCA[0]' ]
-	for stemName, stem in stemsHorizontal:
+	for stemName, stem in stemsH:
 		ppm_roundsList = stem['round'].items()
 		ppm_roundsList.sort(cmp=lambda (k1,v1), (k2,v2): v2-v1)
 		ppmsAnd8 = [int(p[0]) for p in ppm_roundsList]+[8]
@@ -201,7 +212,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 		pixelsStemHorizontal.extend(callFunction8)
 
 	pixelsStemVertical = [ 'SVTCA[1]' ]
-	for stemName, stem in stemsVertical:
+	for stemName, stem in stemsV:
 		ppm_roundsList = stem['round'].items()
 		ppm_roundsList.sort(cmp=lambda (k1,v1), (k2,v2): v2-v1)
 		ppmsAnd8 = [int(p[0]) for p in ppm_roundsList]+[8]
@@ -209,7 +220,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 		pixelsStemVertical.extend(callFunction8)
 
 	roundZones = [ 'SVTCA[0]' ]
-	callFunction7 = [ autoPush(len(stemsHorizontal) + len(stemsVertical) + 1, len(fm.zones), 7),
+	callFunction7 = [ autoPush(len(stemsH) + len(stemsV) + 1, len(fm.zones), 7),
 					'CALL[ ]' ]
 	roundZones.extend(callFunction7)
 
@@ -293,7 +304,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 	table_PREP.extend(rasterSensitive)
 	f.lib[k_prep_key] = table_PREP
 
-	return (stem_to_cvt, zone_to_cvt)
+	return (stem_to_cvt, zone_to_cvt, CVT)
 
 def writeFPGM(fm):
 	table_FPGM = []

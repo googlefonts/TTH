@@ -2,10 +2,19 @@
 In Refactor
 ==============================
 
-AutoZone
+Try to ensure consistent numbering of zones and stems after CVT editing
+and re-assemble glyphs whose stem/zone cvt-numbers have changed
+------------------------------
 AutoStem
-AutoHint
-AutoTransfer
+------------------------------
+AutoHint & UI
+------------------------------
+AutoTransfer & UI
+------------------------------
+HotKeys
+------------------------------
+Final Font Generation
+------------------------------
 
 ==============================
 For v0.7 :

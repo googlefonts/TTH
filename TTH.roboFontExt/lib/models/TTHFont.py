@@ -246,7 +246,7 @@ class TTHFont():
 # - - - - - - - - - - - - - - - -
 
 	def writeCVTandPREP(self):
-		stem_to_cvt, zone_to_cvt = tables.writeCVTandPREP(self)
+		stem_to_cvt, zone_to_cvt, CVT = tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
 

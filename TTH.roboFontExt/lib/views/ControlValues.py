@@ -587,6 +587,7 @@ class ControlValuesSheet(object):
 
 	def applyButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
+		origS2C, origZ2C, origCVT = tt.tables.computeCVT(fm)
 		# Zones
 		fm.applyChangesFromUIZones(self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List)
 		# Stems
@@ -606,7 +607,7 @@ class ControlValuesSheet(object):
 			SS  = rangeUI['SS']  * 8
 			fm.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 		# Finally, write the tables
-		fm.writeCVTandPREP()
+		newS2C, newZ2C, newCVT = fm.writeCVTandPREP()
 		tt.tables.writeFPGM(fm)
 		tt.tables.writegasp(fm)
 		# We rename the stems and zone at the end, *after* the tables have
