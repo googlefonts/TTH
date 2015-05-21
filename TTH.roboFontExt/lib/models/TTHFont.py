@@ -39,8 +39,8 @@ class TTHFont():
 		# For storing the position and size of the zone labels
 		self.zoneLabels = {}
 
-		# Option for the generated TTH assembly
-		self.deactivateStemWhenGrayScale = helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", False)
+		# Option for the generated TTH assembly (in the PREP table)
+		helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", 0)
 
 		self._pigw = None # internal preview in glyph-window
 
@@ -71,18 +71,42 @@ class TTHFont():
 			self._pigw.removeFromSuperview()
 			self._pigw = None
 
+	@property
+	def stemsnap(self):
+		return self.f.lib[tt.FL_tth_key]['stemsnap']
+	@stemsnap.setter
+	def setStemsnap(self, ss):
+		self.f.lib[tt.FL_tth_key]['stemsnap'] = ss
+
+	@property
+	def codeppm(self):
+		return self.f.lib[tt.FL_tth_key]['codeppm']
+	@codeppm.setter
+	def setCodeppm(self, cp):
+		self.f.lib[tt.FL_tth_key]['codeppm'] = cp
+
+	@property
+	def alignppm(self):
+		return self.f.lib[tt.FL_tth_key]['alignppm']
+	@alignppm.setter
+	def setAlignppm(self, ap):
+		self.f.lib[tt.FL_tth_key]['alignppm'] = ap
+
+	@property
+	def deactivateStemWhenGrayScale(self):
+		return self.f.lib[tt.SP_tth_key]['deactivateStemWhenGrayScale']
+	@deactivateStemWhenGrayScale.setter
+	def setDeactivateStemWhenGrayScale(self, dgs):
+		self.f.lib[tt.SP_tth_key]['deactivateStemWhenGrayScale'] = dgs
+
 	def dirtyCVT(self):
 		self.stem_to_cvt = None
 		self.zone_to_cvt = None
 
 	def setOptions(self, stemsnap, alignppm, codeppm, dswgs):
-		self.f.lib[tt.FL_tth_key]["stemsnap"] = stemsnap
-		self.f.lib[tt.FL_tth_key]["alignppm"] = alignppm
-		self.f.lib[tt.FL_tth_key]["codeppm"] = codeppm
-		self.f.lib[tt.SP_tth_key]["deactivateStemWhenGrayScale"] = dswgs
 		self.stemsnap = stemsnap
 		self.alignppm = alignppm
-		self.codeppm = codeppm
+		self.codeppm  = codeppm
 		self.deactivateStemWhenGrayScale = dswgs
 		self.dirtyCVT()
 
@@ -150,7 +174,6 @@ class TTHFont():
 # - - - - - - - - - - - - - - - - ZONES & ZONE LABELS
 
 	def saveZonesToUFO(self):
-		# useless because they ARE the same dictionary
 		self.f.lib[tt.FL_tth_key]["zones"] = self.zones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
@@ -195,33 +218,20 @@ class TTHFont():
 		self.saveZonesToUFO()
 		self.dirtyCVT()
 
-	def renameZonesInGlyphs(self, nameTrackers, progress, writeUFO=False):
-		nameChanges = []
-		for tracker in nameTrackers:
-			for org in tracker.originals():
-				new = tracker.newNameOf(org)
-				if new == org: continue
-				if org in self.zones: continue
-				nameChanges.append((org, new))
-		if not nameChanges: return
+	def renameZonesInGlyphs(self, nameChanger, progress):
 		TTHGlyph.silent = True
-		progress.set(0)
-		progress.show(1)
 		counter = 0
 		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
 			gm = self.glyphModelForGlyph(g)
-			glyphChanged = False
-			for (org, new) in nameChanges:
-				if gm.renameZone(org, new): glyphChanged = True
-			if writeUFO and hasG: #glyphChanged:
-				gm.saveToUFO(self)
+			gm.renameZone(nameChanger)
 			if not hasG: self.delGlyphModelForGlyph(g)
 			counter += 1
-			if counter % 20 == 0:
-				progress.increment(20)
-		progress.show(0)
+			if counter == 30:
+				progress.increment(30)
+				counter = 0
+		progress.increment(counter)
 		TTHGlyph.silent = False
 
 	def zoneOfUIZone(self, uiZone, top):
@@ -249,6 +259,7 @@ class TTHFont():
 		stem_to_cvt, zone_to_cvt, CVT = tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
+		return (stem_to_cvt, zone_to_cvt, CVT)
 
 # - - - - - - - - - - - - - - - -
 
@@ -265,12 +276,12 @@ class TTHFont():
 			stems = helperFunctions.getOrPutDefault(tth_lib, "stems", {})
 			self.horizontalStems = dict((n,s) for (n,s) in stems.iteritems() if s['horizontal'])
 			self.verticalStems   = dict((n,s) for (n,s) in stems.iteritems() if not s['horizontal'])
-			# FIXME: describe this
-			self.codeppm	= helperFunctions.getOrPutDefault(tth_lib, "codeppm", 72)
-			# FIXME: describe this
-			self.alignppm	= helperFunctions.getOrPutDefault(tth_lib, "alignppm", 64)
-			# FIXME: describe this
-			self.stemsnap	= helperFunctions.getOrPutDefault(tth_lib, "stemsnap", 17)
+			# FIXME: describe this. used in generationg the (GASP ? and) PREP tables
+			helperFunctions.getOrPutDefault(tth_lib, "codeppm", 72)
+			# FIXME: describe this. used in first element of the CVT
+			helperFunctions.getOrPutDefault(tth_lib, "alignppm", 64)
+			# FIXME: describe this. written in the FPGM table
+			helperFunctions.getOrPutDefault(tth_lib, "stemsnap", 17)
 
 			# FIXME: describe this
 			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, tables.k_gasp_key, {})
@@ -336,34 +347,22 @@ class TTHFont():
 		self.saveStemsToUFO()
 		self.dirtyCVT()
 
-	def renameStemsInGlyphs(self, nameTrackers, progress):
-		names = set(self.horizontalStems.keys() + self.verticalStems.keys())
-		nameChanges = []
-		for tracker in nameTrackers:
-			for org in tracker.originals():
-				new = tracker.newNameOf(org)
-				if new == org: continue
-				if org in names: continue
-				nameChanges.append((org, new))
-		if not nameChanges: return
+	def renameStemsInGlyphs(self, nameChanger, progress):
 		TTHGlyph.silent = True
-		progress.set(0)
-		progress.show(1)
 		counter = 0
 		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
 			gm = self.glyphModelForGlyph(g)
-			glyphChanged = False
-			for (org, new) in nameChanges:
-				if gm.renameStem(org, new): glyphChanged = True
-			if hasG:# glyphChanged:
-				gm.saveToUFO(self)
+			glyphChanged = gm.renameStem(nameChanger)
+			#if True:#hasG:# glyphChanged:
+			#	gm.compileToUFO(self)
 			if not hasG: self.delGlyphModelForGlyph(g)
 			counter += 1
-			if counter % 20 == 0:
-				progress.increment(20)
-		progress.show(0)
+			if counter == 30:
+				progress.increment(30)
+				counter = 0
+		progress.increment(counter)
 		TTHGlyph.silent = False
 
 	def stemOfUIStem(self, uiStem, isHorizontal):
@@ -374,6 +373,21 @@ class TTHFont():
 				}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
+
+	def compileAllGlyphs(self, progress):
+		TTHGlyph.silent = True
+		counter = 0
+		maxCount = len(self.f)
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			self.glyphModelForGlyph(g).compileToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+			counter += 1
+			if counter == 30:
+				progress.increment(30)
+				counter = 0
+		progress.increment(counter)
+		TTHGlyph.silent = False
 
 	_helpOnFontGeneration = '''
 What tables are needed?

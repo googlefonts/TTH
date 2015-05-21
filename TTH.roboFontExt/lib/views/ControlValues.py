@@ -587,7 +587,7 @@ class ControlValuesSheet(object):
 
 	def applyButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
-		origS2C, origZ2C, origCVT = tt.tables.computeCVT(fm)
+		sh, sv, origS2C, origZ2C, origCVT = tt.tables.computeCVT(fm)
 		# Zones
 		fm.applyChangesFromUIZones(self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List)
 		# Stems
@@ -613,19 +613,36 @@ class ControlValuesSheet(object):
 		# We rename the stems and zone at the end, *after* the tables have
 		# been rewritten, so that we can use the new zone and stem CVT number
 		# when we write the assembly of a glyph...
+		# compute zone name changes
+		zoneNameChanger = {}
+		for t in [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]:
+			zoneNameChanger.update(t.changesDict(fm.zones))
+		# compute stem name changes
+		stemNameChanger = {}
+		names = set(fm.horizontalStems.keys() + fm.verticalStems.keys())
+		for t in [self.horizontalStemView.nameChangeTracker, self.verticalStemView.nameChangeTracker]:
+			stemNameChanger.update(t.changesDict(names))
+		# setup progress bar
+		pbMax = len(fm.f)
+		if zoneNameChanger: pbMax += len(fm.f)
+		if stemNameChanger: pbMax += len(fm.f)
+		self.w.progressBar._nsObject.setMaxValue_(pbMax)
+		self.w.progressBar.set(0)
+		self.w.progressBar.show(1)
 		# rename zones
-		#self.w.progressLabel.set('Zones')
-		trackers = [self.topZoneView.nameChangeTracker, self.bottomZoneView.nameChangeTracker]
-		fm.renameZonesInGlyphs(trackers, self.w.progressBar)
+		if zoneNameChanger:
+			fm.renameZonesInGlyphs(zoneNameChanger, self.w.progressBar)
 		self.topZoneView.resetTracker()
 		self.bottomZoneView.resetTracker()
 		# rename stems
-		#self.w.progressLabel.set('Stems')
-		trackers = [self.horizontalStemView.nameChangeTracker, self.verticalStemView.nameChangeTracker]
-		fm.renameStemsInGlyphs(trackers, self.w.progressBar)
+		if stemNameChanger:
+			fm.renameStemsInGlyphs(stemNameChanger, self.w.progressBar)
 		self.horizontalStemView.resetTracker()
 		self.verticalStemView.resetTracker()
+		# re-compile all glyphs
+		fm.compileAllGlyphs(self.w.progressBar)
 		# cleanup
+		self.w.progressBar.show(0)
 		#self.w.progressLabel.set('')
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()

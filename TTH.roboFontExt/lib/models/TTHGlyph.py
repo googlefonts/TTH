@@ -224,7 +224,7 @@ class TTHGlyph(object):
 		g = self.RFGlyph
 		return helperFunctions.getOrDefault(g.lib, key, [])
 
-	def saveToUFO(self, fm):
+	def saveCommandsToUFO(self):
 		"""Save what can be saved in the UFO Lib."""
 		# write self.hintingCommands to UFO lib.
 		root = ET.Element('ttProgram')
@@ -245,6 +245,8 @@ class TTHGlyph(object):
 			com.attrib = command
 		text = ET.tostring(root)
 		self._g.lib['com.fontlab.ttprogram'] = Data(text)
+
+	def compileToUFO(self, fm):
 		# compile to TT assembly language and write it in UFO lib.
 		if fm.stem_to_cvt is None: fm.writeCVTandPREP()
 		tt.asm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
@@ -336,7 +338,8 @@ class TTHGlyph(object):
 
 	def updateGlyphProgram(self, fm):
 		self.cleanCommands()
-		self.saveToUFO(fm)
+		self.saveCommandsToUFO()
+		self.compileToUFO(fm)
 		tthTool.hintingProgramHasChanged(fm)
 
 	def loadFromUFO(self):
@@ -378,26 +381,32 @@ class TTHGlyph(object):
 			message += '\n\t'.join([repr(e) for e in badName])
 		if absent or badName: print message
 
-	def renameStem(self, oldName, newName):
+	def renameStem(self, nameChanger):
 		'''Use newName = '' to transform the stem into a simple round'''
 		modified = False
 		for command in self.hintingCommands:
 			if not ('stem' in command): continue
-			if command['stem'] != oldName: continue
+			oldName = command['stem']
+			if oldName not in nameChanger: continue
+			newName = nameChanger[oldName]
 			modified = True
 			if newName != None: # change name
 				command['stem'] = newName
 			else: # delete stem, replace with rounding
 				del command['stem']
-		if modified: self.dirtyHinting()
+		if modified:
+			#self.dirtyHinting()
+			self.saveCommandsToUFO()
 		return modified
 
-	def renameZone(self, oldName, newName):
+	def renameZone(self, nameChanger):
 		'''Use newName = '' to transform the align-to-zone into a simple alignv'''
 		modified = False
 		for command in self.hintingCommands:
 			if not (command['code'] in ['alignt', 'alignb']): continue
-			if command['zone'] != oldName: continue
+			oldName = command['zone']
+			if oldName not in nameChanger: continue
+			newName = nameChanger[oldName]
 			modified = True
 			if newName != None: # change name
 				command['zone'] = newName
@@ -405,7 +414,9 @@ class TTHGlyph(object):
 				del command['zone']
 				command['code'] = 'alignv'
 				command['align'] = 'round'
-		if modified: self.dirtyHinting()
+		if modified:
+			#self.dirtyHinting()
+			self.saveCommandsToUFO()
 		return modified
 
 if tthTool._printLoadings: print "TTHGlyph, ",

@@ -4,17 +4,13 @@ class RenameTracker(object):
 		self.renamings = dict((o,o) for o in originals)
 		self.history = []
 
-	def originals(self):
-		return self.renamings.keys()
-
-	def isOriginal(self, name):
-		return (name in self.renamings)
-
-	def newNameOf(self, name):
-		if self.isOriginal(name):
-			return self.renamings[name]
-		else:
-			return None
+	def changesDict(self, current):
+		d = {}
+		for o,n in self.renamings.iteritems():
+			if o == n: continue
+			if o in current: continue
+			d[o] = n
+		return d
 
 	def rename(self, old, new):
 		if old == new: return True

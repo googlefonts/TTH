@@ -269,7 +269,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 	installControl.extend(installcontrol2)
 
 	rasterSensitive = []
-	if f.lib['com.sansplomb.tth']['deactivateStemWhenGrayScale'] == 1:
+	if fm.deactivateStemWhenGrayScale == 1:
 		rasterSensitive.extend([
 					autoPush(10),
 					'CALL[ ]',
@@ -308,10 +308,10 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 
 def writeFPGM(fm):
 	table_FPGM = []
-	CVT_cut_in = fm.f.lib["com.fontlab.v2.tth"]["stemsnap"] * 4
+	CVT_cut_in = fm.stemsnap * 4
 	CutInPush = autoPush(CVT_cut_in)
 
-	FPGM_0= [
+	FPGM_0 = [
 	autoPush(0),
 	'FDEF[ ]',
 		'MPPEM[ ]',
