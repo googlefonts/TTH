@@ -278,12 +278,8 @@ class AlignPopover(TTHCommandPopover):
 
 		code = cmd['code']
 
-		if code in ['alignt', 'alignb']:
-			commandToZone = 'Aligned to Zone'
-		elif code == 'alignv':
-			commandToZone = 'Not Aligned to Zone'
 		if code[-1] != 'h':
-			popover.zoneTitle = TextBox((10, 34, -30, 20), commandToZone, sizeStyle='small')
+			popover.zoneTitle = TextBox((10, 34, -30, 20), 'Align to Zone', sizeStyle='small')
 			popover.zoneCheckBox = CheckBox((-23, 28, 22, 22), "", callback=self.zoneCheckBoxCallback, sizeStyle='small')
 			popover.zoneCheckBox.set(code in ['alignt', 'alignb'])
 
@@ -317,13 +313,11 @@ class AlignPopover(TTHCommandPopover):
 		g = self.gm.RFGlyph
 		if sender.get() == 1:
 			g.prepareUndo("Align to Zone")
-			commandToZone = 'Aligned to Zone'
 			use_type = False # so, we use zones
 			zoneName = self.zonesListItems[0]
 			self.handleZone(zoneName)
 		else:
 			g.prepareUndo("Do Not Align to Zone")
-			commandToZone = 'Not Aligned to Zone'
 			use_type = True
 			self.cmd['align'] = 'round'
 			if 'zone' in self.cmd:
@@ -339,7 +333,6 @@ class AlignPopover(TTHCommandPopover):
 		self.popover.alignmentTypePopUpButton.show(use_type)
 		self.popover.alignmentZoneText.show(not use_type)
 		self.popover.alignmentZonePopUpButton.show(not use_type)
-		self.popover.zoneTitle.set(commandToZone)
 		self.gm.updateGlyphProgram(self.fm)
 		g.performUndo()
 
