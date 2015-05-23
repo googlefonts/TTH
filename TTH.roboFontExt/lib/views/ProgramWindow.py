@@ -1,5 +1,5 @@
 from mojo.extensions import getExtensionDefault
-from vanilla import FloatingWindow, List, CheckBoxListCell
+from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
 from views import TTHWindow
 from models.TTHTool import uniqueInstance as tthTool
 
@@ -19,6 +19,10 @@ class ProgramWindow(TTHWindow):
 		ps = getExtensionDefault(defaultKeyProgramWindowPosSize, fallback=(10, -300, -10, 300))
 		win = FloatingWindow(ps, "Program", minSize=(600, 80))
 
+		sliderCell = SliderListCell(-8, 8)
+		sliderCell.setAllowsTickMarkValuesOnly_(True)
+		sliderCell.setNumberOfTickMarks_(17)
+
 		columnDescriptions = [
 			{"title": "index", "width": 30, "editable": False},
 			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True),
@@ -30,8 +34,8 @@ class ProgramWindow(TTHWindow):
 			{"title": "round", "width": 80, "editable": False},
 			{"title": "stem", "width": 100, "editable": False},
 			{"title": "zone", "width": 100, "editable": False},
-			#dict(title='delta', cell=sliderCell, width=90, editable=True),
-			{"title": "delta", "width": 50, "editable": False},
+			dict(title='delta', cell=sliderCell, width=90, editable=True),
+			#{"title": "delta", "width": 50, "editable": False},
 			{"title": "ppm1", "width": 50,"editable": False},
 			{"title": "ppm2", "width": 50, "editable": False},
 			{"title": "mono", "width": 50, "editable": False},
@@ -84,3 +88,6 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
+		# for c in self.window.programList:
+		# 	if 'delta' in c['code']:
+		# 		print c
