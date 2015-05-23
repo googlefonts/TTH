@@ -53,6 +53,18 @@ class ProgramWindow(TTHWindow):
 	#def selectionCallback(self, sender):
 	#	pass
 
+	def tableView_viewForTableColumn_row_(tableview, col, row):
+		print 'hello'
+
+	def tableView_dataCellForTableColumn_row_(tableview, col, row):
+		print 'foo'
+
+	def tableView_willDisplayCell_forTableColumn_row_(tableView, cell, col, row):
+		print 'bar'
+
+	def tableView_mouseDownInHeaderOfTableColumn_(tableView, col):
+		print 'columnDescriptions'
+
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
 		if self.lock or (selectList == []):
@@ -88,6 +100,10 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
-		# for c in self.window.programList:
-		# 	if 'delta' in c['code']:
-		# 		print c
+		table = self.window.programList.getNSTableView()
+		table.setDelegate_(self)
+		#tableView_viewForTableColumn_row_(table, 10, 2)
+		#v = tableView_viewForTableColumn_row_(table, 10, 2)
+		#table.viewAtColumn_row_makeIfNecessary_(10, 2, True)
+		#print "TABLE ELEMENT", v
+
