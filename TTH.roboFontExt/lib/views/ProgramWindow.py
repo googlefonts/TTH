@@ -88,6 +88,11 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
+		#table = self.window.programList.getNSTableView()
+		#rows = table.numberOfRows()
+		#cols = table.numberOfColumns()
+		#print table.viewAtColumn_row_makeIfNecessary_(2, 2, True),
+
 		# for c in self.window.programList:
 		# 	if 'delta' in c['code']:
 		# 		print c

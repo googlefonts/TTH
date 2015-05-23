@@ -4,7 +4,7 @@ from fontTools import ttLib
 
 import os, tempfile
 
-from commons import helperFunctions
+from commons import helperFunctions as HF
 from drawing import textRenderer, geom
 
 from models.TTHTool import uniqueInstance as tthTool
@@ -15,7 +15,7 @@ from views import previewInGlyphWindow as PIGW
 import tt
 from tt import tables
 
-reload(helperFunctions)
+reload(HF)
 reload(textRenderer)
 reload(TTHGlyph)
 reload(tables)
@@ -25,11 +25,6 @@ class TTHFont():
 		# the corresponding Robofont font
 		self.f = font
 
-		# A plist with custom 'SansPlomb' data
-		SPLib = self.getSPLib()
-		# The rasterizer mode: Monochrome, Grayscale, or Subpixel
-		self.bitmapPreviewSelection = helperFunctions.getOrPutDefault(SPLib, "bitmapPreviewSelection", 'Monochrome')
-
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
@@ -38,9 +33,6 @@ class TTHFont():
 
 		# For storing the position and size of the zone labels
 		self.zoneLabels = {}
-
-		# Option for the generated TTH assembly (in the PREP table)
-		helperFunctions.getOrPutDefault(SPLib, "deactivateStemWhenGrayScale", 0)
 
 		self._pigw = None # internal preview in glyph-window
 
@@ -71,33 +63,53 @@ class TTHFont():
 			self._pigw.removeFromSuperview()
 			self._pigw = None
 
-	@property
-	def stemsnap(self):
-		return self.f.lib[tt.FL_tth_key]['stemsnap']
-	@stemsnap.setter
-	def setStemsnap(self, ss):
-		self.f.lib[tt.FL_tth_key]['stemsnap'] = ss
+	# getter / setter for 'sansplomb' lib PLIST
 
-	@property
-	def codeppm(self):
-		return self.f.lib[tt.FL_tth_key]['codeppm']
-	@codeppm.setter
-	def setCodeppm(self, cp):
-		self.f.lib[tt.FL_tth_key]['codeppm'] = cp
+	def getSPVal(self, name, default):
+		return HF.getOrPutDefault(self.getSPLib(), name, default)
 
-	@property
-	def alignppm(self):
-		return self.f.lib[tt.FL_tth_key]['alignppm']
-	@alignppm.setter
-	def setAlignppm(self, ap):
-		self.f.lib[tt.FL_tth_key]['alignppm'] = ap
+	@property # The rasterizer mode: Monochrome, Grayscale, or Subpixel
+	def bitmapPreviewSelection(self):
+		return self.getSPVal('bitmapPreviewSelection', 'Monochrome')
+	@bitmapPreviewSelection.setter
+	def setBitmapPreviewSelection(self, v):
+		self.getSPLib()['bitmapPreviewSelection'] = ss
 
-	@property
+	@property # Option for the generated TTH assembly (in the PREP table)
 	def deactivateStemWhenGrayScale(self):
-		return self.f.lib[tt.SP_tth_key]['deactivateStemWhenGrayScale']
+		return self.getSPVal('deactivateStemWhenGrayScale', 0)
 	@deactivateStemWhenGrayScale.setter
 	def setDeactivateStemWhenGrayScale(self, dgs):
-		self.f.lib[tt.SP_tth_key]['deactivateStemWhenGrayScale'] = dgs
+		self.getSPLib()['deactivateStemWhenGrayScale'] = dgs
+
+	@property # the minimum and maximum width of horizontal/vertical stems
+	def stemSizeBounds(self):
+		return self.getSPVal('stemSizeBounds', ((20, 200), (20,200)))
+	def setStemSizeBounds(self, b):
+		self.getSPLib()['stemSizeBounds'] = b
+
+	# getter / setter for 'FontLab' lib PLIST
+
+	@property # FIXME: describe this. written in the FPGM table
+	def stemsnap(self):
+		return HF.getOrPutDefault(self.getFLLib(), "stemsnap", 17)
+	@stemsnap.setter
+	def setStemsnap(self, ss):
+		self.getFLLib()['stemsnap'] = ss
+
+	@property # FIXME: describe this. used in generationg the (GASP ? and) PREP tables
+	def codeppm(self):
+		return HF.getOrPutDefault(self.getFLLib(), "codeppm", 72)
+	@codeppm.setter
+	def setCodeppm(self, cp):
+		self.getFLLib()['codeppm'] = cp
+
+	@property # FIXME: describe this. used in first element of the CVT
+	def alignppm(self):
+		return HF.getOrPutDefault(self.getFLLib(), "alignppm", 64)
+	@alignppm.setter
+	def setAlignppm(self, ap):
+		self.getFLLib()['alignppm'] = ap
 
 	def dirtyCVT(self):
 		self.stem_to_cvt = None
@@ -133,13 +145,18 @@ class TTHFont():
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
 
+	def getFLLib(self):
+		'''A plist with custom 'FontLab' data'''
+		return HF.getOrPutDefault(self.f.lib, tt.FL_tth_key, {})
+
 	def getSPLib(self):
-		return helperFunctions.getOrPutDefault(self.f.lib, tt.SP_tth_key, {})
+		'''A plist with custom 'SansPlomb' data'''
+		return HF.getOrPutDefault(self.f.lib, tt.SP_tth_key, {})
 
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
 	def createPreviewInGlyphWindowIfNeeded(self):
-		badFont = not helperFunctions.fontIsQuadratic(self.f)
+		badFont = not HF.fontIsQuadratic(self.f)
 		if (not badFont) and self._pigw == None:
 			self._pigw = self.createPreviewInGlyphWindow()
 			return True
@@ -238,7 +255,7 @@ class TTHFont():
 		return {
 				'position': uiZone['Position'],
 				'width': uiZone['Width'],
-				'delta': helperFunctions.deltaDictFromString(uiZone['Delta']),
+				'delta': HF.deltaDictFromString(uiZone['Delta']),
 				'top': top,
 			}
 
@@ -265,28 +282,20 @@ class TTHFont():
 
 	def _readControlValuesFromUFO(self):
 		try:
-			tth_lib = helperFunctions.getOrPutDefault(self.f.lib, tt.FL_tth_key, {})
-
+			tth_lib = self.getFLLib()
 			# From the plist written by FontLab when exporting a font to
-			# UFO, we recover some useful data for hinting
+			# UFO, we recover some useful data for hinting:
 
 			# Descriptions of zones
-			self.zones = helperFunctions.getOrPutDefault(tth_lib, "zones", {})
+			self.zones = HF.getOrPutDefault(tth_lib, "zones", {})
 			# Descriptions of typical stem widths
-			stems = helperFunctions.getOrPutDefault(tth_lib, "stems", {})
+			stems = HF.getOrPutDefault(tth_lib, "stems", {})
 			self.horizontalStems = dict((n,s) for (n,s) in stems.iteritems() if s['horizontal'])
 			self.verticalStems   = dict((n,s) for (n,s) in stems.iteritems() if not s['horizontal'])
-			# FIXME: describe this. used in generationg the (GASP ? and) PREP tables
-			helperFunctions.getOrPutDefault(tth_lib, "codeppm", 72)
-			# FIXME: describe this. used in first element of the CVT
-			helperFunctions.getOrPutDefault(tth_lib, "alignppm", 64)
-			# FIXME: describe this. written in the FPGM table
-			helperFunctions.getOrPutDefault(tth_lib, "stemsnap", 17)
-
 			# FIXME: describe this
-			self.gasp_ranges  = helperFunctions.getOrPutDefault(self.f.lib, tables.k_gasp_key, {})
+			self.gasp_ranges  = HF.getOrPutDefault(self.f.lib, tables.k_gasp_key, {})
 			# FIXME: describe this
-			self.hdmx_ppems   = helperFunctions.getOrPutDefault(self.f.lib, tables.k_hdmx_key, {})
+			self.hdmx_ppems   = HF.getOrPutDefault(self.f.lib, tables.k_hdmx_key, {})
 		except:
 			print "[TTH ERROR]: Can't read font's control values"
 
