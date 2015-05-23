@@ -7,9 +7,7 @@ import KMeans
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def computeMaxStemOnO(tthtm, font):
-	roundFactor_Stems = tthtm.roundFactor_Stems
-	roundFactor_Jumps = tthtm.roundFactor_Jumps
+def computeMaxStemOnO(font):
 	minStemX = helperFunctions.roundbase(tthtm.minStemX, roundFactor_Stems)
 	minStemY = helperFunctions.roundbase(tthtm.minStemY, roundFactor_Stems)
 	maxStemX = helperFunctions.roundbase(tthtm.maxStemX, roundFactor_Stems)

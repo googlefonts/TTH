@@ -152,19 +152,36 @@ class ZoneView(object):
 
 class StemView(object):
 
-	def __init__(self, stemBox, height, title, isHorizontal):
+	def __init__(self, stemBox, height, isHorizontal):
 		self.lock = False
 		self.isHorizontal = isHorizontal
+		if isHorizontal:
+			title = "Y Stems"
+		else:
+			title = "X Stems"
 		self.titlebox = TextBox((10, height-24, 120, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 152))
 		box = self.box
 		prefix = "vertical"
+		fm = tthTool.getFontModel()
+		stemBounds = fm.stemSizeBounds[1]
 		if self.isHorizontal:
+			stemBounds = fm.stemSizeBounds[0]
 			prefix = "horizontal"
 		# put the title as a sub-widget of the zones window
-		stemBox.__setattr__(prefix + 'StemViewTitle', self.titlebox)
+		stemBox.__setattr__(prefix+'StemViewTitle', self.titlebox)
+		stemBox.__setattr__(prefix+'StemViewMinSizeLabel',
+				TextBox((140, height-24, 60, 14), "Min width:", sizeStyle = 'small'))
+		stemBox.__setattr__(prefix+'StemViewMinSizeText',
+				EditText((210, height-27, 40, 18), text = str(stemBounds[0]),
+					sizeStyle = "small", callback=self.editTextIntegerCallback))
+		stemBox.__setattr__(prefix+'StemViewMaxSizeLabel',
+				TextBox((260, height-24, 60, 14), "Max width:", sizeStyle = 'small'))
+		stemBox.__setattr__(prefix+'StemViewMaxSizeText',
+				EditText((330, height-27, 40, 18), text = str(stemBounds[1]),
+					sizeStyle = "small", callback=self.editTextIntegerCallback))
 		# put the box as a sub-widget of the zones window
-		stemBox.__setattr__(prefix + 'StemViewBox', box)
+		stemBox.__setattr__(prefix+'StemViewBox', box)
 
 		box.stemsList = List((0, 0, -0, -22), [],
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Width", "editable": True},
@@ -396,8 +413,8 @@ class ControlValuesSheet(object):
 		w.stemBox = Box((10, 19, -10, -40))
 		sb = w.stemBox
 		sb.show(0)
-		self.horizontalStemView = StemView(sb, 34,  "Y Stems", True)
-		self.verticalStemView   = StemView(sb, 220, "X Stems", False)
+		self.horizontalStemView = StemView(sb, 34,  True)
+		self.verticalStemView   = StemView(sb, 220, False)
 		self.horizontalStemView.friend = self.verticalStemView
 		self.verticalStemView.friend = self.horizontalStemView
 		sb.autoStemButton       = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
@@ -556,7 +573,7 @@ class ControlValuesSheet(object):
 
 	def autoZoneButtonCallback(self, sender):
 		fm = tthTool.getFontModel()
-		uiZones = auto.zones.autoZones(fm.f)
+		uiZones = zones.autoZones(fm.f)
 		topItems    = self.topZoneView.box.zones_List.get()
 		bottomItems = self.bottomZoneView.box.zones_List.get()
 		topNames = [z['Name'] for z in topItems]
@@ -592,12 +609,17 @@ class ControlValuesSheet(object):
 		fm.applyChangesFromUIZones(self.topZoneView.box.zones_List, self.bottomZoneView.box.zones_List)
 		# Stems
 		fm.applyChangesFromUIStems(self.horizontalStemView.box.stemsList, self.verticalStemView.box.stemsList)
+		# Stems Bounds
+		minX = min(2**14, max(0, int(self.w.stemBox.verticalStemViewMinSizeText.get())))
+		maxX = min(2**14, max(0, int(self.w.stemBox.verticalStemViewMaxSizeText.get())))
+		minY = min(2**14, max(0, int(self.w.stemBox.horizontalStemViewMinSizeText.get())))
+		maxY = min(2**14, max(0, int(self.w.stemBox.horizontalStemViewMaxSizeText.get())))
+		fm.stemSizeBounds = ((minY, maxY), (minX, maxX))
 		# General
 		stemsnap = int(self.w.generalBox.editTextStemSnap.get())
 		alignppm = int(self.w.generalBox.editTextAlignment.get())
 		codeppm = int(self.w.generalBox.editTextInstructions.get())
 		dswgs = self.w.generalBox.checkBoxDeactivateStemsWhenGrayscale.get()
-		fm.setOptions(stemsnap, alignppm, codeppm, dswgs)
 		# GASP
 		fm.gasp_ranges = {}
 		for rangeUI in self.w.gaspBox.gaspSettingsList:

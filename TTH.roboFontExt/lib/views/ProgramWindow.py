@@ -102,8 +102,4 @@ class ProgramWindow(TTHWindow):
 		self.window.programList.set(commands)
 		table = self.window.programList.getNSTableView()
 		table.setDelegate_(self)
-		#tableView_viewForTableColumn_row_(table, 10, 2)
-		#v = tableView_viewForTableColumn_row_(table, 10, 2)
-		#table.viewAtColumn_row_makeIfNecessary_(10, 2, True)
-		#print "TABLE ELEMENT", v
 
