@@ -48,6 +48,7 @@ class ProgramWindow(TTHWindow):
 					showColumnTitles=True,
 					#selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
+		win.programList.getNSTableView().setDelegate_(self)
 		self.window = win
 
 	#def selectionCallback(self, sender):
@@ -100,6 +101,3 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
-		table = self.window.programList.getNSTableView()
-		table.setDelegate_(self)
-

@@ -2,7 +2,7 @@
 from vanilla import Box, Button, CheckBox, CheckBoxListCell, EditText, List, ProgressBar, SegmentedButton, Sheet, SquareButton, TextBox
 import string
 from models.TTHTool import uniqueInstance as tthTool
-from auto import zones
+from auto import zones, stems
 import commons
 from commons import helperFunctions
 import tt
@@ -587,10 +587,11 @@ class ControlValuesSheet(object):
 		self.bottomZoneView.box.zones_List.set(bottomItems)
 
 	def autoStemButtonCallback(self, sender):
-		pass
-		#self.w.stemBox.AutoStemProgressBar.show(1)
-		#self.automation.autoStems(fm.f, self.w.stemBox.AutoStemProgressBar)
-		#self.w.stemBox.AutoStemProgressBar.show(0)
+		self.w.progressBar.set(0)
+		self.w.progressBar.show(1)
+		for e in stems.autoStems(tthTool.getFontModel(), self.w.progressBar):
+			print e
+		self.w.progressBar.show(0)
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - CLOSING FUNCTIONS
 
