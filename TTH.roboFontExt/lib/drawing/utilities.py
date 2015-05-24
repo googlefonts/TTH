@@ -38,10 +38,10 @@ def drawDiscAtPoint(r, x, y, color):
 	color.set()
 	NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2))).fill()
 
-def drawCircleAtPoint(r, x, y, color):
+def drawCircleAtPoint(r, w, x, y, color):
 	color.set()
 	path = NSBezierPath.bezierPathWithOvalInRect_(((x-r, y-r), (r*2, r*2)))
-	path.setLineWidth_(2)
+	path.setLineWidth_(w)
 	path.stroke()
 
 def drawLozengeAtPoint(scale, r, x, y, color):

@@ -93,4 +93,4 @@ class InterpolationTool(TTHCommandTool):
 			startPos = geom.makePoint(self.startPoint[0])
 			DR.drawDoubleArrow(scale, p, startPos, True, DR.kInterpolateColor, 20)
 		if locked:
-			DR.drawCircleAtPoint(10*scale, p.x, p.y, DR.kInterpolateColor)
+			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kInterpolateColor)

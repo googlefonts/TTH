@@ -61,4 +61,4 @@ class DoubleLinkTool(TTHCommandTool):
 		locked, p = self.magnet()
 		DR.drawDoubleArrow(scale, geom.makePoint(self.startPoint[0]), p, True, DR.kDoublinkColor, 20)
 		if locked:
-			DR.drawCircleAtPoint(10*scale, p.x, p.y, DR.kDoublinkColor)
+			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kDoublinkColor)
