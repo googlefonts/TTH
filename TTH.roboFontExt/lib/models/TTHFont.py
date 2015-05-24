@@ -307,12 +307,12 @@ class TTHFont():
 		return float(self.UPM) / tthTool.PPM_Size
 
 	@property
-	def ascent(self):
+	def ascent(self): # FIXME: obtain this value from VDMX
 		return self.f.info.openTypeOS2WinAscent
 
 	@property
-	def descent(self):
-		return self.f.info.openTypeOS2WinDescent
+	def descent(self): # FIXME: obtain this value from VDMX
+		return -self.f.info.openTypeOS2WinDescent
 
 	def regenTextRenderer(self):
 		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewSelection)
