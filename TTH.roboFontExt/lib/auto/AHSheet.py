@@ -29,7 +29,10 @@ class AutoHintingSheet(object):
 		w.yGroup.stemLabel = TextBox((140,2,-40,22), '<= stem width <=', alignment='center')
 		w.yGroup.maxW    = EditText((-40,0,40,22), text=str(yBounds[1]), continuous=False, callback=self.handleStemBounds)
 
-		bGroup = Group((10, 85, -10, -10))
+		w.tolLabel = TextBox((-160, 87, -60, 22), 'Angle Tolerance:', alignment='right')
+		w.tolerance = EditText((-50, 85, 40, 22), text=str(fm.angleTolerance), continuous=False, callback=self.handleTolerance)
+
+		bGroup = Group((10, 120, -10, -10))
 
 		bGroup.closeButton = Button((0,-20,100,20), "Close", sizeStyle='small', callback=self.close)
 
@@ -38,6 +41,16 @@ class AutoHintingSheet(object):
 
 	def close(self, sender):
 		self.w.close()
+
+	def handleTolerance(self, sender):
+		try:
+			value = int(sender.get())
+		except ValueError:
+			value = 0
+		value = max(0, min(45, abs(value)))
+		sender.set(value)
+		fm = tthTool.getFontModel()
+		fm.angleTolerance = value
 
 	def handleStemBounds(self, sender):
 		try:

@@ -86,6 +86,13 @@ class TTHFont(object):
 	def deactivateStemWhenGrayScale(self, dgs):
 		self.getSPLib()['deactivateStemWhenGrayScale'] = dgs
 
+	@property
+	def angleTolerance(self):
+		return self.getSPVal('angleTolerance', 0)
+	@angleTolerance.setter
+	def angleTolerance(self, at):
+		self.getSPLib()['angleTolerance'] = at
+
 	@property # the minimum and maximum width of horizontal/vertical stems
 	def stemSizeBounds(self):
 		return self.getSPVal('stemSizeBounds', ((20, 200), (20,200)))
