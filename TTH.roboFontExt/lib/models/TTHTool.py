@@ -28,7 +28,7 @@ defaultKeyShowCenterPixels         = DefaultKeyStub + "showCenterPixels"
 defaultKeyCenterPixelSize          = DefaultKeyStub + "centerPixelSize"
 defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
 
-class TTHTool():
+class TTHTool(object):
 	def __init__(self):
 
 		# For debugging the (re)loading order of the modules

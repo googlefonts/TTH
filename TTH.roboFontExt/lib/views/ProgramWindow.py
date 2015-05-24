@@ -79,6 +79,9 @@ class ProgramWindow(TTHWindow):
 
 	def updateProgramList(self):
 		gm = tthTool.getGlyphModel()
+		if gm is None:
+			self.window.programList.set([])
+			return
 		commands =  [dict(c) for c in gm.sortedHintingCommands]
 		def putIfNotThere(c, i, key):
 			if key not in c:

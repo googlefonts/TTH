@@ -20,7 +20,7 @@ reload(textRenderer)
 reload(TTHGlyph)
 reload(tables)
 
-class TTHFont():
+class TTHFont(object):
 	def __init__(self, font):
 		# the corresponding Robofont font
 		self.f = font
@@ -69,23 +69,28 @@ class TTHFont():
 		return HF.getOrPutDefault(self.getSPLib(), name, default)
 
 	@property # The rasterizer mode: Monochrome, Grayscale, or Subpixel
-	def bitmapPreviewSelection(self):
-		return self.getSPVal('bitmapPreviewSelection', 'Monochrome')
-	@bitmapPreviewSelection.setter
-	def setBitmapPreviewSelection(self, v):
-		self.getSPLib()['bitmapPreviewSelection'] = ss
+	def bitmapPreviewMode(self):
+		return self.getSPVal('bitmapPreviewMode', 'Monochrome')
+	@bitmapPreviewMode.setter
+	def bitmapPreviewMode(self, mode):
+		if mode not in ['Monochrome', 'Grayscale', 'Subpixel']: return
+		old = self.bitmapPreviewMode
+		if old == mode: return
+		self.getSPLib()["bitmapPreviewMode"] = mode
+		self.regenTextRenderer()
 
 	@property # Option for the generated TTH assembly (in the PREP table)
 	def deactivateStemWhenGrayScale(self):
 		return self.getSPVal('deactivateStemWhenGrayScale', 0)
 	@deactivateStemWhenGrayScale.setter
-	def setDeactivateStemWhenGrayScale(self, dgs):
+	def deactivateStemWhenGrayScale(self, dgs):
 		self.getSPLib()['deactivateStemWhenGrayScale'] = dgs
 
 	@property # the minimum and maximum width of horizontal/vertical stems
 	def stemSizeBounds(self):
 		return self.getSPVal('stemSizeBounds', ((20, 200), (20,200)))
-	def setStemSizeBounds(self, b):
+	@stemSizeBounds.setter
+	def stemSizeBounds(self, b):
 		self.getSPLib()['stemSizeBounds'] = b
 
 	# getter / setter for 'FontLab' lib PLIST
@@ -94,21 +99,21 @@ class TTHFont():
 	def stemsnap(self):
 		return HF.getOrPutDefault(self.getFLLib(), "stemsnap", 17)
 	@stemsnap.setter
-	def setStemsnap(self, ss):
+	def stemsnap(self, ss):
 		self.getFLLib()['stemsnap'] = ss
 
 	@property # FIXME: describe this. used in generationg the (GASP ? and) PREP tables
 	def codeppm(self):
 		return HF.getOrPutDefault(self.getFLLib(), "codeppm", 72)
 	@codeppm.setter
-	def setCodeppm(self, cp):
+	def codeppm(self, cp):
 		self.getFLLib()['codeppm'] = cp
 
 	@property # FIXME: describe this. used in first element of the CVT
 	def alignppm(self):
 		return HF.getOrPutDefault(self.getFLLib(), "alignppm", 64)
 	@alignppm.setter
-	def setAlignppm(self, ap):
+	def alignppm(self, ap):
 		self.getFLLib()['alignppm'] = ap
 
 	def dirtyCVT(self):
@@ -261,17 +266,6 @@ class TTHFont():
 
 # - - - - - - - - - - - - - - - -
 
-	def changeBitmapPreviewMode(self, mode):
-		old = self.bitmapPreviewSelection
-		if mode not in ['Monochrome', 'Grayscale', 'Subpixel']: return
-		if old == mode: return False
-		self.bitmapPreviewSelection = mode
-		self.getSPLib()["bitmapPreviewSelection"] = mode
-		self.regenTextRenderer()
-		return True
-
-# - - - - - - - - - - - - - - - -
-
 	def writeCVTandPREP(self):
 		stem_to_cvt, zone_to_cvt, CVT = tables.writeCVTandPREP(self)
 		self.stem_to_cvt = stem_to_cvt
@@ -315,7 +309,7 @@ class TTHFont():
 		return -self.f.info.openTypeOS2WinDescent
 
 	def regenTextRenderer(self):
-		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewSelection)
+		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewMode)
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems

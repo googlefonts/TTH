@@ -5,11 +5,13 @@ from vanilla import *
 from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
 from mojo.UI import UpdateCurrentGlyphView
 
+from auto import AHSheet
 from views import preferencesSheet, ControlValues
 from models.TTHTool import uniqueInstance as tthTool
 
 reload(preferencesSheet)
 reload(ControlValues)
+reload(AHSheet)
 
 # get some icons
 buttonXPath             = ExtensionBundle("TTH").get("buttonX")
@@ -162,23 +164,22 @@ class MainPanel(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Auto-hinting",
+			"Auto-hinting...", # 1
+			"Transfer...", # 2
 			NSMenuItem.separatorItem(),
-			"Monochrome",
-			"Grayscale",
-			"Subpixel",
+			"Monochrome", # 4
+			"Grayscale", # 5
+			"Subpixel", # 6
 			NSMenuItem.separatorItem(),
-			"Preview",
-			"Program",
-			"Assembly",
+			"Preview", # 8
+			"Program", # 9
+			"Assembly", # 10
 			NSMenuItem.separatorItem(),
-			"Control Values",
+			"Control Values...", # 12
 			NSMenuItem.separatorItem(),
-			"Preferences",
+			"Preferences...", # 14
 			NSMenuItem.separatorItem(),
-			"Transfer",
-			NSMenuItem.separatorItem(),
-			"LTSH debug",
+			"LTSH debug", # 16
 			]
 			)
 
@@ -262,31 +263,30 @@ class MainPanel(BaseWindowController):
 	def gearMenuCallback(self, sender):
 		gearOption = sender.get()
 		if gearOption == 1:
-			#self.autohintingSheet = SheetAutoHinting(self.wTools, self.tthEventTool)
-			pass
-
+			reload(AHSheet)
+			AHSheet.AutoHintingSheet(self.wTools)
+		elif gearOption == 2:
+			return
 		fm = tthTool.getFontModel()
-
-		if gearOption in [3,4,5]:
+		if gearOption in [4,5,6]:
 			modes = ["Monochrome", "Grayscale", "Subpixel"]
-			if fm != None and fm.changeBitmapPreviewMode(modes[gearOption-3]):
+			if fm != None and fm.bitmapPreviewMode != modes[gearOption-4]:
+				fm.bitmapPreviewMode = modes[gearOption-4]
 				if tthTool.previewPanel.isVisible():
 					tthTool.previewPanel.setNeedsDisplay()
 				UpdateCurrentGlyphView()
-		elif gearOption == 7:
+		elif gearOption == 8:
 			tthTool.updatePartialFontIfNeeded()
 			tthTool.previewPanel.show()
-		elif gearOption == 8:
-			tthTool.programWindow.show()
 		elif gearOption == 9:
+			tthTool.programWindow.show()
+		elif gearOption == 10:
 			tthTool.assemblyWindow.show()
-		elif gearOption == 11:
+		elif gearOption == 12:
 			self.cvSheet = ControlValues.ControlValuesSheet(self.wTools)
-		elif gearOption == 13:
+		elif gearOption == 14:
 			preferencesSheet.PreferencesSheet(self.wTools)
-		elif gearOption == 15:
-			pass #matching.transfer()
-		elif gearOption == 17:
+		elif gearOption == 16:
 			fm.computeLTSH()
 
 	#################
