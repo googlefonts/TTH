@@ -2,6 +2,12 @@ from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
 from views import TTHWindow
 from models.TTHTool import uniqueInstance as tthTool
+from AppKit import *
+
+# from PyObjCTools import Signals
+# Signals.dumpStackOnFatalSignal()
+# from PyObjCTools import Debugging
+# Debugging.installVerboseExceptionHandler()
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -46,25 +52,9 @@ class ProgramWindow(TTHWindow):
 					allowsMultipleSelection=False,
 					enableDelete=False,
 					showColumnTitles=True,
-					#selectionCallback=self.selectionCallback,
 					editCallback = self.editCallback)
-		win.programList.getNSTableView().setDelegate_(self)
+		#win.programList.getNSTableView().setDelegate_(TableDelegate())
 		self.window = win
-
-	#def selectionCallback(self, sender):
-	#	pass
-
-	def tableView_viewForTableColumn_row_(tableview, col, row):
-		print 'hello'
-
-	def tableView_dataCellForTableColumn_row_(tableview, col, row):
-		print 'foo'
-
-	def tableView_willDisplayCell_forTableColumn_row_(tableView, cell, col, row):
-		print 'bar'
-
-	def tableView_mouseDownInHeaderOfTableColumn_(tableView, col):
-		print 'columnDescriptions'
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
@@ -101,3 +91,15 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
+		#print self.window.programList.getNSTableView().viewAtColumn_row_makeIfNecessary_(1, 1, False)
+
+
+# class TableDelegate(object):
+# 	def __init__(self):
+# 		print 'delegate init'
+
+# 	def tableView_mouseDownInHeaderOfTableColumn_(self, tableView, tableColumn):
+# 		return NSView.alloc().init()
+
+# 	def tableView_viewForTableColumn_row_(self, tableview, tableColumn, row):
+# 		return NSView.alloc().init()
