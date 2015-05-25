@@ -57,6 +57,8 @@ class TTHFont(object):
 		self.tempFullFontPath = tempFull.name
 		tempFull.close()
 
+		self.updatePartialFont(tthTool.requiredGlyphsForPartialTempFont)
+
 	def __del__(self):
 		self.f = None
 		if self._pigw != None:
@@ -181,6 +183,7 @@ class TTHFont(object):
 	def killPreviewInGlyphWindow(self):
 		if self._pigw == None: return
 		self._pigw.setHidden_(True)
+		self._pigw.die()
 		self._pigw.removeFromSuperview()
 		self._pigw = None
 

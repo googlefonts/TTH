@@ -52,15 +52,18 @@ class AutoHintingSheet(object):
 
 	def hintGlyph(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
+		doX = self.w.hintXBox.get()
+		doY = self.w.hintYBox.get()
+		if not (doX or doY): return
 		reload(hint)
-		AH = hint.AutoHinting(fm)
-		AH.autohint(gm, self.w.hintXBox.get(), self.w.hintYBox.get())
+		hint.AutoHinting(fm).autohint(gm, doX, doY)
 		tthTool.hintingProgramHasChanged(fm)
 
 	def hintFont(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		doX = self.w.hintXBox.get()
 		doY = self.w.hintYBox.get()
+		if not (doX or doY): return
 		reload(hint)
 		AH = hint.AutoHinting(fm)
 		TTHGlyph.silent = True

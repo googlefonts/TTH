@@ -1,7 +1,7 @@
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
-from mojo.roboFont import CurrentGlyph
+from mojo.roboFont import CurrentGlyph, AllFonts
 from mojo.events import getActiveEventTool
 
 import string
@@ -61,7 +61,7 @@ class TTHTool(object):
 		self.centerPixelSize  = getExtensionDefault(defaultKeyCenterPixelSize,  fallback=3)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
-		self.requiredGlyphsForPartialTempFont = set()
+		self.requiredGlyphsForPartialTempFont = set('space')
 
 		# Stems are rounded to a multiple of that value
 		# FIXME: Check if this is still used? If so, check if we can get rid of it?
@@ -77,9 +77,6 @@ class TTHTool(object):
 		self.minStemY = 20
 		self.maxStemX = 1000
 		self.maxStemY = 1000
-
-		# Angle tolerance for 'parallel' lines/vectors
-		self.angleTolerance = 10.0
 
 		# TTHFont instances for each opened font
 		self._fontModels = {}
@@ -134,7 +131,6 @@ class TTHTool(object):
 		key = font.fileName
 		if key in self._fontModels:
 			model = self._fontModels[key]
-			del model
 			del self._fontModels[key]
 
 	def fontModelForGlyph(self, g):
@@ -294,6 +290,8 @@ class TTHTool(object):
 	def becomeInactive(self):
 		for fm in self._fontModels.itervalues():
 			fm.killPreviewInGlyphWindow()
+		for f in AllFonts():
+			self.delFontModelForFont(f)
 		# Kill the various windows and panels
 		self.deleteWindows()
 

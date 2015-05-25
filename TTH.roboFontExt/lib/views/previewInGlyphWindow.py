@@ -40,6 +40,10 @@ class PreviewInGlyphWindow(NSView):
 		self.xAxisPath = xAxisPath
 		return self
 
+	def die(self):
+		self.tthTool = None
+		self.fontModel = None
+
 	def recomputeFrame(self):
 		frame = self.superview().frame()
 		frame.size.width -= 30
@@ -47,6 +51,7 @@ class PreviewInGlyphWindow(NSView):
 		self.setFrame_(frame)
 
 	def handleClick(self):
+		if not self.tthTool: return
 		if self.isHidden(): return
 		loc = getActiveEventTool().getCurrentEvent().locationInWindow()
 		for p, s in self.clickableSizesGlyphWindow.iteritems():
@@ -54,6 +59,7 @@ class PreviewInGlyphWindow(NSView):
 				self.tthTool.changeSize(s)
 
 	def drawRect_(self, rect):
+		if not self.tthTool: return
 		self.recomputeFrame()
 		bkgColor.set()
 		self.backPath.fill()
