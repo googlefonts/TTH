@@ -77,7 +77,7 @@ def compare(A, B):
 		elif B_isAlign and A_isMiddleDelta : # symmetrical special case
 			return ba
 		else:
-			print "COMPARE_LOOP",A,B
+			#print "COMPARE_LOOP",A,B
 			raise Exception("loop")
 	if   AbeforeB: return ab
 	elif BbeforeA: return ba

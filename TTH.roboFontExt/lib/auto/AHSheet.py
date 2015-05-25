@@ -36,7 +36,7 @@ class AutoHintingSheet(object):
 
 		bGroup.progressBar = ProgressBar((5,-45,-5,20))
 		bGroup.progressBar.show(0)
-		bGroup.closeButton = Button((0,-22,50,20), "Close", sizeStyle='small', callback=self.close)
+		bGroup.closeButton = Button((0,-22,50,20), "Close", sizeStyle='small', callback=self.closeCallback)
 		bGroup.autoHintLabel = TextBox((-235,-20,100,20), 'Auto Hint:', alignment='right')
 		bGroup.hintGlyphButton = Button((-125,-22,60,20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
 		bGroup.hintFontButton = Button((-60,-22,60,20), "Font", sizeStyle='small', callback=self.hintFont)
@@ -44,9 +44,12 @@ class AutoHintingSheet(object):
 		setattr(w, 'bGroup', bGroup)
 		w.open()
 
-	def close(self, sender):
+	def close(self):
 		self.w.close()
 		tthTool.mainPanel.curSheet = None
+
+	def closeCallback(self, sender):
+		self.close()
 
 	def hintGlyph(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()

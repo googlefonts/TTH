@@ -460,7 +460,7 @@ class ControlValuesSheet(object):
 		w.controlsSegmentedButton.set(0) # 0 ==> show zone box
 
 		# SHEET BOTTOM BUTTONS AND BAR
-		w.closeButton = Button((10, -32, 60, 22), "Close", sizeStyle = "small", callback=self.close)
+		w.closeButton = Button((10, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeCallback)
 		#w.progressLabel  = TextBox((80, -28, 50, 16), '', sizeStyle = "small")
 		w.progressBar  = ProgressBar((80, -28, -200, 16), sizeStyle = "small",  maxValue=len(fm.f))
 		w.progressBar.show(0)
@@ -647,9 +647,12 @@ class ControlValuesSheet(object):
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - CLOSING FUNCTIONS
 
-	def close(self, sender = None):
+	def close(self):
 		self.w.close()
 		tthTool.mainPanel.curSheet = None
+
+	def closeCallback(self, sender):
+		self.close()
 
 	def applyAndCloseButtonCallback(self, sender):
 		self.applyButtonCallback(sender)

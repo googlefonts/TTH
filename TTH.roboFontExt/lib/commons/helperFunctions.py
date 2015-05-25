@@ -105,42 +105,6 @@ def intervalsIntersect(a, b):
 def inInterval(x, i):
 	return (i[0] <= x) and (x <= i[1])
 
-def topologicalSort(l, f):
-	n = len(l)
-	preds = [[] for i in l]
-	visited = [False for i in l]
-	loop = list(visited) # separate copy of visited
-	# build the list of predecessors for each element of |l|
-	for i in range(n):
-		for j in range(i+1,n):
-			(comp, swap) = f(l[i], l[j])
-			if not comp:
-				continue
-			if swap:
-				preds[i].append(j)
-			else:
-				preds[j].append(i)
-	result = []
-	def visit(i):
-		if loop[i]:
-			raise Exception("loop")
-		if visited[i]:
-			return
-		loop[i] = True
-		for p in preds[i]:
-			visit(p)
-		loop[i] = False
-		visited[i] = True
-		result.append(l[i])
-	try:
-		for i in range(n):
-			visit(i)
-		return result
-	except:
-		pass
-	print "ERROR: Found a loop in topological sort"
-	return l
-
 def pointsApproxEqual(p_glyph, p_cursor, value):
 	return (abs(p_glyph[0] - p_cursor[0]) < value) and (abs(p_glyph[1] - p_cursor[1]) < value)
 
@@ -150,7 +114,6 @@ def pointInCommand(commandPos, p_cursor):
 	width = commandPos[1][0]
 	height = commandPos[1][1]
 	return (p_cursor[0] >= (x-width/2) and p_cursor[0] <= (x+width/2) and p_cursor[1] >= (y-height/2) and p_cursor[1] <= (y+height/2))
-
 
 def find_closest(l, p, point):
 	if l == []:
@@ -203,8 +166,6 @@ def roundbase(x, base):
 def topologicalSort(l, f):
 	n = len(l)
 	preds = [[] for i in l]
-	#visited = [False for i in l]
-	#loop = list(visited) # separate copy of visited
 	visited = numpy.zeros(n, dtype='bool')
 	loop    = numpy.zeros(n, dtype='bool')
 	try:
@@ -221,7 +182,7 @@ def topologicalSort(l, f):
 		result = []
 		def visit(i):
 			if loop[i]:
-				print "LOOP",l[i]
+				#print "LOOP",l[i]
 				raise Exception("loop")
 			if visited[i]:
 				return
@@ -235,7 +196,7 @@ def topologicalSort(l, f):
 			visit(i)
 		return result
 	except Exception:
-		print "ERROR: Found a loop in topological sort"
+		#print "ERROR: Found a loop in topological sort"
 		return l
 
 def deltaDictFromString(s):

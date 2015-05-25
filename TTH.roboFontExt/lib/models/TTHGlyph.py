@@ -100,9 +100,14 @@ class TTHGlyph(object):
 
 	@property
 	def sortedHintingCommands(self):
-		if None == self._sortedHintingCommands:
-			self._sortedHintingCommands = tt.sort(self.hintingCommands)
-		return self._sortedHintingCommands
+		try:
+			if None == self._sortedHintingCommands:
+				self._sortedHintingCommands = tt.sort(self.hintingCommands)
+			return self._sortedHintingCommands
+		except:
+			print "ERROR: probable loop in hinting commands for glyph", self._g.name
+			self._sortedHintingCommands = None
+			return self.hintingCommands
 
 	def positionForPointName(self, name):
 		'''Returns the position of a ON control point with the given name.

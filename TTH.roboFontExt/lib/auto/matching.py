@@ -153,23 +153,28 @@ def getCmdPoint(glyph, name):
 		break
 	return pt
 
-def transfer(sourceFM, targetFM):
+def transfer(sourceFM, targetFM, progress=None):
 	sourceFont = sourceFM.f
 	targetFont = targetFM.f
-	msg = ''
+	msg = []
+	counter = 0
 	for sourceG in sourceFont:
-		if not sourceG.selected:
-			continue
-		try:
+		if sourceG.name in targetFont:
 			targetG = targetFont[sourceG.name]
-		except:
-			msg += "Warning: glyph",sourgeG.name,"not found in target font.\n"
-			continue
-		if len(sourceG) == len(targetG) and len(sourceG) > 0:
-			# same number of contours
-			transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG)
-	if msg != '':
-		print msg
+			if len(sourceG) == len(targetG) and len(sourceG) > 0:
+				# same number of contours
+				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG)
+		else:
+			msg.append(sourceG.name.join(["Warning: glyph "," not found in target font."]))
+		if progress:
+			counter += 1
+			if counter == 20:
+				progress.increment(20)
+				counter = 0
+	if progress:
+		progress.increment(counter)
+	if msg:
+		print '\n'.join(msg)
 
 def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph):
 	pm = PointMatcher(sourceGlyph, targetGlyph)
@@ -218,7 +223,7 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph)
 				#print cmd['zone'], "--zone-->", zone[0]
 				cmd['zone'] = zone[0]
 		targetGM.addCommand(cmd, update=False)
-	targetGM.compile()
+	targetGM.compile(targetFM)
 	if hasSGM: sourceFM.delGlyphModelForGlyph(sourceGlyph)
 	if hasTGM: targetFM.delGlyphModelForGlyph(targetGlyph)
 	tthTool.hintingProgramHasChanged(targetFM)

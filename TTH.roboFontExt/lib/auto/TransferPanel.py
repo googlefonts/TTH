@@ -4,6 +4,7 @@ from mojo.roboFont import AllFonts
 from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox
 from models.TTHTool import uniqueInstance as tthTool
 from auto import matching
+reload(matching)
 
 class TransferPanel(BaseWindowController):
 	def __init__(self):
@@ -12,23 +13,23 @@ class TransferPanel(BaseWindowController):
 		ps = 20, 20, panelSize[0], panelSize[1]
 		win = FloatingWindow(ps, "Auto Transfer", minSize=panelSize, maxSize=panelSize)
 
-		fontsNames = [f.info.postscriptFullName for f in AllFonts()]
+		self.fontsNames = [f.info.postscriptFullName for f in AllFonts()]
 
-		fontsNames.sort()
+		self.fontsNames.sort()
 		top = 10
-		win.srcFontsLabel = TextBox((10, top+2, 65, 20), "Source Font: ")
-		win.srcFontsPopup = PopUpButton((130, top, -10, 20), fontsNames)
+		win.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source Font: ")
+		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames)
 
 		top = 40
-		win.tgtFontsLabel = TextBox((10, top+2, 65, 20), "Target Font: ")
-		win.tgtFontsPopup = PopUpButton((130, top, -10, 20), fontsNames)
+		win.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target Font: ")
+		win.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames)
 
 		gm = tthTool.getGlyphModel()
 		gName = gm.RFGlyph.name
 
 		top = 70
-		win.glyphLabel = TextBox((10,top+2,60,22), 'GlyphName:', alignment='right')
-		win.glyphName  = EditText((75,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
+		win.glyphLabel = TextBox((10,top+2,80,22), 'Glyph Name:', alignment='left')
+		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
 
 		top = -50
 		win.progressBar = ProgressBar((5,top,-5,20))
@@ -36,7 +37,7 @@ class TransferPanel(BaseWindowController):
 
 		top = -30
 		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close)
-		left = 100
+		left = -140
 		win.transferGlyphButton = Button((left, top, 60, 20), "Glyph", callback=self.transferGlyph)
 		left += 70
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont)
@@ -51,30 +52,39 @@ class TransferPanel(BaseWindowController):
 		self.window.close()
 
 	def getFontModelForName(self, name):
+		print name
 		for f in AllFonts():
 			if f.info.postscriptFullName == name:
-				return tthTool.getFontModelForFont(f)
+				return tthTool.fontModelForFont(f)
 		#self.close(None)
 
+	def getFontModels(self):
+		sfpsname = self.fontsNames[self.window.srcFontsPopup.get()]
+		tfpsname = self.fontsNames[self.window.tgtFontsPopup.get()]
+		sfm = self.getFontModelForName(sfpsname)
+		tfm = self.getFontModelForName(tfpsname)
+		return sfm, tfm
+
 	def checkGlyphName(self, sender):
-		print self.window.srcFontsPopup.get()
-		print self.window.tgtFontsPopup.get()
-		sfm = self.getFontModelForName(self.window.srcFontsPopup.get())
-		tfm = self.getFontModelForName(self.window.tgtFontsPopup.get())
+		sfm, tfm = self.getFontModels()
 		gName = self.window.glyphName.get()
 		ok = (gName in sfm.f) and (gName in tfm.f)
 		if not ok:
 			print 'Glyph not found'
 
 	def transferGlyph(self, sender):
-		sfm = self.getFontModelForName(self.window.srcFontsPopup.get())
-		tfm = self.getFontModelForName(self.window.tgtFontsPopup.get())
+		sfm, tfm = self.getFontModels()
+		if sfm is tfm: return
 		gName = self.window.glyphName.get()
 		sg = sfm.f[gName]
 		tg = tfm.f[gName]
 		matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg)
 
 	def transferFont(self, sender):
-		sfm = self.getFontModelForName(self.window.srcFontsPopup.get())
-		tfm = self.getFontModelForName(self.window.tgtFontsPopup.get())
-		matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg)
+		sfm, tfm = self.getFontModels()
+		if sfm is tfm: return
+		self.window.progressBar._nsObject.setMaxValue_(len(sfm.f))
+		self.window.progressBar.set(0)
+		self.window.progressBar.show(1)
+		matching.transfer(sfm, tfm, self.window.progressBar)
+		self.window.progressBar.show(0)

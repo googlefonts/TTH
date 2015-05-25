@@ -80,6 +80,9 @@ class PreferencesSheet(object):
 	###########
 
 	def closeButtonCallback(self, sender):
+		self.close()
+
+	def close(self):
 		self.w.close()
 		tthTool.mainPanel.curSheet = None
 
