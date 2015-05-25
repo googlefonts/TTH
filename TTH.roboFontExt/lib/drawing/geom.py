@@ -75,6 +75,9 @@ def makePointForPair(p):
 def lerp(t, a, b):
 	return (t * b) + ((1.0 - t) * a)
 
+def det2x2(a, b):
+	return a.x * b.y - a.y * b.x
+
 def computeOffMiddlePoint(scale, pos1, pos2, reverse = False):
 	#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
 	diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()

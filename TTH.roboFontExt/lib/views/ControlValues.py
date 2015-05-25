@@ -13,7 +13,7 @@ class ZoneView(object):
 		self.lock = False
 		self.ID = ID
 		self.friend = None
-		self.zonesTitle = TextBox((10, height-24, -10, 14), title, sizeStyle = "small")
+		self.zonesTitle = TextBox((10, height-24, 150, 14), title, sizeStyle = "small")
 		self.box = Box((10, height, -10, 142))
 		# put the title as a sub-widget of the zoneS box
 		zoneBox.__setattr__(ID + 'ZoneViewTitle', self.zonesTitle)
@@ -35,6 +35,12 @@ class ZoneView(object):
 
 	def __del__(self):
 		self.friend = None
+
+	def clear(self):
+		for n in self.uiZoneNameCopy:
+			self.nameChangeTracker.rename(n, None)
+		self.uiZoneNameCopy = []
+		self.box.zones_List.set([])
 
 	def reset(self):
 		buildTop = (self.ID == 'top')
@@ -91,6 +97,7 @@ class ZoneView(object):
 		for pos, sel in enumerate(selection):
 			i = sel - pos
 			self.nameChangeTracker.rename(items[i]['Name'], None)
+			print 'deleting', i,':',self.uiZoneNameCopy[i],'=',items[i]['Name']
 			self.uiZoneNameCopy.pop(i)
 			items.pop(i)
 		self.box.zones_List.set(items)
@@ -190,6 +197,12 @@ class StemView(object):
 
 		self.reset()
 
+	def clear(self):
+		for s in self.UIStems:
+			self.nameChangeTracker.rename(s['Name'], None)
+		self.UIStems = []
+		self.box.stemsList.set([])
+
 	def reset(self):
 		fm = tthTool.getFontModel()
 		if self.isHorizontal:
@@ -280,8 +293,8 @@ class StemView(object):
 		self.lock = False
 
 	def buttonRemoveCallback(self, sender):
-		selection = sender.getSelection()
-		sender.setSelection([])
+		selection = self.box.stemsList.getSelection()
+		self.box.stemsList.setSelection([])
 		self.lock = True
 		items = self.box.stemsList.get()
 		selection.sort()
@@ -393,6 +406,7 @@ class ControlValuesSheet(object):
 		self.bottomZoneView = ZoneView(w.zoneBox, height-260, "Bottom zones", 'bottom')
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
+		w.zoneBox.clearButton = Button((10, 382, 60, 20), 'Clear', sizeStyle='small', callback=self.clearZones)
 		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		# STEM EDITOR
@@ -403,6 +417,10 @@ class ControlValuesSheet(object):
 		self.verticalStemView   = StemView(sb, 220, False)
 		self.horizontalStemView.friend = self.verticalStemView
 		self.verticalStemView.friend = self.horizontalStemView
+		sb.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearStems)
+		sb.tolLabel = TextBox((250, -26, 100, 20), 'Angle Tolerance:', sizeStyle='small', alignment='right')
+		tolStr = str(fm.angleTolerance)
+		sb.tol = EditText((350, -31, 40, 22), tolStr, continuous=False, callback=self.handleTolerance)
 		sb.autoStemButton       = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoStemButtonCallback)
 
 		# GASP EDITOR
@@ -469,6 +487,28 @@ class ControlValuesSheet(object):
 		self.verticalStemView.box.setPosSize((10, height-(height/2.0)-20, -10, height*(112/480)-50))
 		self.verticalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
 		self.verticalStemView.titlebox.setPosSize((10, height-(height/2.0)-44, -10, 14))
+
+	# - - - - - - - - - - - - - - - - - - - - - - - - ZONES FUNCTION
+
+	def clearZones(self, sender):
+		self.topZoneView.clear()
+		self.bottomZoneView.clear()
+
+	# - - - - - - - - - - - - - - - - - - - - - - - - STEMS FUNCTION
+
+	def clearStems(self, sender):
+		self.horizontalStemView.clear()
+		self.verticalStemView.clear()
+
+	def handleTolerance(self, sender):
+		try:
+			value = int(sender.get())
+		except ValueError:
+			value = 0
+		value = max(0, min(45, abs(value)))
+		sender.set(value)
+		fm = tthTool.getFontModel()
+		fm.angleTolerance = value
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - GASP FUNCTIONS
 
@@ -571,13 +611,39 @@ class ControlValuesSheet(object):
 				self.addUIZoneWithRename(uiZone, bottomItems, bottomNames, topNames)
 		self.topZoneView.box.zones_List.set(topItems)
 		self.bottomZoneView.box.zones_List.set(bottomItems)
+		self.topZoneView.uiZoneNameCopy = [z['Name'] for z in topItems]
+		self.bottomZoneView.uiZoneNameCopy = [z['Name'] for z in bottomItems]
+
+	def addUIStemWithRename(self, uiStem, items, names, otherNames):
+		orgName = uiStem['Name']
+		r = 0
+		while uiStem['Name'] in otherNames:
+			uiStem['Name'] = orgName + '_' + str(r)
+			r += 1
+		try:
+			i = names.index(uiStem['Name'])
+			items[i] = uiStem
+		except:
+			items.append(uiStem)
 
 	def autoStemButtonCallback(self, sender):
 		self.w.progressBar.set(0)
 		self.w.progressBar.show(1)
-		for e in stems.autoStems(tthTool.getFontModel(), self.w.progressBar):
-			print e
+		reload(stems)
+		hStems, vStems = stems.autoStems(tthTool.getFontModel(), self.w.progressBar)
 		self.w.progressBar.show(0)
+		hItems = self.horizontalStemView.box.stemsList.get()
+		vItems = self.verticalStemView.box.stemsList.get()
+		hNames = [s['Name'] for s in hItems]
+		vNames = [s['Name'] for s in vItems]
+		for n,s in hStems.iteritems():
+			self.addUIStemWithRename(self.horizontalStemView.uiStemOfStem(s,n), hItems, hNames, vNames)
+		for n,s in vStems.iteritems():
+			self.addUIStemWithRename(self.horizontalStemView.uiStemOfStem(s,n), vItems, vNames, hNames)
+		self.horizontalStemView.UIStems = hItems
+		self.verticalStemView.UIStems = vItems
+		self.horizontalStemView.box.stemsList.set(hItems)
+		self.verticalStemView.box.stemsList.set(vItems)
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - CLOSING FUNCTIONS
 

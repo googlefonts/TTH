@@ -542,7 +542,7 @@ class AutoHinting():
 		contours = makeContours(g, self.ital)
 		if contours == []: return None, None
 		# compute as much stem as one can find
-		stems = makeStemsList(g, contours, self.ital, xBound, yBound, 1, self.tthtm.angleTolerance, dedup=False)
+		stems = makeStemsList(g, contours, self.ital, xBound, yBound, self.tthtm.angleTolerance, dedup=False)
 		# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
 		rx = self.autoHintX(g, contours, stems[0])
 		for c in contours:
