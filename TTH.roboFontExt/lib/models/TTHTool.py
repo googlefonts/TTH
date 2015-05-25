@@ -149,9 +149,13 @@ class TTHTool(object):
 # - - - - - - - - - - - - - - - - - - - - - DISPLAY UPDATE
 
 	def updateDisplay(self):
-		self.programWindow.updateProgramList()
-		self.assemblyWindow.updateAssemblyList()
-		self.previewPanel.setNeedsDisplay()
+		if self.programWindow.isVisible():
+			self.programWindow.updateProgramList()
+		if self.assemblyWindow.isVisible():
+			self.assemblyWindow.updateAssemblyList()
+		if self.previewPanel.isVisible():
+			self.previewPanel.setNeedsDisplay()
+		UpdateCurrentGlyphView()
 
 # - - - - - - - - - - - - - - - - - - - - - PREVIEW and CURRENT SIZE
 
@@ -333,11 +337,7 @@ class TTHTool(object):
 
 	def hintingProgramHasChanged(self, fm):
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
-		if self.programWindow.isVisible():
-			self.programWindow.updateProgramList()
-		if self.assemblyWindow.isVisible():
-			self.assemblyWindow.updateAssemblyList()
-		UpdateCurrentGlyphView()
+		self.updateDisplay()
 
 	def currentFontHasChanged(self, font):
 		fm = self.fontModelForFont(font)
