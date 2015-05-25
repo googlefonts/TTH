@@ -224,6 +224,18 @@ class TTHFont(object):
 			deltas[key] = deltaValue
 		self.saveZonesToUFO()
 
+	def zoneAtPoint(self, point):
+		for name, zone in self.zones.iteritems():
+			if zone['top']:
+				y_min = int(zone['position'])
+				y_max = int(zone['position']) + int(zone['width'])
+			else:
+				y_max = int(zone['position'])
+				y_min = int(zone['position']) - int(zone['width'])
+			if y_min <= point.y <= y_max:
+				return name, zone
+		return None, None
+
 	def zoneClicked(self, clickPos):
 		for zoneName, (lPos, lSize) in self.zoneLabels.iteritems():
 			if lPos == None: continue

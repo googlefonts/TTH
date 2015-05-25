@@ -18,17 +18,23 @@ class AlignTool(TTHCommandTool):
 		w.AlignmentTypePopUpButton.show(True)
 
 	def addCommand(self):
-		gm = tthTool.getGlyphModel()
-		if tthTool.selectedAxis == 'X':
-			code = 'alignh'
-		else:
-			code = 'alignv'
-		cmd = {	'code': code,
-				'point': self.startPoint[0].name,
-			}
+		gm, fm = tthTool.getGlyphAndFontModel()
+		point = self.startPoint[0]
+		zoneName, zone = fm.zoneAtPoint(point)
 		align = self.getAlignment()
-		if align != 'None':
-			cmd['align'] = align
+		cmd = { 'point': point.name }
+		if tthTool.selectedAxis == 'X':
+			cmd['code'] = 'alignh'
+			if align != 'None': cmd['align'] = align
+		elif zoneName != None:
+			cmd['zone'] = zoneName
+			if zone['top']:
+				cmd['code'] = 'alignt'
+			else:
+				cmd['code'] = 'alignb'
+		else:
+			cmd['code'] = 'alignv'
+			if align != 'None': cmd['align'] = align
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):
