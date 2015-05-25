@@ -1,8 +1,6 @@
 #coding=utf-8
 from vanilla import Box, Button, CheckBox, Group, EditText, ProgressBar, Sheet, TextBox
 import auto
-#import commons
-from commons import helperFunctions
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
 from auto import hint
@@ -12,8 +10,8 @@ class AutoHintingSheet(object):
 		fm = tthTool.getFontModel()
 		yBounds, xBounds = fm.stemSizeBounds
 
-		sheetHeight = 170
 		sheetWidth  = 320
+		sheetHeight = 170
 		sheetSize = (sheetWidth, sheetHeight)
 
 		self.w = Sheet(sheetSize, minSize=sheetSize, maxSize=sheetSize, parentWindow=parentWindow)

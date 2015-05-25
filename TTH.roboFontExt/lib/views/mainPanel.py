@@ -5,7 +5,7 @@ from vanilla import *
 from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
 from mojo.UI import UpdateCurrentGlyphView
 
-from auto import AHSheet
+from auto import AHSheet, TransferPanel
 from views import preferencesSheet, ControlValues
 from models.TTHTool import uniqueInstance as tthTool
 
@@ -266,7 +266,9 @@ class MainPanel(BaseWindowController):
 			reload(AHSheet)
 			self.curSheet = AHSheet.AutoHintingSheet(self.wTools)
 		elif gearOption == 2:
-			return
+			reload(TransferPanel)
+			global comSansPlombTransferPanel
+			comSansPlombTransferPanel = TransferPanel.TransferPanel()
 		fm = tthTool.getFontModel()
 		if gearOption in [4,5,6]:
 			modes = ["Monochrome", "Grayscale", "Subpixel"]

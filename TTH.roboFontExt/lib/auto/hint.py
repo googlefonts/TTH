@@ -2,7 +2,7 @@
 import weakref, math
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
-from auto import stems as autostem
+import auto
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -526,7 +526,7 @@ class AutoHinting():
 
 		g = gm.RFGlyph
 		# compute additional contour information in custom structure
-		contours = autostem.makeContours(g, self.ital)
+		contours = auto.makeContours(g, self.ital)
 		if not contours:
 			return None, None
 
@@ -536,7 +536,7 @@ class AutoHinting():
 
 		# compute as much stem as one can find
 		yBound, xBound = self.fm.stemSizeBounds
-		stemsList = autostem.makeStemsList(g, contours, self.ital, xBound, yBound, self.fm.angleTolerance, dedup=False)
+		stemsList = auto.stems.makeStemsList(g, contours, self.ital, xBound, yBound, self.fm.angleTolerance, dedup=False)
 
 		if doX:
 			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
