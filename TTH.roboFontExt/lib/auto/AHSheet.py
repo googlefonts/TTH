@@ -4,13 +4,15 @@ import auto
 #import commons
 from commons import helperFunctions
 from models.TTHTool import uniqueInstance as tthTool
+from models import TTHGlyph
+from auto import hint
 
 class AutoHintingSheet(object):
 	def __init__(self, parentWindow):
 		fm = tthTool.getFontModel()
 		yBounds, xBounds = fm.stemSizeBounds
 
-		sheetHeight = 200
+		sheetHeight = 170
 		sheetWidth  = 320
 		sheetSize = (sheetWidth, sheetHeight)
 
@@ -34,13 +36,53 @@ class AutoHintingSheet(object):
 
 		bGroup = Group((10, 120, -10, -10))
 
-		bGroup.closeButton = Button((0,-20,100,20), "Close", sizeStyle='small', callback=self.close)
+		bGroup.progressBar = ProgressBar((5,-45,-5,20))
+		bGroup.progressBar.show(0)
+		bGroup.closeButton = Button((0,-22,50,20), "Close", sizeStyle='small', callback=self.close)
+		bGroup.autoHintLabel = TextBox((-235,-20,100,20), 'Auto Hint:', alignment='right')
+		bGroup.hintGlyphButton = Button((-125,-22,60,20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
+		bGroup.hintFontButton = Button((-60,-22,60,20), "Font", sizeStyle='small', callback=self.hintFont)
 
 		setattr(w, 'bGroup', bGroup)
 		w.open()
 
 	def close(self, sender):
 		self.w.close()
+		tthTool.mainPanel.curSheet = None
+
+	def hintGlyph(self, sender):
+		gm, fm = tthTool.getGlyphAndFontModel()
+		reload(hint)
+		AH = hint.AutoHinting(fm)
+		AH.autohint(gm, self.w.hintXBox.get(), self.w.hintYBox.get())
+		tthTool.hintingProgramHasChanged(fm)
+
+	def hintFont(self, sender):
+		gm, fm = tthTool.getGlyphAndFontModel()
+		doX = self.w.hintXBox.get()
+		doY = self.w.hintYBox.get()
+		reload(hint)
+		AH = hint.AutoHinting(fm)
+		TTHGlyph.silent = True
+		counter = 0
+		maxCount = len(fm.f)
+		progress = self.w.bGroup.progressBar
+		progress._nsObject.setMaxValue_(maxCount)
+		progress.set(0)
+		progress.show(1)
+		for g in fm.f:
+			hasG = fm.hasGlyphModelForGlyph(g)
+			gm = fm.glyphModelForGlyph(g)
+			AH.autohint(gm, doX, doY)
+			if not hasG: fm.delGlyphModelForGlyph(g)
+			counter += 1
+			if counter == 30:
+				progress.increment(30)
+				counter = 0
+		progress.increment(counter)
+		progress.show(0)
+		TTHGlyph.silent = False
+		tthTool.hintingProgramHasChanged(fm)
 
 	def handleTolerance(self, sender):
 		try:

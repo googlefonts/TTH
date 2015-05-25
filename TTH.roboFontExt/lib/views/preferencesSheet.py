@@ -81,6 +81,7 @@ class PreferencesSheet(object):
 
 	def closeButtonCallback(self, sender):
 		self.w.close()
+		tthTool.mainPanel.curSheet = None
 
 	def preferencesSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:

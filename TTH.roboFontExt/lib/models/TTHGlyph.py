@@ -266,11 +266,12 @@ class TTHGlyph(object):
 			cmd['active'] = 'true'
 		return True
 
-	def addCommand(self, cmd):
+	def addCommand(self, cmd, update=True):
 		if not self.commandIsOK(cmd): return
 		self.hintingCommands.append(cmd)
 		self.dirtyHinting()
-		self.updateGlyphProgram(tthTool.getFontModel())
+		if update:
+			self.updateGlyphProgram(tthTool.getFontModel())
 
 	def removeHintingCommand(self, cmd):
 		try:
@@ -299,6 +300,15 @@ class TTHGlyph(object):
 		self.hintingCommands = []
 		self.dirtyHinting()
 		self.updateGlyphProgram(tthTool.getFontModel())
+
+	def clearCommands(self, x, y):
+		if x and y:
+			self.hintingCommands = []
+		elif x:
+			self.hintingCommands = [c for c in self.hintingCommands if c['code'][-1] != 'h']
+		else:
+			self.hintingCommands = [c for c in self.hintingCommands if c['code'][-1] == 'h']
+		self.dirtyHinting()
 
 	def deleteXYCommands(self, hv):
 		commandsToDelete = [i for (i,cmd) in enumerate(self.hintingCommands) if cmd['code'][-1:] in hv]
@@ -336,10 +346,13 @@ class TTHGlyph(object):
 				return False
 		return True
 
-	def updateGlyphProgram(self, fm):
+	def compile(self, fm):
 		self.cleanCommands()
 		self.saveCommandsToUFO()
 		self.compileToUFO(fm)
+
+	def updateGlyphProgram(self, fm):
+		self.compile(fm)
 		tthTool.hintingProgramHasChanged(fm)
 
 	def loadFromUFO(self):

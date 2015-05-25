@@ -1,7 +1,8 @@
 
-import weakref
+import weakref, math
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
+from auto import stems as autostem
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -141,6 +142,7 @@ class AutoHinting():
 			self.fm = tthTool.getFontModel()
 		else:
 			self.fm = fontModel
+		self.gm = None
 		self.singleLinkCommandName = { False: 'singleh', True:'singlev' }
 		self.doubleLinkCommandName = { False: 'doubleh', True:'doublev' }
 		self.alignCommandName = { False: 'alignb', True:'alignt' }
@@ -155,7 +157,7 @@ class AutoHinting():
 		byPos = {}
 		# make a copy of all contours with hinting data and groups the ON points
 		# having the same 'proj' coordinate (sheared X or Y)
-		minCosine = abs(math.cos(math.radians(self.tthtm.angleTolerance)))
+		minCosine = abs(math.cos(math.radians(self.fm.angleTolerance)))
 		for cont, contour in enumerate(contours):
 			for seg, hd in enumerate(contour):
 				hd.weight = hd.weight2D[1-X]
@@ -401,7 +403,7 @@ class AutoHinting():
 		command['point2'] = p2name
 		if stemName != None:
 			command['stem'] = stemName
-		self.tthTool.glyphTTHCommands.append(command)
+		self.gm.addCommand(command, update=False)
 		return command
 
 	def addInterpolate(self, p1, p, p2, isHorizontal):
@@ -414,8 +416,7 @@ class AutoHinting():
 		newCommand['point2'] = p2.name
 		newCommand['point'] = p.name
 		newCommand['align'] = 'round'
-		#if newCommand not in self.tthTool.glyphTTHCommands:
-		self.tthTool.glyphTTHCommands.append(newCommand)
+		self.gm.addCommand(newCommand, update=False)
 
 	#def addDoubleLink(self, p1, p2, stemName, isHorizontal):
 	#	if stemName == None:
@@ -428,8 +429,8 @@ class AutoHinting():
 	#	newCommand['point1'] = p1.name
 	#	newCommand['point2'] = p2.name
 	#	newCommand['stem'] = stemName
-	#	#if newCommand not in self.tthTool.glyphTTHCommands:
-	#	self.tthTool.glyphTTHCommands.append(newCommand)
+	#	self.gm.addCommand(newCommand, update=False)
+
 
 	def addAlign(self, pointName, (zoneName, isTopZone, ys, ye)):
 		newAlign = {}
@@ -439,7 +440,7 @@ class AutoHinting():
 			newAlign['code'] = 'alignb'
 		newAlign['point'] = pointName
 		newAlign['zone'] = zoneName
-		self.tthTool.glyphTTHCommands.append(newAlign)
+		self.gm.addCommand(newAlign, update=False)
 
 	def zoneAt(self, y):
 		for item in self.fm.zones.iteritems():
@@ -514,7 +515,7 @@ class AutoHinting():
 			self.processGroup_X(grp, contours, interpolateIsPossible, bounds)
 
 
-	def autohint(self, g, maxStemSize):
+	def autohint(self, gm, doX, doY):
 		# get the current font
 		font = self.fm.f
 		# get the italic angle
@@ -523,33 +524,35 @@ class AutoHinting():
 		else:
 			self.ital = 0
 
-		if maxStemSize == None:
-			# if maxStemSize was not provided, take it from the 'O'
-			maxStemSize = computeMaxStemOnO(self.tthtm, font)
-			if maxStemSize == -1:
-				# and if the 'O' is weird, choose default value
-				maxStemSize = maxStemY = 200
-
-		# set current glyph
-		self.tthTool.resetglyph(g)
-		# Clear the hinting program for the current glyph
-		self.tthTool.glyphTTHCommands = []
-
-		xBound = self.tthtm.minStemX, maxStemSize
-		yBound = self.tthtm.minStemY, maxStemSize
-
+		g = gm.RFGlyph
 		# compute additional contour information in custom structure
-		contours = makeContours(g, self.ital)
-		if contours == []: return None, None
+		contours = autostem.makeContours(g, self.ital)
+		if not contours:
+			return None, None
+
+		# Clear the hinting program for the current glyph
+		gm.clearCommands(doX, doY)
+		self.gm = gm
+
 		# compute as much stem as one can find
-		stems = makeStemsList(g, contours, self.ital, xBound, yBound, self.tthtm.angleTolerance, dedup=False)
-		# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
-		rx = self.autoHintX(g, contours, stems[0])
+		yBound, xBound = self.fm.stemSizeBounds
+		stemsList = autostem.makeStemsList(g, contours, self.ital, xBound, yBound, self.fm.angleTolerance, dedup=False)
+
+		if doX:
+			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
+			rx = self.autoHintX(g, contours, stemsList[0])
+		else:
+			rx = None
 		for c in contours:
 			for hd in c:
 				hd.reset()
-		# Do Y hinting. 'ry' is True if all is OK and False if there was a problem
-		ry = self.autoHintY(contours, stems[1])
+		if doY:
+			# Do Y hinting. 'ry' is True if all is OK and False if there was a problem
+			ry = self.autoHintY(contours, stemsList[1])
+		else:
+			ry = True
 		if not ry: ry = g.name
 		else: ry = None
+		self.gm.compile(self.fm)
+		self.gm = None
 		return rx, ry

@@ -41,7 +41,7 @@ class MainPanel(BaseWindowController):
 		self.makeStemsList()
 		self.makeMainPanel()
 		self._lock = False
-		self.cvSheet = None
+		self.curSheet = None
 
 	def locked(self):
 		return self._lock
@@ -264,7 +264,7 @@ class MainPanel(BaseWindowController):
 		gearOption = sender.get()
 		if gearOption == 1:
 			reload(AHSheet)
-			AHSheet.AutoHintingSheet(self.wTools)
+			self.curSheet = AHSheet.AutoHintingSheet(self.wTools)
 		elif gearOption == 2:
 			return
 		fm = tthTool.getFontModel()
@@ -283,9 +283,9 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 10:
 			tthTool.assemblyWindow.show()
 		elif gearOption == 12:
-			self.cvSheet = ControlValues.ControlValuesSheet(self.wTools)
+			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 14:
-			preferencesSheet.PreferencesSheet(self.wTools)
+			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 16:
 			fm.computeLTSH()
 

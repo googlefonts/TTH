@@ -5,9 +5,9 @@ In Refactor
 Try to ensure consistent numbering of zones and stems after CVT editing
 and re-assemble glyphs whose stem/zone cvt-numbers have changed
 ------------------------------
-AutoStem
+AutoStem                       DONE
 ------------------------------
-AutoHint & UI
+AutoHint & UI                  DONE
 ------------------------------
 AutoTransfer & UI
 ------------------------------

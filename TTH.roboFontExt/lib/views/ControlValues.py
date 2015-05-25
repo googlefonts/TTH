@@ -649,7 +649,7 @@ class ControlValuesSheet(object):
 
 	def close(self, sender = None):
 		self.w.close()
-		tthTool.mainPanel.cvSheet = None
+		tthTool.mainPanel.curSheet = None
 
 	def applyAndCloseButtonCallback(self, sender):
 		self.applyButtonCallback(sender)
