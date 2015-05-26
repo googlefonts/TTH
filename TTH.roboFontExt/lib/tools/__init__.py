@@ -20,6 +20,10 @@ class TTHCommandTool(object):
 	def switchRounding(self):
 		self.roundDistance = not self.roundDistance
 
+	def changeAlignement(self):
+		n = len(self.allowedAlignmentTypes)
+		self.setAlignment((self.alignment+1)%n)
+
 	allowedAlignmentTypes = ['round', 'left', 'right', 'center', 'double']
 	displayX = [	'Closest Pixel Edge',
 				'Left Edge',

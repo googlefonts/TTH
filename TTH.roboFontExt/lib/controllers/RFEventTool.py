@@ -302,7 +302,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		elif key == 'c':
 			tthTool.setShowCenterPixels(not tthTool.showCenterPixel)
 			UpdateCurrentGlyphView()
-		elif key == 'S':
+		elif key in 'hvS':
 			if tthTool.selectedAxis == 'Y':
 				tthTool.changeAxis('X')
 			else:
@@ -312,25 +312,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			if tool != None:
 				tool.switchRounding()
 				tool.updateUI()
-
-		#elif key == 'A':
-		#	if tool in ['Single Link', 'Interpolation']:
-		#		self.swapAlignmentTypeLink()
-		#	elif tool == 'Align':
-		#		self.swapAlignmentTypeAlign()
-
-		#elif key in ['h', 'v']:
-		#	if tthTool.selectedAxis == 'Y':
-		#		self.changeAxis('X')
-		#		self.makeStemsListsPopUpMenu()
-		#		self.toolsWindow.wTools.StemTypePopUpButton.setItems(tthTool.stemsListX)
-		#		self.changeSelectedStemX(tthTool.selectedStemX)
-		#	else:
-		#		self.changeAxis('Y')
-		#		self.makeStemsListsPopUpMenu()
-		#		self.toolsWindow.wTools.StemTypePopUpButton.setItems(tthTool.stemsListY)
-		#		self.changeSelectedStemY(tthTool.selectedStemY)
-
+		elif key == 'A':
+			if tool != None:
+				tool.changeAlignement()
+				tool.updateUI()
 		elif key == '-':
 			if tthTool.PPM_Size > 9:
 				tthTool.changeSize(tthTool.PPM_Size-1)
