@@ -90,7 +90,7 @@ class TTHFont(object):
 
 	@property
 	def angleTolerance(self):
-		return self.getSPVal('angleTolerance', 0)
+		return self.getSPVal('angleTolerance', 10)
 	@angleTolerance.setter
 	def angleTolerance(self, at):
 		self.getSPLib()['angleTolerance'] = at
