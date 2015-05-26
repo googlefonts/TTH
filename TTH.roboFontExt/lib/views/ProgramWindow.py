@@ -1,8 +1,8 @@
 from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
-from views import TTHWindow
+from views import TTHWindow, tableDelegate
 from models.TTHTool import uniqueInstance as tthTool
-from AppKit import *
+
 
 # from PyObjCTools import Signals
 # Signals.dumpStackOnFatalSignal()
@@ -53,7 +53,7 @@ class ProgramWindow(TTHWindow):
 					enableDelete=False,
 					showColumnTitles=True,
 					editCallback = self.editCallback)
-		#win.programList.getNSTableView().setDelegate_(TableDelegate())
+		win.programList.getNSTableView().setDelegate_(tableDelegate.ProgramPanelTableDelegate.alloc().init())
 		self.window = win
 
 	def editCallback(self, sender):
@@ -97,12 +97,3 @@ class ProgramWindow(TTHWindow):
 		#print self.window.programList.getNSTableView().viewAtColumn_row_makeIfNecessary_(1, 1, False)
 
 
-# class TableDelegate(object):
-# 	def __init__(self):
-# 		print 'delegate init'
-
-# 	def tableView_mouseDownInHeaderOfTableColumn_(self, tableView, tableColumn):
-# 		return NSView.alloc().init()
-
-# 	def tableView_viewForTableColumn_row_(self, tableview, tableColumn, row):
-# 		return NSView.alloc().init()
