@@ -12,6 +12,12 @@ class InterpolationTool(TTHCommandTool):
 		self.interpolatedPoint = None
 		self.lookingForPoint2 = False
 
+	def reset(self):
+		super(InterpolationTool, self).reset()
+		self.interpolatedPoint1 = None
+		self.interpolatedPoint = None
+		self.lookingForPoint2 = False
+
 	def updateUI(self):
 		self.updateAlignmentUI(withNone = True)
 		self.hideUI()

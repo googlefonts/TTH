@@ -279,6 +279,74 @@ class TTH_RF_EventTool(BaseEventTool):
 			menuAction.insertItem_atIndex_(separator, 1)
 		NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
 
+# - - - - - - - - - - - - - - - - - - - - - - - - KEY EVENTS
+
+	def keyUp(self, event):
+		key = event.characters()
+		mod = self.getModifiers()
+		tool = tthTool.selectedHintingTool
+		toolKeys = {'a':'Align', 's':'Single Link', 'd':'Double Link', 'i':'Interpolation', 'm':'Middle Delta', 'f':'Final Delta', 't':'Selection'}
+		if key in toolKeys:
+			if tool != None:
+				tool.reset()
+			tthTool.setTool(toolKeys[key])
+		elif key == 'o':
+			tthTool.setShowOutline(not tthTool.showOutline)
+			UpdateCurrentGlyphView()
+		elif key == 'B':
+			tthTool.setShowBitmap(not tthTool.showBitmap)
+			UpdateCurrentGlyphView()
+		elif key == 'G':
+			tthTool.setShowGrid(not tthTool.showGrid)
+			UpdateCurrentGlyphView()
+		elif key == 'c':
+			tthTool.setShowCenterPixels(not tthTool.showCenterPixel)
+			UpdateCurrentGlyphView()
+		elif key == 'S':
+			if tthTool.selectedAxis == 'Y':
+				tthTool.changeAxis('X')
+			else:
+				tthTool.changeAxis('Y')
+			UpdateCurrentGlyphView()
+		elif key == 'R':
+			if tool != None:
+				tool.switchRounding()
+				tool.updateUI()
+
+		#elif key == 'A':
+		#	if tool in ['Single Link', 'Interpolation']:
+		#		self.swapAlignmentTypeLink()
+		#	elif tool == 'Align':
+		#		self.swapAlignmentTypeAlign()
+
+		#elif key in ['h', 'v']:
+		#	if tthTool.selectedAxis == 'Y':
+		#		self.changeAxis('X')
+		#		self.makeStemsListsPopUpMenu()
+		#		self.toolsWindow.wTools.StemTypePopUpButton.setItems(tthTool.stemsListX)
+		#		self.changeSelectedStemX(tthTool.selectedStemX)
+		#	else:
+		#		self.changeAxis('Y')
+		#		self.makeStemsListsPopUpMenu()
+		#		self.toolsWindow.wTools.StemTypePopUpButton.setItems(tthTool.stemsListY)
+		#		self.changeSelectedStemY(tthTool.selectedStemY)
+
+		elif key == '-':
+			if tthTool.PPM_Size > 9:
+				tthTool.changeSize(tthTool.PPM_Size-1)
+		elif key == '=' or key == '+':
+			tthTool.changeSize(tthTool.PPM_Size+1)
+		elif key == 'p':
+			bitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
+			fm = tthTool.getFontModel()
+			i = bitmapPreviewList.index(fm.bitmapPreviewMode)
+			fm.bitmapPreviewMode = bitmapPreviewList[(i+1)%3]
+			UpdateCurrentGlyphView()
+		elif key == 'P':
+			fm = tthTool.getFontModel()
+			cur = tthTool.showPreviewInGlyphWindow
+			tthTool.setPreviewInGlyphWindowState(not cur)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 
 	def popoverOpened(self, sender):

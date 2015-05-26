@@ -10,7 +10,6 @@ class SingleLinkTool(TTHCommandTool):
 		self.allowedAlignments = TTHCommandTool.allowedAlignmentTypesWithNone
 		self.stemNameX = 'Guess'
 		self.stemNameY = 'Guess'
-		self.roundDistance = False
 
 	def updateUI(self):
 		self.updateAlignmentUI(withNone = True)

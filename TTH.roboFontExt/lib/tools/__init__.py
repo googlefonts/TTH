@@ -8,10 +8,17 @@ class TTHCommandTool(object):
 		self.name = name
 		self.alignment = 0
 		self.allowedAlignments = ['Unused']
+		self.reset()
+
+	def reset(self):
 		self.mouseDownClickPos = None
 		self.mouseDraggedPos = None
 		self.dragging = False
 		self.startPoint = None
+		self.roundDistance = False
+
+	def switchRounding(self):
+		self.roundDistance = not self.roundDistance
 
 	allowedAlignmentTypes = ['round', 'left', 'right', 'center', 'double']
 	displayX = [	'Closest Pixel Edge',
@@ -48,7 +55,7 @@ class TTHCommandTool(object):
 		w.DeltaGrayText.show(False)
 		w.DeltaGrayCheckBox.show(False)
 
-	def updateUI(self, panel):
+	def updateUI(self):
 		pass
 
 	# Alignment UI

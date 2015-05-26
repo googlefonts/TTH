@@ -56,7 +56,7 @@ class CommandReverser(object):
 
 class TTHGlyph(object):
 
-	def __init__(self, rfGlyph):
+	def __init__(self, rfGlyph, fm):
 		# private variables: freely accessible, but the underscore, by
 		# python-convention, indicates `please don't use me outside of the
 		# class methods'.
@@ -70,6 +70,7 @@ class TTHGlyph(object):
 		self.hintingCommands = []
 		# load stuff from the UFO Lib
 		self.loadFromUFO()
+		self.compile(fm)
 
 	def __del__(self):
 		self._g = None

@@ -145,7 +145,7 @@ class TTHFont(object):
 	def glyphModelForGlyph(self, g):
 		key = g.name
 		if not self.hasGlyphModelForGlyph(g):
-			model = TTHGlyph.TTHGlyph(g)
+			model = TTHGlyph.TTHGlyph(g, self)
 			self._glyphModels[key] = model
 			return model
 		return self._glyphModels[key]

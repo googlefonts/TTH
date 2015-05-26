@@ -196,6 +196,10 @@ class TTHTool(object):
 		setExtensionDefault(defaultKeySelectedAxis, axis)
 		if self.selectedHintingTool != None:
 			self.selectedHintingTool.updateUI()
+		if axis == 'X':
+			self.mainPanel.wTools.axisSegmentedButton.set(0)
+		else:
+			self.mainPanel.wTools.axisSegmentedButton.set(1)
 
 # - - - - - - - - - - - - - - - - - - - - - - - DELTA
 
@@ -209,9 +213,15 @@ class TTHTool(object):
 			self.hintingTools[toolName] = tools.createTool(toolName)
 		return self.hintingTools[toolName]
 
-	def changeSelectedHintingTool(self, toolIndex):
-		self.selectedHintingTool = self.getTool(tools.kCommandToolNames[toolIndex])
+	def setTool(self, toolName):
+		self.selectedHintingTool = self.getTool(toolName)
+		toolIndex = tools.kCommandToolNames.index(toolName)
+		if self.mainPanel != None:
+			self.mainPanel.wTools.toolsSegmentedButton.set(toolIndex)
 		self.selectedHintingTool.updateUI()
+
+	def changeSelectedHintingTool(self, toolIndex):
+		self.setTool(tools.kCommandToolNames[toolIndex])
 
 # - - - - - - - - - - - - - - - - - - - - - - - PREVIEW STRING
 
@@ -348,10 +358,10 @@ class TTHTool(object):
 			self.mainPanel.curSheet = None
 
 	def updatePartialFontIfNeeded(self):
-		g, fm = self.getRGAndFontModel()
+		gm, fm = self.getGlyphAndFontModel()
 		if fm is None: return
 		self.requiredGlyphsForPartialTempFont =\
-			fm.updatePartialFontIfNeeded(g, self.requiredGlyphsForPartialTempFont)
+			fm.updatePartialFontIfNeeded(gm.RFGlyph, self.requiredGlyphsForPartialTempFont)
 
 	def prepareText(self, g, font):
 		if g == None:
