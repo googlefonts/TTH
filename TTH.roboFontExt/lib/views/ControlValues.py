@@ -681,8 +681,8 @@ class ControlValuesSheet(object):
 			fm.gasp_ranges[str(rangeUI['range'])] = GF + GAA + SGF + SS
 		# Finally, write the tables
 		newS2C, newZ2C, newCVT = fm.writeCVTandPREP()
-		tt.tables.writeFPGM(fm)
-		tt.tables.writegasp(fm)
+		tt.tables.write_FPGM(fm)
+		tt.tables.write_gasp(fm)
 		# We rename the stems and zone at the end, *after* the tables have
 		# been rewritten, so that we can use the new zone and stem CVT number
 		# when we write the assembly of a glyph...

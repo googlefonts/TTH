@@ -32,20 +32,66 @@ def autoPush(*args):
 
 	return (' '.join([mnemonic]+[str(a) for a in args]))
 
-def writehdmx(f, hdmx_ppems):
-	f.lib[k_hdmx_key] = hdmx_ppems
+def write_hdmx(fm):
+	fm.generateFullTempFont()
+	ppems = {}
+	for size in fm.hdmx_ppem_sizes:
+		widths = {}
+		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
+		tr.set_cur_size(size)
+		for glyphName in fm.f.glyphOrder:
+			widths[glyphName] = (tr.get_name_advance(glyphName)[0]+32) / 64
+		ppems[str(size)] = widths
+	fm.f.lib[k_hdmx_key] = ppems
 
-def writeVDMX(f, VDMX):
-	f.lib[k_VDMX_key] = VDMX
+def write_VDMX(fm):
+	fm.generateFullTempFont()
+	upm = fm.UPM
+	halfUpm = upm / 2
+	VDMX = {
+			'version':   1,
+			'ratRanges': [],
+			'groups':    []
+		}
+	# We will add only one range here, with those settings:
+	ratRange = {
+			'bCharSet':    0,
+			'xRatio':      0,
+			'yStartRatio': 0,
+			'yEndRatio':   0,
+			'groupIndex':  0
+		}
+	# We will add only one record here from 8 to 255 ppem
+	vTableRecord = {}
+	for yPelHeight in range(8, 256, 1):
+		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
+		tr.set_cur_size(yPelHeight)
+		linYMax = (tr.face.bbox.yMax * yPelHeight + halfUpm) / upm
+		linYMin = (tr.face.bbox.yMin * yPelHeight + halfUpm) / upm
+		yMin = +10000
+		yMax = -10000
+		for g in fm.f:
+			bmg = tr.get_name_bitmap(g.name)
+			hi = bmg.top
+			lo = hi - bmg.bitmap.rows
+			if hi > yMax: yMax = hi
+			if lo < yMin: yMin = lo
+		if linYMax != yMax or linYMin != yMin:
+			vTableRecord[str(yPelHeight)] = (yMax, yMin)
+	#print "Group has", len(vTableRecord), "records"
+	VDMX['ratRanges'].append(ratRange)
+	VDMX['groups'].append(vTableRecord)
+	fm.f.lib[k_VDMX_key] = VDMX
 
-def writeLTSH(fm, maxSize = 255):
+def write_LTSH(fm, maxSize = 255, verbose=False):
 	clock0 = time.time()
 	fm.generateFullTempFont()
 	font = fm.f
 	thresholds = dict((g.name, maxSize) for g in font)
 
 	clock1 = time.time()
-	print "[LTSH] Font generated in", (clock1-clock0), "seconds"
+	if verbose:
+		print "[LTSH] Font generated in", (clock1-clock0), "seconds"
 	clock0 = clock1
 
 	#import gc
@@ -62,7 +108,8 @@ def writeLTSH(fm, maxSize = 255):
 	#glyphsToCheck = dict((name, font[name]) for name in ['.notdef', 'A'])
 
 	clock1 = time.time()
-	print "[LTSH] Glyph set generated in", (clock1-clock0), "seconds"
+	if verbose:
+		print "[LTSH] Glyph set generated in", (clock1-clock0), "seconds"
 	clock0 = clock1
 	#gc.enable()
 
@@ -102,7 +149,7 @@ def writeLTSH(fm, maxSize = 255):
 					thresholds[name] = size
 		for name in toRemove:
 			del glyphsToCheck[name]
-	print out
+	#print out
 	if False:
 		s = []
 		names = list(font.glyphOrder)
@@ -119,38 +166,14 @@ def writeLTSH(fm, maxSize = 255):
 		print(''.join(s))
 
 	clock1 = time.time()
-	print "LTSH dictionary generated in", (clock1-clock0), "seconds"
+	if verbose:
+		print "LTSH dictionary generated in", (clock1-clock0), "seconds"
 	clock0 = clock1
 
 	font.lib[k_LTSH_key] = thresholds
 
-def writegasp(fm):
+def write_gasp(fm):
 	fm.f.lib[k_gasp_key] = fm.gasp_ranges
-
-# def writegasp(f, codeppm):
-# 	try:
-# 		lower = str(f.info.openTypeHeadLowestRecPPEM - 1)
-# 	except:
-# 		lower = "7"
-
-# 	try:
-# 		stopgridfit = str(codeppm)
-# 	except:
-# 		stopgridfit = "72"
-
-# 	gasp_ranges = {
-# 		lower:				GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING, # lowestRecPPEM - 1
-# 		"20":				GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT,
-# 		stopgridfit:		GASP_GRIDFIT + GASP_DOGRAY + GASP_SYMMETRIC_GRIDFIT + GASP_SYMMETRIC_SMOOTHING, # com.fontlab.v2.tth[codeppm]
-# 		"65535":			GASP_DOGRAY + GASP_SYMMETRIC_SMOOTHING
-# 	}
-
-# 	f.lib[k_gasp_key] = gasp_ranges
-
-	# print "GASP_SYMMETRIC_GRIDFIT", GASP_SYMMETRIC_GRIDFIT
-	# print "GASP_SYMMETRIC_SMOOTHING", GASP_SYMMETRIC_SMOOTHING
-	# print "GASP_DOGRAY", GASP_DOGRAY
-	# print "GASP_GRIDFIT", GASP_GRIDFIT
 
 def computeCVT(fm):
 	stem_to_cvt = {}
@@ -180,7 +203,7 @@ def computeCVT(fm):
 		CVT.append(int(zone['width']))
 	return (stemsH, stemsV, stem_to_cvt, zone_to_cvt, CVT)
 
-def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
+def write_CVT_PREP(fm):# 'fm' is instance of TTHFont
 	f = fm.f
 	f.lib[TTFCompilerSettings.roboHintMaxpMaxFunctionDefsLibKey] = 11
 	f.lib[TTFCompilerSettings.roboHintMaxpMaxStorageLibKey] = 5
@@ -306,7 +329,7 @@ def writeCVTandPREP(fm):# 'fm' is instance of TTHFont
 
 	return (stem_to_cvt, zone_to_cvt, CVT)
 
-def writeFPGM(fm):
+def write_FPGM(fm):
 	table_FPGM = []
 	CVT_cut_in = fm.stemsnap * 4
 	CutInPush = autoPush(CVT_cut_in)

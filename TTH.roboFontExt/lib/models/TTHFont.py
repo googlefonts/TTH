@@ -42,8 +42,8 @@ class TTHFont(object):
 		# TrueType tables
 		self.dirtyCVT()
 		self.writeCVTandPREP()
-		tables.writeFPGM(self)
-		tables.writegasp(self)
+		tables.write_FPGM(self)
+		tables.write_gasp(self)
 
 		# The TextRenderer caches glyphs' bitmap, so that is must be stored
 		# in the Font Model.
@@ -142,10 +142,10 @@ class TTHFont(object):
 		key = g.name
 		return (key in self._glyphModels)
 
-	def glyphModelForGlyph(self, g):
+	def glyphModelForGlyph(self, g, compile=True):
 		key = g.name
 		if not self.hasGlyphModelForGlyph(g):
-			model = TTHGlyph.TTHGlyph(g, self)
+			model = TTHGlyph.TTHGlyph(g, self, compile)
 			self._glyphModels[key] = model
 			return model
 		return self._glyphModels[key]
@@ -268,7 +268,7 @@ class TTHFont(object):
 		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
-			gm = self.glyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g, compile=False)
 			gm.renameZone(nameChanger)
 			if not hasG: self.delGlyphModelForGlyph(g)
 			counter += 1
@@ -289,7 +289,7 @@ class TTHFont(object):
 # - - - - - - - - - - - - - - - -
 
 	def writeCVTandPREP(self):
-		stem_to_cvt, zone_to_cvt, CVT = tables.writeCVTandPREP(self)
+		stem_to_cvt, zone_to_cvt, CVT = tables.write_CVT_PREP(self)
 		self.stem_to_cvt = stem_to_cvt
 		self.zone_to_cvt = zone_to_cvt
 		return (stem_to_cvt, zone_to_cvt, CVT)
@@ -310,8 +310,6 @@ class TTHFont(object):
 			self.verticalStems   = dict((n,s) for (n,s) in stems.iteritems() if not s['horizontal'])
 			# FIXME: describe this
 			self.gasp_ranges  = HF.getOrPutDefault(self.f.lib, tables.k_gasp_key, {})
-			# FIXME: describe this
-			self.hdmx_ppems   = HF.getOrPutDefault(self.f.lib, tables.k_hdmx_key, {})
 		except:
 			print "[TTH ERROR]: Can't read font's control values"
 
@@ -378,7 +376,7 @@ class TTHFont(object):
 		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
-			gm = self.glyphModelForGlyph(g)
+			gm = self.glyphModelForGlyph(g, compile=False)
 			glyphChanged = gm.renameStem(nameChanger)
 			#if True:#hasG:# glyphChanged:
 			#	gm.compileToUFO(self)
@@ -399,19 +397,20 @@ class TTHFont(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
-	def compileAllGlyphs(self, progress):
+	def compileAllGlyphs(self, progress=None):
 		TTHGlyph.silent = True
 		counter = 0
 		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
-			self.glyphModelForGlyph(g).compileToUFO(self)
+			self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
 			if not hasG: self.delGlyphModelForGlyph(g)
 			counter += 1
-			if counter == 30:
+			if (progress != None) and counter == 30:
 				progress.increment(30)
 				counter = 0
-		progress.increment(counter)
+		if progress != None:
+			progress.increment(counter)
 		TTHGlyph.silent = False
 
 	_helpOnFontGeneration = '''
@@ -438,8 +437,23 @@ When do we regenerate a partial font?
 	hinting command is added/deleted/modified.
 	(And of course when preview text uses a missing glyph.)'''
 
-	def computeLTSH(self):
-		tables.writeLTSH(self)
+	def compileAllTTFData(self):
+		print "Compiling CVT, PREP,",
+		self.dirtyCVT()
+		self.writeCVTandPREP()
+		print "FPGM,",
+		tables.write_FPGM(self)
+		print "gasp,",
+		tables.write_gasp(self)
+		print "VDMX,",
+		tables.write_VDMX(self)
+		print "LTSH,",
+		tables.write_LTSH(self)
+		print "hdmx,",
+		tables.write_hdmx(self)
+		print "glyphs,",
+		self.compileAllGlyphs()
+		print "done."
 
 	def generateFullTempFont(self):
 		#try:

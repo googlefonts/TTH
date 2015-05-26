@@ -179,7 +179,7 @@ class MainPanel(BaseWindowController):
 			NSMenuItem.separatorItem(),
 			"Preferences...", # 14
 			NSMenuItem.separatorItem(),
-			"LTSH debug", # 16
+			"Compile all TTF data", # 16
 			]
 			)
 
@@ -289,7 +289,7 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 14:
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 16:
-			fm.computeLTSH()
+			fm.compileAllTTFData()
 
 	#################
 	# Display updates

@@ -54,9 +54,11 @@ class CommandReverser(object):
 		self.gm.dirtyHinting()
 		self.gm.updateGlyphProgram(tthTool.getFontModel())
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 class TTHGlyph(object):
 
-	def __init__(self, rfGlyph, fm):
+	def __init__(self, rfGlyph, fm, compile=True):
 		# private variables: freely accessible, but the underscore, by
 		# python-convention, indicates `please don't use me outside of the
 		# class methods'.
@@ -70,7 +72,8 @@ class TTHGlyph(object):
 		self.hintingCommands = []
 		# load stuff from the UFO Lib
 		self.loadFromUFO()
-		self.compile(fm)
+		if compile:
+			self.compile(fm)
 
 	def __del__(self):
 		self._g = None
