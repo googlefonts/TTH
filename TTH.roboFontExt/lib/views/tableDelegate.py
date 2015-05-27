@@ -1,4 +1,4 @@
-from AppKit import NSObject, NSTextFieldCell
+from AppKit import NSObject, NSCell, NSTextFieldCell
 
 class ProgramPanelTableDelegate(NSObject):
 
@@ -11,18 +11,20 @@ class ProgramPanelTableDelegate(NSObject):
 		# returns something else, or even None!
 		self = super(ProgramPanelTableDelegate, self).init()
 		if self is None: return None
-		# Unlike Python's __init__, initializers MUST return self,
-		# because they are allowed to return any object!
-		self.dummy = NSTextFieldCell.alloc().init()
-		self.dummy.setStringValue_("hi")
+		self.dummy = NSCell.alloc().init()
+		self.dummy.setImage_(None)
+		self.w = None
 		return self
+
+	def setWindow(self, w):
+		self.w = w
 
 	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
 		if tableColumn == None: return None
-		cell = tableColumn.dataCell()
-		if cell == None: return None
-		if tableColumn.identifier() == 'delta':
-			#cell.setEnabled_(row % 2 == 0)
-			if row % 2 == 0:
-				return self.dummy
-		return cell
+		if tableColumn.identifier() == 'delta' and self.w != None:
+			try:
+				if self.w.programList[row]['code'][1:-1] != 'delta':
+					return self.dummy
+			except:
+				pass
+		return tableColumn.dataCell()

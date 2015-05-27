@@ -54,6 +54,7 @@ class ProgramWindow(TTHWindow):
 					editCallback = self.editCallback)
 		tableView = win.programList.getNSTableView()
 		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().init()
+		self.delegate.setWindow(win)
 		tableView.setDelegate_(self.delegate)
 		self.window = win
 
