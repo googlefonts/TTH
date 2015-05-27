@@ -28,9 +28,11 @@ class ProgramWindow(TTHWindow):
 		sliderCell.setAllowsTickMarkValuesOnly_(True)
 		sliderCell.setNumberOfTickMarks_(17)
 
+		checkBox = CheckBoxListCell()
+
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
-			{"title": "active", "width":  35, "editable": True, "cell":CheckBoxListCell()},
+			{"title": "active", "width":  35, "editable": True, "cell":checkBox},
 			{"title": "code",   "width": 100, "editable": False},
 			{"title": "point",  "width": 100, "editable": False},
 			{"title": "point1", "width": 100, "editable": False},
@@ -43,8 +45,8 @@ class ProgramWindow(TTHWindow):
 			#{"title": "delta", "width":  50, "editable": False},
 			{"title": "ppm1",   "width":  50, "editable": False},
 			{"title": "ppm2",   "width":  50, "editable": False},
-			{"title": "mono",   "width":  50, "editable": False},
-			{"title": "gray",   "width":  50, "editable": False}
+			{"title": "mono",   "width":  35, "editable": True, "cell":checkBox},
+			{"title": "gray",   "width":  35, "editable": True, "cell":checkBox},
 			]
 		win.programList = List((0, 0, -0, -0), [],
 					columnDescriptions=columnDescriptions,
