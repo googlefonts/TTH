@@ -96,6 +96,3 @@ class ProgramWindow(TTHWindow):
 			for key in extendedCommandKeys:
 				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)
-		#print self.window.programList.getNSTableView().viewAtColumn_row_makeIfNecessary_(1, 1, False)
-
-

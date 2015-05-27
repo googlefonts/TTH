@@ -1,14 +1,11 @@
-from AppKit import NSObject, NSCell, NSTextFieldCell
+from AppKit import NSObject, NSCell
 
 class ProgramPanelTableDelegate(NSObject):
 
 	def init(self):
-		"""
-		Designated initializer for ProgramPanelTableDelegate
-		"""
-		# ALWAYS call the super's designated initializer.
-		# Also, make sure to re-bind "self" just in case it
-		# returns something else, or even None!
+		# ALWAYS call the super's designated initializer.  Also, make sure to
+		# re-bind "self" just in case it returns something else, or even
+		# None!
 		self = super(ProgramPanelTableDelegate, self).init()
 		if self is None: return None
 		self.dummy = NSCell.alloc().init()
