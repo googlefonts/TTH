@@ -3,7 +3,6 @@ from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
 from views import TTHWindow, tableDelegate
 from models.TTHTool import uniqueInstance as tthTool
 
-
 # from PyObjCTools import Signals
 # Signals.dumpStackOnFatalSignal()
 # from PyObjCTools import Debugging
@@ -30,22 +29,22 @@ class ProgramWindow(TTHWindow):
 		sliderCell.setNumberOfTickMarks_(17)
 
 		columnDescriptions = [
-			{"title": "index", "width": 30, "editable": False},
-			dict(title="active", cell=CheckBoxListCell(), width=35, editable=True),
-			{"title": "code", "width": 100, "editable": False},
-			{"title": "point", "width": 100, "editable": False},
+			{"title": "index",  "width":  30, "editable": False},
+			{"title": "active", "width":  35, "editable": True, "cell":CheckBoxListCell()},
+			{"title": "code",   "width": 100, "editable": False},
+			{"title": "point",  "width": 100, "editable": False},
 			{"title": "point1", "width": 100, "editable": False},
 			{"title": "point2", "width": 100, "editable": False},
-			{"title": "align", "width": 100, "editable": False},
-			{"title": "round", "width": 80, "editable": False},
-			{"title": "stem", "width": 100, "editable": False},
-			{"title": "zone", "width": 100, "editable": False},
-			dict(title='delta', cell=sliderCell, width=90, editable=True),
-			#{"title": "delta", "width": 50, "editable": False},
-			{"title": "ppm1", "width": 50,"editable": False},
-			{"title": "ppm2", "width": 50, "editable": False},
-			{"title": "mono", "width": 50, "editable": False},
-			{"title": "gray", "width": 50, "editable": False}
+			{"title": "align",  "width": 100, "editable": False},
+			{"title": "round",  "width":  80, "editable": False},
+			{"title": "stem",   "width": 100, "editable": False},
+			{"title": "zone",   "width": 100, "editable": False},
+			{"title": "delta",  "width":  90, "editable": True, "cell":sliderCell},
+			#{"title": "delta", "width":  50, "editable": False},
+			{"title": "ppm1",   "width":  50, "editable": False},
+			{"title": "ppm2",   "width":  50, "editable": False},
+			{"title": "mono",   "width":  50, "editable": False},
+			{"title": "gray",   "width":  50, "editable": False}
 			]
 		win.programList = List((0, 0, -0, -0), [],
 					columnDescriptions=columnDescriptions,
@@ -53,7 +52,9 @@ class ProgramWindow(TTHWindow):
 					enableDelete=False,
 					showColumnTitles=True,
 					editCallback = self.editCallback)
-		win.programList.getNSTableView().setDelegate_(tableDelegate.ProgramPanelTableDelegate.alloc().init())
+		tableView = win.programList.getNSTableView()
+		delegate = tableDelegate.ProgramPanelTableDelegate.alloc().init()
+		tableView.setDelegate_(delegate)
 		self.window = win
 
 	def editCallback(self, sender):

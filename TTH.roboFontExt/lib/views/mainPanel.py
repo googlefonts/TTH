@@ -280,10 +280,13 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 8:
 			tthTool.updatePartialFontIfNeeded()
 			tthTool.previewPanel.show()
+			tthTool.updateDisplay()
 		elif gearOption == 9:
 			tthTool.programWindow.show()
+			tthTool.updateDisplay()
 		elif gearOption == 10:
 			tthTool.assemblyWindow.show()
+			tthTool.updateDisplay()
 		elif gearOption == 12:
 			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 14:
