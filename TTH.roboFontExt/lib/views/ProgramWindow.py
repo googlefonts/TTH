@@ -53,8 +53,8 @@ class ProgramWindow(TTHWindow):
 					showColumnTitles=True,
 					editCallback = self.editCallback)
 		tableView = win.programList.getNSTableView()
-		delegate = tableDelegate.ProgramPanelTableDelegate.alloc().init()
-		tableView.setDelegate_(delegate)
+		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().init()
+		tableView.setDelegate_(self.delegate)
 		self.window = win
 
 	def editCallback(self, sender):
