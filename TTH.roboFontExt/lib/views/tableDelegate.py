@@ -24,4 +24,10 @@ class ProgramPanelTableDelegate(NSObject):
 					return self.dummy
 			except:
 				pass
+		if tableColumn.identifier() in ['mono', 'gray'] and self.w != None:
+			try:
+				if self.w.programList[row]['code'][1:-1] != 'delta':
+					return self.dummy
+			except:
+				pass
 		return tableColumn.dataCell()

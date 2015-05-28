@@ -43,8 +43,8 @@ class ProgramWindow(TTHWindow):
 			#{"title": "delta", "width":  50, "editable": False},
 			{"title": "ppm1",   "width":  50, "editable": False},
 			{"title": "ppm2",   "width":  50, "editable": False},
-			{"title": "mono",   "width":  50, "editable": False},
-			{"title": "gray",   "width":  50, "editable": False}
+			{"title": "mono",   "width":  35, "editable": True, "cell":CheckBoxListCell()},
+			{"title": "gray",   "width":  35, "editable": True, "cell":CheckBoxListCell()}
 			]
 		win.programList = List((0, 0, -0, -0), [],
 					columnDescriptions=columnDescriptions,
@@ -71,10 +71,12 @@ class ProgramWindow(TTHWindow):
 		uiCmd = sender.get()[selectedIdx]
 		cmdIdx = uiCmd['index']
 		cmd = gm.sortedHintingCommands[cmdIdx]
-		if uiCmd['active']:
-			cmd['active'] = 'true'
-		else:
-			cmd['active'] = 'false'
+		codeTrueFalse = ['active', 'mono', 'gray']
+		for code in codeTrueFalse:
+			if uiCmd[code]:
+				cmd[code] = 'true'
+			else:
+				cmd[code] = 'false'
 		gm.updateGlyphProgram(fm)
 		g.performUndo()
 		self.lock = False
@@ -90,7 +92,7 @@ class ProgramWindow(TTHWindow):
 				c[key] = ''
 			if key == 'index':
 				c[key] = i
-			if key == 'active':
+			if key in ['active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
 		for i, command in enumerate(commands):
 			for key in extendedCommandKeys:
