@@ -13,8 +13,7 @@ DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
 defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 
-commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'mono', 'gray']
-extendedCommandKeys = ['index', 'delta', 'active'] + commandKeys
+commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
 
 class ProgramWindow(TTHWindow):
 	def __init__(self):
@@ -42,7 +41,6 @@ class ProgramWindow(TTHWindow):
 			{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
 			{"title": "delta",  "width":  90, "editable": True, "cell":sliderCell},
-			#{"title": "delta", "width":  50, "editable": False},
 			{"title": "ppm1",   "width":  50, "editable": False},
 			{"title": "ppm2",   "width":  50, "editable": False},
 			{"title": "mono",   "width":  35, "editable": True, "cell":checkBox},
@@ -89,14 +87,11 @@ class ProgramWindow(TTHWindow):
 			self.window.programList.set([])
 			return
 		commands =  [dict(c) for c in gm.sortedHintingCommands]
-		def putIfNotThere(c, i, key):
-			if key not in c:
-				c[key] = ''
-			if key == 'index':
-				c[key] = i
-			if key in ['active', 'mono', 'gray']:
+		for i, c in enumerate(commands):
+			c['index'] = i
+			for key in commandKeys:
+				if key not in c:
+					c[key] = ''
+			for key in ['active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
-		for i, command in enumerate(commands):
-			for key in extendedCommandKeys:
-				putIfNotThere(command, i, key)
 		self.window.programList.set(commands)

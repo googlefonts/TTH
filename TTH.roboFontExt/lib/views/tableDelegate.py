@@ -18,13 +18,7 @@ class ProgramPanelTableDelegate(NSObject):
 
 	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
 		if tableColumn == None: return None
-		if tableColumn.identifier() == 'delta' and self.w != None:
-			try:
-				if self.w.programList[row]['code'][1:-1] != 'delta':
-					return self.dummy
-			except:
-				pass
-		if tableColumn.identifier() in ['mono', 'gray'] and self.w != None:
+		if tableColumn.identifier() in ['delta', 'mono', 'gray'] and self.w != None:
 			try:
 				if self.w.programList[row]['code'][1:-1] != 'delta':
 					return self.dummy
