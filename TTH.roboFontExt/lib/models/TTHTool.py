@@ -282,8 +282,9 @@ class TTHTool(object):
 		self.hideWindows()
 		self.TTHWindows = []
 
-		self.mainPanel.close()
-		self.mainPanel    = None
+		if self.mainPanel:
+			self.mainPanel.close()
+			self.mainPanel    = None
 
 		del self.previewPanel
 		self.previewPanel = None

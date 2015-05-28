@@ -190,15 +190,15 @@ class TTH_RF_EventTool(BaseEventTool):
 		tr.set_cur_size(tthTool.PPM_Size)
 		tr.set_pen((0, 0))
 
-		if tthTool.showBitmap == 1 and tr != None:
-			tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
+		if tr != None and tr.isOK():
+			if tthTool.showBitmap == 1:
+				tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
+			if tthTool.showOutline == 1:
+				tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
+				self.drawSideBearings(scale, pitch, g.name, fm)
 
 		if tthTool.showCenterPixel == 1:
 			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
-
-		if tthTool.showOutline == 1 and tr != None:
-			tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
-			self.drawSideBearings(scale, pitch, g.name, fm)
 
 		self.drawAscentDescent(scale, pitch, fm)
 

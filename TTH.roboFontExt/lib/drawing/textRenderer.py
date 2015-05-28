@@ -64,6 +64,9 @@ class TextRenderer(object):
 		else:
 			self.load_mode = self.load_mode | FT.FT_LOAD_TARGET_NORMAL
 
+	def isOK(self):
+		return self.face != None
+
 	def __del__(self):
 		self.face = None
 		self.slot = None
