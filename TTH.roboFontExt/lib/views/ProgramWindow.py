@@ -77,6 +77,13 @@ class ProgramWindow(TTHWindow):
 				cmd[code] = 'true'
 			else:
 				cmd[code] = 'false'
+		if 'delta' in uiCmd and 'delta' in cmd:
+			if int(uiCmd['delta']) != int(cmd['delta']):
+				if uiCmd['delta'] != 0:
+					cmd['delta'] = str(int(uiCmd['delta']))
+				else:
+					uiCmd['delta'] = int(cmd['delta'])
+
 		gm.updateGlyphProgram(fm)
 		g.performUndo()
 		self.lock = False
