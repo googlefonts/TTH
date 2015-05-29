@@ -75,6 +75,9 @@ class TTHGlyph(object):
 		if compile:
 			self.compile(fm)
 
+	#def printGlyphNames(self):
+	#	print [[s.onCurve.name for s in c] for c in self._g]
+
 	def __del__(self):
 		self._g = None
 		self.dirtyGeometry()
@@ -170,14 +173,14 @@ class TTHGlyph(object):
 				c = 0
 		return c, s
 
-	def hintingNameForPoint(self,p):
+	def hintingNameForPoint(self, p):
+		uid  = p.naked().uniqueID # !! Call this first because it will possibly modify p.name
 		name = p.name
-		uid  = p.naked().uniqueID
 		if name is None or name == '':
 			p.name = uid
 			return uid
 		if name == 'inserted':
-			p.name += ', '+uid
+			p.name += ','+uid
 			return p.name
 		return name
 
@@ -194,6 +197,11 @@ class TTHGlyph(object):
 			for sidx, seg in enumerate(contour):
 				name = self.hintingNameForPoint(seg.onCurve)
 				self._nameToContSeg[name] = (cidx, sidx)
+				# This is to find the point using the original name that may
+				# still be in the hinting commands (from FontLab). For
+				# example, point.name = 'sh03, *123456799' and we find 'sh03'
+				# in the commands (the command point name will be rewritten
+				# after)
 				names = name.split(',')
 				if len(names) > 1 and names[0] != 'inserted':
 					self._nameToContSeg[names[0]] = (cidx, sidx)
@@ -235,7 +243,7 @@ class TTHGlyph(object):
 			skipper = ['h']
 		for cmd in self.hintingCommands:
 			if cmd['code'][-1] in skipper: continue
-			lPos, lSize = helperFunctions.getOrDefault(cmd, 'labelPosSize', (None, None))
+			lPos, lSize = cmd.get('labelPosSize', (None, None))
 			if lPos == None: continue
 			lo = lPos - 0.5 * lSize
 			hi = lPos + 0.5 * lSize
@@ -244,9 +252,7 @@ class TTHGlyph(object):
 		return None
 
 	def getAssembly(self):
-		key = tt.tables.k_glyph_assembly_key
-		g = self.RFGlyph
-		return helperFunctions.getOrDefault(g.lib, key, [])
+		return self.RFGlyph.lib.get(tt.tables.k_glyph_assembly_key, [])
 
 	def saveCommandsToUFO(self):
 		"""Save what can be saved in the UFO Lib."""
@@ -275,7 +281,7 @@ class TTHGlyph(object):
 		if fm.stem_to_cvt is None: fm.writeCVTandPREP()
 		tt.asm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
 
-	def commandIsOK(self, cmd, verbose = False, absent = [], badName = []):
+	def commandIsOK(self, cmd, verbose = False, absent = []):
 		for key in ['point', 'point1', 'point2']:
 			if key not in cmd: continue
 			ptName = cmd[key]
@@ -283,9 +289,6 @@ class TTHGlyph(object):
 			contSeg = self.contSegOfPointName(ptName)
 			if contSeg is None:
 				if verbose: absent.append((cmd['code'], key, ptName))
-				return False
-			if 'inserted' in ptName:
-				if verbose: badName.append((cmd['code'], key, ptName))
 				return False
 			# Rename the command's point using the RF name
 			cont,seg = contSeg
@@ -398,7 +401,6 @@ class TTHGlyph(object):
 			ttprogram = strTTProgram[6:-2]
 		root = ET.fromstring(ttprogram)
 		absent = []
-		badName = []
 		for child in root:
 			cmd = child.attrib
 			if 'active' not in cmd:
@@ -408,7 +410,7 @@ class TTHGlyph(object):
 					cmd['gray'] = 'true'
 				if 'mono' not in cmd:
 					cmd['mono'] = 'true'
-			if self.commandIsOK(cmd, verbose = True, absent = absent, badName = badName):
+			if self.commandIsOK(cmd, verbose = True, absent = absent):
 				self.hintingCommands.append(cmd)
 		if silent: return
 		message = "[TTH WARNING] In glyph "+self._g.name+":"
@@ -416,11 +418,7 @@ class TTHGlyph(object):
 			message += "The following points do not exist. "
 			message += "Commands acting on these points have been erased:\n\t"
 			message += '\n\t'.join([repr(e) for e in absent])
-		if badName:
-			message += "The following points have a name containing the word 'inserted'. "
-			message += "Commands acting on these points have been erased:\n\t"
-			message += '\n\t'.join([repr(e) for e in badName])
-		if absent or badName: print message
+		if absent: print message
 
 	def renameStem(self, nameChanger):
 		'''Use newName = '' to transform the stem into a simple round'''

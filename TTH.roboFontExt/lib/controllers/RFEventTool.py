@@ -491,8 +491,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, DR.kDoublinkColor)
 		if simple: return
 		# Compute label text
-		stemName = helperFunctions.getOrNone(cmd, 'stem')
-		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
+		stemName = cmd.get('stem')
+		isRound = cmd.get('round', 'false') == 'true'
 		if isRound:
 			if stemName != None: text = 'D_' + stemName
 			else: text = 'R'
@@ -517,9 +517,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		Y = (tthTool.selectedAxis == 'Y')
 		extension = self.getCommandAlignLabel(cmd)
-		stemName = helperFunctions.getOrNone(cmd, 'stem')
+		stemName = cmd.get('stem')
 		textColor = whiteColor
-		isRound = helperFunctions.getOrDefault(cmd, 'round', 'false') == 'true'
+		isRound = cmd.get('round', 'false') == 'true'
 		if isRound:
 			if stemName == None and extension != '': text = 'R_' + extension
 			elif stemName != None:                   text = 'R_' + stemName
@@ -599,7 +599,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	def drawCommands(self, scale, simple):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		for c in gm.hintingCommands:
-			cmd_code = helperFunctions.getOrNone(c, 'code')
+			cmd_code = c.get('code')
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
 			if Y and cmd_code in ['alignv', 'alignt', 'alignb']:

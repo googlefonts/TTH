@@ -3,18 +3,6 @@ import math, numpy
 def makeListItemToIndexDict(l):
 	return dict((e,i) for i,e in enumerate(l))
 
-def getOrNone(dico, key):
-	try:
-		return dico[key]
-	except:
-		return None
-
-def getOrDefault(dico, key, default):
-	try:
-		return dico[key]
-	except:
-		return default
-
 def getOrPutDefault(dico, key, default):
 	try:
 		return dico[key]

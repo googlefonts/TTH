@@ -338,7 +338,7 @@ class StemView(object):
 		uiStem = { 'Name': name, 'Width': int(stem['width']) }
 		invDico = helperFunctions.invertedDictionary(stem['round'])
 		for i in range(1,7):
-			uiStem[str(i)+' px'] = helperFunctions.getOrDefault(invDico, i, '0')
+			uiStem[str(i)+' px'] = invDico.get(i, '0')
 		return uiStem
 
 	def sanitizeStem(self, name, uiStem):
