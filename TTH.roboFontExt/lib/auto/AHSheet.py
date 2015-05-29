@@ -29,7 +29,7 @@ class AutoHintingSheet(object):
 		w.yGroup.stemLabel = TextBox((140,2,-40,22), '<= stem width <=', alignment='center')
 		w.yGroup.maxW    = EditText((-40,0,40,22), text=str(yBounds[1]), continuous=False, callback=self.handleStemBounds)
 
-		w.tolLabel = TextBox((-160, 87, -60, 22), 'Angle Tolerance:', alignment='right')
+		w.tolLabel = TextBox((-170, 87, -60, 22), 'Angle Tolerance:', alignment='right')
 		w.tolerance = EditText((-50, 85, 40, 22), text=str(fm.angleTolerance), continuous=False, callback=self.handleTolerance)
 
 		bGroup = Group((10, 120, -10, -10))
