@@ -77,6 +77,8 @@ class PreviewInGlyphWindow(NSView):
 		glyph = eventController.getGlyph()
 		if glyph == None: return
 		tr = self.fontModel.textRenderer
+		if not tr: return
+		if not tr.isOK(): return
 		advance = 40
 		glyphname = [glyph.name]
 		color = blackColor

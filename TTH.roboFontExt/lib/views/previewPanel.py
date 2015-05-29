@@ -72,8 +72,8 @@ class PreviewPanel(TTHWindow):
 		if fm == None: return
 		self.clickableSizes= {}
 		tr = fm.textRenderer
-		if not tr:
-			return
+		if not tr: return
+		if not tr.isOK(): return
 
 		advanceWidthUserString = 0
 		advanceWidthCurrentGlyph = 0
