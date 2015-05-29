@@ -518,8 +518,8 @@ When do we regenerate a partial font?
 					tempFont.lib[key] = lib[key]
 			for name in glyphSet:
 				oldG = self.f[name]
-				if not self.hasGlyphModelForGlyph(g):
-					self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
+				if not self.hasGlyphModelForGlyph(oldG):
+					self.glyphModelForGlyph(oldG, compile=False).compileToUFO(self)
 				tempFont[name] = oldG
 				newG = tempFont[name]
 				newG.unicode = oldG.unicode # FIXME: why?
