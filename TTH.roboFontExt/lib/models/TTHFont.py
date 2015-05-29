@@ -397,22 +397,6 @@ class TTHFont(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
-	def compileAllGlyphs(self, progress=None):
-		TTHGlyph.silent = True
-		counter = 0
-		maxCount = len(self.f)
-		for g in self.f:
-			hasG = self.hasGlyphModelForGlyph(g)
-			self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
-			if not hasG: self.delGlyphModelForGlyph(g)
-			counter += 1
-			if (progress != None) and counter == 30:
-				progress.increment(30)
-				counter = 0
-		if progress != None:
-			progress.increment(counter)
-		TTHGlyph.silent = False
-
 	_helpOnFontGeneration = '''
 What tables are needed?
 CVT , PREP
@@ -436,6 +420,22 @@ When do we regenerate a partial font?
 	When one of the tables above is re-generated and when a
 	hinting command is added/deleted/modified.
 	(And of course when preview text uses a missing glyph.)'''
+
+	def compileAllGlyphs(self, progress=None):
+		TTHGlyph.silent = True
+		counter = 0
+		maxCount = len(self.f)
+		for g in self.f:
+			hasG = self.hasGlyphModelForGlyph(g)
+			self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
+			if not hasG: self.delGlyphModelForGlyph(g)
+			counter += 1
+			if (progress != None) and counter == 30:
+				progress.increment(30)
+				counter = 0
+		if progress != None:
+			progress.increment(counter)
+		TTHGlyph.silent = False
 
 	def compileAllTTFData(self):
 		print "Compiling CVT, PREP,",
@@ -518,6 +518,8 @@ When do we regenerate a partial font?
 					tempFont.lib[key] = lib[key]
 			for name in glyphSet:
 				oldG = self.f[name]
+				if not self.hasGlyphModelForGlyph(g):
+					self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
 				tempFont[name] = oldG
 				newG = tempFont[name]
 				newG.unicode = oldG.unicode # FIXME: why?

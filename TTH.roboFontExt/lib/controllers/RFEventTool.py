@@ -326,7 +326,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			fm = tthTool.getFontModel()
 			i = bitmapPreviewList.index(fm.bitmapPreviewMode)
 			fm.bitmapPreviewMode = bitmapPreviewList[(i+1)%3]
-			UpdateCurrentGlyphView()
+			tthTool.updateDisplay()
 		elif key == 'P':
 			fm = tthTool.getFontModel()
 			cur = tthTool.showPreviewInGlyphWindow
