@@ -6,6 +6,7 @@ class TTHCommandTool(object):
 
 	def __init__(self, name):
 		self.name = name
+		self.worksOnOFF = False
 		self.alignment = 0
 		self.allowedAlignments = ['Unused']
 		self.reset()
@@ -124,7 +125,7 @@ class TTHCommandTool(object):
 	# - - - - MOUSE EVENTS
 
 	def magnet(self):
-		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos)
+		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos, alsoOff=self.worksOnOFF)
 		if tgt[0]:
 			return True, geom.makePoint(tgt[0][0])
 		else:
@@ -138,11 +139,12 @@ class TTHCommandTool(object):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm = tthTool.getGlyphModel()
-		src = gm.pointClicked(geom.makePoint(point))
+		src = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
 		if src[0]:
 			self.dragging = True
-			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, 0)
-			#print "Departure from", src
+			self.startPoint = src[0]
+			# src[0] is a quadruple (point, cont, seg, idx) with
+			# glyph[cont][seg].points[idx] == point
 		else:
 			self.dragging = False
 			self.startPoint = None

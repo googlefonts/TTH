@@ -64,10 +64,10 @@ class TTHGlyph(object):
 		# class methods'.
 		self._g = rfGlyph
 		self._contours = None
-		self._h_stems  = None # a list of pairs of ContSegs
+		self._h_stems  = None # a list of pairs of CSIs
 		self._v_stems  = None
 		self._sortedHintingCommands = None
-		self._nameToContSeg = None
+		self._nameToCSI = None
 		# public variables
 		self.hintingCommands = []
 		# load stuff from the UFO Lib
@@ -116,6 +116,9 @@ class TTHGlyph(object):
 			self._sortedHintingCommands = None
 			return self.hintingCommands
 
+	def pointOfCSI(self, csi):
+		return self._g[csi[0]][csi[1]].points[csi[2]]
+
 	def positionForPointName(self, name):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
@@ -124,8 +127,8 @@ class TTHGlyph(object):
 		elif name == 'rsb':
 			return geom.Point(self.RFGlyph.width, 0)
 		else:
-			cont, seg = self.contSegOfPointName(name)
-			return geom.makePoint(self._g[cont][seg].onCurve)
+			csi = self.csiOfPointName(name)
+			return geom.makePoint(self.pointOfCSI(csi))
 
 	def dirtyGeometry(self):
 		'''This should be called whenever the geometry of the associated
@@ -140,38 +143,54 @@ class TTHGlyph(object):
 		command-popovers for example.'''
 		self._sortedHintingCommands = None
 
-	def contSegOfPointName(self, name):
-		if None == self._nameToContSeg:
-			self.buildNameToContSegDict()
+	def csiOfPointName(self, name):
+		if None == self._nameToCSI:
+			self.buildNameToCSIDict()
 		try:
-			return self._nameToContSeg[name]
+			return self._nameToCSI[name]
 		except:
 			return None
 
-	def decreaseContSeg(self, contour, segment):
+	def decreaseCSI(self, csi, alsoOff):
 		"""Given a contour index and a segment index, finds the contour
 		index and segment index of the previous segment"""
-		s = segment - 1
-		c = contour
+		c, s, i = csi
+		if alsoOff:
+			i = i - 1
+			if i == -1:
+				s = s - 1
+		else:
+			s = s - 1
 		if s == -1:
-			c = contour-1
+			c = c - 1
 			if c == -1:
 				c = len(self._g)-1
 			s = len(self._g[c])-1
-		return c, s
+		if (not alsoOff) or (i == -1):
+			i = len(self._g[c][s].points)-1
+		return (c, s, i)
 
-	def increaseContSeg(self, contour, segment):
+	def increaseCSI(self, csi, alsoOff):
 		"""Given a contour index and a segment index, finds the contour
 		index and segment index of the next segment"""
-		contourLen = len(self._g[contour])
-		s = segment + 1
-		c = contour
+		c, s, i = csi
+		contourLen = len(self._g[c])
+		segLen = len(self._g[c][s])
+		if alsoOff:
+			i = i + 1
+			if i == segLen:
+				s = s + 1
+				i = 0
+		else:
+			s = s + 1
 		if s == contourLen:
 			s = 0
-			c = contour + 1
+			c = c + 1
 			if c == len(self._g):
 				c = 0
-		return c, s
+		if (not alsoOff):
+			i = len(self._g[c][s].points)-1
+		return (c, s, i)
 
 	def hintingNameForPoint(self, p):
 		uid  = p.naked().uniqueID # !! Call this first because it will possibly modify p.name
@@ -184,27 +203,30 @@ class TTHGlyph(object):
 			return p.name
 		return name
 
-	def buildNameToContSegDict(self):
-		'''A `ContSeg` is a pair (cidx,sidx) where cidx is the index of a
+	def buildNameToCSIDict(self):
+		'''A `CSI` is a triple (cidx,sidx,idx) where cidx is the index of a
 		contour in the glyph _g and sidx is the index of a segment in that
-		contour. A segment has exactly one ON-point and zero or more
-		OFF-points.
-		The ON-point is self._g[cidx][sidx].onCurve
-		A ContSeg therefore identifies an ON-point in a glyph, as well as
+		contour. idx is the index of a point in that segment.
+		A segment has exactly one ON-point and zero or more OFF-points.
+		The segment, 'seg' is self._g[cidx][sidx]
+		The ON-point is seg.onCurve OR seg.points[idx] OR seg.points[-1]
+		A CSI therefore identifies a point in a glyph, as well as
 		its contour index and its position in that contour.'''
-		self._nameToContSeg = {}
+		self._nameToCSI = {}
 		for cidx, contour in enumerate(self._g):
 			for sidx, seg in enumerate(contour):
-				name = self.hintingNameForPoint(seg.onCurve)
-				self._nameToContSeg[name] = (cidx, sidx)
-				# This is to find the point using the original name that may
-				# still be in the hinting commands (from FontLab). For
-				# example, point.name = 'sh03, *123456799' and we find 'sh03'
-				# in the commands (the command point name will be rewritten
-				# after)
-				names = name.split(',')
-				if len(names) > 1 and names[0] != 'inserted':
-					self._nameToContSeg[names[0]] = (cidx, sidx)
+				for idx, p in enumerate(seg.points):
+					name = self.hintingNameForPoint(p)
+					csi = (cidx, sidx, idx)
+					self._nameToCSI[name] = csi
+					# This is to find the point using the original name that may
+					# still be in the hinting commands (from FontLab). For
+					# example, point.name = 'sh03, *123456799' and we find 'sh03'
+					# in the commands (the command point name will be rewritten
+					# after)
+					names = name.split(',')
+					if len(names) > 1 and names[0] != 'inserted':
+						self._nameToCSI[names[0]] = csi
 
 	def pointClicked(self, clickPos, alsoOff = False):
 		if len(self._g) == 0: return (None, False, -1.0)
@@ -212,7 +234,8 @@ class TTHGlyph(object):
 		# workaround in python2 to access the variables in the outer scope
 		# (in function 'update' below). python3 would use the 'nonlocal'
 		# keyword.
-		best = [(self._g[0][0].onCurve, 0, 0, 0)]
+		seg = self._g[0][0]
+		best = [(seg.onCurve, 0, 0, len(seg.points)-1)]
 		dist = [(clickPos - geom.makePoint(best[0][0])).squaredLength()]
 		on   = [True]
 		def update(p, cont, seg, idx, isOn):
@@ -223,7 +246,7 @@ class TTHGlyph(object):
 				on[0] = isOn
 		for cont, contour in enumerate(self._g):
 			for seg, segment in enumerate(contour):
-				update(segment.onCurve, cont, seg, 0, True)
+				update(segment.onCurve, cont, seg, len(segment.points)-1, True)
 				if not alsoOff: continue
 				for idx, p in enumerate(segment.offCurve):
 					update(p, cont, seg, idx, False)
@@ -286,13 +309,12 @@ class TTHGlyph(object):
 			if key not in cmd: continue
 			ptName = cmd[key]
 			if ptName in ['lsb', 'rsb']: continue
-			contSeg = self.contSegOfPointName(ptName)
-			if contSeg is None:
+			csi = self.csiOfPointName(ptName)
+			if csi is None:
 				if verbose: absent.append((cmd['code'], key, ptName))
 				return False
 			# Rename the command's point using the RF name
-			cont,seg = contSeg
-			cmd[key] = self._g[cont][seg].onCurve.name
+			cmd[key] = self.pointOfCSI(csi).name
 		if 'active' not in cmd:
 			cmd['active'] = 'true'
 		return True

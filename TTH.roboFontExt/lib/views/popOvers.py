@@ -72,12 +72,13 @@ class PopoverPointMoverCallback(object):
 	def __call__(self, sender):
 		gm = self.popoverController.gm
 		fm = self.popoverController.fm
-		cont,seg = gm.contSegOfPointName(self.cmd[self.key])
+		csi = gm.csiOfPointName(self.cmd[self.key])
+		alsoOff = 'delta' in self.cmd['code']
 		if self.forward:
-			cont,seg = gm.increaseContSeg(cont, seg)
+			csi = gm.increaseCSI(csi, alsoOff)
 		else:
-			cont,seg = gm.decreaseContSeg(cont, seg)
-		self.cmd[self.key] = gm._g[cont][seg].onCurve.name
+			csi = gm.decreaseCSI(csi, alsoOff)
+		self.cmd[self.key] = gm.pointOfCSI(csi).name
 		gm.updateGlyphProgram(fm)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

@@ -11,6 +11,7 @@ class DeltaTool(TTHCommandTool):
 			super(DeltaTool, self).__init__("Final Delta")
 		else:
 			super(DeltaTool, self).__init__("Middle Delta")
+		self.worksOnOFF = True
 		self.final = final
 		self.mono  = True
 		self.gray  = True

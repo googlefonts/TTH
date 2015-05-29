@@ -7,15 +7,14 @@ def contourSegmentIterator(g):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	def __init__(self, on, typ, name, sh, ina, outa, cont, seg, weight):
+	def __init__(self, on, typ, name, sh, ina, outa, csi, weight):
 		self.pos        = on
 		self.type       = typ
 		self.name       = name
 		self.shearedPos = sh
 		self.inTangent  = ina
 		self.outTangent = outa
-		self.cont       = cont # contour number
-		self.seg        = seg  # segment number
+		self.csi        = csi # contour, segment, idx in g[contour][seg].points
 		# the following change when we switch from X- to Y-autohinting
 		self.weight2D   = weight # a 2D vector
 		self.weight     = weight
@@ -30,10 +29,10 @@ class HintingData(object):
 		self.alignment  = None
 		self.leader     = None
 	def nextOn(self, contours):
-		contour = contours[self.cont]
-		return contour[(self.seg+1)%len(contour)]
+		contour = contours[self.csi[0]]
+		return contour[(self.csi[1]+1)%len(contour)]
 	def prevOn(self, contours):
-		return contours[self.cont][self.seg-1]
+		return contours[self.csi[0]][self.csi[1]-1]
 
 def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	"""Compute data relevant to hinting for the ON point in the
@@ -64,7 +63,8 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 		weight = None
 	nextOff = (nextOff-onPt).normalized()
 	prevOff = (onPt-prevOff).normalized()
-	return HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, cidx, sidx, weight)
+	idx = len(segment.points) - 1
+	return HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, (cidx, sidx, idx), weight)
 
 def makeContours(g, ital):
 	contours = [[] for c in g]

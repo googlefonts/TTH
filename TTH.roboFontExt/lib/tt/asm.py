@@ -417,18 +417,6 @@ def makePointRFNameToIndexDict(gm):
 	for contour in gm.RFGlyph:
 		for point in contour.points:
 			result[gm.hintingNameForPoint(point)] = index
-			#uniqueID = point.naked().uniqueID
-			#if point.name:
-			#	name = point.name
-			#	if 'inserted' not in name:
-			#		result[name] = index
-			#	else:
-			#		result[name] = index
-			#		point.name = uniqueID
-			#		result[uniqueID] = index
-			#else:
-			#	result[uniqueID] = index
-			#	point.name = uniqueID
 			index += 1
 	return result
 

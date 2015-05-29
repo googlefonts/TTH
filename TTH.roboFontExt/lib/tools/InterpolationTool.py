@@ -49,7 +49,7 @@ class InterpolationTool(TTHCommandTool):
 		src = gm.pointClicked(geom.makePoint(point))
 		if src[0]:
 			self.dragging = True
-			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, 0)
+			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, idx)
 		elif self.lookingForPoint2:
 			self.startPoint = None
 			return
@@ -66,7 +66,7 @@ class InterpolationTool(TTHCommandTool):
 			if mid[0]: m = mid[0][0]
 			if mid[0] and (s.x != m.x or s.y != m.y):
 				self.interpolatedPoint1 = self.startPoint
-				self.interpolatedPoint = mid[0] # a quadruple (onCurve, cont, seg, 0)
+				self.interpolatedPoint = mid[0] # a quadruple (onCurve, cont, seg, idx)
 				self.lookingForPoint2 = True
 			else:
 				self.dragging = False
