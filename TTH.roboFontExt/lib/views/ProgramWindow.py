@@ -2,6 +2,7 @@ from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
 from views import TTHWindow, tableDelegate
 from models.TTHTool import uniqueInstance as tthTool
+from AppKit import NSLeftMouseUpMask
 
 # from PyObjCTools import Signals
 # Signals.dumpStackOnFatalSignal()
@@ -26,6 +27,8 @@ class ProgramWindow(TTHWindow):
 		sliderCell = SliderListCell(-8, 8)
 		sliderCell.setAllowsTickMarkValuesOnly_(True)
 		sliderCell.setNumberOfTickMarks_(17)
+		sliderCell.setContinuous_(False)
+		sliderCell.sendActionOn_(NSLeftMouseUpMask)
 
 		checkBox = CheckBoxListCell()
 
@@ -40,7 +43,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "round",  "width":  80, "editable": False},
 			{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
-			{"title": "delta",  "width":  90, "editable": True, "cell":sliderCell},
+			{"title": "delta",  "width": 120, "editable": True, "cell":sliderCell},
 			{"title": "ppm1",   "width":  50, "editable": False},
 			{"title": "ppm2",   "width":  50, "editable": False},
 			{"title": "mono",   "width":  35, "editable": True, "cell":checkBox},
@@ -58,6 +61,21 @@ class ProgramWindow(TTHWindow):
 		tableView.setDelegate_(self.delegate)
 		self.window = win
 
+	def modifyContent(self, cmd, uiCmd):
+		codeTrueFalse = ['active', 'mono', 'gray']
+		for code in codeTrueFalse:
+			if uiCmd[code]:
+				cmd[code] = 'true'
+			else:
+				cmd[code] = 'false'
+		if 'delta' in uiCmd and 'delta' in cmd:
+			print 'UI', uiCmd['delta'], 'cmd', cmd['delta']
+			if int(uiCmd['delta']) != int(cmd['delta']):
+				if uiCmd['delta'] != 0:
+					cmd['delta'] = str(int(uiCmd['delta']))
+				else:
+					uiCmd['delta'] = int(cmd['delta'])
+
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
 		if self.lock or (selectList == []):
@@ -71,19 +89,7 @@ class ProgramWindow(TTHWindow):
 		uiCmd = sender.get()[selectedIdx]
 		cmdIdx = uiCmd['index']
 		cmd = gm.sortedHintingCommands[cmdIdx]
-		codeTrueFalse = ['active', 'mono', 'gray']
-		for code in codeTrueFalse:
-			if uiCmd[code]:
-				cmd[code] = 'true'
-			else:
-				cmd[code] = 'false'
-		if 'delta' in uiCmd and 'delta' in cmd:
-			if int(uiCmd['delta']) != int(cmd['delta']):
-				if uiCmd['delta'] != 0:
-					cmd['delta'] = str(int(uiCmd['delta']))
-				else:
-					uiCmd['delta'] = int(cmd['delta'])
-
+		self.modifyContent(cmd, uiCmd)
 		gm.updateGlyphProgram(fm)
 		g.performUndo()
 		self.lock = False
