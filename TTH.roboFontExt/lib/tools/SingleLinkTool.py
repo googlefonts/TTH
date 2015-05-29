@@ -1,6 +1,7 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
+from mojo.events import getActiveEventTool
 from drawing import geom, utilities as DR
 
 class SingleLinkTool(TTHCommandTool):
@@ -43,6 +44,7 @@ class SingleLinkTool(TTHCommandTool):
 				'point1': self.startPoint[0].name,
 				'point2': target.name,
 			}
+		shiftPressed = getActiveEventTool().getModifiers()['shiftDown']
 		align = self.getAlignment()
 		if align != 'None':
 			cmd['align'] = align
@@ -52,14 +54,14 @@ class SingleLinkTool(TTHCommandTool):
 			stem = fm.guessStem(self.startPoint[0], target)
 		if stem != None:
 			cmd['stem'] = stem
-		elif self.roundDistance:
+		elif self.roundDistance or shiftPressed:
 			cmd['round'] = 'true'
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):
 		if not self.dragging: return
 		gm = tthTool.getGlyphModel()
-		tgt = gm.pointClicked(geom.makePoint(point))
+		tgt = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
 		if tgt[0]:
 			s = self.startPoint[0]
 			t = tgt[0][0]

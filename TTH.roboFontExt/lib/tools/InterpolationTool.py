@@ -46,7 +46,7 @@ class InterpolationTool(TTHCommandTool):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm = tthTool.getGlyphModel()
-		src = gm.pointClicked(geom.makePoint(point))
+		src = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
 		if src[0]:
 			self.dragging = True
 			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, idx)
@@ -61,7 +61,7 @@ class InterpolationTool(TTHCommandTool):
 		if not self.dragging: return
 		if not self.lookingForPoint2:
 			gm = tthTool.getGlyphModel()
-			mid = gm.pointClicked(geom.makePoint(point))
+			mid = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
 			s = self.startPoint[0]
 			if mid[0]: m = mid[0][0]
 			if mid[0] and (s.x != m.x or s.y != m.y):
