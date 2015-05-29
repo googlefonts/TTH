@@ -12,6 +12,7 @@ from commons import helperFunctions
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
+defaultKeyLastTool                 = DefaultKeyStub + "lastTool"
 defaultKeyCurrentPPMSize           = DefaultKeyStub + "currentPPMSize"
 defaultKeySelectedAxis             = DefaultKeyStub + "selectedAxis"
 defaultKeyPreviewSampleStrings     = DefaultKeyStub + "previewSampleStrings"
@@ -215,6 +216,7 @@ class TTHTool(object):
 
 	def setTool(self, toolName):
 		self.selectedHintingTool = self.getTool(toolName)
+		setExtensionDefault(defaultKeyLastTool, toolName)
 		toolIndex = tools.kCommandToolNames.index(toolName)
 		if self.mainPanel != None:
 			self.mainPanel.wTools.toolsSegmentedButton.set(toolIndex)
@@ -276,7 +278,8 @@ class TTHTool(object):
 		self.TTHWindows     = [self.previewPanel, self.assemblyWindow, self.programWindow]
 		self.mainPanel      = mainPanel.MainPanel()
 
-		self.changeSelectedHintingTool(tools.kCommandToolNames.index('Selection'))
+		lastToolUsed = getExtensionDefault(defaultKeyLastTool, fallback='Selection')
+		self.setTool(lastToolUsed)
 
 	def deleteWindows(self):
 		self.hideWindows()
