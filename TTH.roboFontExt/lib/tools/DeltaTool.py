@@ -12,11 +12,11 @@ class DeltaTool(TTHCommandTool):
 		else:
 			super(DeltaTool, self).__init__("Middle Delta")
 		self.final = final
-		self.mono  = False
-		self.gray  = False
+		self.mono  = True
+		self.gray  = True
 		self.offset = 0
-		self.range1 = 9
-		self.range2 = 9
+		self.range1 = tthTool.PPM_Size
+		self.range2 = tthTool.PPM_Size
 		# for drawing
 		self.pitch = tthTool.getFontModel().getPitch()
 		if final:
