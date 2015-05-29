@@ -149,8 +149,11 @@ class TextRenderer(object):
 			glyphCache = TRGlyphData()
 			self.cache[index] = glyphCache
 			self.face.set_pixel_sizes(0, int(self.curSize))
-			self.face.load_glyph(index, self.load_mode)
-
+			try:
+				self.face.load_glyph(index, self.load_mode)
+			except FT.FT_Exception as e:
+				print "[FT.load_glyph({}) ERROR] {}".format(index, e)
+				return None
 			result = self.slot.get_glyph() # this returns a copy
 			glyphCache.image = result
 			glyphCache.advance = (self.slot.advance.x, self.slot.advance.y)

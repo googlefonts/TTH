@@ -508,16 +508,15 @@ When do we regenerate a partial font?
 			tempFont.info.styleName  = info.styleName
 			tempFont.glyphOrder = self.f.glyphOrder
 			lib = self.f.lib
-			for key in ['com.robofont.robohint.cvt ',
-					'com.robofont.robohint.prep',
-					'com.robofont.robohint.fpgm',
-					'com.robofont.robohint.gasp',
-					'com.robofont.robohint.hdmx',
+			for key in [tables.k_CVT_key,
+					tables.k_prep_key,
+					tables.k_fpgm_key,
+					tables.k_gasp_key,
+					tables.k_hdmx_key,
 					'com.robofont.robohint.maxp.maxStorage']:
 				if key in lib:
 					tempFont.lib[key] = lib[key]
 			for name in glyphSet:
-				#print '>'+name+'<'
 				oldG = self.f[name]
 				tempFont[name] = oldG
 				newG = tempFont[name]

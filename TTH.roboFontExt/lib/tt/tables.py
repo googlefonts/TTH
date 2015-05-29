@@ -8,10 +8,10 @@ from drawing import textRenderer as TR
 
 k_hdmx_key = TTFCompilerSettings.roboHintHdmxLibKey
 k_VDMX_key = 'com.robofont.robohint.VDMX'
-k_LTSH_key = 'com.robofont.robohint.LTSH'
-k_CVT_key  = 'com.robofont.robohint.cvt '
+k_LTSH_key = TTFCompilerSettings.roboHintLtshLibKey
+k_CVT_key  = TTFCompilerSettings.roboHintCvtLibKey
 k_prep_key = 'com.robofont.robohint.prep'
-k_fpgm_key = 'com.robofont.robohint.FPGM'
+k_fpgm_key = TTFCompilerSettings.roboHintFpgmLibKey
 k_gasp_key = TTFCompilerSettings.roboHintGaspLibKey
 
 stepToSelector = {-8: 0, -7: 1, -6: 2, -5: 3, -4: 4, -3: 5, -2: 6, -1: 7, 1: 8, 2: 9, 3: 10, 4: 11, 5: 12, 6: 13, 7: 14, 8: 15}
