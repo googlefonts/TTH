@@ -201,8 +201,8 @@ class AutoHinting():
 	def makeGroups(self, contours, alignments, stems, mergeLoneAlignments=False, debug=False):
 		groups = []
 		for stem in stems:
-			src = contours[stem[0].cont][stem[0].seg]
-			tgt = contours[stem[1].cont][stem[1].seg]
+			src = contours[stem[0].csi[0]][stem[0].csi[1]]
+			tgt = contours[stem[1].csi[0]][stem[1].csi[1]]
 			pos0 = src.alignment
 			pos1 = tgt.alignment
 			if debug: print "(",pos0,pos1,src.pos,tgt.pos,")"
