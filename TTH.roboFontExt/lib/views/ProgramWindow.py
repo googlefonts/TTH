@@ -69,7 +69,6 @@ class ProgramWindow(TTHWindow):
 			else:
 				cmd[code] = 'false'
 		if 'delta' in uiCmd and 'delta' in cmd:
-			print 'UI', uiCmd['delta'], 'cmd', cmd['delta']
 			if int(uiCmd['delta']) != int(cmd['delta']):
 				if uiCmd['delta'] != 0:
 					cmd['delta'] = str(int(uiCmd['delta']))
