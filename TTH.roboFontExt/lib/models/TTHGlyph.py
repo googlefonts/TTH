@@ -181,7 +181,11 @@ class TTHGlyph(object):
 		self._nameToContSeg = {}
 		for cidx, contour in enumerate(self._g):
 			for sidx, seg in enumerate(contour):
-				self._nameToContSeg[seg.onCurve.name] = (cidx, sidx)
+				name = seg.onCurve.name
+				names = name.split(',')
+				self._nameToContSeg[name] = (cidx, sidx)
+				if len(names) > 1:
+					self._nameToContSeg[names[0]] = (cidx, sidx)
 
 	def pointClicked(self, clickPos, alsoOff = False):
 		if len(self._g) == 0: return (None, False, -1.0)
@@ -265,12 +269,16 @@ class TTHGlyph(object):
 			if key not in cmd: continue
 			ptName = cmd[key]
 			if ptName in ['lsb', 'rsb']: continue
-			if self.contSegOfPointName(ptName) is None:
+			contSeg = self.contSegOfPointName(ptName)
+			if contSeg is None:
 				if verbose: absent.append((cmd['code'], key, ptName))
 				return False
 			if 'inserted' in ptName:
 				if verbose: badName.append((cmd['code'], key, ptName))
 				return False
+			# Rename the command's point using the RF name
+			cont,seg = contSeg
+			cmd[key] = self._g[cont][seg].onCurve.name
 		if 'active' not in cmd:
 			cmd['active'] = 'true'
 		return True

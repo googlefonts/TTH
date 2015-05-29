@@ -61,7 +61,7 @@ class TTHTool(object):
 		self.centerPixelSize  = getExtensionDefault(defaultKeyCenterPixelSize,  fallback=3)
 		self.showPreviewInGlyphWindow = getExtensionDefault(defaultKeyShowPreviewInGlyphWindow, fallback=1)
 
-		self.requiredGlyphsForPartialTempFont = set('space')
+		self.requiredGlyphsForPartialTempFont = set(['space'])
 
 		# Stems are rounded to a multiple of that value
 		# FIXME: Check if this is still used? If so, check if we can get rid of it?
