@@ -52,7 +52,7 @@ class SingleLinkTool(TTHCommandTool):
 			stem = None
 		if stem == 'Guess':
 			stem = fm.guessStem(self.startPoint[0], target)
-		if stem != None:
+		if stem != None and (not shiftPressed):
 			cmd['stem'] = stem
 		elif self.roundDistance or shiftPressed:
 			cmd['round'] = 'true'
