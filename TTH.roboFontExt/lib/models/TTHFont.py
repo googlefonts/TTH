@@ -513,7 +513,7 @@ When do we regenerate a partial font?
 					tables.k_fpgm_key,
 					tables.k_gasp_key,
 					tables.k_hdmx_key,
-					'com.robofont.robohint.maxp.maxStorage']:
+					tables.k_maxp_maxStorage_key]:
 				if key in lib:
 					tempFont.lib[key] = lib[key]
 			for name in glyphSet:
@@ -521,7 +521,7 @@ When do we regenerate a partial font?
 				tempFont[name] = oldG
 				newG = tempFont[name]
 				newG.unicode = oldG.unicode # FIXME: why?
-				key = 'com.robofont.robohint.assembly'
+				key = tables.k_glyph_assembly_key
 				if key in oldG.lib:
 					newG.lib[key] = oldG.lib[key]
 			tempFont.generate(self.tempPartialFontPath, 'ttf',

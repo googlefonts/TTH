@@ -411,23 +411,24 @@ def processDeltaCommand(command, pointNameToIndex):
 
 	return deltaInstructions
 
-def makePointRFNameToIndexDict(g):
+def makePointRFNameToIndexDict(gm):
 	result = {}
 	index = 0
-	for contour in g:
+	for contour in gm.RFGlyph:
 		for point in contour.points:
-			uniqueID = point.naked().uniqueID
-			if point.name:
-				name = point.name
-				if 'inserted' not in name:
-					result[name] = index
-				else:
-					result[name] = index
-					point.name = uniqueID
-					result[uniqueID] = index
-			else:
-				result[uniqueID] = index
-				point.name = uniqueID
+			result[gm.hintingNameForPoint(point)] = index
+			#uniqueID = point.naked().uniqueID
+			#if point.name:
+			#	name = point.name
+			#	if 'inserted' not in name:
+			#		result[name] = index
+			#	else:
+			#		result[name] = index
+			#		point.name = uniqueID
+			#		result[uniqueID] = index
+			#else:
+			#	result[uniqueID] = index
+			#	point.name = uniqueID
 			index += 1
 	return result
 
@@ -436,7 +437,7 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 	if g == None:
 		return
 
-	g.lib['com.robofont.robohint.assembly'] = []
+	g.lib[tables.k_glyph_assembly_key] = []
 	sortedCommands = gm.sortedHintingCommands
 	if sortedCommands == []:
 		return
@@ -447,7 +448,7 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 
 	regs = Registers()
 
-	pointNameToIndex = makePointRFNameToIndexDict(g)
+	pointNameToIndex = makePointRFNameToIndexDict(gm)
 	pointNameToIndex['lsb'] = nbPointsContour
 	pointNameToIndex['rsb'] = nbPointsContour+1
 	regs.x_instructions = ['SVTCA[1]']
@@ -482,4 +483,4 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 	assembly.extend(regs.finalDeltasH)
 	assembly.append('SVTCA[0]')
 	assembly.extend(regs.finalDeltasV)
-	g.lib['com.robofont.robohint.assembly'] = assembly
+	g.lib[tables.k_glyph_assembly_key] = assembly

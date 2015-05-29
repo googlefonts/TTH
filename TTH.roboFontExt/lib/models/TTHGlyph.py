@@ -170,6 +170,17 @@ class TTHGlyph(object):
 				c = 0
 		return c, s
 
+	def hintingNameForPoint(self,p):
+		name = p.name
+		uid  = p.naked().uniqueID
+		if name is None or name == '':
+			p.name = uid
+			return uid
+		if name == 'inserted':
+			p.name += ', '+uid
+			return p.name
+		return name
+
 	def buildNameToContSegDict(self):
 		'''A `ContSeg` is a pair (cidx,sidx) where cidx is the index of a
 		contour in the glyph _g and sidx is the index of a segment in that
@@ -181,10 +192,10 @@ class TTHGlyph(object):
 		self._nameToContSeg = {}
 		for cidx, contour in enumerate(self._g):
 			for sidx, seg in enumerate(contour):
-				name = seg.onCurve.name
-				names = name.split(',')
+				name = self.hintingNameForPoint(seg.onCurve)
 				self._nameToContSeg[name] = (cidx, sidx)
-				if len(names) > 1:
+				names = name.split(',')
+				if len(names) > 1 and names[0] != 'inserted':
 					self._nameToContSeg[names[0]] = (cidx, sidx)
 
 	def pointClicked(self, clickPos, alsoOff = False):
@@ -233,7 +244,7 @@ class TTHGlyph(object):
 		return None
 
 	def getAssembly(self):
-		key = 'com.robofont.robohint.assembly'
+		key = tt.tables.k_glyph_assembly_key
 		g = self.RFGlyph
 		return helperFunctions.getOrDefault(g.lib, key, [])
 
