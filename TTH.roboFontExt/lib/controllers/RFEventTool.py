@@ -284,6 +284,9 @@ class TTH_RF_EventTool(BaseEventTool):
 	def keyUp(self, event):
 		key = event.characters()
 		mod = self.getModifiers()
+		if mod['commandDown']: return
+		if mod['optionDown']:  return
+		if mod['controlDown']: return
 		tool = tthTool.selectedHintingTool
 		toolKeys = {'a':'Align', 's':'Single Link', 'd':'Double Link', 'i':'Interpolation', 'm':'Middle Delta', 'f':'Final Delta', 't':'Selection'}
 		if key in toolKeys:

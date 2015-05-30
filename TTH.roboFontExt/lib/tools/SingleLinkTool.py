@@ -45,17 +45,17 @@ class SingleLinkTool(TTHCommandTool):
 				'point2': target.name,
 			}
 		shiftPressed = getActiveEventTool().getModifiers()['shiftDown']
-		align = self.getAlignment()
-		if align != 'None':
-			cmd['align'] = align
-		if stem == 'None':
-			stem = None
-		if stem == 'Guess':
-			stem = fm.guessStem(self.startPoint[0], target)
-		if stem != None and (not shiftPressed):
-			cmd['stem'] = stem
-		elif self.roundDistance or shiftPressed:
+		if self.roundDistance or shiftPressed:
 			cmd['round'] = 'true'
+		else:
+			if stem == 'None': stem = None
+			if stem == 'Guess': stem = fm.guessStem(self.startPoint[0], target)
+			if stem != None:
+				cmd['stem'] = stem
+			else:
+				align = self.getAlignment()
+				if align != 'None':
+					cmd['align'] = align
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):

@@ -208,8 +208,8 @@ class TTHCommandPopover(object):
 				self.cmd['stem'] = stemName
 			elif IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
-				if alignName != 'None':
-					self.cmd['align'] = alignName
+				if alignType != 'None':
+					self.cmd['align'] = alignType
 
 		self.popover.StemTypePopUpButton.enable('round' not in self.cmd)
 		if IAmSinglePopover:
