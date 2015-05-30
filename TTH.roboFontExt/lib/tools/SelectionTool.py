@@ -22,7 +22,7 @@ class SelectionTool(TTHCommandTool):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# Have we clicked on a command label?
 		cmd = gm.commandClicked(point)
-		if cmd:
+		if cmd != None:
 			popOvers.openForCommand(cmd, point)
 		else:
 			# Have we clicked on a zone label?

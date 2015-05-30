@@ -91,20 +91,20 @@ class DeltaTool(TTHCommandTool):
 			code += 'h'
 		else:
 			code += 'v'
-		cmd = {	'code': code,
-				'point': self.startPoint[0].name,
-				'ppm1': str(self.range1),
-				'ppm2': str(self.range2),
-				'delta': str(self.offset)
-			}
+		cmd = self.genNewCommand()
+		cmd.set('code',  code)
+		cmd.set('point', self.startPoint[0].name)
+		cmd.set('ppm1',  str(self.range1))
+		cmd.set('ppm2',  str(self.range2))
+		cmd.set('delta', str(self.offset))
 		if self.gray:
-			cmd['gray'] = 'true'
+			cmd.set('gray', 'true')
 		else:
-			cmd['gray'] = 'false'
+			cmd.set('gray', 'false')
 		if self.mono:
-			cmd['mono'] = 'true'
+			cmd.set('mono', 'true')
 		else:
-			cmd['mono'] = 'false'
+			cmd.set('mono', 'false')
 		gm.addCommand(cmd)
 
 	def mouseDown(self, point, clickCount):

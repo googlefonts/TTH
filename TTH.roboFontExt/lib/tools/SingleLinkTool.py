@@ -40,22 +40,22 @@ class SingleLinkTool(TTHCommandTool):
 		else:
 			code = 'singlev'
 			stem = self.stemNameY
-		cmd = {	'code': code,
-				'point1': self.startPoint[0].name,
-				'point2': target.name,
-			}
+		cmd = self.genNewCommand()
+		cmd.set('code', code)
+		cmd.set('point1', self.startPoint[0].name)
+		cmd.set('point2', target.name)
 		shiftPressed = getActiveEventTool().getModifiers()['shiftDown']
 		if self.roundDistance or shiftPressed:
-			cmd['round'] = 'true'
+			cmd.set('round', 'true')
 		else:
 			if stem == 'None': stem = None
 			if stem == 'Guess': stem = fm.guessStem(self.startPoint[0], target)
 			if stem != None:
-				cmd['stem'] = stem
+				cmd.set('stem', stem)
 			else:
 				align = self.getAlignment()
 				if align != 'None':
-					cmd['align'] = align
+					cmd.set('align', align)
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):

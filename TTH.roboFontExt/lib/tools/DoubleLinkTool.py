@@ -26,21 +26,21 @@ class DoubleLinkTool(TTHCommandTool):
 		else:
 			code = 'doublev'
 			stem = self.stemNameY
-		cmd = {	'code': code,
-				'point1': self.startPoint[0].name,
-				'point2': target.name,
-			}
+		cmd = self.genNewCommand()
+		cmd.set('code', code)
+		cmd.set('point1', self.startPoint[0].name)
+		cmd.set('point2', target.name)
 		align = self.getAlignment()
 		if align != 'None':
-			cmd['align'] = align
+			cmd.set('align', align)
 		if stem == 'None':
 			stem = None
 		if stem == 'Guess':
 			stem = fm.guessStem(self.startPoint[0], target)
 		if stem != None:
-			cmd['stem'] = stem
+			cmd.set('stem', stem)
 		else:
-			cmd['round'] = 'true'
+			cmd.set('round', 'true')
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):

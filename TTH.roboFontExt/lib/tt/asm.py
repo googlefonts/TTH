@@ -20,15 +20,15 @@ commandGroups = [	('alignToZone', ['alignt', 'alignb']),
 commandToGroup = dict(sum([[(code, g) for code in group] for g,group in commandGroups], []))
 
 def getCommandGroup(command):
-	return commandToGroup[command['code']]
+	return commandToGroup[command.get('code')]
 
 def getDeltaGroup(delta):
 	group = ''
-	if delta['mono'] == 'true': group += 'M'
-	if delta['gray'] == 'true': group += 'G'
+	if delta.get('mono') == 'true': group += 'M'
+	if delta.get('gray') == 'true': group += 'G'
 	if len(group) == 0:
 		return None
-	return (group + delta['code'][-1])
+	return (group + delta.get('code')[-1])
 
 def groupList(l, classifier):
 	groups = []
@@ -50,7 +50,7 @@ def groupCommands(glyphTTHCommands):
 	return groupList(glyphTTHCommands, getCommandGroup)
 
 def getAlign(command, pointIndex, regs):
-	alignType = command['align']
+	alignType = command.get('align')
 	if alignType == 'round':
 		regs.RP0 = regs.RP1 = pointIndex
 		return [	tables.autoPush(pointIndex),
@@ -89,16 +89,16 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 	Footer = ['EIF[ ]']
 
 	for command in commandsList:
-		if command['active'] == 'false':
+		if command.get('active') == 'false':
 			continue
 
-		name = command['point']
+		name = command.get('point')
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
 
-		zoneCV = zone_to_cvt[command['zone']]
+		zoneCV = zone_to_cvt[command.get('zone')]
 		IF.extend([
 					tables.autoPush(pointIndex),
 					'MDAP[1]'])
@@ -117,10 +117,10 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 
 def processAlign(commandsList, pointNameToIndex, regs):
 	for command in commandsList:
-		if command['active'] == 'false':
+		if command.get('active') == 'false':
 			continue
 
-		name = command['point']
+		name = command.get('point')
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
 		else:
@@ -128,9 +128,9 @@ def processAlign(commandsList, pointNameToIndex, regs):
 
 		align = getAlign(command, pointIndex, regs)
 
-		if command['code'] == 'alignh':
+		if command.get('code') == 'alignh':
 			regs.x_instructions.extend(align)
-		elif command['code'] == 'alignv':
+		elif command.get('code') == 'alignv':
 			regs.y_instructions.extend(align)
 
 def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
@@ -143,25 +143,25 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 	Footer = ['EIF[ ]']
 
 	for command in commandsList:
-		if command['active'] == 'false':
+		if command.get('active') == 'false':
 			continue
 
 		try:
-			point1Index = pointNameToIndex[command['point1']]
-			point2Index = pointNameToIndex[command['point2']]
+			point1Index = pointNameToIndex[command.get('point1')]
+			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
 
 		if 'stem' in command:
-			stemCV = stem_to_cvt[command['stem']]
+			stemCV = stem_to_cvt[command.get('stem')]
 			asm = [ tables.autoPush(point2Index, stemCV, point1Index, 4),
 					'CALL[ ]' ]
 		else:
 			asm = [ tables.autoPush(point2Index, point1Index, 3),
 					'CALL[ ]' ]
-		if command['code'] == 'doubleh':
+		if command.get('code') == 'doubleh':
 			IFh.extend(asm)
-		elif command['code'] == 'doublev':
+		elif command.get('code') == 'doublev':
 			IFv.extend(asm)
 
 		regs.RP0 = regs.RP1 = regs.RP2 = None
@@ -183,13 +183,13 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 
 def processInterpolate(commandsList, pointNameToIndex, regs):
 	for command in commandsList:
-		if command['active'] == 'false':
+		if command.get('active') == 'false':
 			continue
 
 		try:
-			pointIndex  = pointNameToIndex[command['point']]
-			point1Index = pointNameToIndex[command['point1']]
-			point2Index = pointNameToIndex[command['point2']]
+			pointIndex  = pointNameToIndex[command.get('point')]
+			point1Index = pointNameToIndex[command.get('point1')]
+			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
 
@@ -201,24 +201,24 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 						]
 		regs.RP1 = point2Index
 		regs.RP2 = point1Index
-		if 'align' in command:
+		if 'align' in command.attrib:
 			align = getAlign(command, pointIndex, regs)
 			interpolate.extend(align)
 
-		if command['code'] == 'interpolateh':
+		if command.get('code') == 'interpolateh':
 			regs.x_instructions.extend(interpolate)
-		elif command['code'] == 'interpolatev':
+		elif command.get('code') == 'interpolatev':
 			regs.y_instructions.extend(interpolate)
 
 
 def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 	for command in commandsList:
-		if command['active'] == 'false':
+		if command.get('active') == 'false':
 			continue
 
 		try:
-			point1Index = pointNameToIndex[command['point1']]
-			point2Index = pointNameToIndex[command['point2']]
+			point1Index = pointNameToIndex[command.get('point1')]
+			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
 
@@ -242,8 +242,8 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 						]
 			regs.RP0 = point1Index
 
-		if 'stem' in command:
-			stemCV = stem_to_cvt[command['stem']]
+		if 'stem' in command.attrib:
+			stemCV = stem_to_cvt[command.get('stem')]
 			single_stem = [
 							tables.autoPush(0),
 							'RS[ ]',
@@ -258,7 +258,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
-		elif 'round' in command:
+		elif 'round' in command.attrib:
 			single_round = [
 							tables.autoPush(point2Index),
 							'MDRP[11100]'
@@ -267,7 +267,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP2 = point2Index
 
 
-		elif 'align' in command:
+		elif 'align' in command.attrib:
 			single_align = [
 							tables.autoPush(point2Index),
 							'MDRP[10000]',
@@ -275,7 +275,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
-			if command['align'] == 'round':
+			if command.get('align') == 'round':
 				single_align = [
 							tables.autoPush(point2Index),
 							'MDRP[10100]'
@@ -298,9 +298,9 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		singleLink.extend(single_align)
 		singleLink.extend(align)
 
-		if command['code'] == 'singleh':
+		if command.get('code') == 'singleh':
 			regs.x_instructions.extend(singleLink)
-		elif command['code'] == 'singlev':
+		elif command.get('code') == 'singlev':
 			regs.y_instructions.extend(singleLink)
 
 
@@ -313,13 +313,13 @@ def processDelta(commandsList, pointNameToIndex, regs):
 	# [0] : first (groupName, Commands) pair
 	# [1] : Commands
 	# [0] : first command in Commands
-	middle = groupedDeltas[0][1][0]['code'][0] == 'm'
+	middle = groupedDeltas[0][1][0].get('code')[0] == 'm'
 
 	for groupName, commands in groupedDeltas:
-		horizontal = commands[0]['code'][-1] == 'h'
+		horizontal = commands[0].get('code')[-1] == 'h'
 		# sanity check : that all delta have the same type: final/middle, horizontal/vertical
-		middlity      = all([(c['code'][0]  == 'm') == middle     for c in commands])
-		horizontality = all([(c['code'][-1] == 'h') == horizontal for c in commands])
+		middlity      = all([(c.get('code')[0]  == 'm') == middle     for c in commands])
+		horizontality = all([(c.get('code')[-1] == 'h') == horizontal for c in commands])
 		if (not middlity) or (not horizontality):
 			print "[TTH ERROR] Commands in delta group have not all the same type"
 		# end of sanity check
@@ -356,19 +356,19 @@ def processDelta(commandsList, pointNameToIndex, regs):
 
 
 def processDeltaCommand(command, pointNameToIndex):
-	if command['active'] == 'false':
+	if command.get('active') == 'false':
 		return []
 
 	deltaInstructions = []
 
 	try:
-		pointIndex = pointNameToIndex[command['point']]
+		pointIndex = pointNameToIndex[command.get('point')]
 	except:
 		print "[TTH ERROR] command's point has no index in the glyph"
 
-	ppm1 = int(command['ppm1'])
-	ppm2 = int(command['ppm2'])
-	step = int(command['delta'])
+	ppm1 = int(command.get('ppm1'))
+	ppm2 = int(command.get('ppm2'))
+	step = int(command.get('delta'))
 	nbDelta = 1 + ppm2 - ppm1
 	deltasP1 = []
 	deltasP2 = []

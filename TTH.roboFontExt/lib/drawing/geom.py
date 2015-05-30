@@ -15,6 +15,8 @@ class Point(object):
 			raise IndexError("coordinate index {} out of range [0,1]".format(i))
 	def __repr__(self):
 		return "({:f},{:f})".format(self.x, self.y)
+	def __str__(self):
+		return self.__repr__()
 	def __add__(self, rhs): # rhs = right hand side
 		return Point(self.x + rhs.x, self.y + rhs.y)
 	def __sub__(self, rhs):
@@ -65,6 +67,10 @@ class Matrix(object):
 	def mulVec(self, v):
 		m = self._m
 		return Point(m[0][0]*v.x + m[0][1]*v.y, m[1][0]*v.x + m[1][1]*v.y)
+
+def pointOfString(s):
+	p = s[1:-1].split(',')
+	return Point(float(p[0]), float(p[1]))
 
 def makePoint(p): # used when 'p' is a RoboFab point
 	return Point(p.x, p.y)

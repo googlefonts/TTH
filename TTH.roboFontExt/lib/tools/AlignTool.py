@@ -22,19 +22,20 @@ class AlignTool(TTHCommandTool):
 		point = self.startPoint[0]
 		zoneName, zone = fm.zoneAtPoint(point)
 		align = self.getAlignment()
-		cmd = { 'point': point.name }
+		cmd = self.genNewCommand()
+		cmd.set('point', point.name)
 		if tthTool.selectedAxis == 'X':
-			cmd['code'] = 'alignh'
-			if align != 'None': cmd['align'] = align
+			cmd.set('code', 'alignh')
+			if align != 'None': cmd.set('align', align)
 		elif zoneName != None:
-			cmd['zone'] = zoneName
+			cmd.set('zone', zoneName)
 			if zone['top']:
-				cmd['code'] = 'alignt'
+				cmd.set('code', 'alignt')
 			else:
-				cmd['code'] = 'alignb'
+				cmd.set('code', 'alignb')
 		else:
-			cmd['code'] = 'alignv'
-			if align != 'None': cmd['align'] = align
+			cmd.set('code', 'alignv')
+			if align != 'None': cmd.set('align', align)
 		gm.addCommand(cmd)
 
 	def mouseUp(self, point):

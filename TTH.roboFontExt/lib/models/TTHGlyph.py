@@ -10,6 +10,8 @@ from tt import asm
 reload(tt)
 reload(asm)
 
+kTTProgramKey = 'com.fontlab.ttprogram'
+
 silent = False
 
 def makeRPoint(pos, name):
@@ -27,32 +29,28 @@ class CommandConverter(object):
 		self.gm = gm
 		self.cmd = cmd
 	def __call__(self, menuIdx = 0):
-		g = self.gm.RFGlyph
-		g.prepareUndo('Convert Command')
-		code = self.cmd['code']
+		self.gm.prepareUndo('Convert Command')
+		code = self.cmd.get('code')
 		if 'double' in code:
 			code = 'single' + code[-1]
 		elif 'single' in code:
 			code = 'double' + code[-1]
-		self.cmd['code'] = code
-		g.performUndo()
-		self.gm.dirtyHinting()
+		self.cmd.set('code', code)
 		self.gm.updateGlyphProgram(tthTool.getFontModel())
+		self.gm.performUndo()
 
 class CommandReverser(object):
 	def __init__(self, gm, cmd):
 		self.gm = gm
 		self.cmd = cmd
 	def __call__(self, menuIdx = 0):
-		g = self.gm.RFGlyph
-		g.prepareUndo('Reverse Link')
-		p1 = self.cmd['point1']
-		p2 = self.cmd['point2']
-		self.cmd['point1'] = p2
-		self.cmd['point2'] = p1
-		g.performUndo()
-		self.gm.dirtyHinting()
+		self.gm.prepareUndo('Reverse Link')
+		p1 = self.cmd.get('point1')
+		p2 = self.cmd.get('point2')
+		self.cmd.set('point1', p2)
+		self.cmd.set('point2', p1)
 		self.gm.updateGlyphProgram(tthTool.getFontModel())
+		self.gm.performUndo()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -69,14 +67,11 @@ class TTHGlyph(object):
 		self._sortedHintingCommands = None
 		self._nameToCSI = None
 		# public variables
-		self.hintingCommands = []
+		self.hintingCommands = None
 		# load stuff from the UFO Lib
 		self.loadFromUFO()
 		if compile:
 			self.compile(fm)
-
-	#def printGlyphNames(self):
-	#	print [[s.onCurve.name for s in c] for c in self._g]
 
 	def __del__(self):
 		self._g = None
@@ -114,7 +109,7 @@ class TTHGlyph(object):
 		except:
 			print "ERROR: probable loop in hinting commands for glyph", self._g.name
 			self._sortedHintingCommands = None
-			return self.hintingCommands
+			return list(self.hintingCommands)
 
 	def pointOfCSI(self, csi):
 		return self._g[csi[0]][csi[1]].points[csi[2]]
@@ -234,7 +229,7 @@ class TTHGlyph(object):
 		# workaround in python2 to access the variables in the outer scope
 		# (in function 'update' below). python3 would use the 'nonlocal'
 		# keyword.
-		seg = self._g[0][0]
+		seg  = self._g[0][0]
 		best = [(seg.onCurve, 0, 0, len(seg.points)-1)]
 		dist = [(clickPos - geom.makePoint(best[0][0])).squaredLength()]
 		on   = [True]
@@ -259,14 +254,19 @@ class TTHGlyph(object):
 		else:
 			return (None, False, -1.0)
 
+	def getLabelPosSize(self, cmd):
+		s = cmd.get('labelPosSize', None)
+		if s is None: return (None, None)
+		return tuple(geom.pointOfString(p) for p in s.split('#'))
+
 	def commandClicked(self, clickPos):
 		if tthTool.selectedAxis == 'X':
 			skipper = ['v','t','b']
 		else:
 			skipper = ['h']
 		for cmd in self.hintingCommands:
-			if cmd['code'][-1] in skipper: continue
-			lPos, lSize = cmd.get('labelPosSize', (None, None))
+			if cmd.get('code')[-1] in skipper: continue
+			lPos, lSize = self.getLabelPosSize(cmd)
 			if lPos == None: continue
 			lo = lPos - 0.5 * lSize
 			hi = lPos + 0.5 * lSize
@@ -277,27 +277,12 @@ class TTHGlyph(object):
 	def getAssembly(self):
 		return self.RFGlyph.lib.get(tt.tables.k_glyph_assembly_key, [])
 
-	def saveCommandsToUFO(self):
-		"""Save what can be saved in the UFO Lib."""
-		# write self.hintingCommands to UFO lib.
-		root = ET.Element('ttProgram')
-		listOfCommands = self.sortedHintingCommands
-		for c in listOfCommands:
-			com = ET.SubElement(root, 'ttc')
-			command = c.copy()
-			for key in ['labelPosSize']: # cleanup
-				if key in command:
-					del command[key]
-			if 'active' not in command:
-				command['active'] = 'true'
-			if command['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-				if 'gray' not in command:
-					command['gray'] = 'true'
-				if 'mono' not in command:
-					command['mono'] = 'true'
-			com.attrib = command
-		text = ET.tostring(root)
-		self._g.lib['com.fontlab.ttprogram'] = Data(text)
+	def prepareUndo(self, label):
+		self.saveCommandsToUFO()
+		self._g.prepareUndo(label)
+
+	def performUndo(self):
+		self._g.performUndo()
 
 	def compileToUFO(self, fm):
 		# compile to TT assembly language and write it in UFO lib.
@@ -306,88 +291,94 @@ class TTHGlyph(object):
 
 	def commandIsOK(self, cmd, verbose = False, absent = []):
 		for key in ['point', 'point1', 'point2']:
-			if key not in cmd: continue
-			ptName = cmd[key]
+			if key not in cmd.attrib: continue
+			ptName = cmd.get(key)
 			if ptName in ['lsb', 'rsb']: continue
 			csi = self.csiOfPointName(ptName)
 			if csi is None:
-				if verbose: absent.append((cmd['code'], key, ptName))
+				if verbose: absent.append((cmd.get('code'), key, ptName))
 				return False
 			# Rename the command's point using the RF name
-			cmd[key] = self.pointOfCSI(csi).name
-		if 'active' not in cmd:
-			cmd['active'] = 'true'
+			cmd.set(key, self.pointOfCSI(csi).name)
 		return True
 
 	def addCommand(self, cmd, update=True):
 		if not self.commandIsOK(cmd): return
+		self.prepareUndo("Add '{}' Command".format(cmd.get('code')))
 		self.hintingCommands.append(cmd)
 		self.dirtyHinting()
 		if update:
 			self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def removeHintingCommand(self, cmd):
-		try:
-			i = self.hintingCommands.index(cmd)
-		except:
-			return
-		if i >= 0:
-			self.hintingCommands.pop(i)
-			self.dirtyHinting()
-			self.updateGlyphProgram(tthTool.getFontModel())
+		self.prepareUndo("Remove '{}' Command".format(cmd.get('code')))
+		self.hintingCommands.remove(cmd)
+		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def deactivateAllCommands(self, item=0):
+		self.prepareUndo("Deactivate All Commands")
 		for c in self.hintingCommands:
-			c['active'] = 'false'
-		self.dirtyHinting()
+			c.set('active', 'false')
 		# fixme: TTHGlyph should store 'fm' in a weakref
 		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def activateAllCommands(self, item=0):
+		self.prepareUndo("Activate All Commands")
 		for c in self.hintingCommands:
-			c['active'] = 'true'
+			c.set('active', 'true')
 		self.dirtyHinting()
 		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def deleteAllCommands(self, item=0):
-		self.hintingCommands = []
-		self.dirtyHinting()
+		self.prepareUndo("Clear All Program")
+		self.clearCommands(True, True)
 		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def clearCommands(self, x, y):
 		if x and y:
-			self.hintingCommands = []
+			cmds = []
 		elif x:
-			self.hintingCommands = [c for c in self.hintingCommands if c['code'][-1] != 'h']
+			cmds = [c for c in self.hintingCommands if c.get('code')[-1] != 'h']
 		else:
-			self.hintingCommands = [c for c in self.hintingCommands if c['code'][-1] == 'h']
-		self.dirtyHinting()
+			cmds = [c for c in self.hintingCommands if c.get('code')[-1] == 'h']
 
-	def deleteXYCommands(self, hv):
-		commandsToDelete = [i for (i,cmd) in enumerate(self.hintingCommands) if cmd['code'][-1:] in hv]
-		commandsToDelete.sort()
-		for offset,i in enumerate(commandsToDelete):
-			self.hintingCommands.pop(i-offset)
+		if self.hintingCommands is None:
+			self.hintingCommands = ET.Element('ttProgram')
+		else:
+			self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
 		self.dirtyHinting()
-		self.updateGlyphProgram(tthTool.getFontModel())
 
 	def deleteXCommands(self, item=0):
-		self.deleteXYCommands(['h'])
+		self.prepareUndo("Clear X Commands")
+		self.clearCommands(True, False)
+		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def deleteYCommands(self, item=0):
-		self.deleteXYCommands(['v', 't', 'b'])
+		self.prepareUndo("Clear Y Commands")
+		self.clearCommands(False, True)
+		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def deleteAllDeltas(self, item=0):
-		commandsToDelete = [i for (i,cmd) in enumerate(self.hintingCommands) if 'delta' in cmd['code']]
-		commandsToDelete.sort()
-		for offset,i in enumerate(commandsToDelete):
-			self.hintingCommands.pop(i-offset)
-		self.dirtyHinting()
+		self.prepareUndo("Clear All Deltas")
+		cmds = [cmd for cmd in self.hintingCommands if 'delta' not in cmd.get('code')]
+		self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
 
 	def cleanCommands(self):
+		cmds = [c for c in self.hintingCommands if self.commandIsOK(c)]
+		self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
 		self.dirtyHinting()
-		self.hintingCommands = [c for c in self.hintingCommands if self.commandIsOK(c)]
 
 	def glyphProgramDoesNotTouchLSBOrRSB(self):
 		if len(self._g.components) > 0:
@@ -408,30 +399,31 @@ class TTHGlyph(object):
 		self.compile(fm)
 		tthTool.hintingProgramHasChanged(fm)
 
+	def saveCommandsToUFO(self):
+		"""Save what can be saved in the UFO Lib."""
+		# write self.hintingCommands to UFO lib.
+		self._g.lib[kTTProgramKey] = Data(ET.tostring(self.hintingCommands))
+
 	def loadFromUFO(self):
 		"""Load what can be loaded from the UFO Lib."""
-		# read self.hintingCommands from UFO lib.
-		self.hintingCommands = []
 		self.dirtyHinting()
-		if 'com.fontlab.ttprogram' not in self._g.lib:
-			return
-		ttprogram = self._g.lib['com.fontlab.ttprogram']
-		strTTProgram = str(ttprogram)
-		if strTTProgram[:4] == 'Data' and strTTProgram[-3:] == "n')":
-			ttprogram = strTTProgram[6:-4]
-		else:
-			ttprogram = strTTProgram[6:-2]
+		self.clearCommands(True, True)
+		if kTTProgramKey not in self._g.lib: return
+		#ttprogram = self._g.lib['com.fontlab.ttprogram']
+		#strTTProgram = str(ttprogram)
+		#if strTTProgram[:4] == 'Data' and strTTProgram[-3:] == "n')":
+		#	ttprogram = strTTProgram[6:-4]
+		#else:
+		#	ttprogram = strTTProgram[6:-2]
+		ttprogram = self._g.lib[kTTProgramKey].data
 		root = ET.fromstring(ttprogram)
 		absent = []
-		for child in root:
-			cmd = child.attrib
-			if 'active' not in cmd:
-				cmd['active'] = 'true'
-			if cmd['code'] in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-				if 'gray' not in cmd:
-					cmd['gray'] = 'true'
-				if 'mono' not in cmd:
-					cmd['mono'] = 'true'
+		for cmd in root:
+			attribs = cmd.attrib
+			cmd.set('active', cmd.get('active', 'true'))
+			if 'delta' in cmd.get('code'):
+				cmd.set('gray', cmd.get('gray', 'true'))
+				cmd.set('mono', cmd.get('mono', 'true'))
 			if self.commandIsOK(cmd, verbose = True, absent = absent):
 				self.hintingCommands.append(cmd)
 		if silent: return
@@ -446,17 +438,16 @@ class TTHGlyph(object):
 		'''Use newName = '' to transform the stem into a simple round'''
 		modified = False
 		for command in self.hintingCommands:
-			if not ('stem' in command): continue
-			oldName = command['stem']
+			if not ('stem' in command.attrib): continue
+			oldName = command.get('stem')
 			if oldName not in nameChanger: continue
 			newName = nameChanger[oldName]
 			modified = True
 			if newName != None: # change name
-				command['stem'] = newName
+				command.set('stem', newName)
 			else: # delete stem, replace with rounding
-				del command['stem']
+				del command.attrib['stem']
 		if modified:
-			#self.dirtyHinting()
 			self.saveCommandsToUFO()
 		return modified
 
@@ -464,19 +455,18 @@ class TTHGlyph(object):
 		'''Use newName = '' to transform the align-to-zone into a simple alignv'''
 		modified = False
 		for command in self.hintingCommands:
-			if not (command['code'] in ['alignt', 'alignb']): continue
-			oldName = command['zone']
+			if not (command.get('code') in ['alignt', 'alignb']): continue
+			oldName = command.get('zone')
 			if oldName not in nameChanger: continue
 			newName = nameChanger[oldName]
 			modified = True
 			if newName != None: # change name
-				command['zone'] = newName
+				command.set('zone', newName)
 			else: # delete zone
-				del command['zone']
-				command['code'] = 'alignv'
-				command['align'] = 'round'
+				del command.attrib['zone']
+				command.set('code', 'alignv')
+				command.set('align', 'round')
 		if modified:
-			#self.dirtyHinting()
 			self.saveCommandsToUFO()
 		return modified
 

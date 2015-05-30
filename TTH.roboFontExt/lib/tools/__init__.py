@@ -1,4 +1,5 @@
 
+import xml.etree.ElementTree as ET
 from models.TTHTool import uniqueInstance as tthTool
 from drawing import geom
 
@@ -17,6 +18,11 @@ class TTHCommandTool(object):
 		self.dragging = False
 		self.startPoint = None
 		self.roundDistance = False
+
+	def genNewCommand(self):
+		cmd = ET.Element('ttc')
+		cmd.set('active', 'true')
+		return cmd
 
 	def switchRounding(self):
 		self.roundDistance = not self.roundDistance

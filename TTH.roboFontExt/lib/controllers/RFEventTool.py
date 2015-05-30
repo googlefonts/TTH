@@ -63,6 +63,13 @@ class TTH_RF_EventTool(BaseEventTool):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	def didUndo(self, font):
+		gm, fm = tthTool.getGlyphAndFontModel()
+		gm.loadFromUFO()
+		gm.updateGlyphProgram(fm)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 	def getToolbarIcon(self):
 		'''This function is called by RF on the parent class in order to
 		get the tool icon'''
@@ -265,7 +272,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			items.append(('Activate All Commands', gm.activateAllCommands))
 		else:
 			items.append(('Delete Command', TTHGlyph.CommandRemover(gm, cmd)))
-			code = cmd['code']
+			code = cmd.get('code')
 			if 'double' in code:
 				items.append(('Convert to Single Link', TTHGlyph.CommandConverter(gm, cmd)))
 			if 'single' in code:
@@ -456,8 +463,8 @@ class TTH_RF_EventTool(BaseEventTool):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 
 	def getCommandAlignLabel(self, cmd):
-		if 'align' in cmd:
-			extension = cmd['align']
+		if 'align' in cmd.attrib:
+			extension = cmd.get('align')
 			if tthTool.selectedAxis == 'Y':
 				if extension == 'right': return 'top'
 				elif extension == 'left': return 'bottom'
@@ -466,31 +473,35 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			return ''
 
+	def setLabelPosSize(self, cmd, pos, size):
+		cmd.set('labelPosSize', '#'.join([str(pos), str(size)]))
+
 	def drawAlign(self, gm, cmd, scale, direction, simple):
 		color = DR.kArrowColor
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		active = cmd.get('active', 'true') == 'true'
 		if not active:
 			color = DR.kInactiveColor
-		pos = gm.positionForPointName(cmd['point'])
+		pos = gm.positionForPointName(cmd.get('point'))
 		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
 		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
 		if simple: return
-		if 'align' in cmd:
+		code = cmd.get('code')
+		if 'align' in cmd.attrib:
 			text = 'A_' + self.getCommandAlignLabel(cmd)
-		elif cmd['code'] == 'alignt' or cmd['code'] == 'alignb':
-			text = 'A_' + cmd['zone']
-		if cmd['code'] == 'alignt':
+		elif code in ['alignt', 'alignb']:
+			text = 'A_' + cmd.get('zone')
+		if code == 'alignt':
 			labelPos = pos + scale * geom.Point(10,+20)
 		else:
 			labelPos = pos + scale * geom.Point(10,-20)
 		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
 				whiteColor, DR.kArrowColor, self.getNSView(), active))
-		cmd['labelPosSize'] = (labelPos, labelSize)
+		self.setLabelPosSize(cmd, labelPos, labelSize)
 
 	def drawDoubleLink(self, cmd, scale, gm, simple):
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		pos1 = gm.positionForPointName(cmd['point1'])
-		pos2 = gm.positionForPointName(cmd['point2'])
+		active = cmd.get('active', 'true') == 'true'
+		pos1 = gm.positionForPointName(cmd.get('point1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'))
 		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, DR.kDoublinkColor)
 		if simple: return
 		# Compute label text
@@ -505,16 +516,16 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'D'
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
 				self.getNSView(), active)
-		cmd['labelPosSize'] = (offCurve, labelSize)
+		self.setLabelPosSize(cmd, offCurve, labelSize)
 
 	def drawLink(self, cmd, scale, gm, simple):
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
+		active = cmd.get('active', 'true') == 'true'
 		if active:
 			color = DR.kLinkColor
 		else:
 			color = DR.kInactiveColor
-		pos1 = gm.positionForPointName(cmd['point1'])
-		pos2 = gm.positionForPointName(cmd['point2'])
+		pos1 = gm.positionForPointName(cmd.get('point1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'))
 		offCurve = DR.drawSingleArrow(scale, pos1, pos2, color, 10)
 		if simple: return
 
@@ -538,13 +549,13 @@ class TTH_RF_EventTool(BaseEventTool):
 				else:
 					color = DR.kInactiveColor
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
-		cmd['labelPosSize'] = (offCurve, labelSize)
+		self.setLabelPosSize(cmd, offCurve, labelSize)
 
 	def drawInterpolate(self, cmd, scale, gm, simple):
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		pos  = gm.positionForPointName(cmd['point'])
-		pos1 = gm.positionForPointName(cmd['point1'])
-		pos2 = gm.positionForPointName(cmd['point2'])
+		active = cmd.get('active', 'true') == 'true'
+		pos  = gm.positionForPointName(cmd.get('point'))
+		pos1 = gm.positionForPointName(cmd.get('point1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'))
 		offCurve = DR.drawDoubleArrow(scale, pos1, pos, active, DR.kInterpolateColor)
 		offCurve = DR.drawDoubleArrow(scale, pos, pos2, active, DR.kInterpolateColor)
 		if simple: return
@@ -556,12 +567,12 @@ class TTH_RF_EventTool(BaseEventTool):
 		# square root takes the label a bit further when we zoom in
 		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
 		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
-		cmd['labelPosSize'] = (pos, labelSize)
+		self.setLabelPosSize(cmd, pos, labelSize)
 
 	def drawDelta(self, cmd, scale, gm, pitch, simple):
-		pos  = gm.positionForPointName(cmd['point'])
-		active = helperFunctions.getOrPutDefault(cmd, 'active', 'true') == 'true'
-		cmd_code = cmd['code']
+		pos  = gm.positionForPointName(cmd.get('point'))
+		active = cmd.get('active', 'true') == 'true'
+		cmd_code = cmd.get('code')
 		if active:
 			if cmd_code in ['mdeltah', 'mdeltav']:
 				color = DR.kDeltaColor
@@ -570,9 +581,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		else:
 			color = DR.kInactiveColor
 		if cmd_code[-1] == 'h':
-			value = (int(cmd['delta']), 0)
+			value = (int(cmd.get('delta')), 0)
 		else:
-			value = (0, int(cmd['delta']))
+			value = (0, int(cmd.get('delta')))
 
 		endPt = pos + (1.0/8.0) * pitch * geom.makePointForPair(value)
 		path = NSBezierPath.bezierPath()
@@ -585,19 +596,19 @@ class TTH_RF_EventTool(BaseEventTool):
 		DR.drawLozengeAtPoint(scale, 4, endPt.x, endPt.y, color)
 		if simple: return
 
-		value = cmd['delta']
+		value = cmd.get('delta')
 		if cmd_code[0] == 'm':
 			text = 'delta_M:'
 		else:
 			text = 'delta_F:'
 		text = text + value
 
-		if cmd['code'][-1] == 'v' and int(value) < 0:
+		if cmd.get('code')[-1] == 'v' and int(value) < 0:
 			labelPos = pos + 10*scale*geom.Point(-1,+1)
 		else:
 			labelPos = pos + 10*scale*geom.Point(-1,-1)
 		labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
-		cmd['labelPosSize'] = (labelPos, labelSize)
+		self.setLabelPosSize(cmd, labelPos, labelSize)
 
 	def drawCommands(self, scale, simple):
 		gm, fm = tthTool.getGlyphAndFontModel()
@@ -616,7 +627,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif (X and cmd_code == 'interpolateh') or (Y and cmd_code == 'interpolatev'):
 				self.drawInterpolate(c, scale, gm, simple)
 			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
-				if int(c['ppm1']) <= tthTool.PPM_Size <= int(c['ppm2']):
+				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
 					self.drawDelta(c, scale, gm, fm.getPitch(), simple)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

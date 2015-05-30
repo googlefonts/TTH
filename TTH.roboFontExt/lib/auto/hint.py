@@ -1,5 +1,6 @@
 
 import weakref, math
+import xml.etree.ElementTree as ET
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 import auto
@@ -300,7 +301,7 @@ class AutoHinting():
 				stemName = self.guessStemForWidth(stemWidth, isHorizontal)
 				link = self.addSingleLink(src.name, tgt.name, isHorizontal, stemName)
 				if stemName == None and abs(srcpos-tgtpos) > 20.0:
-					link['round'] = 'true'
+					link.set('round', 'true')
 			src = tgt
 			srcpos = tgtpos
 			ali.addLinks(0, contours, isHorizontal, self)
@@ -397,49 +398,38 @@ class AutoHinting():
 		return bestName
 
 	def addSingleLink(self, p1name, p2name, isHorizontal, stemName):
-		command = {}
-		command['code'] = self.singleLinkCommandName[isHorizontal]
-		command['point1'] = p1name
-		command['point2'] = p2name
+		cmd = ET.Element('ttc')
+		cmd.set('active', 'true')
+		cmd.set('code', self.singleLinkCommandName[isHorizontal])
+		cmd.set('point1', p1name)
+		cmd.set('point2', p2name)
 		if stemName != None:
-			command['stem'] = stemName
-		self.gm.addCommand(command, update=False)
-		return command
+			cmd.set('stem', stemName)
+		self.gm.addCommand(cmd, update=False)
+		return cmd
 
 	def addInterpolate(self, p1, p, p2, isHorizontal):
-		newCommand = {}
+		cmd = ET.Element('ttc')
+		cmd.set('active', 'true')
 		if isHorizontal:
-			newCommand['code'] = 'interpolatev'
+			newCommand.set('code', 'interpolatev')
 		else:
-			newCommand['code'] = 'interpolateh'
-		newCommand['point1'] = p1.name
-		newCommand['point2'] = p2.name
-		newCommand['point'] = p.name
-		newCommand['align'] = 'round'
+			newCommand.set('code', 'interpolateh')
+		newCommand.set('point1', p1.name)
+		newCommand.set('point2', p2.name)
+		newCommand.set('point', p.name)
+		newCommand.set('align', 'round')
 		self.gm.addCommand(newCommand, update=False)
 
-	#def addDoubleLink(self, p1, p2, stemName, isHorizontal):
-	#	if stemName == None:
-	#		return
-	#	newCommand = {}
-	#	if isHorizontal:
-	#		newCommand['code'] = 'doublev'
-	#	else:
-	#		newCommand['code'] = 'doubleh'
-	#	newCommand['point1'] = p1.name
-	#	newCommand['point2'] = p2.name
-	#	newCommand['stem'] = stemName
-	#	self.gm.addCommand(newCommand, update=False)
-
-
 	def addAlign(self, pointName, (zoneName, isTopZone, ys, ye)):
-		newAlign = {}
+		cmd = ET.Element('ttc')
+		cmd.set('active', 'true')
 		if isTopZone:
-			newAlign['code'] = 'alignt'
+			newAlign.set('code', 'alignt')
 		else:
-			newAlign['code'] = 'alignb'
-		newAlign['point'] = pointName
-		newAlign['zone'] = zoneName
+			newAlign.set('code', 'alignb')
+		newAlign.set('point', pointName)
+		newAlign.set('zone', zoneName)
 		self.gm.addCommand(newAlign, update=False)
 
 	def zoneAt(self, y):
@@ -491,8 +481,8 @@ class AutoHinting():
 
 		# Anchor the rightmost point
 		rightmost = rightGroup.alignments[rmPos].leaderPoint(0, contours)
-		self.addSingleLink('lsb', rightmost.name, False, None)['round'] = 'true'
-		self.addSingleLink(rightmost.name, 'rsb', False, None)['round'] = 'true'
+		self.addSingleLink('lsb', rightmost.name, False, None).set('round', 'true')
+		self.addSingleLink(rightmost.name, 'rsb', False, None).set('round', 'true')
 		rightGroup.leaderPos = rmPos
 		self.processGroup_X(rightGroup, contours, False, None)
 
@@ -506,7 +496,7 @@ class AutoHinting():
 			stemWidth = getWidthOfTwoPointsStem(leftmost, rightmost, False)
 			stemName = self.guessStemForWidth(stemWidth, False)
 			link = self.addSingleLink(rightmost.name, leftmost.name, False, stemName)
-			if stemName == None: link['round'] = 'true'
+			if stemName == None: link.set('round', 'true')
 			leftGroup.leaderPos = lmPos
 			self.processGroup_X(leftGroup, contours, False, None)
 

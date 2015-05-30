@@ -65,15 +65,16 @@ class ProgramWindow(TTHWindow):
 		codeTrueFalse = ['active', 'mono', 'gray']
 		for code in codeTrueFalse:
 			if uiCmd[code]:
-				cmd[code] = 'true'
+				cmd.set(code, 'true')
 			else:
-				cmd[code] = 'false'
-		if 'delta' in uiCmd and 'delta' in cmd:
-			if int(uiCmd['delta']) != int(cmd['delta']):
+				cmd.set(code, 'false')
+		if 'delta' in uiCmd and 'delta' in cmd.attrib:
+			deltaV = int(uiCmd['delta'])
+			if deltaV != int(cmd.get('delta')):
 				if uiCmd['delta'] != 0:
-					cmd['delta'] = str(int(uiCmd['delta']))
+					cmd.set('delta', str(deltaV))
 				else:
-					uiCmd['delta'] = int(cmd['delta'])
+					uiCmd['delta'] = int(cmd.get('delta'))
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
@@ -83,14 +84,13 @@ class ProgramWindow(TTHWindow):
 		assert len(selectList) == 1
 		selectedIdx = selectList[0]
 		gm, fm = tthTool.getGlyphAndFontModel()
-		g = gm.RFGlyph
-		g.prepareUndo('Edit Program')
+		gm.prepareUndo('Edit Program')
 		uiCmd = sender.get()[selectedIdx]
 		cmdIdx = uiCmd['index']
 		cmd = gm.sortedHintingCommands[cmdIdx]
 		self.modifyContent(cmd, uiCmd)
 		gm.updateGlyphProgram(fm)
-		g.performUndo()
+		gm.performUndo()
 		self.lock = False
 
 	def updateProgramList(self):
@@ -98,7 +98,7 @@ class ProgramWindow(TTHWindow):
 		if gm is None:
 			self.window.programList.set([])
 			return
-		commands =  [dict(c) for c in gm.sortedHintingCommands]
+		commands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
 		for i, c in enumerate(commands):
 			c['index'] = i
 			for key in commandKeys:

@@ -32,14 +32,14 @@ class InterpolationTool(TTHCommandTool):
 			code = 'interpolateh'
 		else:
 			code = 'interpolatev'
-		cmd = {	'code': code,
-				'point1': self.interpolatedPoint1[0].name,
-				'point': self.interpolatedPoint[0].name,
-				'point2': self.startPoint[0].name,
-			}
+		cmd = self.genNewCommand()
+		cmd.set('code',   code)
+		cmd.set('point1', self.interpolatedPoint1[0].name)
+		cmd.set('point',  self.interpolatedPoint[0].name)
+		cmd.set('point2', self.startPoint[0].name)
 		align = self.getAlignment()
 		if align != 'None':
-			cmd['align'] = align
+			cmd.set('align', align)
 		gm.addCommand(cmd)
 
 	def mouseDown(self, point, clickCount):

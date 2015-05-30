@@ -62,7 +62,7 @@ def makeStemsLists():
 
 class PopoverPointMoverCallback(object):
 	'''A callback used in several popovers. Used to move the point named
-	cmd[key] in the cmd, either forward or backward along the contours'''
+	cmd.get(key) in the cmd, either forward or backward along the contours'''
 	def __init__(self, popoC, cmd, key, forward):
 		self.popoverController = popoC
 		self.cmd = cmd
@@ -72,13 +72,13 @@ class PopoverPointMoverCallback(object):
 	def __call__(self, sender):
 		gm = self.popoverController.gm
 		fm = self.popoverController.fm
-		csi = gm.csiOfPointName(self.cmd[self.key])
-		alsoOff = 'delta' in self.cmd['code']
+		csi = gm.csiOfPointName(self.cmd.get(self.key))
+		alsoOff = 'delta' in self.cmd.get('code')
 		if self.forward:
 			csi = gm.increaseCSI(csi, alsoOff)
 		else:
 			csi = gm.decreaseCSI(csi, alsoOff)
-		self.cmd[self.key] = gm.pointOfCSI(csi).name
+		self.cmd.set(self.key, gm.pointOfCSI(csi).name)
 		gm.updateGlyphProgram(fm)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -121,22 +121,20 @@ class TTHCommandPopover(object):
 	def setupStateUI(self):
 		popo = self.popover
 		popo.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.stateCheckBoxCallback, sizeStyle='small')
-		popo.stateCheckBox.set(self.cmd['active'] == 'true')
+		popo.stateCheckBox.set(self.cmd.get('active') == 'true')
 		popo.stateTitle = TextBox((10, 14, -30, 20), 'Active', sizeStyle='small')
 
 	def stateCheckBoxCallback(self, senderCheckBox):
-		g = self.gm.RFGlyph
 		if senderCheckBox.get() == 0:
 			# FIXME: is it of any use to prepare undo stuff while the RGlyph will not change?
 			# It might be beeter to do that on TTHGLyph, if we impleemnt support for undo in it
-			g.prepareUndo("Deactivate Command")
-			self.cmd['active'] = 'false'
+			self.gm.prepareUndo("Deactivate Command")
+			self.cmd.set('active', 'false')
 		else:
-			g.prepareUndo("Activate Command")
-			self.cmd['active'] = 'true'
-
+			self.gm.prepareUndo("Activate Command")
+			self.cmd.set('active', 'true')
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def setupPointMoverUI(self, pos, key, label, labelLeft=72, labelWidth=60):
 		prevCB = PopoverPointMoverCallback(self, self.cmd, key, False)
@@ -166,63 +164,56 @@ class TTHCommandPopover(object):
 		self.popover.alignmentTypePopUpButton.show(show)
 
 	def alignmentTypePopUpButtonCallback(self, senderPopup):
-		g = self.gm.RFGlyph
-		g.prepareUndo('Change Alignment')
+		self.gm.prepareUndo('Change Alignment')
 		selected = self.alignmentTypeList[senderPopup.get()]
-		self.cmd['align'] = selected
+		self.cmd.set('align', selected)
 		if selected == 'None':
-			del self.cmd['align']
-		if 'round' in self.cmd:
-			del self.cmd['round']
-		if 'stem' in self.cmd:
-			del self.cmd['stem']
-		if self.cmd['code'] in ['alignt', 'alignb']:
-			self.cmd['code'] = 'alignv'
-			del self.cmd['zone']
-
+			del self.cmd.attrib['align']
+		if 'round' in self.cmd.attrib:
+			del self.cmd.attrib['round']
+		if 'stem' in self.cmd.attrib:
+			del self.cmd.attrib['stem']
+		if self.cmd.get('code') in ['alignt', 'alignb']:
+			self.cmd.set('code', 'alignv')
+			del self.cmd.attrib['zone']
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def setupRoundDistanceUI(self):
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
 		self.popover.RoundDistanceCheckBox = CheckBox((-23, 26, 22, 22), "", sizeStyle = "small",
 				callback=self.roundDistanceCheckBoxCallback)
-		self.popover.RoundDistanceCheckBox.set('round' in self.cmd)
+		self.popover.RoundDistanceCheckBox.set('round' in self.cmd.attrib)
 
 	def roundDistanceCheckBoxCallback(self, sender):
-		g = self.gm.RFGlyph
 		IAmSinglePopover = hasattr(self.popover, 'alignmentTypePopUpButton')
 		if sender.get() == 1:
-			g.prepareUndo('Round Distance')
-			self.cmd['round'] = 'true'
+			self.gm.prepareUndo('Round Distance')
+			self.cmd.set('round', 'true')
 			if 'stem' in self.cmd:
-				del self.cmd['stem']
+				del self.cmd.attrib['stem']
 			if 'align' in self.cmd:
-				del self.cmd['align']
+				del self.cmd.attrib['align']
 		else:
-			g.prepareUndo('Do Not Round Distance')
-			del self.cmd['round']
+			self.gm.prepareUndo('Do Not Round Distance')
+			del self.cmd.attrib['round']
 			idx      = self.popover.StemTypePopUpButton.get()
 			stemName = self.stemTypeList[idx]
 			if stemName != 'None':
-				self.cmd['stem'] = stemName
+				self.cmd.set('stem', stemName)
 			elif IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
 				if alignType != 'None':
-					self.cmd['align'] = alignType
+					self.cmd.set('align', alignType)
 
 		self.popover.StemTypePopUpButton.enable('round' not in self.cmd)
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
-
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def findStemIndex(self):
-		try:
-			stemName = self.cmd['stem']
-		except:
-			stemName = 'None'
+		stemName = self.cmd.get('stem', 'None')
 		return self.stemToIndex[stemName]
 
 	def setupStemTypeUI(self):
@@ -234,24 +225,22 @@ class TTHCommandPopover(object):
 		self.popover.StemTypePopUpButton.enable('round' not in self.cmd)
 
 	def stemTypePopUpButtonCallback(self, sender):
-		g = self.gm.RFGlyph
-		g.prepareUndo('Change Stem')
+		self.gm.prepareUndo('Change Stem')
 		IAmSinglePopover = hasattr(self.popover, 'alignmentTypePopUpButton')
 		if sender.get() != 0:
-			self.cmd['stem'] = self.stemTypeList[sender.get()]
+			self.cmd.set('stem', self.stemTypeList[sender.get()])
 		else:
 			if 'stem' in self.cmd:
-				del self.cmd['stem']
+				del self.cmd.attrib['stem']
 			if IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
 				if alignType != 'None':
-					self.cmd['align'] = alignType
+					self.cmd.set('align', alignType)
 
 		if IAmSinglePopover:
 			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
-
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #  S I M P L E   P O P O V E R
@@ -277,7 +266,7 @@ class AlignPopover(TTHCommandPopover):
 		fm = tthTool.getFontModel()
 		self.zonesListItems = fm.zones.keys()
 
-		code = cmd['code']
+		code = cmd.get('code')
 
 		if code[-1] != 'h':
 			popover.zoneTitle = TextBox((10, 34, -30, 20), 'Align to Zone', sizeStyle='small')
@@ -297,13 +286,13 @@ class AlignPopover(TTHCommandPopover):
 		if code in ['alignv', 'alignh']:
 			popover.alignmentTypeText.show(True)
 			popover.alignmentTypePopUpButton.show(True)
-			popover.alignmentTypePopUpButton.set(gAlignTypeToIndex[cmd['align']])
+			popover.alignmentTypePopUpButton.set(gAlignTypeToIndex[cmd.get('align')])
 
 		if code in ['alignt', 'alignb']:
 			popover.alignmentZoneText.show(True)
 			popover.alignmentZonePopUpButton.show(True)
 			for index, zone in enumerate(self.zonesListItems):
-				if cmd['zone'] == zone:
+				if cmd.get('zone') == zone:
 					popover.alignmentZonePopUpButton.set(index)
 					break
 
@@ -311,22 +300,21 @@ class AlignPopover(TTHCommandPopover):
 		self.open()
 
 	def zoneCheckBoxCallback(self, sender):
-		g = self.gm.RFGlyph
 		if sender.get() == 1:
-			g.prepareUndo("Align to Zone")
+			self.gm.prepareUndo("Align to Zone")
 			use_type = False # so, we use zones
 			zoneName = self.zonesListItems[0]
 			self.handleZone(zoneName)
 		else:
-			g.prepareUndo("Do Not Align to Zone")
+			self.gm.prepareUndo("Do Not Align to Zone")
 			use_type = True
-			self.cmd['align'] = 'round'
+			self.cmd.set('align', 'round')
 			if 'zone' in self.cmd:
-				del self.cmd['zone']
+				del self.cmd.attrib['zone']
 			if tthTool.selectedAxis == 'X':
-				self.cmd['code'] = 'alignh'
+				self.cmd.set('code', 'alignh')
 			else:
-				self.cmd['code'] = 'alignv'
+				self.cmd.set('code', 'alignv')
 
 		self.popover.alignmentZonePopUpButton.set(0)
 		self.popover.alignmentTypePopUpButton.set(0)
@@ -335,7 +323,7 @@ class AlignPopover(TTHCommandPopover):
 		self.popover.alignmentZoneText.show(not use_type)
 		self.popover.alignmentZonePopUpButton.show(not use_type)
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def handleZone(self, zoneName):
 		fm = tthTool.getFontModel()
@@ -344,19 +332,17 @@ class AlignPopover(TTHCommandPopover):
 		if 'top' in zones[zoneName]:
 			if zones[zoneName]['top']:
 				code = 'alignt'
-		self.cmd['code'] = code
-		self.cmd['zone'] = zoneName
+		self.cmd.set('code', code)
+		self.cmd.set('zone', zoneName)
 		if 'align' in self.cmd:
-			del self.cmd['align']
+			del self.cmd.attrib['align']
 
 	def alignmentZonePopUpButtonCallback(self, sender):
-		g = self.gm.RFGlyph
-		g.prepareUndo('Change Zone')
+		self.gm.prepareUndo('Change Zone')
 		zoneName = self.zonesListItems[sender.get()]
 		self.handleZone(zoneName)
-
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #  D E L T A   P O P O V E R
@@ -377,21 +363,21 @@ class DeltaPopover(TTHCommandPopover):
 			callback = DeltaPopover.DeltaRangeComboBoxCallback(self, cmd, firstLimit=True))
 		popover.DeltaRange2ComboBox = ComboBox((-43, 30, 33, 15), PPMSizesList, sizeStyle = "mini",
 			callback = DeltaPopover.DeltaRangeComboBoxCallback(self, cmd, firstLimit=False))
-		popover.DeltaRange1ComboBox.set(str(self.cmd['ppm1']))
-		popover.DeltaRange2ComboBox.set(str(self.cmd['ppm2']))
+		popover.DeltaRange1ComboBox.set(str(self.cmd.get('ppm1')))
+		popover.DeltaRange2ComboBox.set(str(self.cmd.get('ppm2')))
 
 		popover.DeltaOffsetText = TextBox((10, 50, 50, 15), "Offset:", sizeStyle = "small")
 		popover.DeltaOffsetSlider = Slider((10, 65, -10, 15), maxValue=16, value=8, tickMarkCount=17, continuous=False, stopOnTickMarks=True, sizeStyle= "small",
 			callback=self.DeltaOffsetSliderCallback)
-		popover.DeltaOffsetSlider.set(int(self.cmd['delta']) + 8)
+		popover.DeltaOffsetSlider.set(int(self.cmd.get('delta')) + 8)
 
 		popover.monoTitle = TextBox((10, 90, -30, 20), 'Monochrome', sizeStyle='small')
 		popover.monoCheckBox = CheckBox((-23, 84, 22, 22), "", callback=self.MonoCheckBoxCallback, sizeStyle='small')
-		popover.monoCheckBox.set(self.cmd['mono'] == 'true')
+		popover.monoCheckBox.set(self.cmd.get('mono') == 'true')
 
 		popover.grayTitle = TextBox((10, 110, -30, 20), 'Grayscale & Subpixel', sizeStyle='small')
 		popover.grayCheckBox = CheckBox((-23, 104, 22, 22), "", callback=self.GrayCheckBoxCallback, sizeStyle='small')
-		popover.grayCheckBox.set(self.cmd['gray'] == 'true')
+		popover.grayCheckBox.set(self.cmd.get('gray') == 'true')
 
 		self.setupPointMoverUI(-20, 'point', 'Move Point')
 		self.open()
@@ -403,33 +389,31 @@ class DeltaPopover(TTHCommandPopover):
 	def removeCommandIfNeeded(self):
 		# If the delta is zero upon closing the popover, then we delete the
 		# command:
-		if int(self.cmd['delta']) != 0: return
+		if int(self.cmd.get('delta')) != 0: return
 		print "DeltaPopover closed: delta = 0 ==> deleting the command"
-		g = self.gm.RFGlyph
-		g.prepareUndo('Remove Delta')
+		self.gm.prepareUndo('Remove Delta')
 		self.gm.removeHintingCommand(self.cmd)
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def DeltaOffsetSliderCallback(self, sender):
 		newValue = max(-8, min(8, int(sender.get() - 8)))
 		if newValue == 0:
-			oldValue = int(self.cmd['delta'])
+			oldValue = int(self.cmd.get('delta'))
 			self.popover.DeltaOffsetSlider.set(oldValue+8)
 			return
-		g = self.gm.RFGlyph
-		g.prepareUndo('Change Delta Offset')
+		self.gm.prepareUndo('Change Delta Offset')
 		if newValue == 0: # should never happen due to the test above
-			self.cmd['active'] = 'false'
+			self.cmd.set('active', 'false')
 		else:
-			self.cmd['active'] = 'true'
-		self.cmd['delta'] = str(newValue)
-		if self.cmd['code'][0] == 'm':
+			self.cmd.set('active', 'true')
+		self.cmd.set('delta', str(newValue))
+		if self.cmd.get('code')[0] == 'm':
 			tthTool.changeDeltaOffset('Middle Delta', newValue)
 		else:
 			tthTool.changeDeltaOffset('Final Delta', newValue)
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	class DeltaRangeComboBoxCallback(object):
 		def __init__(self, popoC, cmd, firstLimit):
@@ -449,49 +433,46 @@ class DeltaPopover(TTHCommandPopover):
 				sender.set(size)
 
 			gm = self.popoverController.gm
-			g = gm.RFGlyph
-			g.prepareUndo('Change Delta Range')
+			self.gm.prepareUndo('Change Delta Range')
 			if self.firstLimit:
-				v1, v2 = size, int(self.cmd['ppm2'])
+				v1, v2 = size, int(self.cmd.get('ppm2'))
 			else:
-				v1, v2 = int(self.cmd['ppm1']), size
-			if self.cmd['code'][0] == 'f':
+				v1, v2 = int(self.cmd.get('ppm1')), size
+			if self.cmd.get('code')[0] == 'f':
 				tool = tthTool.getTool('Final Delta')
 			else:
 				tool = tthTool.getTool('Middle Delta')
 			tool.setRange(v1, v2)
 			v1 = str(tool.range1)
 			v2 = str(tool.range2)
-			self.cmd['ppm1'] = v1
-			self.cmd['ppm2'] = v2
+			self.cmd.set('ppm1', v1)
+			self.cmd.set('ppm2', v2)
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
 			gm.updateGlyphProgram(self.popoverController.fm)
-			g.performUndo()
+			self.gm.performUndo()
 
 	def GrayCheckBoxCallback(self, sender):
-		g = self.gm.RFGlyph
 		if sender.get() == 0:
-			g.prepareUndo("Deactivate Delta for Grayscale and Subpixel")
-			self.cmd['gray'] = 'false'
+			self.gm.prepareUndo("Deactivate Delta for Grayscale and Subpixel")
+			self.cmd.set('gray', 'false')
 		else:
-			g.prepareUndo("Activate Delta for Grayscale and Subpixel")
-			self.cmd['gray'] = 'true'
+			self.gm.prepareUndo("Activate Delta for Grayscale and Subpixel")
+			self.cmd.set('gray', 'true')
 
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 	def MonoCheckBoxCallback(self, sender):
-		g = self.gm.RFGlyph
 		if sender.get() == 0:
-			g.prepareUndo("Deactivate Delta for Monochrome")
-			self.cmd['mono'] = 'false'
+			self.gm.prepareUndo("Deactivate Delta for Monochrome")
+			self.cmd.set('mono', 'false')
 		else:
-			g.prepareUndo("Activate Delta for Monochrome")
-			self.cmd['mono'] = 'true'
+			self.gm.prepareUndo("Activate Delta for Monochrome")
+			self.cmd.set('mono', 'true')
 
 		self.gm.updateGlyphProgram(self.fm)
-		g.performUndo()
+		self.gm.performUndo()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 #  I N T E R P O L A T E   P O P O V E R
@@ -504,10 +485,7 @@ class InterpolatePopover(TTHCommandPopover):
 		self.setupStateUI()
 
 		self.setupAlignmentTypeUI(32, withNone = True, show = True)
-		try:
-			alignIdx = gAlignWithNoneTypeToIndex[self.cmd['align']]
-		except:
-			alignIdx = 0
+		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
@@ -529,7 +507,7 @@ class SinglePopover(TTHCommandPopover):
 		self.setupRoundDistanceUI()
 
 		stemsX, stemsY = makeStemsLists()
-		if self.cmd['code'][-1] == 'v':
+		if self.cmd.get('code')[-1] == 'v':
 			self.stemTypeList = stemsY
 		else:
 			self.stemTypeList = stemsX
@@ -538,10 +516,7 @@ class SinglePopover(TTHCommandPopover):
 		self.setupStemTypeUI()
 
 		self.setupAlignmentTypeUI(72, withNone = True, show = True)
-		try:
-			alignIdx = gAlignWithNoneTypeToIndex[self.cmd['align']]
-		except:
-			alignIdx = 0
+		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
 		self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
 
@@ -561,7 +536,7 @@ class DoublePopover(TTHCommandPopover):
 
 		self.setupStateUI()
 		stemsX, stemsY = makeStemsLists()
-		if self.cmd['code'][-1] == 'v':
+		if self.cmd.get('code')[-1] == 'v':
 			self.stemTypeList = stemsY
 		else:
 			self.stemTypeList = stemsX
@@ -593,10 +568,8 @@ class ZoneDeltaPopover(TTHCommandPopover):
 		self.open()
 
 	def zoneDeltaOffsetSliderCallback(self, sender):
-		g = self.gm.RFGlyph
 		zoneDeltaOffset = int(sender.get() - 8)
 		self.fm.setZoneDelta((self.zoneName, self.zone), tthTool.PPM_Size, zoneDeltaOffset)
-		g.performUndo()
 
 	def sizeHasChanged(self, size):
 		if 'delta' in self.zone:
@@ -615,10 +588,8 @@ class ZoneDeltaPopover(TTHCommandPopover):
 
 def openForCommand(cmd, point):
 	gm, fm = tthTool.getGlyphAndFontModel()
-	try:
-		code = cmd['code']
-	except:
-		return
+	code = cmd.get('code')
+	if code is None: return
 	if code in ['alignh', 'alignv', 'alignt', 'alignb']:
 		AlignPopover(gm, fm, point, cmd)
 	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:

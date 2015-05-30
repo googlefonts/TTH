@@ -194,34 +194,34 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph)
 		cmd = dict(inCmd) # copy the commands before modifying it
 		#print "===================================="
 		#print cmd
-		if 'delta' in cmd['code']:
+		if 'delta' in cmd.get('code'):
 			continue
 		for k in ['point', 'point1', 'point2']:
-			if k in cmd:
-				newName = pm.map(cmd[k])
-				cmd[k] = newName
-		if 'stem' in cmd: # Find the correct name of the stem in the target font
-			isHorizontal = (cmd['code'] == 'singlev')
-			src = getCmdPoint(targetGlyph, cmd['point1'])
-			tgt = getCmdPoint(targetGlyph, cmd['point2'])
+			if k in cmd.attrib:
+				newName = pm.map(cmd.get(k))
+				cmd.set(k, newName)
+		if 'stem' in cmd.attrib: # Find the correct name of the stem in the target font
+			isHorizontal = (cmd.get('code') == 'singlev')
+			src = getCmdPoint(targetGlyph, cmd.get('point1'))
+			tgt = getCmdPoint(targetGlyph, cmd.get('point2'))
 			stemWidth = getWidth(src, tgt, isHorizontal)
 			stemName = AH.guessStemForWidth(stemWidth, isHorizontal)
 			if stemName != None:
-				#print cmd['stem'], "--stem-->", stemName
-				cmd['stem'] = stemName
+				#print cmd.get('stem'), "--stem-->", stemName
+				cmd.set('stem', stemName)
 			else:
-				del cmd['stem']
+				del cmd.attrib['stem']
 		elif 'zone' in cmd: # Find the correct name of the zone in the target font if it exists
-			pt = getCmdPoint(targetGlyph, cmd['point'])
+			pt = getCmdPoint(targetGlyph, cmd.get('point'))
 			if pt == None:
 				continue
 			zone = AH.zoneAt(pt.y)
 			if zone == None:
-				#print "Command '{0}' killed.".format(cmd['code'])
+				#print "Command '{0}' killed.".format(cmd.get('code'))
 				continue
 			else:
-				#print cmd['zone'], "--zone-->", zone[0]
-				cmd['zone'] = zone[0]
+				#print cmd.get('zone'), "--zone-->", zone[0]
+				cmd.set('zone', zone[0])
 		targetGM.addCommand(cmd, update=False)
 	targetGM.compile(targetFM)
 	if hasSGM: sourceFM.delGlyphModelForGlyph(sourceGlyph)
