@@ -38,8 +38,8 @@ class AutoHintingSheet(object):
 		w.boxStemDetection.tolerance = EditText((-50, 70, 40, 17), text=str(fm.angleTolerance), sizeStyle = 'small', continuous=False, callback=self.handleTolerance)
 		w.boxStemDetection.toleranceSlider = Slider((10, -20, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
 
-		w.boxAutoHint = Box((230, 70, 80, 70), title='Autohint')
-		w.boxAutoHint.hintGlyphButton = Button((10, 10, -10, 20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
+		w.boxAutoHint = Box((230, 70, 80, 70), title='Process')
+		w.boxAutoHint.hintGlyphButton = Button((10, 5, -10, 20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
 		w.boxAutoHint.hintFontButton = Button((10, 30, -10, 20), "Font", sizeStyle='small', callback=self.hintFont)
 
 		w.progressBar = ProgressBar((10, 140, -10, 20))
