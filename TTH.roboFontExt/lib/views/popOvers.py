@@ -496,7 +496,7 @@ class InterpolatePopover(TTHCommandPopover):
 		self.open()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-#  S I M P L E   P O P O V E R
+#  S I N G L E   P O P O V E R
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class SinglePopover(TTHCommandPopover):
@@ -518,6 +518,7 @@ class SinglePopover(TTHCommandPopover):
 		self.setupAlignmentTypeUI(72, withNone = True, show = True)
 		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
+		self.popover.StemTypePopUpButton.enable('round' not in self.cmd.attrib)
 		self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
