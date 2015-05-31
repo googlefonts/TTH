@@ -1,4 +1,4 @@
-from AppKit import NSObject, NSCell
+from AppKit import NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
 
 class ProgramPanelTableDelegate(NSObject):
 
@@ -10,6 +10,7 @@ class ProgramPanelTableDelegate(NSObject):
 		if self is None: return None
 		self.dummy = NSCell.alloc().init()
 		self.dummy.setImage_(None)
+		
 		self.w = None
 		return self
 
@@ -18,16 +19,17 @@ class ProgramPanelTableDelegate(NSObject):
 
 	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
 		if tableColumn == None: return None
+		code = self.w.programList[row]['code']
 		if tableColumn.identifier() in ['delta', 'mono', 'gray'] and self.w != None:
 			try:
-				if self.w.programList[row]['code'][1:-1] != 'delta':
+				if code[1:-1] != 'delta':
 					return self.dummy
 			except:
 				pass
-		if tableColumn.identifier() == 'stem' and self.w != None:
-			try:
-				if self.w.programList[row]['code'][:6] not in ['single', 'doubl']:
-					return self.dummy
-			except:
-				pass
+		# elif tableColumn.identifier() == 'stem' and self.w != None:
+		# 	try:
+		# 		if (not ('single' in code)) or (not ('double' in code)):
+		# 			return self.dummy
+		# 	except:
+		# 		pass
 		return tableColumn.dataCell()

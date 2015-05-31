@@ -10,7 +10,7 @@ DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
 defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 
-commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'round', 'stem', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
+commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'stem', 'round', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
 
 class ProgramWindow(TTHWindow):
 	def __init__(self):
@@ -41,7 +41,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "point1", "width": 100, "editable": False},
 			{"title": "point2", "width": 100, "editable": False},
 			{"title": "align",  "width": 100, "editable": False},
-			{"title": "round",  "width":  80, "editable": False},
+			{"title": "round",  "width":  80, "editable": True, "cell":checkBox},
 			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
@@ -64,12 +64,13 @@ class ProgramWindow(TTHWindow):
 		self.window = win
 
 	def modifyContent(self, cmd, uiCmd):
-		codeTrueFalse = ['active', 'mono', 'gray']
+		codeTrueFalse = ['round', 'active', 'mono', 'gray']
 		for code in codeTrueFalse:
 			if uiCmd[code]:
 				cmd.set(code, 'true')
 			else:
 				cmd.set(code, 'false')
+
 		if 'delta' in uiCmd and HF.commandHasAttrib(cmd, 'delta'):
 			deltaV = int(uiCmd['delta'])
 			if deltaV != int(cmd.get('delta')):
@@ -106,6 +107,6 @@ class ProgramWindow(TTHWindow):
 			for key in commandKeys:
 				if key not in c:
 					c[key] = ''
-			for key in ['active', 'mono', 'gray']:
+			for key in ['round', 'active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
 		self.window.programList.set(uiCommands)

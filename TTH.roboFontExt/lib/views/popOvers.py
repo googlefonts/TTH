@@ -183,7 +183,7 @@ class TTHCommandPopover(object):
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
 		self.popover.RoundDistanceCheckBox = CheckBox((-23, 26, 22, 22), "", sizeStyle = "small",
 				callback=self.roundDistanceCheckBoxCallback)
-		self.popover.RoundDistanceCheckBox.set(HF.commandHasAttrib(self.cmd, 'round'))
+		self.popover.RoundDistanceCheckBox.set(command['round'] == 'true')
 
 	def roundDistanceCheckBoxCallback(self, sender):
 		IAmSinglePopover = hasattr(self.popover, 'alignmentTypePopUpButton')
@@ -522,7 +522,7 @@ class SinglePopover(TTHCommandPopover):
 		self.setupAlignmentTypeUI(72, withNone = True, show = True)
 		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
-		noRound = not HF.commandHasAttrib(self.cmd, 'round')
+		noRound = not (command['round'] == 'true')
 		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
 		self.popover.StemTypePopUpButton.enable(noRound)
 		self.popover.alignmentTypePopUpButton.enable(noRound and noSem)
