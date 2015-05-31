@@ -1,14 +1,9 @@
 from mojo.extensions import getExtensionDefault
-from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
+from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell, PopUpButtonListCell
 from views import TTHWindow, tableDelegate
 from models.TTHTool import uniqueInstance as tthTool
 from AppKit import NSLeftMouseUpMask
 from commons import helperFunctions as HF
-
-# from PyObjCTools import Signals
-# Signals.dumpStackOnFatalSignal()
-# from PyObjCTools import Debugging
-# Debugging.installVerboseExceptionHandler()
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -33,7 +28,10 @@ class ProgramWindow(TTHWindow):
 
 		checkBox = CheckBoxListCell()
 
-		popUpCell = PopUpButtonListCell()
+		fm = tthTool.getFontModel()
+		verticalStemsList = fm.verticalStems.keys()
+		horizontalStemsList = fm.horizontalStems.keys()
+		popUpCellStems = PopUpButtonListCell(horizontalStemsList)
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
@@ -44,7 +42,8 @@ class ProgramWindow(TTHWindow):
 			{"title": "point2", "width": 100, "editable": False},
 			{"title": "align",  "width": 100, "editable": False},
 			{"title": "round",  "width":  80, "editable": False},
-			{"title": "stem",   "width": 100, "editable": False},
+			{"title": "stem",   "width": 100, "editable": False, "cell": popUpCellStems},
+			#{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
 			{"title": "delta",  "width": 120, "editable": True, "cell":sliderCell},
 			{"title": "ppm1",   "width":  50, "editable": False},
