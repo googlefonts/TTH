@@ -24,4 +24,10 @@ class ProgramPanelTableDelegate(NSObject):
 					return self.dummy
 			except:
 				pass
+		if tableColumn.identifier() == 'stem' and self.w != None:
+			try:
+				if self.w.programList[row]['code'][:6] not in ['single', 'doubl']:
+					return self.dummy
+			except:
+				pass
 		return tableColumn.dataCell()

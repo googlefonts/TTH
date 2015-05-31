@@ -31,7 +31,7 @@ class ProgramWindow(TTHWindow):
 		fm = tthTool.getFontModel()
 		verticalStemsList = fm.verticalStems.keys()
 		horizontalStemsList = fm.horizontalStems.keys()
-		popUpCellStems = PopUpButtonListCell(horizontalStemsList)
+		popUpCellStems = PopUpButtonListCell([])
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
@@ -42,7 +42,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "point2", "width": 100, "editable": False},
 			{"title": "align",  "width": 100, "editable": False},
 			{"title": "round",  "width":  80, "editable": False},
-			{"title": "stem",   "width": 100, "editable": False, "cell": popUpCellStems},
+			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
 			{"title": "delta",  "width": 120, "editable": True, "cell":sliderCell},
