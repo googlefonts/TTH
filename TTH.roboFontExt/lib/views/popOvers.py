@@ -500,7 +500,7 @@ class InterpolatePopover(TTHCommandPopover):
 		self.open()
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-#  S I M P L E   P O P O V E R
+#  S I N G L E   P O P O V E R
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 class SinglePopover(TTHCommandPopover):
@@ -524,6 +524,7 @@ class SinglePopover(TTHCommandPopover):
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
 		noRound = not HF.commandHasAttrib(self.cmd, 'round')
 		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
+		self.popover.StemTypePopUpButton.enable(noRound)
 		self.popover.alignmentTypePopUpButton.enable(noRound and noSem)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
