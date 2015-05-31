@@ -32,6 +32,8 @@ class ProgramWindow(TTHWindow):
 
 		checkBox = CheckBoxListCell()
 
+		popUpCell = PopUpButtonListCell()
+
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
 			{"title": "active", "width":  35, "editable": True, "cell":checkBox},
