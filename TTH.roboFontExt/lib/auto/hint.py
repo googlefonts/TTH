@@ -412,25 +412,25 @@ class AutoHinting():
 		cmd = ET.Element('ttc')
 		cmd.set('active', 'true')
 		if isHorizontal:
-			newCommand.set('code', 'interpolatev')
+			cmd.set('code', 'interpolatev')
 		else:
-			newCommand.set('code', 'interpolateh')
-		newCommand.set('point1', p1.name)
-		newCommand.set('point2', p2.name)
-		newCommand.set('point', p.name)
-		newCommand.set('align', 'round')
-		self.gm.addCommand(newCommand, update=False)
+			cmd.set('code', 'interpolateh')
+		cmd.set('point1', p1.name)
+		cmd.set('point2', p2.name)
+		cmd.set('point', p.name)
+		cmd.set('align', 'round')
+		self.gm.addCommand(cmd, update=False)
 
 	def addAlign(self, pointName, (zoneName, isTopZone, ys, ye)):
 		cmd = ET.Element('ttc')
 		cmd.set('active', 'true')
 		if isTopZone:
-			newAlign.set('code', 'alignt')
+			cmd.set('code', 'alignt')
 		else:
-			newAlign.set('code', 'alignb')
-		newAlign.set('point', pointName)
-		newAlign.set('zone', zoneName)
-		self.gm.addCommand(newAlign, update=False)
+			cmd.set('code', 'alignb')
+		cmd.set('point', pointName)
+		cmd.set('zone', zoneName)
+		self.gm.addCommand(cmd, update=False)
 
 	def zoneAt(self, y):
 		for item in self.fm.zones.iteritems():
