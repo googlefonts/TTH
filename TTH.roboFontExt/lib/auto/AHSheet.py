@@ -67,7 +67,7 @@ class AutoHintingSheet(object):
 	def hintFont(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
-		fm.prepareUndo('AutoHinting Font')
+		fm.f.prepareUndo('AutoHinting Font')
 		doX = self.w.hintXBox.get()
 		doY = self.w.hintYBox.get()
 		if not (doX or doY): return
@@ -92,7 +92,7 @@ class AutoHintingSheet(object):
 		progress.increment(counter)
 		progress.show(0)
 		TTHGlyph.silent = False
-		fm.performUndo()
+		fm.f.performUndo()
 		tthTool.hintingProgramHasChanged(fm)
 		
 
