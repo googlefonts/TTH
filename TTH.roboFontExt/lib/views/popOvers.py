@@ -190,9 +190,9 @@ class TTHCommandPopover(object):
 		if sender.get() == 1:
 			self.gm.prepareUndo('Round Distance')
 			self.cmd.set('round', 'true')
-			if 'stem' in self.cmd:
+			if 'stem' in self.cmd.attrib:
 				del self.cmd.attrib['stem']
-			if 'align' in self.cmd:
+			if 'align' in self.cmd.attrib:
 				del self.cmd.attrib['align']
 		else:
 			self.gm.prepareUndo('Do Not Round Distance')
@@ -206,9 +206,9 @@ class TTHCommandPopover(object):
 				if alignType != 'None':
 					self.cmd.set('align', alignType)
 
-		self.popover.StemTypePopUpButton.enable('round' not in self.cmd)
+		self.popover.StemTypePopUpButton.enable('round' not in self.cmd.attrib)
 		if IAmSinglePopover:
-			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
+			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
 
@@ -230,7 +230,7 @@ class TTHCommandPopover(object):
 		if sender.get() != 0:
 			self.cmd.set('stem', self.stemTypeList[sender.get()])
 		else:
-			if 'stem' in self.cmd:
+			if 'stem' in self.cmd.attrib:
 				del self.cmd.attrib['stem']
 			if IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
@@ -238,7 +238,7 @@ class TTHCommandPopover(object):
 					self.cmd.set('align', alignType)
 
 		if IAmSinglePopover:
-			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
+			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
 
@@ -309,7 +309,7 @@ class AlignPopover(TTHCommandPopover):
 			self.gm.prepareUndo("Do Not Align to Zone")
 			use_type = True
 			self.cmd.set('align', 'round')
-			if 'zone' in self.cmd:
+			if 'zone' in self.cmd.attrib:
 				del self.cmd.attrib['zone']
 			if tthTool.selectedAxis == 'X':
 				self.cmd.set('code', 'alignh')
@@ -334,7 +334,7 @@ class AlignPopover(TTHCommandPopover):
 				code = 'alignt'
 		self.cmd.set('code', code)
 		self.cmd.set('zone', zoneName)
-		if 'align' in self.cmd:
+		if 'align' in self.cmd.attrib:
 			del self.cmd.attrib['align']
 
 	def alignmentZonePopUpButtonCallback(self, sender):
@@ -518,7 +518,7 @@ class SinglePopover(TTHCommandPopover):
 		self.setupAlignmentTypeUI(72, withNone = True, show = True)
 		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
-		self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd) and ('stem' not in self.cmd))
+		self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-35, 'point1', 'Move Point 1', ll, lw)
