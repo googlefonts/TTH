@@ -1,5 +1,6 @@
 import math
 from models.TTHTool import uniqueInstance as tthTool
+from commons import helperFunctions as HF
 from drawing import geom
 import auto
 
@@ -197,10 +198,10 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph)
 		if 'delta' in cmd.get('code'):
 			continue
 		for k in ['point', 'point1', 'point2']:
-			if k in cmd.attrib:
+			if HF.commandHasAttrib(cmd, k):
 				newName = pm.map(cmd.get(k))
 				cmd.set(k, newName)
-		if 'stem' in cmd.attrib: # Find the correct name of the stem in the target font
+		if HF.commandHasAttrib(cmd, 'stem'): # Find the correct name of the stem in the target font
 			isHorizontal = (cmd.get('code') == 'singlev')
 			src = getCmdPoint(targetGlyph, cmd.get('point1'))
 			tgt = getCmdPoint(targetGlyph, cmd.get('point2'))
@@ -210,7 +211,7 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph)
 				#print cmd.get('stem'), "--stem-->", stemName
 				cmd.set('stem', stemName)
 			else:
-				del cmd.attrib['stem']
+				HF.delCommandAttrib(cmd, 'stem')
 		elif 'zone' in cmd: # Find the correct name of the zone in the target font if it exists
 			pt = getCmdPoint(targetGlyph, cmd.get('point'))
 			if pt == None:

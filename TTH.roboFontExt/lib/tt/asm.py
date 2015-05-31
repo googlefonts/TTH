@@ -1,4 +1,5 @@
 from tt import tables
+from commons import helperFunctions as HF
 
 class Registers(object):
 	def __init__(self):
@@ -201,7 +202,7 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 						]
 		regs.RP1 = point2Index
 		regs.RP2 = point1Index
-		if 'align' in command.attrib:
+		if HF.commandHasAttrib(command, 'align'):
 			align = getAlign(command, pointIndex, regs)
 			interpolate.extend(align)
 
@@ -242,7 +243,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 						]
 			regs.RP0 = point1Index
 
-		if 'stem' in command.attrib:
+		if HF.commandHasAttrib(command, 'stem'):
 			stemCV = stem_to_cvt[command.get('stem')]
 			single_stem = [
 							tables.autoPush(0),
@@ -258,7 +259,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
-		elif 'round' in command.attrib:
+		elif HF.commandHasAttrib(command, 'round'):
 			single_round = [
 							tables.autoPush(point2Index),
 							'MDRP[11100]'
@@ -267,7 +268,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP2 = point2Index
 
 
-		elif 'align' in command.attrib:
+		elif HF.commandHasAttrib(command, 'align'):
 			single_align = [
 							tables.autoPush(point2Index),
 							'MDRP[10000]',

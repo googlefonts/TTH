@@ -291,7 +291,7 @@ class TTHGlyph(object):
 
 	def commandIsOK(self, cmd, verbose = False, absent = []):
 		for key in ['point', 'point1', 'point2']:
-			if key not in cmd.attrib: continue
+			if not helperFunctions.commandHasAttrib(cmd, key): continue
 			ptName = cmd.get(key)
 			if ptName in ['lsb', 'rsb']: continue
 			csi = self.csiOfPointName(ptName)
@@ -419,7 +419,6 @@ class TTHGlyph(object):
 		root = ET.fromstring(ttprogram)
 		absent = []
 		for cmd in root:
-			attribs = cmd.attrib
 			cmd.set('active', cmd.get('active', 'true'))
 			if 'delta' in cmd.get('code'):
 				cmd.set('gray', cmd.get('gray', 'true'))
@@ -438,7 +437,7 @@ class TTHGlyph(object):
 		'''Use newName = '' to transform the stem into a simple round'''
 		modified = False
 		for command in self.hintingCommands:
-			if not ('stem' in command.attrib): continue
+			if not (helperFunctions.commandHasAttrib(command, 'stem')): continue
 			oldName = command.get('stem')
 			if oldName not in nameChanger: continue
 			newName = nameChanger[oldName]
@@ -446,7 +445,7 @@ class TTHGlyph(object):
 			if newName != None: # change name
 				command.set('stem', newName)
 			else: # delete stem, replace with rounding
-				del command.attrib['stem']
+				helperFunctions.delCommandAttrib(command, 'stem')
 		if modified:
 			self.saveCommandsToUFO()
 		return modified
@@ -463,7 +462,7 @@ class TTHGlyph(object):
 			if newName != None: # change name
 				command.set('zone', newName)
 			else: # delete zone
-				del command.attrib['zone']
+				helperFunctions.delCommandAttrib(command, 'zone')
 				command.set('code', 'alignv')
 				command.set('align', 'round')
 		if modified:

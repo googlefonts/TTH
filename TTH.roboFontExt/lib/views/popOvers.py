@@ -168,14 +168,14 @@ class TTHCommandPopover(object):
 		selected = self.alignmentTypeList[senderPopup.get()]
 		self.cmd.set('align', selected)
 		if selected == 'None':
-			del self.cmd.attrib['align']
-		if 'round' in self.cmd.attrib:
-			del self.cmd.attrib['round']
-		if 'stem' in self.cmd.attrib:
-			del self.cmd.attrib['stem']
+			HF.delCommandAttrib(self.cmd, 'align')
+		if HF.commandHasAttrib(self.cmd, 'round'):
+			HF.delCommandAttrib(self.cmd, 'round')
+		if HF.commandHasAttrib(self.cmd, 'stem'):
+			HF.delCommandAttrib(self.cmd, 'stem')
 		if self.cmd.get('code') in ['alignt', 'alignb']:
 			self.cmd.set('code', 'alignv')
-			del self.cmd.attrib['zone']
+			HF.delCommandAttrib(self.cmd, 'zone')
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
 
@@ -183,20 +183,20 @@ class TTHCommandPopover(object):
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
 		self.popover.RoundDistanceCheckBox = CheckBox((-23, 26, 22, 22), "", sizeStyle = "small",
 				callback=self.roundDistanceCheckBoxCallback)
-		self.popover.RoundDistanceCheckBox.set('round' in self.cmd.attrib)
+		self.popover.RoundDistanceCheckBox.set(HF.commandHasAttrib(self.cmd, 'round'))
 
 	def roundDistanceCheckBoxCallback(self, sender):
 		IAmSinglePopover = hasattr(self.popover, 'alignmentTypePopUpButton')
 		if sender.get() == 1:
 			self.gm.prepareUndo('Round Distance')
 			self.cmd.set('round', 'true')
-			if 'stem' in self.cmd.attrib:
-				del self.cmd.attrib['stem']
-			if 'align' in self.cmd.attrib:
-				del self.cmd.attrib['align']
+			if HF.commandHasAttrib(self.cmd, 'stem'):
+				HF.delCommandAttrib(self.cmd, 'stem')
+			if HF.commandHasAttrib(self.cmd, 'align'):
+				HF.delCommandAttrib(self.cmd, 'align')
 		else:
 			self.gm.prepareUndo('Do Not Round Distance')
-			del self.cmd.attrib['round']
+			HF.delCommandAttrib(self.cmd, 'round')
 			idx      = self.popover.StemTypePopUpButton.get()
 			stemName = self.stemTypeList[idx]
 			if stemName != 'None':
@@ -206,9 +206,11 @@ class TTHCommandPopover(object):
 				if alignType != 'None':
 					self.cmd.set('align', alignType)
 
-		self.popover.StemTypePopUpButton.enable('round' not in self.cmd.attrib)
+		noRound = not HF.commandHasAttrib(self.cmd, 'round')
+		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
+		self.popover.StemTypePopUpButton.enable(noRound)
 		if IAmSinglePopover:
-			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
+			self.popover.alignmentTypePopUpButton.enable(noRound and noStem)
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
 
@@ -230,15 +232,17 @@ class TTHCommandPopover(object):
 		if sender.get() != 0:
 			self.cmd.set('stem', self.stemTypeList[sender.get()])
 		else:
-			if 'stem' in self.cmd.attrib:
-				del self.cmd.attrib['stem']
+			if HF.commandHasAttrib(self.cmd, 'stem'):
+				HF.delCommandAttrib(self.cmd, 'stem')
 			if IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
 				if alignType != 'None':
 					self.cmd.set('align', alignType)
 
 		if IAmSinglePopover:
-			self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
+			noRound = not HF.commandHasAttrib(self.cmd, 'round')
+			noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
+			self.popover.alignmentTypePopUpButton.enable(noRound and noStem)
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
 
@@ -309,8 +313,8 @@ class AlignPopover(TTHCommandPopover):
 			self.gm.prepareUndo("Do Not Align to Zone")
 			use_type = True
 			self.cmd.set('align', 'round')
-			if 'zone' in self.cmd.attrib:
-				del self.cmd.attrib['zone']
+			if HF.commandHasAttrib(self.cmd, 'zone'):
+				HF.delCommandAttrib(self.cmd, 'zone')
 			if tthTool.selectedAxis == 'X':
 				self.cmd.set('code', 'alignh')
 			else:
@@ -334,8 +338,8 @@ class AlignPopover(TTHCommandPopover):
 				code = 'alignt'
 		self.cmd.set('code', code)
 		self.cmd.set('zone', zoneName)
-		if 'align' in self.cmd.attrib:
-			del self.cmd.attrib['align']
+		if HF.commandHasAttrib(self.cmd, 'align'):
+			HF.delCommandAttrib(self.cmd, 'align')
 
 	def alignmentZonePopUpButtonCallback(self, sender):
 		self.gm.prepareUndo('Change Zone')
@@ -518,8 +522,10 @@ class SinglePopover(TTHCommandPopover):
 		self.setupAlignmentTypeUI(72, withNone = True, show = True)
 		alignIdx = gAlignWithNoneTypeToIndex[self.cmd.get('align', 'None')]
 		self.popover.alignmentTypePopUpButton.set(alignIdx)
-		self.popover.StemTypePopUpButton.enable('round' not in self.cmd.attrib)
-		self.popover.alignmentTypePopUpButton.enable(('round' not in self.cmd.attrib) and ('stem' not in self.cmd.attrib))
+		noRound = not HF.commandHasAttrib(self.cmd, 'round')
+		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
+		self.popover.StemTypePopUpButton.enable(noRound)
+		self.popover.alignmentTypePopUpButton.enable(noRound and noSem)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-35, 'point1', 'Move Point 1', ll, lw)

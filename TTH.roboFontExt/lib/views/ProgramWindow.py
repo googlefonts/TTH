@@ -3,6 +3,7 @@ from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell
 from views import TTHWindow, tableDelegate
 from models.TTHTool import uniqueInstance as tthTool
 from AppKit import NSLeftMouseUpMask
+from commons import helperFunctions as HF
 
 # from PyObjCTools import Signals
 # Signals.dumpStackOnFatalSignal()
@@ -70,7 +71,7 @@ class ProgramWindow(TTHWindow):
 				cmd.set(code, 'true')
 			else:
 				cmd.set(code, 'false')
-		if 'delta' in uiCmd and 'delta' in cmd.attrib:
+		if 'delta' in uiCmd and HF.commandHasAttrib(cmd, 'delta'):
 			deltaV = int(uiCmd['delta'])
 			if deltaV != int(cmd.get('delta')):
 				if uiCmd['delta'] != 0:
@@ -100,12 +101,12 @@ class ProgramWindow(TTHWindow):
 		if gm is None:
 			self.window.programList.set([])
 			return
-		commands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
-		for i, c in enumerate(commands):
+		uiCommands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
+		for i, c in enumerate(uiCommands):
 			c['index'] = i
 			for key in commandKeys:
 				if key not in c:
 					c[key] = ''
 			for key in ['active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
-		self.window.programList.set(commands)
+		self.window.programList.set(uiCommands)

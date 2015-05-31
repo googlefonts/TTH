@@ -463,7 +463,7 @@ class TTH_RF_EventTool(BaseEventTool):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 
 	def getCommandAlignLabel(self, cmd):
-		if 'align' in cmd.attrib:
+		if helperFunctions.commandHasAttrib(cmd, 'align'):
 			extension = cmd.get('align')
 			if tthTool.selectedAxis == 'Y':
 				if extension == 'right': return 'top'
@@ -486,7 +486,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
 		if simple: return
 		code = cmd.get('code')
-		if 'align' in cmd.attrib:
+		if helperFunctions.commandHasAttrib(cmd, 'align'):
 			text = 'A_' + self.getCommandAlignLabel(cmd)
 		elif code in ['alignt', 'alignb']:
 			text = 'A_' + cmd.get('zone')
