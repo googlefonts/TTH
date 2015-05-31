@@ -1,5 +1,5 @@
 #coding=utf-8
-from vanilla import Box, Button, CheckBox, Group, EditText, ProgressBar, Sheet, TextBox
+from vanilla import Box, Button, CheckBox, Group, EditText, ProgressBar, Sheet, TextBox, Slider
 import auto
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
@@ -11,37 +11,41 @@ class AutoHintingSheet(object):
 		yBounds, xBounds = fm.stemSizeBounds
 
 		sheetWidth  = 320
-		sheetHeight = 170
+		sheetHeight = 190
 		sheetSize = (sheetWidth, sheetHeight)
 
 		self.w = Sheet(sheetSize, minSize=sheetSize, maxSize=sheetSize, parentWindow=parentWindow)
 		w = self.w
 
-		w.hintXBox = CheckBox((10,17,70,22), 'X Hinting:', value=True)
-		w.xGroup = Group((10, 15, -10, 22))
-		w.xGroup.minW    = EditText((100,0,40,22), text=str(xBounds[0]), continuous=False, callback=self.handleStemBounds)
-		w.xGroup.stemLabel = TextBox((140,2,-40,22), '<= stem width <=', alignment='center')
-		w.xGroup.maxW    = EditText((-40,0,40,22), text=str(xBounds[1]), continuous=False, callback=self.handleStemBounds)
+		w.boxHintingAxis = Box((230, 10, 80, 60), title='Hinting Axis')
 
-		w.hintYBox = CheckBox((10,52,70,22), 'Y Hinting:', value=True)
-		w.yGroup = Group((10, 50, -10, 22))
-		w.yGroup.minW    = EditText((100,0,40,22), text=str(yBounds[0]), continuous=False, callback=self.handleStemBounds)
-		w.yGroup.stemLabel = TextBox((140,2,-40,22), '<= stem width <=', alignment='center')
-		w.yGroup.maxW    = EditText((-40,0,40,22), text=str(yBounds[1]), continuous=False, callback=self.handleStemBounds)
+		w.boxHintingAxis.hintXBox = CheckBox((10,10,50,22), 'X', sizeStyle = 'small', value=True)
+		w.boxHintingAxis.hintYBox = CheckBox((-32,10,50,22), 'Y', sizeStyle = 'small', value=True)
 
-		w.tolLabel = TextBox((-170, 87, -60, 22), 'Angle Tolerance:', alignment='right')
-		w.tolerance = EditText((-50, 85, 40, 22), text=str(fm.angleTolerance), continuous=False, callback=self.handleTolerance)
+		w.boxStemDetection = Box((10, 10, 210, 130), title='Stems Detection')
 
-		bGroup = Group((10, 120, -10, -10))
+		w.boxStemDetection.xGroup = Group((0, 0, -0, 30))
+		w.boxStemDetection.xGroup.minW    = EditText((10, 10, 40, 17), text=str(xBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
+		w.boxStemDetection.xGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ X Stems ≤', sizeStyle = 'small', alignment='center')
+		w.boxStemDetection.xGroup.maxW    = EditText((-50, 10, 40, 17), text=str(xBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 
-		bGroup.progressBar = ProgressBar((5,-45,-5,20))
-		bGroup.progressBar.show(0)
-		bGroup.closeButton = Button((0,-22,50,20), "Close", sizeStyle='small', callback=self.closeCallback)
-		bGroup.autoHintLabel = TextBox((-235,-20,100,20), 'Auto Hint:', alignment='right')
-		bGroup.hintGlyphButton = Button((-125,-22,60,20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
-		bGroup.hintFontButton = Button((-60,-22,60,20), "Font", sizeStyle='small', callback=self.hintFont)
+		w.boxStemDetection.yGroup = Group((0, 30, -0, 30))
+		w.boxStemDetection.yGroup.minW    = EditText((10, 10, 40, 17), text=str(yBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
+		w.boxStemDetection.yGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ Y Stems ≤', sizeStyle = 'small', alignment='center')
+		w.boxStemDetection.yGroup.maxW    = EditText((-50, 10, 40, 17), text=str(yBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 
-		setattr(w, 'bGroup', bGroup)
+		w.boxStemDetection.tolLabel = TextBox((10, 72, 100, 20), u'Angle Tolerance (°)', sizeStyle = 'small', alignment='right')
+		w.boxStemDetection.tolerance = EditText((-50, 70, 40, 17), text=str(fm.angleTolerance), sizeStyle = 'small', continuous=False, callback=self.handleTolerance)
+		w.boxStemDetection.toleranceSlider = Slider((10, -20, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
+
+		w.boxAutoHint = Box((230, 70, 80, 70), title='Autohint')
+		w.boxAutoHint.hintGlyphButton = Button((10, 10, -10, 20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
+		w.boxAutoHint.hintFontButton = Button((10, 30, -10, 20), "Font", sizeStyle='small', callback=self.hintFont)
+
+		w.progressBar = ProgressBar((10, 140, -10, 20))
+		w.progressBar.show(0)
+		w.closeButton = Button((-90, -32, 80, 20), "Close", sizeStyle='small', callback=self.closeCallback)
+
 		w.open()
 
 	def close(self):
@@ -55,8 +59,8 @@ class AutoHintingSheet(object):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
 		gm.prepareUndo('AutoHinting Glyph')
-		doX = self.w.hintXBox.get()
-		doY = self.w.hintYBox.get()
+		doX = self.w.boxHintingAxis.hintXBox.get()
+		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
 		reload(hint)
 		hint.AutoHinting(fm).autohint(gm, doX, doY)
@@ -68,15 +72,15 @@ class AutoHintingSheet(object):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
 		fm.f.prepareUndo('AutoHinting Font')
-		doX = self.w.hintXBox.get()
-		doY = self.w.hintYBox.get()
+		doX = self.w.boxHintingAxis.hintXBox.get()
+		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
 		reload(hint)
 		AH = hint.AutoHinting(fm)
 		TTHGlyph.silent = True
 		counter = 0
 		maxCount = len(fm.f)
-		progress = self.w.bGroup.progressBar
+		progress = self.w.progressBar
 		progress._nsObject.setMaxValue_(maxCount)
 		progress.set(0)
 		progress.show(1)
@@ -94,7 +98,12 @@ class AutoHintingSheet(object):
 		TTHGlyph.silent = False
 		fm.f.performUndo()
 		tthTool.hintingProgramHasChanged(fm)
-		
+	
+	def toleranceSliderCallback(self, sender):
+		value = int(sender.get())
+		self.w.boxStemDetection.tolerance.set(value)
+		fm = tthTool.getFontModel()
+		fm.angleTolerance = value
 
 	def handleTolerance(self, sender):
 		try:
@@ -102,7 +111,7 @@ class AutoHintingSheet(object):
 		except ValueError:
 			value = 0
 		value = max(0, min(45, abs(value)))
-		sender.set(value)
+		self.w.boxStemDetection.toleranceSlider.set(value)
 		fm = tthTool.getFontModel()
 		fm.angleTolerance = value
 
@@ -112,8 +121,8 @@ class AutoHintingSheet(object):
 		except ValueError:
 			value = 0
 		value = min(9999, abs(value))
-		xg = self.w.xGroup
-		yg = self.w.yGroup
+		xg = self.w.boxStemDetection.xGroup
+		yg = self.w.boxStemDetection.yGroup
 		maxX = int(xg.maxW.get())
 		minX = int(xg.minW.get())
 		maxY = int(yg.maxW.get())
