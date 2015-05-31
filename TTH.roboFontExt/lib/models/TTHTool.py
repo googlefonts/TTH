@@ -297,6 +297,8 @@ class TTHTool(object):
 		self.programWindow = None
 
 	def becomeActive(self):
+		for f in AllFonts():
+			fm = self.fontModelForFont(f)
 		self.updatePartialFontIfNeeded()
 		for fm in self._fontModels.itervalues():
 			fm.setPreviewInGlyphWindowVisibility(self.showPreviewInGlyphWindow)

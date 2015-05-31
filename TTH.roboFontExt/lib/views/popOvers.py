@@ -433,7 +433,7 @@ class DeltaPopover(TTHCommandPopover):
 				sender.set(size)
 
 			gm = self.popoverController.gm
-			self.gm.prepareUndo('Change Delta Range')
+			gm.prepareUndo('Change Delta Range')
 			if self.firstLimit:
 				v1, v2 = size, int(self.cmd.get('ppm2'))
 			else:
@@ -450,7 +450,7 @@ class DeltaPopover(TTHCommandPopover):
 			pc.popover.DeltaRange1ComboBox.set(v1)
 			pc.popover.DeltaRange2ComboBox.set(v2)
 			gm.updateGlyphProgram(self.popoverController.fm)
-			self.gm.performUndo()
+			gm.performUndo()
 
 	def GrayCheckBoxCallback(self, sender):
 		if sender.get() == 0:
