@@ -1,5 +1,12 @@
 import math, numpy
 
+def commandHasAttrib(cmd, atr):
+	return (atr in cmd.attrib)
+
+def delCommandAttrib(cmd, atr):
+	del cmd.attrib[atr]
+	assert (not (commandHasAttrib(cmd, atr)))
+
 def makeListItemToIndexDict(l):
 	return dict((e,i) for i,e in enumerate(l))
 

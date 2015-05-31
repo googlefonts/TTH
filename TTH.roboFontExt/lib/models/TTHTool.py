@@ -95,12 +95,15 @@ class TTHTool(object):
 # - - - - - - - - - - - - - - - - - - - - - FONT MODELS
 
 	def getRGAndFontModel(self):
+		g = None
 		eventController = getActiveEventTool()
 		if eventController:
 			g = eventController.getGlyph()
-		else:
+		if g is None:
 			g = CurrentGlyph()
 		fm = self.fontModelForGlyph(g)
+		if fm == None:
+			fm = self.fontModelForFont(CurrentFont())
 		return g, fm
 
 	def getGlyphAndFontModel(self):

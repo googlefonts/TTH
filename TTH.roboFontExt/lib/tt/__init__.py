@@ -51,7 +51,7 @@ def compare(A, B):
 	sources = []
 	target = []
 	for c in [A,B]:
-		cKeys = [k for k in keys if k in c.attrib]
+		cKeys = [k for k in keys if HF.commandHasAttrib(c, k)]
 		n = len(cKeys)
 		if n == 1: # Align, MiddleDelta, FinalDelta
 			target.append(c.get('point'))
