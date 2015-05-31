@@ -34,7 +34,7 @@ class AutoHintingSheet(object):
 		w.boxStemDetection.yGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ Y Stems ≤', sizeStyle = 'small', alignment='center')
 		w.boxStemDetection.yGroup.maxW    = EditText((-50, 10, 40, 17), text=str(yBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 
-		w.boxStemDetection.tolLabel = TextBox((10, 72, 100, 20), u'Angle Tolerance (°)', sizeStyle = 'small', alignment='right')
+		w.boxStemDetection.tolLabel = TextBox((10, 72, 110, 20), u'Angle Tolerance (°)', sizeStyle = 'small', alignment='left')
 		w.boxStemDetection.tolerance = EditText((-50, 70, 40, 17), text=str(fm.angleTolerance), sizeStyle = 'small', continuous=False, callback=self.handleTolerance)
 		w.boxStemDetection.toleranceSlider = Slider((10, -20, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
 
@@ -64,8 +64,8 @@ class AutoHintingSheet(object):
 		if not (doX or doY): return
 		reload(hint)
 		hint.AutoHinting(fm).autohint(gm, doX, doY)
-		gm.performUndo()
 		tthTool.hintingProgramHasChanged(fm)
+		gm.performUndo()
 		
 
 	def hintFont(self, sender):
@@ -96,8 +96,8 @@ class AutoHintingSheet(object):
 		progress.increment(counter)
 		progress.show(0)
 		TTHGlyph.silent = False
-		fm.f.performUndo()
 		tthTool.hintingProgramHasChanged(fm)
+		fm.f.performUndo()
 	
 	def toleranceSliderCallback(self, sender):
 		value = int(sender.get())
