@@ -81,7 +81,7 @@ class ProgramWindow(TTHWindow):
 				cmd.set(key, stringOfBool(uiCmd[key]))
 		# Single and Double Links
 		if ('single' in code) or ('double' in code):
-			if uiCmd['stem'] != None:
+			if 'stem' in uiCmd:
 				cmd.set('stem', uiCmd['stem'])
 			if uiCmd['round']:
 				cmd.set('round', 'true')
