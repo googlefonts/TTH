@@ -18,8 +18,10 @@ class ProgramPanelTableDelegate(NSObject):
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
 		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
 
-		#self.dummyStem = PopUpButtonListCell([])
-		#self.dummyStem.setEnabled_(False)
+		self.dummyPopup = PopUpButtonListCell([])
+		self.dummyPopup.setTransparent_(True)
+		self.dummyPopup.setEnabled_(False)
+		self.dummyPopup.setMenu_(None)
 		
 		self.w = None
 		return self
@@ -44,13 +46,12 @@ class ProgramPanelTableDelegate(NSObject):
 			if not('single' in uiCode or 'double' in uiCode):
 				return self.dummy
 		elif colID == 'stem':
+			if not ('single' in uiCode or 'double' in uiCode):
+				return self.dummyPopup
 			cell.removeAllItems()
-			if ('single' in uiCode or 'double' in uiCode) and (not uiCmd['round']):
-				cell.setEnabled_(True)
+			if not uiCmd['round']:
 				if uiCode[-1] == 'h':
 					cell.addItemsWithTitles_(self.verticalStemsList)
 				else:
 					cell.addItemsWithTitles_(self.horizontalStemsList)
-			else:
-				cell.setEnabled_(False)
 		return cell
