@@ -1,4 +1,4 @@
-from AppKit import NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
+from AppKit import NSObject, NSCell, NSCellDisabled
 
 class ProgramPanelTableDelegate(NSObject):
 
@@ -34,10 +34,14 @@ class ProgramPanelTableDelegate(NSObject):
 					return self.dummy
 			except:
 				pass
-		# elif tableColumn.identifier() == 'stem' and self.w != None:
-		# 	try:
-		# 		if (not ('single' in code)) or (not ('double' in code)):
-		# 			return self.dummy
-		# 	except:
-		# 		pass
+		elif tableColumn.identifier() == 'stem' and self.w != None:
+			cell = tableColumn.dataCell()
+			# trying to disable the cell when not relevant... example woth setBordered works but have to find the proper method
+			try:
+				if 'single' in code or 'double' in code:
+					cell.setBordered_(True)
+				else:
+					cell.setBordered_(False)
+			except:
+				pass
 		return tableColumn.dataCell()
