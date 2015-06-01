@@ -55,9 +55,6 @@ class ProgramPanelTableDelegate(NSObject):
 						cell.addItemsWithTitles_(self.verticalStemsList)
 					else:
 						cell.addItemsWithTitles_(self.horizontalStemsList)
-
-			else:
-				cell.setTransparent_(True)
 		elif colID == 'align':
 			cell.removeAllItems()
 			if not (('single' in uiCode or 'double' in uiCode) and ((not uiCmd['round']) or (uiCmd['stem'] in ['', 'None']))):
