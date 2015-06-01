@@ -44,8 +44,6 @@ class ProgramPanelTableDelegate(NSObject):
 			if not('single' in uiCode or 'double' in uiCode):
 				return self.dummy
 		elif colID == 'stem':
-			# trying to disable the cell when not relevant... example
-			# woth setBordered works but have to find the proper method
 			cell.removeAllItems()
 			if ('single' in uiCode or 'double' in uiCode) and (not uiCmd['round']):
 				cell.setEnabled_(True)
