@@ -69,10 +69,8 @@ class ProgramWindow(TTHWindow):
 			if uiCmd[code]:
 				cmd.set(code, 'true')
 				if code == 'round':
-					if HF.commandHasAttrib(cmd, 'stem'):
-						HF.delCommandAttrib(cmd, 'stem')
-					if HF.commandHasAttrib(cmd, 'align'):
-						HF.delCommandAttrib(cmd, 'align')
+					HF.delCommandAttrib(cmd, 'stem')
+					HF.delCommandAttrib(cmd, 'align')
 			elif code == 'round':
 				HF.delCommandAttrib(cmd, 'round')
 

@@ -169,10 +169,8 @@ class TTHCommandPopover(object):
 		self.cmd.set('align', selected)
 		if selected == 'None':
 			HF.delCommandAttrib(self.cmd, 'align')
-		if HF.commandHasAttrib(self.cmd, 'round'):
-			HF.delCommandAttrib(self.cmd, 'round')
-		if HF.commandHasAttrib(self.cmd, 'stem'):
-			HF.delCommandAttrib(self.cmd, 'stem')
+		HF.delCommandAttrib(self.cmd, 'round')
+		HF.delCommandAttrib(self.cmd, 'stem')
 		if self.cmd.get('code') in ['alignt', 'alignb']:
 			self.cmd.set('code', 'alignv')
 			HF.delCommandAttrib(self.cmd, 'zone')
@@ -190,10 +188,8 @@ class TTHCommandPopover(object):
 		if sender.get() == 1:
 			self.gm.prepareUndo('Round Distance')
 			self.cmd.set('round', 'true')
-			if HF.commandHasAttrib(self.cmd, 'stem'):
-				HF.delCommandAttrib(self.cmd, 'stem')
-			if HF.commandHasAttrib(self.cmd, 'align'):
-				HF.delCommandAttrib(self.cmd, 'align')
+			HF.delCommandAttrib(self.cmd, 'stem')
+			HF.delCommandAttrib(self.cmd, 'align')
 		else:
 			self.gm.prepareUndo('Do Not Round Distance')
 			HF.delCommandAttrib(self.cmd, 'round')
@@ -232,8 +228,7 @@ class TTHCommandPopover(object):
 		if sender.get() != 0:
 			self.cmd.set('stem', self.stemTypeList[sender.get()])
 		else:
-			if HF.commandHasAttrib(self.cmd, 'stem'):
-				HF.delCommandAttrib(self.cmd, 'stem')
+			HF.delCommandAttrib(self.cmd, 'stem')
 			if IAmSinglePopover:
 				alignType = self.alignmentTypeList[self.popover.alignmentTypePopUpButton.get()]
 				if alignType != 'None':
@@ -313,8 +308,7 @@ class AlignPopover(TTHCommandPopover):
 			self.gm.prepareUndo("Do Not Align to Zone")
 			use_type = True
 			self.cmd.set('align', 'round')
-			if HF.commandHasAttrib(self.cmd, 'zone'):
-				HF.delCommandAttrib(self.cmd, 'zone')
+			HF.delCommandAttrib(self.cmd, 'zone')
 			if tthTool.selectedAxis == 'X':
 				self.cmd.set('code', 'alignh')
 			else:
@@ -338,8 +332,7 @@ class AlignPopover(TTHCommandPopover):
 				code = 'alignt'
 		self.cmd.set('code', code)
 		self.cmd.set('zone', zoneName)
-		if HF.commandHasAttrib(self.cmd, 'align'):
-			HF.delCommandAttrib(self.cmd, 'align')
+		HF.delCommandAttrib(self.cmd, 'align')
 
 	def alignmentZonePopUpButtonCallback(self, sender):
 		self.gm.prepareUndo('Change Zone')

@@ -4,7 +4,8 @@ def commandHasAttrib(cmd, atr):
 	return (atr in cmd.attrib)
 
 def delCommandAttrib(cmd, atr):
-	del cmd.attrib[atr]
+	if atr in cmd.attrib:
+		del cmd.attrib[atr]
 	assert (not (commandHasAttrib(cmd, atr)))
 
 def makeListItemToIndexDict(l):
