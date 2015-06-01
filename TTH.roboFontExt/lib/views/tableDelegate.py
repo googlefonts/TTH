@@ -26,6 +26,14 @@ class ProgramPanelTableDelegate(NSObject):
 					return self.dummy
 			except:
 				pass
+		if tableColumn.identifier() == 'round' and self.w != None:
+			try:
+				if 'single' in code or 'double' in code:
+					pass
+				else:
+					return self.dummy
+			except:
+				pass
 		# elif tableColumn.identifier() == 'stem' and self.w != None:
 		# 	try:
 		# 		if (not ('single' in code)) or (not ('double' in code)):

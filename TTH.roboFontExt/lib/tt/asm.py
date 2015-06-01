@@ -259,7 +259,7 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP1 = regs.RP0
 			regs.RP2 = point2Index
 
-		elif command.get('round') == 'true':
+		elif HF.commandHasAttrib(command, 'round'):
 			single_round = [
 							tables.autoPush(point2Index),
 							'MDRP[11100]'

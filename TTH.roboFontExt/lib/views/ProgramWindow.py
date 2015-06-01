@@ -68,8 +68,13 @@ class ProgramWindow(TTHWindow):
 		for code in codeTrueFalse:
 			if uiCmd[code]:
 				cmd.set(code, 'true')
-			else:
-				cmd.set(code, 'false')
+				if code == 'round':
+					if HF.commandHasAttrib(cmd, 'stem'):
+						HF.delCommandAttrib(cmd, 'stem')
+					if HF.commandHasAttrib(cmd, 'align'):
+						HF.delCommandAttrib(cmd, 'align')
+			elif code == 'round':
+				HF.delCommandAttrib(cmd, 'round')
 
 		if 'delta' in uiCmd and HF.commandHasAttrib(cmd, 'delta'):
 			deltaV = int(uiCmd['delta'])
@@ -104,6 +109,9 @@ class ProgramWindow(TTHWindow):
 		uiCommands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
 		for i, c in enumerate(uiCommands):
 			c['index'] = i
+			if 'single' in c['code'] or 'double' in c['code']:
+				if not 'stem' in c:
+					c['stem'] = 'None'
 			for key in commandKeys:
 				if key not in c:
 					c[key] = ''
