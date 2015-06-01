@@ -51,10 +51,10 @@ class ProgramPanelTableDelegate(NSObject):
 			# trying to disable the cell when not relevant... example woth setBordered works but have to find the proper method
 			# try:
 			if 'single' in code or 'double' in code:
-				if code[:-1] == 'h':
-					return self.popUpCellHorizontalStems
-				else:
+				if code[-1:] == 'h':
 					return self.popUpCellVerticalStems
+				else:
+					return self.popUpCellHorizontalStems
 			else:
 				return self.dummyStem
 			# except:
