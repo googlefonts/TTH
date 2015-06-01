@@ -34,8 +34,6 @@ class ProgramWindow(TTHWindow):
 		checkBox = CheckBoxListCell()
 
 		fm = tthTool.getFontModel()
-		verticalStemsList = fm.verticalStems.keys()
-		horizontalStemsList = fm.horizontalStems.keys()
 		popUpCellStems = PopUpButtonListCell([])
 
 		columnDescriptions = [
@@ -81,14 +79,17 @@ class ProgramWindow(TTHWindow):
 				cmd.set(key, stringOfBool(uiCmd[key]))
 		# Single and Double Links
 		if ('single' in code) or ('double' in code):
-			if 'stem' in uiCmd:
-				cmd.set('stem', uiCmd['stem'])
 			if uiCmd['round']:
 				cmd.set('round', 'true')
 				HF.delCommandAttrib(cmd, 'stem')
 				HF.delCommandAttrib(cmd, 'align')
 			else:
 				HF.delCommandAttrib(cmd, 'round')
+				if 'stem' in uiCmd:
+					if uiCmd['stem'] not in ['None', '']:
+						cmd.set('stem', uiCmd['stem'])
+					else:
+						HF.delCommandAttrib(cmd, 'stem')
 				# Here, restore the 'stem' and 'align' attribute for the command
 				# ...
 

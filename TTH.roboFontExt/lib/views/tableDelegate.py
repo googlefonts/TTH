@@ -15,13 +15,11 @@ class ProgramPanelTableDelegate(NSObject):
 		self.dummy.setImage_(None)
 
 		fm = tthTool.getFontModel()
-		horizontalStemsList = ['None'] + fm.horizontalStems.keys()
-		verticalStemsList = ['None'] + fm.verticalStems.keys()
+		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
+		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
 
-		self.popUpCellHorizontalStems = PopUpButtonListCell(horizontalStemsList)
-		self.popUpCellVerticalStems = PopUpButtonListCell(verticalStemsList)
-		self.dummyStem = PopUpButtonListCell([])
-		self.dummyStem.setEnabled_(False)
+		#self.dummyStem = PopUpButtonListCell([])
+		#self.dummyStem.setEnabled_(False)
 		
 		self.w = None
 		return self
@@ -36,22 +34,25 @@ class ProgramPanelTableDelegate(NSObject):
 			return cell
 		if (row < 0) or (row >= len(self.w.programList)):
 			return cell
-		code  = self.w.programList[row]['code']
+		uiCmd   = self.w.programList[row]
+		uiCode  = uiCmd['code']
 		colID = tableColumn.identifier()
 		if colID in ['delta', 'mono', 'gray']:
-			if 'delta' not in code:
+			if 'delta' not in uiCode:
 				return self.dummy
 		elif colID == 'round':
-			if not('single' in code or 'double' in code):
+			if not('single' in uiCode or 'double' in uiCode):
 				return self.dummy
 		elif colID == 'stem':
 			# trying to disable the cell when not relevant... example
 			# woth setBordered works but have to find the proper method
-			if 'single' in code or 'double' in code:
-				if code[-1] == 'h':
-					return self.popUpCellVerticalStems
+			cell.removeAllItems()
+			if ('single' in uiCode or 'double' in uiCode) and (not uiCmd['round']):
+				cell.setEnabled_(True)
+				if uiCode[-1] == 'h':
+					cell.addItemsWithTitles_(self.verticalStemsList)
 				else:
-					return self.popUpCellHorizontalStems
+					cell.addItemsWithTitles_(self.horizontalStemsList)
 			else:
-				return self.dummyStem
+				cell.setEnabled_(False)
 		return cell
