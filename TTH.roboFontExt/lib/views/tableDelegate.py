@@ -46,11 +46,18 @@ class ProgramPanelTableDelegate(NSObject):
 		elif colID == 'stem':
 			cell.removeAllItems()
 			if ('single' in uiCode or 'double' in uiCode) and (not uiCmd['round']):
-				cell.setEnabled_(True)
+				cell.setTransparent_(False)
 				if uiCode[-1] == 'h':
 					cell.addItemsWithTitles_(self.verticalStemsList)
 				else:
 					cell.addItemsWithTitles_(self.horizontalStemsList)
 			else:
-				cell.setEnabled_(False)
+				cell.setTransparent_(True)
+		elif colID == 'align':
+			cell.removeAllItems()
+			if ('single' in uiCode or 'double' in uiCode) and ((not uiCmd['round']) or (uiCmd['stem'] in ['', 'None'])):
+				cell.setTransparent_(False)
+				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
+			else:
+				cell.setTransparent_(True)
 		return cell

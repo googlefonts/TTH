@@ -11,6 +11,7 @@ defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
 defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 
 commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'stem', 'round', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
+alignNameToCode = {'Do Not Align to Grid': '', 'Closest Pixel Edge': 'round', 'Left/Bottom Edge': 'left', 'Right/Top Edge': 'right', 'Center of Pixel': 'center', 'Double Grid': 'double'}
 
 def stringOfBool(b):
 	if b: return 'true'
@@ -35,6 +36,7 @@ class ProgramWindow(TTHWindow):
 
 		fm = tthTool.getFontModel()
 		popUpCellStems = PopUpButtonListCell([])
+		popUpCellAlign = PopUpButtonListCell([])
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
@@ -43,7 +45,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "point",  "width": 100, "editable": False},
 			{"title": "point1", "width": 100, "editable": False},
 			{"title": "point2", "width": 100, "editable": False},
-			{"title": "align",  "width": 100, "editable": False},
+			{"title": "align",  "width": 100, "editable": True, "cell": popUpCellAlign, "binding": "selectedValue"},
 			{"title": "round",  "width":  80, "editable": True, "cell":checkBox},
 			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
@@ -88,10 +90,13 @@ class ProgramWindow(TTHWindow):
 				if 'stem' in uiCmd:
 					if uiCmd['stem'] not in ['None', '']:
 						cmd.set('stem', uiCmd['stem'])
+					elif uiCmd['stem'] == None:
+						for k, v in alignNameToCode.iteritems():
+							if uiCmd['align'] == k:
+								cmd.set('align', v)
 					else:
 						HF.delCommandAttrib(cmd, 'stem')
-				# Here, restore the 'stem' and 'align' attribute for the command
-				# ...
+
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
