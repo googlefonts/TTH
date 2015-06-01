@@ -46,7 +46,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "point1", "width": 100, "editable": False},
 			{"title": "point2", "width": 100, "editable": False},
 			{"title": "align",  "width": 170, "editable": True, "cell": popUpCellAlign, "binding": "selectedValue"},
-			{"title": "round",  "width":  80, "editable": True, "cell":checkBox},
+			{"title": "round",  "width":  35, "editable": True, "cell":checkBox},
 			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
