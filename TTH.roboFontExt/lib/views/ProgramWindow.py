@@ -12,6 +12,10 @@ defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 
 commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'stem', 'round', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
 
+def stringOfBool(b):
+	if b: return 'true'
+	else: return 'false'
+
 class ProgramWindow(TTHWindow):
 	def __init__(self):
 		super(ProgramWindow, self).__init__(defaultKeyProgramWindowPosSize, defaultKeyProgramWindowVisibility)
@@ -64,26 +68,29 @@ class ProgramWindow(TTHWindow):
 		self.window = win
 
 	def modifyContent(self, cmd, uiCmd):
-		keyTrueFalse = ['round', 'active', 'mono', 'gray']
-		for key in keyTrueFalse:
-			if uiCmd[key]:
-				cmd.set(key, 'true')
-				if key == 'round':
-					HF.delCommandAttrib(cmd, 'stem')
-					HF.delCommandAttrib(cmd, 'align')
+		cmd.set('active', stringOfBool(uiCmd['active']))
+		code = cmd.get('code')
+		# Delta commands
+		if 'delta' in code:
+			deltaUI = int(uiCmd['delta'])
+			delta   = int(cmd.get('delta'))
+			if deltaUI != delta:
+				if deltaUI != 0:
+					cmd.set('delta', str(deltaUI))
+				else:
+					uiCmd['delta'] = str(delta)
+			for key in ['mono', 'gray']:
+				cmd.set(key, stringOfBool(uiCmd[key]))
+		# Single and Double Links
+		if ('single' in code) or ('double' in code):
+			if uiCmd['round']:
+				cmd.set('round', 'true')
+				HF.delCommandAttrib(cmd, 'stem')
+				HF.delCommandAttrib(cmd, 'align')
 			else:
-				if key == 'round':
-					HF.delCommandAttrib(cmd, 'round')
-				else:
-					cmd.set(key, 'false')
-
-		if 'delta' in uiCmd and HF.commandHasAttrib(cmd, 'delta'):
-			deltaV = int(uiCmd['delta'])
-			if deltaV != int(cmd.get('delta')):
-				if uiCmd['delta'] != 0:
-					cmd.set('delta', str(deltaV))
-				else:
-					uiCmd['delta'] = int(cmd.get('delta'))
+				HF.delCommandAttrib(cmd, 'round')
+				# Here, restore the 'stem' and 'align' attribute for the command
+				# ...
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
