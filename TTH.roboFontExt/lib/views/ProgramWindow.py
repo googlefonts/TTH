@@ -74,11 +74,8 @@ class ProgramWindow(TTHWindow):
 		if 'delta' in code:
 			deltaUI = int(uiCmd['delta'])
 			delta   = int(cmd.get('delta'))
-			if deltaUI != delta:
-				if deltaUI != 0:
-					cmd.set('delta', str(deltaUI))
-				else:
-					uiCmd['delta'] = str(delta)
+			if deltaUI != delta and deltaUI != 0:
+				cmd.set('delta', str(deltaUI))
 			for key in ['mono', 'gray']:
 				cmd.set(key, stringOfBool(uiCmd[key]))
 		# Single and Double Links
@@ -126,3 +123,5 @@ class ProgramWindow(TTHWindow):
 			for key in ['round', 'active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
 		self.window.programList.set(uiCommands)
+
+if tthTool._printLoadings: print "ProgramWindow, ",
