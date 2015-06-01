@@ -56,11 +56,10 @@ class ProgramPanelTableDelegate(NSObject):
 					else:
 						cell.addItemsWithTitles_(self.horizontalStemsList)
 		elif colID == 'align':
-			cell.removeAllItems()
-			if not (('single' in uiCode or 'double' in uiCode) and ((not uiCmd['round']) or (uiCmd['stem'] in ['', 'None']))):
+			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode) ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
 				return self.dummyPopup
 			else:
-				cell.setTransparent_(False)
+				cell.removeAllItems()
 				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
 
 		return cell

@@ -45,7 +45,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "point",  "width": 100, "editable": False},
 			{"title": "point1", "width": 100, "editable": False},
 			{"title": "point2", "width": 100, "editable": False},
-			{"title": "align",  "width": 100, "editable": True, "cell": popUpCellAlign, "binding": "selectedValue"},
+			{"title": "align",  "width": 170, "editable": True, "cell": popUpCellAlign, "binding": "selectedValue"},
 			{"title": "round",  "width":  80, "editable": True, "cell":checkBox},
 			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
@@ -90,12 +90,21 @@ class ProgramWindow(TTHWindow):
 				if 'stem' in uiCmd:
 					if uiCmd['stem'] not in ['None', '']:
 						cmd.set('stem', uiCmd['stem'])
-					elif uiCmd['stem'] == None:
-						for k, v in alignNameToCode.iteritems():
-							if uiCmd['align'] == k:
-								cmd.set('align', v)
 					else:
 						HF.delCommandAttrib(cmd, 'stem')
+						for k, v in alignNameToCode.iteritems():
+							if uiCmd['align'] == k:
+								if v == '':
+									HF.delCommandAttrib(cmd, 'align')
+								else:
+									cmd.set('align', v)
+		if 'interpolate' in code:
+			for k, v in alignNameToCode.iteritems():
+				if uiCmd['align'] == k:
+					if v == '':
+						HF.delCommandAttrib(cmd, 'align')
+					else:
+						cmd.set('align', v)
 
 
 	def editCallback(self, sender):
@@ -131,6 +140,11 @@ class ProgramWindow(TTHWindow):
 					c[key] = ''
 			for key in ['round', 'active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
+
+			for k, v in alignNameToCode.iteritems():
+				if c['align'] == v:
+					c['align'] = k
+
 		self.window.programList.set(uiCommands)
 
 if tthTool._printLoadings: print "ProgramWindow, ",
