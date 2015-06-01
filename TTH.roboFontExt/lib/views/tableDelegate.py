@@ -18,8 +18,10 @@ class ProgramPanelTableDelegate(NSObject):
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
 		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
 
-		#self.dummyStem = PopUpButtonListCell([])
-		#self.dummyStem.setEnabled_(False)
+		self.dummyPopup = PopUpButtonListCell([])
+		self.dummyPopup.setTransparent_(True)
+		self.dummyPopup.setEnabled_(False)
+		self.dummyPopup.setMenu_(None)
 		
 		self.w = None
 		return self
@@ -44,20 +46,24 @@ class ProgramPanelTableDelegate(NSObject):
 			if not('single' in uiCode or 'double' in uiCode):
 				return self.dummy
 		elif colID == 'stem':
-			cell.removeAllItems()
-			if ('single' in uiCode or 'double' in uiCode) and (not uiCmd['round']):
-				cell.setTransparent_(False)
-				if uiCode[-1] == 'h':
-					cell.addItemsWithTitles_(self.verticalStemsList)
-				else:
-					cell.addItemsWithTitles_(self.horizontalStemsList)
+			if not ('single' in uiCode or 'double' in uiCode):
+				return self.dummyPopup
+			else:
+				cell.removeAllItems()
+				if not uiCmd['round']:
+					if uiCode[-1] == 'h':
+						cell.addItemsWithTitles_(self.verticalStemsList)
+					else:
+						cell.addItemsWithTitles_(self.horizontalStemsList)
+
 			else:
 				cell.setTransparent_(True)
 		elif colID == 'align':
 			cell.removeAllItems()
-			if ('single' in uiCode or 'double' in uiCode) and ((not uiCmd['round']) or (uiCmd['stem'] in ['', 'None'])):
+			if not (('single' in uiCode or 'double' in uiCode) and ((not uiCmd['round']) or (uiCmd['stem'] in ['', 'None']))):
+				return self.dummyPopup
+			else:
 				cell.setTransparent_(False)
 				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
-			else:
-				cell.setTransparent_(True)
+
 		return cell
