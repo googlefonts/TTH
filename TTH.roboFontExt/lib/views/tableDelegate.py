@@ -39,7 +39,7 @@ class ProgramPanelTableDelegate(NSObject):
 		code  = self.w.programList[row]['code']
 		colID = tableColumn.identifier()
 		if colID in ['delta', 'mono', 'gray']:
-			if 'delta' in code:
+			if 'delta' not in code:
 				return self.dummy
 		elif colID == 'round':
 			if not('single' in code or 'double' in code):
