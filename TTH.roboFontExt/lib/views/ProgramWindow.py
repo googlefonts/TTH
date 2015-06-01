@@ -64,15 +64,18 @@ class ProgramWindow(TTHWindow):
 		self.window = win
 
 	def modifyContent(self, cmd, uiCmd):
-		codeTrueFalse = ['round', 'active', 'mono', 'gray']
-		for code in codeTrueFalse:
-			if uiCmd[code]:
-				cmd.set(code, 'true')
-				if code == 'round':
+		keyTrueFalse = ['round', 'active', 'mono', 'gray']
+		for key in keyTrueFalse:
+			if uiCmd[key]:
+				cmd.set(key, 'true')
+				if key == 'round':
 					HF.delCommandAttrib(cmd, 'stem')
 					HF.delCommandAttrib(cmd, 'align')
-			elif code == 'round':
-				HF.delCommandAttrib(cmd, 'round')
+			else:
+				if key == 'round':
+					HF.delCommandAttrib(cmd, 'round')
+				else:
+					cmd.set(key, 'false')
 
 		if 'delta' in uiCmd and HF.commandHasAttrib(cmd, 'delta'):
 			deltaV = int(uiCmd['delta'])
