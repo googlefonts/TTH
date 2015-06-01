@@ -1,4 +1,7 @@
-from AppKit import NSObject, NSCell, NSCellDisabled
+from AppKit import NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
+from vanilla import *
+
+from models.TTHTool import uniqueInstance as tthTool
 
 class ProgramPanelTableDelegate(NSObject):
 
@@ -10,6 +13,15 @@ class ProgramPanelTableDelegate(NSObject):
 		if self is None: return None
 		self.dummy = NSCell.alloc().init()
 		self.dummy.setImage_(None)
+
+		fm = tthTool.getFontModel()
+		horizontalStemsList = ['None'] + fm.horizontalStems.keys()
+		verticalStemsList = ['None'] + fm.verticalStems.keys()
+
+		self.popUpCellHorizontalStems = PopUpButtonListCell(horizontalStemsList)
+		self.popUpCellVerticalStems = PopUpButtonListCell(verticalStemsList)
+		self.dummyStem = PopUpButtonListCell([])
+		self.dummyStem.setEnabled_(False)
 		
 		self.w = None
 		return self
@@ -37,11 +49,14 @@ class ProgramPanelTableDelegate(NSObject):
 		elif tableColumn.identifier() == 'stem' and self.w != None:
 			cell = tableColumn.dataCell()
 			# trying to disable the cell when not relevant... example woth setBordered works but have to find the proper method
-			try:
-				if 'single' in code or 'double' in code:
-					cell.setBordered_(True)
+			# try:
+			if 'single' in code or 'double' in code:
+				if code[:-1] == 'h':
+					return self.popUpCellHorizontalStems
 				else:
-					cell.setBordered_(False)
-			except:
-				pass
+					return self.popUpCellVerticalStems
+			else:
+				return self.dummyStem
+			# except:
+			# 	pass
 		return tableColumn.dataCell()

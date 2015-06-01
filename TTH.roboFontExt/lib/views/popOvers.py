@@ -518,7 +518,7 @@ class SinglePopover(TTHCommandPopover):
 		noRound = not HF.commandHasAttrib(self.cmd, 'round')
 		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
 		self.popover.StemTypePopUpButton.enable(noRound)
-		self.popover.alignmentTypePopUpButton.enable(noRound and noSem)
+		self.popover.alignmentTypePopUpButton.enable(noRound and noStem)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-35, 'point1', 'Move Point 1', ll, lw)

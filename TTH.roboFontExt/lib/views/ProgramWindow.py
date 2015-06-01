@@ -16,6 +16,7 @@ def stringOfBool(b):
 	if b: return 'true'
 	else: return 'false'
 
+
 class ProgramWindow(TTHWindow):
 	def __init__(self):
 		super(ProgramWindow, self).__init__(defaultKeyProgramWindowPosSize, defaultKeyProgramWindowVisibility)
