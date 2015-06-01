@@ -30,33 +30,28 @@ class ProgramPanelTableDelegate(NSObject):
 		self.w = w
 
 	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
-		if tableColumn == None: return None
-		code = self.w.programList[row]['code']
-		if tableColumn.identifier() in ['delta', 'mono', 'gray'] and self.w != None:
-			try:
-				if code[1:-1] != 'delta':
-					return self.dummy
-			except:
-				pass
-		if tableColumn.identifier() == 'round' and self.w != None:
-			try:
-				if 'single' in code or 'double' in code:
-					pass
-				else:
-					return self.dummy
-			except:
-				pass
-		elif tableColumn.identifier() == 'stem' and self.w != None:
-			cell = tableColumn.dataCell()
-			# trying to disable the cell when not relevant... example woth setBordered works but have to find the proper method
-			# try:
+		if tableColumn is None: return None
+		cell = tableColumn.dataCell()
+		if self.w is None:
+			return cell
+		if (row < 0) or (row >= len(self.w.programList)):
+			return cell
+		code  = self.w.programList[row]['code']
+		colID = tableColumn.identifier()
+		if colID in ['delta', 'mono', 'gray']:
+			if 'delta' in code:
+				return self.dummy
+		elif colID == 'round':
+			if not('single' in code or 'double' in code):
+				return self.dummy
+		elif colID == 'stem':
+			# trying to disable the cell when not relevant... example
+			# woth setBordered works but have to find the proper method
 			if 'single' in code or 'double' in code:
-				if code[-1:] == 'h':
+				if code[-1] == 'h':
 					return self.popUpCellVerticalStems
 				else:
 					return self.popUpCellHorizontalStems
 			else:
 				return self.dummyStem
-			# except:
-			# 	pass
-		return tableColumn.dataCell()
+		return cell
