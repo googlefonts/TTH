@@ -317,7 +317,7 @@ class StemView(object):
 		px4 = self.box.editTextStem4px.get()
 		px5 = self.box.editTextStem5px.get()
 		px6 = self.box.editTextStem6px.get()
-		uiStem = {'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
+		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
 		if not self.sanitizeStem(name, uiStem): return
 		self.lock = True
 		items = self.box.stemsList.get()
