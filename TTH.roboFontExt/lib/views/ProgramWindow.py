@@ -40,9 +40,10 @@ class ProgramWindow(TTHWindow):
 		comboBoxCellPPM1 = self.ComboBoxListCell(PPMSizesList)
 		comboBoxCellPPM2 = self.ComboBoxListCell(PPMSizesList)
 
-		fm = tthTool.getFontModel()
 		popUpCellStems = PopUpButtonListCell([])
 		popUpCellAlign = PopUpButtonListCell([])
+
+		popUpCellZones = PopUpButtonListCell([])
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
@@ -55,7 +56,7 @@ class ProgramWindow(TTHWindow):
 			{"title": "round",  "width":  35, "editable": True, "cell":checkBox},
 			{"title": "stem",   "width": 100, "editable": True, "cell": popUpCellStems, "binding": "selectedValue"},
 			#{"title": "stem",   "width": 100, "editable": False},
-			{"title": "zone",   "width": 100, "editable": False},
+			{"title": "zone",   "width": 100, "editable": True, "cell": popUpCellZones, "binding": "selectedValue"},
 			{"title": "delta",  "width": 120, "editable": True, "cell":sliderCell},
 			{"title": "ppm1",   "width":  50, "editable": True, "cell": comboBoxCellPPM1},
 			{"title": "ppm2",   "width":  50, "editable": True, "cell": comboBoxCellPPM2},
@@ -94,6 +95,9 @@ class ProgramWindow(TTHWindow):
 		fm = tthTool.getFontModel()
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
 		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
+		self.zonesList = ['None'] + fm.zones.keys()
+		self.topZones = list(zoneName for zoneName, zoneDict in fm.zones.iteritems() if zoneDict['top'] == True)
+		self.bottomZones = list(zoneName for zoneName, zoneDict in fm.zones.iteritems() if zoneDict['top'] == False)
 
 	def modifyContent(self, cmd, uiCmd):
 		cmd.set('active', stringOfBool(uiCmd['active']))
@@ -133,6 +137,26 @@ class ProgramWindow(TTHWindow):
 				HF.delCommandAttrib(cmd, 'align')
 			else:
 				cmd.set('align', alignCode)
+		# Align
+		if code in ['alignt', 'alignb', 'alignv']:
+			zoneCode = uiCmd['zone']
+			if zoneCode == 'None':
+				HF.delCommandAttrib(cmd, 'zone')
+				cmd.set('code', 'alignv')
+				cmd.set('align', 'round')
+			else:
+				cmd.set('zone', zoneCode)
+				HF.delCommandAttrib(cmd, 'align')
+				if uiCmd['zone'] in self.topZones:
+					cmd.set('code', 'alignt')
+				else:
+					cmd.set('code', 'alignb')
+		# Align H
+		if code == 'alignh':
+			alignCode = alignNameToCode.get(uiCmd['align'], '')
+			if alignCode != '':
+				cmd.set('align', alignCode)
+
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
@@ -173,6 +197,10 @@ class ProgramWindow(TTHWindow):
 			if alignName != None:
 				c['align'] = alignName
 
+			if c['code'] == 'alignv':
+				c['zone'] = 'None'
+
+
 		self.window.programList.set(uiCommands)
 
 # - - - - - - - - - - - - - - - - - - - - NSableViewDelegate stuff
@@ -206,15 +234,26 @@ class ProgramWindow(TTHWindow):
 				else:
 					return self.dummyPopup
 		elif colID == 'align':
-			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode) ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
+			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode or uiCode == 'alignv' or uiCode == 'alignh') ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
 				return self.dummyPopup
 			else:
 				cell.removeAllItems()
-				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
+				if uiCode not in ['alignv', 'alignh']:
+					cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
+				else:
+					cell.addItemsWithTitles_(['Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
+
 
 		elif colID in ['ppm1', 'ppm2']:
 			if not 'delta' in uiCode:
 				return self.dummyCombo
+
+		elif colID == 'zone':
+			if uiCode in ['alignt', 'alignb', 'alignv']:
+				pass
+				#return self.dummyPopUp
+			else:
+				cell.addItemsWithTitles_(self.zonesList)
 
 		return cell
 
