@@ -1,9 +1,9 @@
 from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell, PopUpButtonListCell
-from views import TTHWindow, tableDelegate
+from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
 from models.TTHTool import uniqueInstance as tthTool
-from AppKit import NSLeftMouseUpMask
 from commons import helperFunctions as HF
+from views import TTHWindow, tableDelegate
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -64,10 +64,25 @@ class ProgramWindow(TTHWindow):
 					showColumnTitles=True,
 					editCallback = self.editCallback)
 		tableView = win.programList.getNSTableView()
-		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().init()
-		self.delegate.setWindow(win)
+		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().initWithMaster(self)
 		tableView.setDelegate_(self.delegate)
 		self.window = win
+
+		# - - - - - - - - - - - NSableViewDelegate stuff
+		self.dummyCell = NSCell.alloc().init()
+		self.dummyCell.setImage_(None)
+
+		self.refreshFromFontModel()
+
+		self.dummyPopup = PopUpButtonListCell([])
+		self.dummyPopup.setTransparent_(True)
+		self.dummyPopup.setEnabled_(False)
+		self.dummyPopup.setMenu_(None)
+
+	def refreshFromFontModel(self):
+		fm = tthTool.getFontModel()
+		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
+		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
 
 	def modifyContent(self, cmd, uiCmd):
 		cmd.set('active', stringOfBool(uiCmd['active']))
@@ -127,8 +142,7 @@ class ProgramWindow(TTHWindow):
 		if gm is None:
 			self.window.programList.set([])
 			return
-		if self.delegate:
-			self.delegate.refreshFromFontModel()
+		self.refreshFromFontModel()
 		uiCommands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
 		for i, c in enumerate(uiCommands):
 			c['index'] = i
@@ -146,5 +160,44 @@ class ProgramWindow(TTHWindow):
 				c['align'] = alignName
 
 		self.window.programList.set(uiCommands)
+
+# - - - - - - - - - - - - - - - - - - - - NSableViewDelegate stuff
+
+	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
+		if tableColumn is None: return None
+		cell = tableColumn.dataCell()
+		if self.window is None:
+			return cell
+		if (row < 0) or (row >= len(self.window.programList)):
+			return cell
+		uiCmd   = self.window.programList[row]
+		uiCode  = uiCmd['code']
+		colID = tableColumn.identifier()
+		if colID in ['delta', 'mono', 'gray']:
+			if 'delta' not in uiCode:
+				return self.dummyCell
+		elif colID == 'round':
+			if not('single' in uiCode or 'double' in uiCode):
+				return self.dummyCell
+		elif colID == 'stem':
+			if not ('single' in uiCode or 'double' in uiCode):
+				return self.dummyPopup
+			else:
+				cell.removeAllItems()
+				if not uiCmd['round']:
+					if uiCode[-1] == 'h':
+						cell.addItemsWithTitles_(self.verticalStemsList)
+					else:
+						cell.addItemsWithTitles_(self.horizontalStemsList)
+				else:
+					return self.dummyPopup
+		elif colID == 'align':
+			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode) ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
+				return self.dummyPopup
+			else:
+				cell.removeAllItems()
+				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
+
+		return cell
 
 if tthTool._printLoadings: print "ProgramWindow, ",
