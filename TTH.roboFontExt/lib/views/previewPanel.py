@@ -52,7 +52,7 @@ class PreviewPanel(TTHWindow):
 				break
 		for coords, glyphName in self.clickableGlyphs.items():
 			if x >= coords[0] and x <= coords[2] and y >= coords[1] and y <= coords[3]:
-				SetCurrentGlyphByName(glyphName[0])
+				SetCurrentGlyphByName(glyphName)
 				break
 
 	def resizeView(self, posSize):
