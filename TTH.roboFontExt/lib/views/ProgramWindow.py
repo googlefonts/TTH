@@ -1,6 +1,6 @@
 from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell, PopUpButtonListCell
-from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
+from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString, NSComboBoxCell, NSMiniControlSize, NSColor
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from views import TTHWindow, tableDelegate
@@ -13,6 +13,8 @@ defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'stem', 'round', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
 alignNameToCode = {'Do Not Align to Grid': '', 'Closest Pixel Edge': 'round', 'Left/Bottom Edge': 'left', 'Right/Top Edge': 'right', 'Center of Pixel': 'center', 'Double Grid': 'double'}
 alignCodeToName = HF.invertedDictionary(alignNameToCode)
+
+PPMSizesList = [str(i) for i in range(8, 73)]
 
 def stringOfBool(b):
 	if b: return 'true'
@@ -35,6 +37,9 @@ class ProgramWindow(TTHWindow):
 
 		checkBox = CheckBoxListCell()
 
+		comboBoxCellPPM1 = self.ComboBoxListCell(PPMSizesList)
+		comboBoxCellPPM2 = self.ComboBoxListCell(PPMSizesList)
+
 		fm = tthTool.getFontModel()
 		popUpCellStems = PopUpButtonListCell([])
 		popUpCellAlign = PopUpButtonListCell([])
@@ -52,8 +57,8 @@ class ProgramWindow(TTHWindow):
 			#{"title": "stem",   "width": 100, "editable": False},
 			{"title": "zone",   "width": 100, "editable": False},
 			{"title": "delta",  "width": 120, "editable": True, "cell":sliderCell},
-			{"title": "ppm1",   "width":  50, "editable": False},
-			{"title": "ppm2",   "width":  50, "editable": False},
+			{"title": "ppm1",   "width":  50, "editable": True, "cell": comboBoxCellPPM1},
+			{"title": "ppm2",   "width":  50, "editable": True, "cell": comboBoxCellPPM2},
 			{"title": "mono",   "width":  35, "editable": True, "cell":checkBox},
 			{"title": "gray",   "width":  35, "editable": True, "cell":checkBox}
 			]
@@ -79,6 +84,12 @@ class ProgramWindow(TTHWindow):
 		self.dummyPopup.setEnabled_(False)
 		self.dummyPopup.setMenu_(None)
 
+		self.dummyCombo = self.ComboBoxListCell(['N/A'])
+		self.dummyCombo.setBezeled_(False)
+		self.dummyCombo.setBackgroundColor_(NSColor.grayColor())
+		self.dummyCombo.setEnabled_(False)
+
+
 	def refreshFromFontModel(self):
 		fm = tthTool.getFontModel()
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
@@ -95,6 +106,8 @@ class ProgramWindow(TTHWindow):
 				cmd.set('delta', str(deltaUI))
 			for key in ['mono', 'gray']:
 				cmd.set(key, stringOfBool(uiCmd[key]))
+			cmd.set('ppm1', str(uiCmd['ppm1']))
+			cmd.set('ppm2', str(uiCmd['ppm2']))
 		# Single and Double Links
 		if ('single' in code) or ('double' in code):
 			if uiCmd['round']:
@@ -113,6 +126,7 @@ class ProgramWindow(TTHWindow):
 							HF.delCommandAttrib(cmd, 'align')
 						else:
 							cmd.set('align', alignCode)
+		# Interpolate
 		if 'interpolate' in code:
 			alignCode = alignNameToCode.get(uiCmd['align'], '')
 			if alignCode == '':
@@ -198,6 +212,19 @@ class ProgramWindow(TTHWindow):
 				cell.removeAllItems()
 				cell.addItemsWithTitles_(['Do Not Align to Grid', 'Closest Pixel Edge', 'Left/Bottom Edge', 'Right/Top Edge', 'Center of Pixel', 'Double Grid'])
 
+		elif colID in ['ppm1', 'ppm2']:
+			if not 'delta' in uiCode:
+				return self.dummyCombo
+
 		return cell
+
+	def ComboBoxListCell(self, items):
+		cell = NSComboBoxCell.alloc().init()
+		cell.setControlSize_(NSMiniControlSize)
+		cell.setBordered_(False)
+		#cell.setItemHeight_(8.0)
+		cell.addItemsWithObjectValues_(items)
+		return cell
+
 
 if tthTool._printLoadings: print "ProgramWindow, ",
