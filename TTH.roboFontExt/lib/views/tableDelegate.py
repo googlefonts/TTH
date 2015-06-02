@@ -14,9 +14,7 @@ class ProgramPanelTableDelegate(NSObject):
 		self.dummy = NSCell.alloc().init()
 		self.dummy.setImage_(None)
 
-		fm = tthTool.getFontModel()
-		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
-		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
+		self.refreshFontModel()
 
 		self.dummyPopup = PopUpButtonListCell([])
 		self.dummyPopup.setTransparent_(True)
@@ -28,6 +26,11 @@ class ProgramPanelTableDelegate(NSObject):
 
 	def setWindow(self, w):
 		self.w = w
+
+	def refreshFontModel(self):
+		fm = tthTool.getFontModel()
+		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
+		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
 
 	def tableView_dataCellForTableColumn_row_(self, tableView, tableColumn, row):
 		if tableColumn is None: return None
@@ -50,6 +53,7 @@ class ProgramPanelTableDelegate(NSObject):
 				return self.dummyPopup
 			else:
 				cell.removeAllItems()
+				self.refreshFontModel()
 				if not uiCmd['round']:
 					if uiCode[-1] == 'h':
 						cell.addItemsWithTitles_(self.verticalStemsList)
