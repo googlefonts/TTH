@@ -55,6 +55,8 @@ class ProgramPanelTableDelegate(NSObject):
 						cell.addItemsWithTitles_(self.verticalStemsList)
 					else:
 						cell.addItemsWithTitles_(self.horizontalStemsList)
+				else:
+					return self.dummyPopup
 		elif colID == 'align':
 			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode) ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
 				return self.dummyPopup
