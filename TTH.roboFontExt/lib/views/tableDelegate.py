@@ -1,5 +1,6 @@
 from AppKit import NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
 from vanilla import *
+from models.TTHTool import uniqueInstance as tthTool
 
 class ProgramPanelTableDelegate(NSObject):
 
@@ -12,7 +13,7 @@ class ProgramPanelTableDelegate(NSObject):
 		self.dummy = NSCell.alloc().init()
 		self.dummy.setImage_(None)
 
-		self.refreshFontModel()
+		self.refreshFromFontModel()
 
 		self.dummyPopup = PopUpButtonListCell([])
 		self.dummyPopup.setTransparent_(True)
@@ -25,8 +26,7 @@ class ProgramPanelTableDelegate(NSObject):
 	def setWindow(self, w):
 		self.w = w
 
-	def refreshFontModel(self):
-		from models.TTHTool import uniqueInstance as tthTool
+	def refreshFromFontModel(self):
 		fm = tthTool.getFontModel()
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
 		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
@@ -52,7 +52,6 @@ class ProgramPanelTableDelegate(NSObject):
 				return self.dummyPopup
 			else:
 				cell.removeAllItems()
-				self.refreshFontModel()
 				if not uiCmd['round']:
 					if uiCode[-1] == 'h':
 						cell.addItemsWithTitles_(self.verticalStemsList)

@@ -12,6 +12,7 @@ defaultKeyProgramWindowVisibility = DefaultKeyStub + "programWindowVisibility"
 
 commandKeys = ['code', 'point', 'point1', 'point2', 'align', 'stem', 'round', 'zone', 'ppm1', 'ppm2', 'mono', 'gray', 'index', 'delta', 'active']
 alignNameToCode = {'Do Not Align to Grid': '', 'Closest Pixel Edge': 'round', 'Left/Bottom Edge': 'left', 'Right/Top Edge': 'right', 'Center of Pixel': 'center', 'Double Grid': 'double'}
+alignCodeToName = HF.invertedDictionary(alignNameToCode)
 
 def stringOfBool(b):
 	if b: return 'true'
@@ -92,20 +93,17 @@ class ProgramWindow(TTHWindow):
 						cmd.set('stem', uiCmd['stem'])
 					else:
 						HF.delCommandAttrib(cmd, 'stem')
-						for k, v in alignNameToCode.iteritems():
-							if uiCmd['align'] == k:
-								if v == '':
-									HF.delCommandAttrib(cmd, 'align')
-								else:
-									cmd.set('align', v)
+						alignCode = alignNameToCode.get(uiCmd['align'], '')
+						if alignCode == '':
+							HF.delCommandAttrib(cmd, 'align')
+						else:
+							cmd.set('align', alignCode)
 		if 'interpolate' in code:
-			for k, v in alignNameToCode.iteritems():
-				if uiCmd['align'] == k:
-					if v == '':
-						HF.delCommandAttrib(cmd, 'align')
-					else:
-						cmd.set('align', v)
-
+			alignCode = alignNameToCode.get(uiCmd['align'], '')
+			if alignCode == '':
+				HF.delCommandAttrib(cmd, 'align')
+			else:
+				cmd.set('align', alignCode)
 
 	def editCallback(self, sender):
 		selectList = sender.getSelection()
@@ -129,6 +127,8 @@ class ProgramWindow(TTHWindow):
 		if gm is None:
 			self.window.programList.set([])
 			return
+		if self.delegate:
+			self.delegate.refreshFromFontModel()
 		uiCommands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
 		for i, c in enumerate(uiCommands):
 			c['index'] = i
@@ -141,9 +141,9 @@ class ProgramWindow(TTHWindow):
 			for key in ['round', 'active', 'mono', 'gray']:
 				c[key] = (c[key] == 'true')
 
-			for k, v in alignNameToCode.iteritems():
-				if c['align'] == v:
-					c['align'] = k
+			alignName = alignCodeToName.get(c['align'], None)
+			if alignName != None:
+				c['align'] = alignName
 
 		self.window.programList.set(uiCommands)
 
