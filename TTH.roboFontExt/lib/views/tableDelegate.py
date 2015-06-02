@@ -1,8 +1,6 @@
 from AppKit import NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString
 from vanilla import *
 
-from models.TTHTool import uniqueInstance as tthTool
-
 class ProgramPanelTableDelegate(NSObject):
 
 	def init(self):
@@ -28,6 +26,7 @@ class ProgramPanelTableDelegate(NSObject):
 		self.w = w
 
 	def refreshFontModel(self):
+		from models.TTHTool import uniqueInstance as tthTool
 		fm = tthTool.getFontModel()
 		self.horizontalStemsList = ['None'] + fm.horizontalStems.keys()
 		self.verticalStemsList   = ['None'] + fm.verticalStems.keys()
