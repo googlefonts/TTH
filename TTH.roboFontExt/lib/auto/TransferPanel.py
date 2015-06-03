@@ -28,7 +28,7 @@ class TransferPanel(BaseWindowController):
 		gName = gm.RFGlyph.name
 
 		top = 70
-		win.glyphLabel = TextBox((10,top+2,80,22), 'Glyph Name:', alignment='left')
+		win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', alignment='left')
 		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
 
 		top = -50
@@ -56,7 +56,6 @@ class TransferPanel(BaseWindowController):
 		for f in AllFonts():
 			if f.info.postscriptFullName == name:
 				return tthTool.fontModelForFont(f)
-		#self.close(None)
 
 	def getFontModels(self):
 		sfpsname = self.fontsNames[self.window.srcFontsPopup.get()]

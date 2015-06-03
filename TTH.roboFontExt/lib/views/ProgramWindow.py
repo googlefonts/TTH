@@ -1,6 +1,6 @@
 from mojo.extensions import getExtensionDefault
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell, PopUpButtonListCell
-from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString, NSComboBoxCell, NSMiniControlSize, NSColor
+from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString, NSComboBoxCell, NSMiniControlSize, NSColor, NSTableViewSolidVerticalGridLineMask
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from views import TTHWindow, tableDelegate
@@ -70,6 +70,7 @@ class ProgramWindow(TTHWindow):
 					showColumnTitles=True,
 					editCallback = self.editCallback)
 		tableView = win.programList.getNSTableView()
+		tableView.setGridStyleMask_(NSTableViewSolidVerticalGridLineMask)
 		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().initWithMaster(self)
 		tableView.setDelegate_(self.delegate)
 		self.window = win
