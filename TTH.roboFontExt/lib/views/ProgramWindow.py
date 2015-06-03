@@ -86,9 +86,7 @@ class ProgramWindow(TTHWindow):
 		self.dummyPopup.setMenu_(None)
 
 		self.dummyCombo = self.ComboBoxListCell(['N/A'])
-		self.dummyCombo.setBezeled_(False)
 		self.dummyCombo.setBackgroundColor_(NSColor.grayColor())
-		self.dummyCombo.setBordered_(False)
 		self.dummyCombo.setEnabled_(False)
 
 
@@ -250,10 +248,7 @@ class ProgramWindow(TTHWindow):
 				return self.dummyCombo
 
 		elif colID == 'zone':
-			if uiCode in ['alignt', 'alignb', 'alignv']:
-				pass
-				#return self.dummyPopUp
-			else:
+			if uiCode not in ['alignt', 'alignb', 'alignv']:
 				cell.addItemsWithTitles_(self.zonesList)
 
 		return cell
