@@ -88,6 +88,7 @@ class ProgramWindow(TTHWindow):
 		self.dummyCombo = self.ComboBoxListCell(['N/A'])
 		self.dummyCombo.setBezeled_(False)
 		self.dummyCombo.setBackgroundColor_(NSColor.grayColor())
+		self.dummyCombo.setBordered_(False)
 		self.dummyCombo.setEnabled_(False)
 
 
@@ -261,7 +262,6 @@ class ProgramWindow(TTHWindow):
 		cell = NSComboBoxCell.alloc().init()
 		cell.setControlSize_(NSMiniControlSize)
 		cell.setBordered_(False)
-		#cell.setItemHeight_(8.0)
 		cell.addItemsWithObjectValues_(items)
 		return cell
 
