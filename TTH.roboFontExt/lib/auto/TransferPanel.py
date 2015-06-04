@@ -18,17 +18,17 @@ class TransferPanel(BaseWindowController):
 		self.fontsNames.sort()
 		top = 10
 		win.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source Font: ")
-		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames)
+		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, callback=self.updateUI)
 
 		top = 40
 		win.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target Font: ")
-		win.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames)
+		win.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, callback=self.updateUI)
 
 		gm = tthTool.getGlyphModel()
 		gName = gm.RFGlyph.name
 
 		top = 70
-		win.glyphLabel = TextBox((10,top+2,80,22), 'Glyph Name:', alignment='left')
+		win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', alignment='left')
 		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
 
 		top = -50
@@ -43,6 +43,8 @@ class TransferPanel(BaseWindowController):
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont)
 
 		self.window = win
+
+		self.updateUI(None)
 		win.open()
 
 	def __del__(self):
@@ -51,12 +53,18 @@ class TransferPanel(BaseWindowController):
 	def close(self, sender):
 		self.window.close()
 
+	def updateUI(self, sender):
+		sfm, tfm = self.getFontModels()
+		diffFont = not (sfm is tfm)
+		gName = self.window.glyphName.get()
+		okGlyph = (gName in sfm.f) and (gName in tfm.f)
+		self.window.transferGlyphButton.enable(diffFont and okGlyph)
+		self.window.transferFontButton.enable(diffFont)
+
 	def getFontModelForName(self, name):
-		print name
 		for f in AllFonts():
 			if f.info.postscriptFullName == name:
 				return tthTool.fontModelForFont(f)
-		#self.close(None)
 
 	def getFontModels(self):
 		sfpsname = self.fontsNames[self.window.srcFontsPopup.get()]
@@ -76,9 +84,10 @@ class TransferPanel(BaseWindowController):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
 		gName = self.window.glyphName.get()
-		sg = sfm.f[gName]
-		tg = tfm.f[gName]
-		matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg)
+		if (gName in sfm.f) and (gName in tfm.f):
+			sg = sfm.f[gName]
+			tg = tfm.f[gName]
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()
