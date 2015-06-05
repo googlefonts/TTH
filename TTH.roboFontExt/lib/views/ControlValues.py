@@ -406,8 +406,9 @@ class ControlValuesSheet(object):
 		self.bottomZoneView = ZoneView(w.zoneBox, height-260, "Bottom zones", 'bottom')
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
-		w.zoneBox.clearButton = Button((10, 382, 60, 20), 'Clear', sizeStyle='small', callback=self.clearZones)
-		w.zoneBox.autoZoneButton = Button((-80, 382, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
+		w.zoneBox.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearZones)
+		w.zoneBox.importPSBluesButton = Button((-180, -30, 100, 20), 'Import PS Blues', sizeStyle='small', callback=self.importPSBluesZones)
+		w.zoneBox.autoZoneButton = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		# STEM EDITOR
 		w.stemBox = Box((10, 19, -10, -40))
@@ -726,6 +727,13 @@ class ControlValuesSheet(object):
 		except ValueError:
 			value = 0
 		sender.set(value)
+
+	# - - - - - - - - - - - - - - - - - - - - - - - - IMPORT FROM POSTSCRIPT FUNCTIONS
+
+	def importPSBluesZones(self, sender):
+		fm = tthTool.getFontModel()
+		print fm.f.info.postscriptBlueValues
+		print fm.f.info.postscriptOtherBlues
 
 reload(tt)
 reload(commons)
