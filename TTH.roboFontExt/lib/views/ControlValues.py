@@ -407,7 +407,7 @@ class ControlValuesSheet(object):
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearZones)
-		w.zoneBox.importPSBluesButton = Button((-180, -30, 100, 20), 'Import PS Blues', sizeStyle='small', callback=self.importPSBluesZones)
+		w.zoneBox.importPSBluesButton = Button((80, -30, 110, 20), 'Import PS Blues', sizeStyle='small', callback=self.importPSBlues)
 		w.zoneBox.autoZoneButton = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		# STEM EDITOR
@@ -419,6 +419,7 @@ class ControlValuesSheet(object):
 		self.horizontalStemView.friend = self.verticalStemView
 		self.verticalStemView.friend = self.horizontalStemView
 		sb.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearStems)
+		sb.importPSStemsButton = Button((80, -30, 110, 20), 'Import PS Stems', sizeStyle='small', callback=self.importPSStems)
 		sb.tolLabel = TextBox((250, -26, 100, 20), 'Angle Tolerance:', sizeStyle='small', alignment='right')
 		tolStr = str(fm.angleTolerance)
 		sb.tol = EditText((350, -31, 40, 22), tolStr, continuous=False, callback=self.handleTolerance)
@@ -730,10 +731,15 @@ class ControlValuesSheet(object):
 
 	# - - - - - - - - - - - - - - - - - - - - - - - - IMPORT FROM POSTSCRIPT FUNCTIONS
 
-	def importPSBluesZones(self, sender):
+	def importPSBlues(self, sender):
 		fm = tthTool.getFontModel()
 		print fm.f.info.postscriptBlueValues
 		print fm.f.info.postscriptOtherBlues
+
+	def importPSStems(self, sender):
+		fm = tthTool.getFontModel()
+		print fm.f.info.postscriptStemSnapH
+		print fm.f.info.postscriptStemSnapV
 
 reload(tt)
 reload(commons)
