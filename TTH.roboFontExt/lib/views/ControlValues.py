@@ -740,9 +740,12 @@ class ControlValuesSheet(object):
 
 
 	def importPSBlues(self, sender):
+		self.clearZones(sender)
 		fm = tthTool.getFontModel()
 		PSBluesList = fm.f.info.postscriptBlueValues
 		PSOtherBluesList = fm.f.info.postscriptOtherBlues
+		assert (len(PSBluesList)%2 == 0), "odd number of postscriptBlueValues"
+		assert (len(PSOtherBluesList)%2 == 0), "odd number of postscriptOtherBlues"
 		topZones = []
 		bottomZones = []
 		countTop = 0
