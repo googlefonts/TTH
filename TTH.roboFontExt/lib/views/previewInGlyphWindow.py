@@ -73,13 +73,11 @@ class PreviewInGlyphWindow(NSView):
 		tr = self.fontModel.textRenderer
 		if not tr: return
 		if not tr.isOK(): return
-		ppem = self.tthTool.PPM_Size
-		glyphname = [glyph.name]
-		tr.set_cur_size(ppem)
-		tr.set_pen((80, 130))
-		scale = 170.0/ppem
 
 		# Draw main glyph enlarged in frame
+
+		glyphname = [glyph.name]
+
 		UPM = self.fontModel.UPM * 1.0
 		TRGlyph = tr.get_name_bitmap(glyphname[0])
 		if tr.render_mode != FT_RENDER_MODE_LCD:
@@ -92,12 +90,18 @@ class PreviewInGlyphWindow(NSView):
 			height = TRGlyph[0].bitmap.rows
 			left = TRGlyph[0].left
 			top = TRGlyph[0].top
-		
+
+		ppem = self.tthTool.PPM_Size
+		scale = 170.0/ppem
+
 		margin = 30
-		frameOriginX = 80+left*scale-margin
-		frameOriginY = 130-(height-top)*scale-margin
+		frameOriginX = 50
+		frameOriginY = 100
 		frameWidth = width*scale+2*margin
 		frameHeight = height*scale+2*margin
+
+		tr.set_cur_size(ppem)
+		tr.set_pen((frameOriginX-left*scale+margin, frameOriginY+(height-top)*scale+margin))
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((frameOriginX, frameOriginY), (frameWidth, frameHeight)), 3, 3)
