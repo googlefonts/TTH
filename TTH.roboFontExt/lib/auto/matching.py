@@ -109,7 +109,7 @@ def matchTwoGlyphs(fromG, toG):
 	return [(t, matchings[f][t][0]) for (f,t) in enumerate(bestPerm)]
 
 def prepareGlyph(g):
-	contours = auto.makeContours(g, 0.0)
+	noName, contours = auto.makeContours(g, 0.0)
 	xs = sum([[p.pos.x for p in c] for c in contours], [])
 	ys = sum([[p.pos.x for p in c] for c in contours], [])
 	lo = geom.Point(min(xs), min(ys))

@@ -24,7 +24,7 @@ def autoStems(fm, progressBar):
 	progressBar._nsObject.setMaxValue_(len(ascii_letters))
 	for name in ascii_letters:
 		g = font[name]
-		contours = auto.makeContours(g, ital)
+		noName, contours = auto.makeContours(g, ital)
 		(XStems, YStems) = makeStemsList(g, contours, ital, xBound, yBound, fm.angleTolerance, False)
 		XStems = [stem[2] for stem in XStems]
 		YStems = [stem[2] for stem in YStems]

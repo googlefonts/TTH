@@ -730,15 +730,7 @@ class ControlValuesSheet(object):
 			value = 0
 		sender.set(value)
 
-	# - - - - - - - - - - - - - - - - - - - - - - - - IMPORT FROM POSTSCRIPT FUNCTIONS
-	def importBluesToUIZone(self, top, position, width, name, view):
-		newZone = {'position': position, 'width': width }
-		newZone['top'] = (top)
-		items = view.box.zones_List.get()
-		items.append(view.uiZoneOfZone(newZone, name))
-		view.box.zones_List.set(items)
-		view.uiZoneNameCopy.append(name)
-
+# - - - - - - - - - - - - - - - - - - - - - - - - IMPORT FROM POSTSCRIPT FUNCTIONS
 
 	def importPSStemtoUIStems(self, name, width, view):
 		roundedStem = helperFunctions.roundbase(width, 20)
@@ -762,41 +754,6 @@ class ControlValuesSheet(object):
 		view.UIStems.append(uiStem.copy())
 		view.box.stemsList.set(items)
 
-
-	def importPSBluesCallback(self, sender):
-		self.clearZones(sender)
-		fm = tthTool.getFontModel()
-		PSBluesList = fm.f.info.postscriptBlueValues
-		PSOtherBluesList = fm.f.info.postscriptOtherBlues
-		assert (len(PSBluesList)%2 == 0), "odd number of postscriptBlueValues"
-		assert (len(PSOtherBluesList)%2 == 0), "odd number of postscriptOtherBlues"
-		topZones = []
-		bottomZones = []
-		countTop = 0
-		countBottom = 0
-		for i in range(len(PSBluesList)):
-			if not i % 2:
-				if PSBluesList[i] > 0:
-					position = min([PSBluesList[i], PSBluesList[i+1]])
-					width = abs(max([PSBluesList[i], PSBluesList[i+1]]) - position)
-					name = 't_' + str(countTop)
-					countTop += 1
-					self.importBluesToUIZone(True, position, width, name, self.topZoneView)
-				else:
-					position = max([PSBluesList[i], PSBluesList[i+1]])
-					width = abs(min([PSBluesList[i], PSBluesList[i+1]]) - position)
-					name = 'b_' + str(countBottom)
-					countBottom += 1
-					self.importBluesToUIZone(False, position, width, name, self.bottomZoneView)
-
-		for i in range(len(PSOtherBluesList)):
-			if not i % 2:
-				position = max([PSOtherBluesList[i], PSOtherBluesList[i+1]])
-				width = abs(min([PSOtherBluesList[i], PSOtherBluesList[i+1]]) - position)
-				name = 'b_' + str(countBottom)
-				countBottom += 1
-				self.importBluesToUIZone(False, position, width, name, self.bottomZoneView)
-
 	def importPSStemsCallback(self, sender):
 		self.clearStems(sender)
 		fm = tthTool.getFontModel()
@@ -811,6 +768,47 @@ class ControlValuesSheet(object):
 			view = self.verticalStemView
 			self.importPSStemtoUIStems(name, width, view)
 
+	def importPSBluesCallback(self, sender):
+		self.lock = True
+		self.clearZones(sender)
+		self.lock = False
+		fm = tthTool.getFontModel()
+		PSBluesList = fm.f.info.postscriptBlueValues
+		PSOtherBluesList = fm.f.info.postscriptOtherBlues
+		assert (len(PSBluesList)%2 == 0), "odd number of postscriptBlueValues"
+		assert (len(PSOtherBluesList)%2 == 0), "odd number of postscriptOtherBlues"
+		topItems = []
+		bottomItems = []
+		countTop = 0
+		countBottom = 0
+		i = 0
+		for i in range(len(PSOtherBluesList)/2):
+			j = 2*i
+			if PSOtherBluesList[j] > 0: # swap the sign so we are sure they are treated as bottom zones
+				PSOtherBluesList[j] = - PSOtherBluesList[j]
+				PSOtherBluesList[j+1] = - PSOtherBluesList[j+1]
+		PSBluesList.extend(PSOtherBluesList)
+		while i < len(PSBluesList):
+			a, b = PSBluesList[i], PSBluesList[i+1]
+			mini, maxi = min(a,b), max(a,b)
+			width = abs(a - b)
+			if a > 0:
+				name = 't_' + str(countTop)
+				countTop += 1
+				newZone = {'position': mini, 'width': width, 'top':True }
+				topItems.append(self.topZoneView.uiZoneOfZone(newZone, name))
+				self.topZoneView.uiZoneNameCopy.append(name)
+			else:
+				name = 'b_' + str(countBottom)
+				countBottom += 1
+				newZone = {'position': maxi, 'width': width, 'top':False }
+				bottomItems.append(self.bottomZoneView.uiZoneOfZone(newZone, name))
+				self.bottomZoneView.uiZoneNameCopy.append(name)
+			i += 2
+		self.lock = True
+		self.topZoneView.box.zones_List.set(topItems)
+		self.bottomZoneView.box.zones_List.set(bottomItems)
+		self.lock = False
 
 reload(tt)
 reload(commons)

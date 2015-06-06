@@ -516,9 +516,9 @@ class AutoHinting():
 
 		g = gm.RFGlyph
 		# compute additional contour information in custom structure
-		contours = auto.makeContours(g, self.ital)
+		noName, contours = auto.makeContours(g, self.ital)
 		if not contours:
-			return None, None
+			return noName, None, None
 
 		# Clear the hinting program for the current glyph
 		gm.clearCommands(doX, doY)
@@ -545,4 +545,4 @@ class AutoHinting():
 		else: ry = None
 		self.gm.compile(self.fm)
 		self.gm = None
-		return rx, ry
+		return noName, rx, ry

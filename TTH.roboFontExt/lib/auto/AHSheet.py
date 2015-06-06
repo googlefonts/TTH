@@ -78,6 +78,7 @@ class AutoHintingSheet(object):
 		reload(hint)
 		AH = hint.AutoHinting(fm)
 		TTHGlyph.silent = True
+		glyphsWithOnPointsWithNoName = []
 		counter = 0
 		maxCount = len(fm.f)
 		progress = self.w.progressBar
@@ -87,7 +88,9 @@ class AutoHintingSheet(object):
 		for g in fm.f:
 			hasG = fm.hasGlyphModelForGlyph(g)
 			gm = fm.glyphModelForGlyph(g)
-			AH.autohint(gm, doX, doY)
+			noName, rx, ry = AH.autohint(gm, doX, doY)
+			if noName:
+				glyphsWithOnPointsWithNoName.append(g.name)
 			if not hasG: fm.delGlyphModelForGlyph(g)
 			counter += 1
 			if counter == 30:
@@ -98,6 +101,8 @@ class AutoHintingSheet(object):
 		TTHGlyph.silent = False
 		tthTool.hintingProgramHasChanged(fm)
 		fm.f.performUndo()
+		if glyphsWithOnPointsWithNoName:
+			print "The following glyphs have ON points that had no name!\n"+' '.join(glyphsWithOnPointsWithNoName)
 	
 	def toleranceSliderCallback(self, sender):
 		value = int(sender.get())
