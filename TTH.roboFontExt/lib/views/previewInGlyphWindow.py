@@ -76,10 +76,10 @@ class PreviewInGlyphWindow(NSView):
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
-		frameWidth = gWidth*drawScale+2*margin
-		frameHeight = gHeight*drawScale+2*margin
-		print frameWidth, frameHeight
-		
+		frameWidth  = gWidth  * drawScale+2*margin
+		frameHeight = gHeight * drawScale+2*margin
+		#print ppem,gWidth,gHeight,frameWidth, frameHeight
+
 		tr.set_cur_size(ppem)
 		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
 

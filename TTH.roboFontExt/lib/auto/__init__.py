@@ -7,10 +7,10 @@ def contourSegmentIterator(g):
 			yield (cidx, sidx)
 
 class HintingData(object):
-	def __init__(self, on, typ, name, sh, ina, outa, csi, weight):
+	def __init__(self, on, typ, sh, ina, outa, csi, weight):
 		self.pos        = on
 		self.type       = typ
-		self.name       = name
+		#self.name       = name
 		self.shearedPos = sh
 		self.inTangent  = ina
 		self.outTangent = outa
@@ -41,12 +41,12 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	contourLen = len(contour)
 	segment = contour[sidx]
 	onPt = geom.makePoint(segment.onCurve)
-	if segment.onCurve.name != None:
-		#name = segment.onCurve.name.split(',')[0]
-		name = segment.onCurve.name
-	else:
-		print "WARNING ERROR: a segment's onCurve point has no name"
-		name = "noname"
+	#if segment.onCurve.name != None:
+	#	#name = segment.onCurve.name.split(',')[0]
+	#	name = segment.onCurve.name
+	#else:
+	#	print "WARNING ERROR: a segment's onCurve point has no name"
+	#	name = "noname"
 	nextOff = geom.makePoint(contour[(sidx+1) % contourLen].points[0])
 	nextOn = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
 	prevOn = geom.makePoint(contour[sidx-1].onCurve)
@@ -64,7 +64,8 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	nextOff = (nextOff-onPt).normalized()
 	prevOff = (onPt-prevOff).normalized()
 	idx = len(segment.points) - 1
-	return HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, (cidx, sidx, idx), weight)
+	#return HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, (cidx, sidx, idx), weight)
+	return HintingData(onPt, segment.type, shearedOn, prevOff, nextOff, (cidx, sidx, idx), weight)
 
 def makeContours(g, ital):
 	contours = [[] for c in g]
