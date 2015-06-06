@@ -556,6 +556,7 @@ class ControlValuesSheet(object):
 	def buttonRemoveRangeCallback(self, sender):
 		UI = self.w.gaspBox.gaspSettingsList
 		selection = UI.getSelection()
+		if selection == []: return
 		self.lock = True
 		UI.setSelection([])
 		items = self.w.gaspBox.gaspSettingsList.get()
