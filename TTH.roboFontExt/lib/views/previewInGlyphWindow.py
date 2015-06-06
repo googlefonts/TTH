@@ -58,16 +58,15 @@ class PreviewInGlyphWindow(NSView):
 
 		glyphname = [glyph.name]
 
-		UPM = self.fontModel.UPM * 1.0
 		TRGlyph = tr.get_name_bitmap(glyphname[0])
 		if tr.render_mode != FT_RENDER_MODE_LCD:
-			width = TRGlyph.bitmap.width
-			height = TRGlyph.bitmap.rows
+			gWidth = TRGlyph.bitmap.width
+			gHeight = TRGlyph.bitmap.rows
 			left = TRGlyph.left
 			top = TRGlyph.top
 		else:
-			width = TRGlyph[0].bitmap.width/3.0
-			height = TRGlyph[0].bitmap.rows
+			gWidth = TRGlyph[0].bitmap.width/3.0
+			gHeight = TRGlyph[0].bitmap.rows
 			left = TRGlyph[0].left
 			top = TRGlyph[0].top
 
@@ -77,11 +76,12 @@ class PreviewInGlyphWindow(NSView):
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
-		frameWidth = width*drawScale+2*margin
-		frameHeight = height*drawScale+2*margin
-
+		frameWidth = gWidth*drawScale+2*margin
+		frameHeight = gHeight*drawScale+2*margin
+		print frameWidth, frameHeight
+		
 		tr.set_cur_size(ppem)
-		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(height-top)*drawScale+margin))
+		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((frameOriginX, frameOriginY), (frameWidth, frameHeight)), 3, 3)
@@ -122,8 +122,7 @@ class PreviewInGlyphWindow(NSView):
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 40))
 			delta_pos = tr.render_named_glyph_list(glyphname)
-
-			
+	
 			if size == ppem: color = redColor
 			DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)
 			if size == ppem: color = blackColor
