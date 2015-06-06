@@ -19,26 +19,6 @@ class PreviewInGlyphWindow(NSView):
 		self.init()
 		self.fontModel = fontModel
 		self.tthTool = tthTool
-
-		# backPath = NSBezierPath.bezierPath()
-		# backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((30, 65), (190, 190)), 3, 3)
-		# self.backPath = backPath
-
-		# yAxisPath = NSBezierPath.bezierPath()
-		# yAxisPath.moveToPoint_((240, 85))
-		# yAxisPath.lineToPoint_((230, 75))
-		# yAxisPath.lineToPoint_((230, 245))
-		# yAxisPath.lineToPoint_((240, 235))
-		# yAxisPath.setLineWidth_(1)
-		# self.yAxisPath = yAxisPath
-
-		# xAxisPath = NSBezierPath.bezierPath()
-		# xAxisPath.moveToPoint_((50, 275))
-		# xAxisPath.lineToPoint_((40, 265))
-		# xAxisPath.lineToPoint_((210, 265))
-		# xAxisPath.lineToPoint_((200, 275))
-		# xAxisPath.setLineWidth_(1)
-		# self.xAxisPath = xAxisPath
 		return self
 
 	def die(self):
@@ -92,16 +72,16 @@ class PreviewInGlyphWindow(NSView):
 			top = TRGlyph[0].top
 
 		ppem = self.tthTool.PPM_Size
-		scale = 170.0/ppem
+		drawScale = 170.0/ppem
 
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
-		frameWidth = width*scale+2*margin
-		frameHeight = height*scale+2*margin
+		frameWidth = width*drawScale+2*margin
+		frameHeight = height*drawScale+2*margin
 
 		tr.set_cur_size(ppem)
-		tr.set_pen((frameOriginX-left*scale+margin, frameOriginY+(height-top)*scale+margin))
+		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(height-top)*drawScale+margin))
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((frameOriginX, frameOriginY), (frameWidth, frameHeight)), 3, 3)
@@ -129,7 +109,7 @@ class PreviewInGlyphWindow(NSView):
 		else:
 			self.xAxisPath.stroke()
 
-		delta_pos = tr.render_named_glyph_list(glyphname, scale, 1)
+		delta_pos = tr.render_named_glyph_list(glyphname, drawScale, 1)
 
 		# Draw waterfall of ppem for glyph
 		advance = 40
