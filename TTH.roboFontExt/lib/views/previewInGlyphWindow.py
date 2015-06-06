@@ -2,6 +2,7 @@
 
 from AppKit import NSView, NSBezierPath, NSColor
 from mojo.events import getActiveEventTool
+from freetype import FT_RENDER_MODE_LCD
 
 from drawing import utilities as DR
 
@@ -81,10 +82,17 @@ class PreviewInGlyphWindow(NSView):
 		# Draw main glyph enlarged in frame
 		UPM = self.fontModel.UPM * 1.0
 		TRGlyph = tr.get_name_bitmap(glyphname[0])
-		width = TRGlyph.bitmap.width
-		height = TRGlyph.bitmap.rows
-		left = TRGlyph.left
-		top = TRGlyph.top
+		if tr.render_mode != FT_RENDER_MODE_LCD:
+			width = TRGlyph.bitmap.width
+			height = TRGlyph.bitmap.rows
+			left = TRGlyph.left
+			top = TRGlyph.top
+		else:
+			width = TRGlyph[0].bitmap.width/3.0
+			height = TRGlyph[0].bitmap.rows
+			left = TRGlyph[0].left
+			top = TRGlyph[0].top
+		
 		margin = 10
 		frameOriginX = 40+left*scale-margin
 		frameOriginY = 110-(height-top)*scale-margin
