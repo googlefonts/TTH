@@ -407,7 +407,7 @@ class ControlValuesSheet(object):
 		self.topZoneView.friend = self.bottomZoneView
 		self.bottomZoneView.friend = self.topZoneView
 		w.zoneBox.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearZones)
-		w.zoneBox.importPSBluesButton = Button((80, -30, 110, 20), 'Import PS Blues', sizeStyle='small', callback=self.importPSBlues)
+		w.zoneBox.importPSBluesButton = Button((80, -30, 110, 20), 'Import PS Blues', sizeStyle='small', callback=self.importPSBluesCallback)
 		w.zoneBox.autoZoneButton = Button((-80, -30, 70, 20), "Detect", sizeStyle = "small", callback=self.autoZoneButtonCallback)
 
 		# STEM EDITOR
@@ -419,7 +419,7 @@ class ControlValuesSheet(object):
 		self.horizontalStemView.friend = self.verticalStemView
 		self.verticalStemView.friend = self.horizontalStemView
 		sb.clearButton = Button((10, -30, 60, 20), 'Clear', sizeStyle='small', callback=self.clearStems)
-		sb.importPSStemsButton = Button((80, -30, 110, 20), 'Import PS Stems', sizeStyle='small', callback=self.importPSStems)
+		sb.importPSStemsButton = Button((80, -30, 110, 20), 'Import PS Stems', sizeStyle='small', callback=self.importPSStemsCallback)
 		sb.tolLabel = TextBox((250, -26, 100, 20), 'Angle Tolerance:', sizeStyle='small', alignment='right')
 		tolStr = str(fm.angleTolerance)
 		sb.tol = EditText((350, -31, 40, 22), tolStr, continuous=False, callback=self.handleTolerance)
@@ -739,7 +739,30 @@ class ControlValuesSheet(object):
 		view.uiZoneNameCopy.append(name)
 
 
-	def importPSBlues(self, sender):
+	def importPSStemtoUIStems(self, name, width, view):
+		roundedStem = helperFunctions.roundbase(width, 20)
+		upm = float(tthTool.getFontModel().UPM)
+		if roundedStem != 0:
+			stemPitch = upm/roundedStem
+		else:
+			stemPitch = upm/width
+		px1 = str(0)
+		px2 = str(int(2*stemPitch))
+		px3 = str(int(3*stemPitch))
+		px4 = str(int(4*stemPitch))
+		px5 = str(int(5*stemPitch))
+		px6 = str(int(6*stemPitch))
+
+		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
+		if not view.sanitizeStem(name, uiStem): return
+
+		items = view.box.stemsList.get()
+		items.append(uiStem)
+		view.UIStems.append(uiStem.copy())
+		view.box.stemsList.set(items)
+
+
+	def importPSBluesCallback(self, sender):
 		self.clearZones(sender)
 		fm = tthTool.getFontModel()
 		PSBluesList = fm.f.info.postscriptBlueValues
@@ -773,10 +796,20 @@ class ControlValuesSheet(object):
 				countBottom += 1
 				self.importBluesToUIZone(False, position, width, name, self.bottomZoneView)
 
-	def importPSStems(self, sender):
+	def importPSStemsCallback(self, sender):
+		self.clearStems(sender)
 		fm = tthTool.getFontModel()
-		print fm.f.info.postscriptStemSnapH
-		print fm.f.info.postscriptStemSnapV
+		for s in fm.f.info.postscriptStemSnapH:
+			width = int(s)
+			name = 'Y_' + str(width)
+			view = self.horizontalStemView
+			self.importPSStemtoUIStems(name, width, view)
+		for s in fm.f.info.postscriptStemSnapV:
+			width = int(s)
+			name = 'X_' + str(width)
+			view = self.verticalStemView
+			self.importPSStemtoUIStems(name, width, view)
+
 
 reload(tt)
 reload(commons)
