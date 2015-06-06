@@ -76,7 +76,7 @@ class PreviewInGlyphWindow(NSView):
 		ppem = self.tthTool.PPM_Size
 		glyphname = [glyph.name]
 		tr.set_cur_size(ppem)
-		tr.set_pen((60, 130))
+		tr.set_pen((80, 130))
 		scale = 170.0/ppem
 
 		# Draw main glyph enlarged in frame
@@ -93,8 +93,8 @@ class PreviewInGlyphWindow(NSView):
 			left = TRGlyph[0].left
 			top = TRGlyph[0].top
 		
-		margin = 10
-		frameOriginX = 60+left*scale-margin
+		margin = 30
+		frameOriginX = 80+left*scale-margin
 		frameOriginY = 130-(height-top)*scale-margin
 		frameWidth = width*scale+2*margin
 		frameHeight = height*scale+2*margin
