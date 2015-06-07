@@ -265,13 +265,18 @@ class TTHGlyph(object):
 		else:
 			skipper = ['h']
 		for cmd in self.hintingCommands:
-			if cmd.get('code')[-1] in skipper: continue
+			code = cmd.get('code')
+			if code[-1] in skipper: continue
 			lPos, lSize = self.getLabelPosSize(cmd)
 			if lPos == None: continue
 			lo = lPos - 0.5 * lSize
 			hi = lPos + 0.5 * lSize
 			if lo.x <= clickPos.x <= hi.x and lo.y <= clickPos.y <= hi.y:
-				return cmd
+				if 'delta' in code:
+					if int(cmd.get('ppm1')) <= tthTool.PPM_Size <= int(cmd.get('ppm2')):
+						return cmd
+				else:
+					return cmd
 		return None
 
 	def getAssembly(self):

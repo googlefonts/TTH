@@ -613,6 +613,7 @@ class TTH_RF_EventTool(BaseEventTool):
 	def drawCommands(self, scale, simple):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		for c in gm.hintingCommands:
+			drawn = True
 			cmd_code = c.get('code')
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
@@ -629,6 +630,12 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
 				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
 					self.drawDelta(c, scale, gm, fm.getPitch(), simple)
+				else:
+					drawn = False
+			else:
+				drawn = False
+			if not drawn: # make sure we can't click on the command's label
+				self.setLabelPosSize(c, geom.Point(0.0, 0.0), geom.Point(-1.0, -1.0))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

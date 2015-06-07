@@ -66,7 +66,6 @@ class AutoHintingSheet(object):
 		hint.AutoHinting(fm).autohint(gm, doX, doY)
 		tthTool.hintingProgramHasChanged(fm)
 		gm.performUndo()
-		
 
 	def hintFont(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
@@ -103,7 +102,7 @@ class AutoHintingSheet(object):
 		fm.f.performUndo()
 		if glyphsWithOnPointsWithNoName:
 			print "The following glyphs have ON points that had no name!\n"+' '.join(glyphsWithOnPointsWithNoName)
-	
+
 	def toleranceSliderCallback(self, sender):
 		value = int(sender.get())
 		self.w.boxStemDetection.tolerance.set(value)
