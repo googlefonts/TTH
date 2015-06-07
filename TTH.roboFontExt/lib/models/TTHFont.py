@@ -322,11 +322,17 @@ class TTHFont(object):
 
 	@property
 	def ascent(self): # FIXME: obtain this value from VDMX
-		return self.f.info.openTypeOS2WinAscent
+		try:
+			return self.f.info.openTypeOS2WinAscent
+		except:
+			return None
 
 	@property
 	def descent(self): # FIXME: obtain this value from VDMX
-		return -self.f.info.openTypeOS2WinDescent
+		try:
+			return -self.f.info.openTypeOS2WinDescent
+		except:
+			return None
 
 	def regenTextRenderer(self):
 		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewMode)

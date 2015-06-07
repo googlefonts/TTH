@@ -58,6 +58,10 @@ class PreviewInGlyphWindow(NSView):
 
 		glyphname = [glyph.name]
 
+		ppem = self.tthTool.PPM_Size
+		drawScale = 170.0/ppem
+		tr.set_cur_size(ppem)
+
 		TRGlyph = tr.get_name_bitmap(glyphname[0])
 		if tr.render_mode != FT_RENDER_MODE_LCD:
 			gWidth = TRGlyph.bitmap.width
@@ -70,8 +74,6 @@ class PreviewInGlyphWindow(NSView):
 			left = TRGlyph[0].left
 			top = TRGlyph[0].top
 
-		ppem = self.tthTool.PPM_Size
-		drawScale = 170.0/ppem
 
 		margin = 30
 		frameOriginX = 50
@@ -80,7 +82,7 @@ class PreviewInGlyphWindow(NSView):
 		frameHeight = gHeight * drawScale+2*margin
 		#print ppem,gWidth,gHeight,frameWidth, frameHeight
 
-		tr.set_cur_size(ppem)
+		
 		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
 
 		backPath = NSBezierPath.bezierPath()
