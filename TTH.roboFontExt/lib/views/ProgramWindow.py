@@ -8,7 +8,7 @@ except:
 	TTHTableViewDashedHorizontalGridLineMask = 8
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
-from views import TTHWindow, tableDelegate
+from views import TTHWindow, tableDelegate, HiddenComboBoxCell
 
 from drawing import utilities
 
@@ -103,10 +103,7 @@ class ProgramWindow(TTHWindow):
 		self.dummyPopup.setEnabled_(False)
 		self.dummyPopup.setMenu_(None)
 
-		self.dummyCombo = self.ComboBoxListCell(['N/A'])
-		self.dummyCombo.setBackgroundColor_(NSColor.grayColor())
-		self.dummyCombo.setEnabled_(False)
-
+		self.dummyCombo = HiddenComboBoxCell.HiddenComboBoxListCell.alloc().init()
 
 	def refreshFromFontModel(self):
 		fm = tthTool.getFontModel()
@@ -267,8 +264,10 @@ class ProgramWindow(TTHWindow):
 				return self.dummyCombo
 
 		elif colID == 'zone':
-			if uiCode not in ['alignt', 'alignb', 'alignv']:
+			if uiCode in ['alignt', 'alignb', 'alignv']:
 				cell.addItemsWithTitles_(self.zonesList)
+			else:
+				return self.dummyPopup
 
 		elif colID == '#':
 			cell.setDrawsBackground_(True)
