@@ -4,7 +4,7 @@ In Refactor
 
 BUGS
 ------------------------------
-Fix popover bug when multiple deltas are on the same point at various ppem sizes
+Fix popover bug when multiple deltas are on the same point at various ppem sizes DONE
 
 Try to ensure consistent numbering of zones and stems after CVT editing
 and re-assemble glyphs whose stem/zone cvt-numbers have changed
@@ -19,6 +19,9 @@ HotKeys					 DONE
 ------------------------------
 Final Font Generation
 ------------------------------
+Implement other ways to Autohint
+• LSB-> <-RSB
+• LSB-> ->RSB
 
 ==============================
 For v0.7 :
