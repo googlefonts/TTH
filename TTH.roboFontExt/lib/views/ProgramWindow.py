@@ -10,6 +10,16 @@ from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from views import TTHWindow, tableDelegate
 
+from drawing import utilities
+
+alpha = 0.8
+kInterpolateColor = utilities.kInterpolateColor.colorWithAlphaComponent_(alpha)
+kLinkColor = utilities.kLinkColor.colorWithAlphaComponent_(alpha)
+kDoublinkColor = utilities.kDoublinkColor.colorWithAlphaComponent_(alpha)
+kDeltaColor = utilities.kDeltaColor.colorWithAlphaComponent_(alpha)
+kFinalDeltaColor = utilities.kFinalDeltaColor.colorWithAlphaComponent_(alpha)
+kArrowColor = utilities.kArrowColor.colorWithAlphaComponent_(alpha)
+
 DefaultKeyStub = "com.sansplomb.TTH."
 
 defaultKeyProgramWindowPosSize = DefaultKeyStub + "programWindowPosSize"
@@ -256,6 +266,23 @@ class ProgramWindow(TTHWindow):
 		elif colID == 'zone':
 			if uiCode not in ['alignt', 'alignb', 'alignv']:
 				cell.addItemsWithTitles_(self.zonesList)
+
+		elif colID == 'code':
+			cell.setDrawsBackground_(True)
+			if 'interpolate' in uiCode:
+				cell.setBackgroundColor_(kInterpolateColor)
+			elif 'single' in uiCode:
+				cell.setBackgroundColor_(kLinkColor)
+			elif 'double' in uiCode:
+				cell.setBackgroundColor_(kDoublinkColor)
+			elif 'mdelta' in uiCode:
+				cell.setBackgroundColor_(kDeltaColor)
+			elif 'fdelta' in uiCode:
+				cell.setBackgroundColor_(kFinalDeltaColor)
+			elif 'align' in uiCode:
+				cell.setBackgroundColor_(kArrowColor)
+			else:
+				cell.setDrawsBackground_(False)
 
 		return cell
 
