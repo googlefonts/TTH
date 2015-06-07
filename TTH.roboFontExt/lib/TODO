@@ -2,6 +2,10 @@
 In Refactor
 ==============================
 
+BUGS
+------------------------------
+Fix popover bug when multiple deltas are on the same point at various ppem sizes
+
 Try to ensure consistent numbering of zones and stems after CVT editing
 and re-assemble glyphs whose stem/zone cvt-numbers have changed
 ------------------------------
