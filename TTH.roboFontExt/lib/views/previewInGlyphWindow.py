@@ -56,33 +56,26 @@ class PreviewInGlyphWindow(NSView):
 
 		# Draw main glyph enlarged in frame
 
-		glyphname = [glyph.name]
-
 		ppem = self.tthTool.PPM_Size
 		drawScale = 170.0/ppem
 		tr.set_cur_size(ppem)
 
-		TRGlyph = tr.get_name_bitmap(glyphname[0])
-		if tr.render_mode != FT_RENDER_MODE_LCD:
-			gWidth = TRGlyph.bitmap.width
-			gHeight = TRGlyph.bitmap.rows
-			left = TRGlyph.left
-			top = TRGlyph.top
+		TRGlyph = tr.get_name_bitmap(glyph.name)
+		if tr.render_mode == FT_RENDER_MODE_LCD:
+			TRGlyph = TRGlyph[0]
+			gWidth = TRGlyph.bitmap.width/3.0
 		else:
-			gWidth = TRGlyph[0].bitmap.width/3.0
-			gHeight = TRGlyph[0].bitmap.rows
-			left = TRGlyph[0].left
-			top = TRGlyph[0].top
-
+			gWidth = TRGlyph.bitmap.width
+		gHeight = TRGlyph.bitmap.rows
+		left = TRGlyph.left
+		top = TRGlyph.top
 
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
 		frameWidth  = gWidth  * drawScale+2*margin
 		frameHeight = gHeight * drawScale+2*margin
-		#print ppem,gWidth,gHeight,frameWidth, frameHeight
 
-		
 		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
 
 		backPath = NSBezierPath.bezierPath()
@@ -91,26 +84,24 @@ class PreviewInGlyphWindow(NSView):
 		backPath.fill()
 
 		blackColor.set()
-		yAxisPath = NSBezierPath.bezierPath()
-		yAxisPath.moveToPoint_((frameOriginX+frameWidth+10, frameOriginY +10))
-		yAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY))
-		yAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY+frameHeight))
-		yAxisPath.lineToPoint_((frameOriginX+frameWidth+10, frameOriginY+frameHeight-10))
-		yAxisPath.setLineWidth_(1)
-		self.yAxisPath = yAxisPath
-
-		xAxisPath = NSBezierPath.bezierPath()
-		xAxisPath.moveToPoint_((frameOriginX+10, frameOriginY+frameHeight+10))
-		xAxisPath.lineToPoint_((frameOriginX, frameOriginY+frameHeight))
-		xAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY+frameHeight))
-		xAxisPath.lineToPoint_((frameOriginX+frameWidth-10, frameOriginY+frameHeight+10))
-		xAxisPath.setLineWidth_(1)
-		self.xAxisPath = xAxisPath
 		if self.tthTool.selectedAxis == 'Y':
-			self.yAxisPath.stroke()
+			yAxisPath = NSBezierPath.bezierPath()
+			yAxisPath.moveToPoint_((frameOriginX+frameWidth+10, frameOriginY +10))
+			yAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY))
+			yAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY+frameHeight))
+			yAxisPath.lineToPoint_((frameOriginX+frameWidth+10, frameOriginY+frameHeight-10))
+			yAxisPath.setLineWidth_(1)
+			yAxisPath.stroke()
 		else:
-			self.xAxisPath.stroke()
+			xAxisPath = NSBezierPath.bezierPath()
+			xAxisPath.moveToPoint_((frameOriginX+10, frameOriginY+frameHeight+10))
+			xAxisPath.lineToPoint_((frameOriginX, frameOriginY+frameHeight))
+			xAxisPath.lineToPoint_((frameOriginX+frameWidth, frameOriginY+frameHeight))
+			xAxisPath.lineToPoint_((frameOriginX+frameWidth-10, frameOriginY+frameHeight+10))
+			xAxisPath.setLineWidth_(1)
+			xAxisPath.stroke()
 
+		glyphname = [glyph.name]
 		delta_pos = tr.render_named_glyph_list(glyphname, drawScale, 1)
 
 		# Draw waterfall of ppem for glyph
@@ -124,12 +115,8 @@ class PreviewInGlyphWindow(NSView):
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 40))
 			delta_pos = tr.render_named_glyph_list(glyphname)
-	
+
 			if size == ppem: color = redColor
 			DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)
 			if size == ppem: color = blackColor
 			advance += delta_pos[0] + 5
-
-		
-
-		
