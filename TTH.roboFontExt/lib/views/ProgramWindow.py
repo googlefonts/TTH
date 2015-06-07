@@ -12,13 +12,14 @@ from views import TTHWindow, tableDelegate
 
 from drawing import utilities
 
-alpha = 0.8
+alpha = 1
 kInterpolateColor = utilities.kInterpolateColor.colorWithAlphaComponent_(alpha)
 kLinkColor = utilities.kLinkColor.colorWithAlphaComponent_(alpha)
 kDoublinkColor = utilities.kDoublinkColor.colorWithAlphaComponent_(alpha)
 kDeltaColor = utilities.kDeltaColor.colorWithAlphaComponent_(alpha)
 kFinalDeltaColor = utilities.kFinalDeltaColor.colorWithAlphaComponent_(alpha)
 kArrowColor = utilities.kArrowColor.colorWithAlphaComponent_(alpha)
+kStemColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, alpha)
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -62,6 +63,7 @@ class ProgramWindow(TTHWindow):
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
+			{"title": "#",  "width":  17, "editable": False},
 			{"title": "active", "width":  35, "editable": True, "cell":checkBox},
 			{"title": "code",   "width": 100, "editable": False},
 			{"title": "point",  "width": 100, "editable": False},
@@ -199,6 +201,7 @@ class ProgramWindow(TTHWindow):
 		uiCommands =  [dict(c.attrib) for c in gm.sortedHintingCommands]
 		for i, c in enumerate(uiCommands):
 			c['index'] = i
+			c['#'] = ''
 			if 'single' in c['code'] or 'double' in c['code']:
 				if not 'stem' in c:
 					c['stem'] = 'None'
@@ -267,12 +270,16 @@ class ProgramWindow(TTHWindow):
 			if uiCode not in ['alignt', 'alignb', 'alignv']:
 				cell.addItemsWithTitles_(self.zonesList)
 
-		elif colID == 'code':
+		elif colID == '#':
 			cell.setDrawsBackground_(True)
+			cell.setBezeled_(True)
 			if 'interpolate' in uiCode:
 				cell.setBackgroundColor_(kInterpolateColor)
 			elif 'single' in uiCode:
-				cell.setBackgroundColor_(kLinkColor)
+				if uiCmd['stem'] == 'None':
+					cell.setBackgroundColor_(kLinkColor)
+				else:
+					cell.setBackgroundColor_(kStemColor)
 			elif 'double' in uiCode:
 				cell.setBackgroundColor_(kDoublinkColor)
 			elif 'mdelta' in uiCode:
@@ -283,6 +290,7 @@ class ProgramWindow(TTHWindow):
 				cell.setBackgroundColor_(kArrowColor)
 			else:
 				cell.setDrawsBackground_(False)
+				cell.setBezeled_(False)
 
 		return cell
 
