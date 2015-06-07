@@ -1,5 +1,5 @@
-from AppKit import NSComboBoxCell, NSView
+from AppKit import NSComboBoxCell
 
 class HiddenComboBoxListCell(NSComboBoxCell):
 	def drawWithFrame_inView_(self, frame, view):
-		NSView.alloc().init()
+		pass
