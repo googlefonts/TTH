@@ -58,11 +58,12 @@ class AutoHintingSheet(object):
 	def hintGlyph(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
-		gm.prepareUndo('AutoHinting Glyph')
 		doX = self.w.boxHintingAxis.hintXBox.get()
 		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
 		reload(hint)
+
+		gm.prepareUndo('AutoHinting Glyph')
 		hint.AutoHinting(fm).autohint(gm, doX, doY)
 		tthTool.hintingProgramHasChanged(fm)
 		gm.performUndo()
@@ -70,11 +71,11 @@ class AutoHintingSheet(object):
 	def hintFont(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
-		fm.f.prepareUndo('AutoHinting Font')
 		doX = self.w.boxHintingAxis.hintXBox.get()
 		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
 		reload(hint)
+		fm.f.prepareUndo('AutoHinting Font')
 		AH = hint.AutoHinting(fm)
 		TTHGlyph.silent = True
 		glyphsWithOnPointsWithNoName = []
