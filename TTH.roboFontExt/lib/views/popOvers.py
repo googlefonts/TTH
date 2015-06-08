@@ -122,7 +122,7 @@ class TTHCommandPopover(object):
 		popo = self.popover
 		popo.stateCheckBox = CheckBox((-23, 8, 22, 22), "", callback=self.stateCheckBoxCallback, sizeStyle='small')
 		popo.stateCheckBox.set(self.cmd.get('active') == 'true')
-		popo.stateTitle = TextBox((10, 14, -30, 20), 'Active', sizeStyle='small')
+		popo.stateTitle = TextBox((10, 14, -30, 17), 'Active', sizeStyle='small')
 
 	def stateCheckBoxCallback(self, senderCheckBox):
 		if senderCheckBox.get() == 0:
