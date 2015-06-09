@@ -6,7 +6,7 @@
 	<array>
 		<dict>
 			<key>path</key>
-			<string>auto/TransferPanel.py</string>
+			<string>commons/OpenAutoMatch.py</string>
 			<key>preferredName</key>
 			<string>Auto-Match</string>
 			<key>shortKey</key>
