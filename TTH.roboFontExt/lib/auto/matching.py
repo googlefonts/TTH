@@ -133,8 +133,6 @@ def prepareGlyph(g):
 
 def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
 	if srcOffs == []: return {}
-	srcContour = srcG[srcCs[0]]
-	tgtContour = tgtG[tgtCs[0]]
 	n = len(tgtOffContour)
 	i = tgtSeg0
 	tgtOffs = []
@@ -142,7 +140,9 @@ def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
 		tgtOffs.extend(tgtOffContour[i])
 		i = (i+1) % n
 	if tgtOffs == []: return {}
-	permut, matchQuality = matchTwoContours(srcOffs, tgtOffs, offScore)
+	n = len(tgtOffs)
+	table = [[None for x in xrange(n)] for y in srcOffs]
+	permut, matchQuality = matchTwoContours(srcOffs, tgtOffs, table, offScore)
 	return dict((srcOffs[s][0], tgtOffs[t][0]) for (s,t) in enumerate(permut))
 
 class PointNameMatcher(object):
