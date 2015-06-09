@@ -51,7 +51,9 @@ class TransferPanel(BaseWindowController):
 		self.window = None
 
 	def close(self, sender):
-		self.window.close()
+		if self.window:
+			self.window.close()
+			self.window = None
 
 	def updateUI(self, sender):
 		sfm, tfm = self.getFontModels()
@@ -95,5 +97,5 @@ class TransferPanel(BaseWindowController):
 		self.window.progressBar._nsObject.setMaxValue_(len(sfm.f))
 		self.window.progressBar.set(0)
 		self.window.progressBar.show(1)
-		matching.transfer(sfm, tfm, self.window.progressBar)
+		matching.transferHintsBetweenTwoFonts(sfm, tfm, self.window.progressBar)
 		self.window.progressBar.show(0)

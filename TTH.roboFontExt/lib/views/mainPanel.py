@@ -35,6 +35,8 @@ defaultKeyProgramWindowVisibility  = DefaultKeyStub + "programWindowVisibility"
 defaultKeyPreviewWindowVisibility  = DefaultKeyStub + "previewWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
+comSansPlombTransferPanel = None
+
 class MainPanel(BaseWindowController):
 	def __init__(self):
 		BaseWindowController.__init__(self)
@@ -268,6 +270,9 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 2:
 			reload(TransferPanel)
 			global comSansPlombTransferPanel
+			if comSansPlombTransferPanel != None:
+				comSansPlombTransferPanel.close(None)
+				comSansPlombTransferPanel = None
 			comSansPlombTransferPanel = TransferPanel.TransferPanel()
 		fm = tthTool.getFontModel()
 		if gearOption in [4,5,6]:
