@@ -515,7 +515,6 @@ class AutoHinting():
 			self.ital = 0
 
 		g = gm.RFGlyph
-		gName = g.name
 		# compute additional contour information in custom structure
 		noName, contours = auto.makeContours(g, self.ital)
 		if not contours:

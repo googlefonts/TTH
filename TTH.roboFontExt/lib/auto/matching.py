@@ -1,4 +1,5 @@
 import math
+import xml.etree.ElementTree as ET
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from drawing import geom
@@ -68,8 +69,8 @@ def permutationsOf(elements):
 			yield perm+[elements[i]]
 
 def matchTwoGlyphs(fromG, toG):
-	nbContours = len(fromG), len(toG)
-	if nbContours[0] != nbContours[1]:
+	nbFromContours, nbToContours = len(fromG), len(toG)
+	if nbFromContours != nbToContours:
 		return None
 
 	# A cache of matchings over pairs of contours
@@ -86,12 +87,12 @@ def matchTwoGlyphs(fromG, toG):
 			matchings[f][t] = permutedMatches[i]
 		return matchings[f][t]
 
-	bestPerm = range(nbContours[1])
-	bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbContours[0]))
-	for perm in permutationsOf(range(nbContours[1])):
+	bestPerm = range(nbToContours)
+	bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbFromContours))
+	for perm in permutationsOf(range(nbToContours)):
 		score = 0.0
 		badMatch = False
-		for i in xrange(nbContours[0]):
+		for i in xrange(nbFromContours):
 			score = score + getMatching(i, perm[i])[1]
 			if score >= bestScore:
 				badMatch = True
@@ -110,32 +111,47 @@ def matchTwoGlyphs(fromG, toG):
 
 def prepareGlyph(g):
 	noName, contours = auto.makeContours(g, 0.0)
-	xs = sum([[p.pos.x for p in c] for c in contours], [])
-	ys = sum([[p.pos.x for p in c] for c in contours], [])
+	xs = sum([[float(p.pos.x) for p in c] for c in contours], [])
+	ys = sum([[float(p.pos.y) for p in c] for c in contours], [])
 	lo = geom.Point(min(xs), min(ys))
 	hi = geom.Point(max(xs), max(ys))
 	dim = hi - lo
 	# Rescale the glyph to fit in a square box from (0,0) to (1000,1000)
+	offs = []
 	for c in contours:
+		contourOffs = []
 		for p in c:
 			newpos = (p.pos - lo)
-			p.pos = geom.Point(newpos.x * 1000.0 / dim.x, newpos.y * 1000.0 / dim.y)
-	return contours
+			p.pos = 1000.0 * geom.Point(newpos.x / dim.x, newpos.y / dim.y)
+			csi = p.csi
+			contourOffs.append([(o.name, 1000.0*geom.Point(o.x/dim.x, o.y/dim.y)) for o in g[csi[0]][csi[1]].offCurve])
+		offs.append(contourOffs)
+	return contours, offs
 
-class PointMatcher(object):
-	def __init__(self, g0, g1):
+def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
+	srcContour = srcG[srcCs[0]]
+	tgtContour = tgtG[tgtCs[0]]
+	n = len(tgtOffContour)
+	if tgtSeg0 == tgtSeg1:
+		return {}
+	i = (tgtSeg0+1) % n
+
+class PointNameMatcher(object):
+	def __init__(self, g0, g1, withOff=False):
 		# g0 and g1 are two objects of class 'Glyph'
-		fromG = prepareGlyph(g0)
-		toG = prepareGlyph(g1)
-		matchings = matchTwoGlyphs(fromG, toG)
+		srcG, srcOffs = prepareGlyph(g0)
+		tgtG, tgtOffs = prepareGlyph(g1)
+		matchings = matchTwoGlyphs(srcG, tgtG)
 		m = {'lsb':'lsb', 'rsb':'rsb'}
 		self._map = m
 		if matchings == None: return
 		for f, (t, perm) in enumerate(matchings):
-			for fromSeg, toSeg in enumerate(perm):
-				fName = fromG[f][fromSeg].name
-				tName = toG[t][toSeg].name
+			for srcSeg, tgtSeg in enumerate(perm):
+				fName = srcG[f][srcSeg].name
+				tName = tgtG[t][tgtSeg].name
 				m[fName] = tName
+				if not withOff: continue
+				#m.extend(getOffMatching(srcOffs[f][srcSeg], tgtOffs[t], perm[srcSeg-1], tgtSeg))
 	def map(self, fName):
 		try:
 			return self._map[fName]
@@ -154,7 +170,7 @@ def getCmdPoint(glyph, name):
 		break
 	return pt
 
-def transfer(sourceFM, targetFM, progress=None):
+def transferHintsBetweenTwoFonts(sourceFM, targetFM, progress=None):
 	sourceFont = sourceFM.f
 	targetFont = targetFM.f
 	msg = []
@@ -177,8 +193,8 @@ def transfer(sourceFM, targetFM, progress=None):
 	if msg:
 		print '\n'.join(msg)
 
-def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph):
-	pm = PointMatcher(sourceGlyph, targetGlyph)
+def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False):
+	pm = PointNameMatcher(sourceGlyph, targetGlyph, transferDeltas)
 	hasSGM   = sourceFM.hasGlyphModelForGlyph(sourceGlyph)
 	sourceGM = sourceFM.glyphModelForGlyph(sourceGlyph)
 	hasTGM   = targetFM.hasGlyphModelForGlyph(targetGlyph)
@@ -192,10 +208,11 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph)
 	getWidth = auto.hint.getWidthOfTwoPointsStem
 	targetGM.clearCommands(True, True)
 	for inCmd in inCommands:
-		cmd = dict(inCmd) # copy the commands before modifying it
+		cmd = ET.Element('ttc')
+		cmd.attrib = dict(inCmd.attrib) # copy the commands before modifying it
 		#print "===================================="
 		#print cmd
-		if 'delta' in cmd.get('code'):
+		if (not transferDeltas) and ('delta' in cmd.get('code')):
 			continue
 		for k in ['point', 'point1', 'point2']:
 			if HF.commandHasAttrib(cmd, k):
