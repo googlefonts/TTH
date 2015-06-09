@@ -46,7 +46,6 @@ class TransferPanel(BaseWindowController):
 		self.updateUI(None)
 
 		win.open()
-		print "window opened"
 
 	def __del__(self):
 		self.window = None
