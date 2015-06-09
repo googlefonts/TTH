@@ -6,13 +6,16 @@ from models.TTHTool import uniqueInstance as tthTool
 from auto import matching
 reload(matching)
 
+def displayName(f):
+	return f.info.familyName+'-'+f.info.styleName
+
 class TransferPanel(BaseWindowController):
 	def __init__(self):
 		super(TransferPanel, self).__init__()
 		panelSize = 320, 170
 		ps = 20, 20, panelSize[0], panelSize[1]
 		win = FloatingWindow(ps, "Auto-Match", minSize=panelSize, maxSize=panelSize)
-		self.fontsNames = [f.info.familyName+'-'+f.info.styleName for f in AllFonts()]
+		self.fontsNames = [displayName(f) for f in AllFonts()]
 		self.fontsNames.sort()
 
 		top = 10
@@ -65,7 +68,7 @@ class TransferPanel(BaseWindowController):
 
 	def getFontModelForName(self, name):
 		for f in AllFonts():
-			if f.info.familyName+'-'+f.info.styleName == name:
+			if displayName(f) == name:
 				return tthTool.fontModelForFont(f)
 
 	def getFontModels(self):
@@ -89,7 +92,7 @@ class TransferPanel(BaseWindowController):
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
 			tg = tfm.f[gName]
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg)
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, transferDeltas=False)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()

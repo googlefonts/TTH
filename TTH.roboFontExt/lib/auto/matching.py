@@ -15,11 +15,14 @@ def angleScore(d):
 	#return math.exp(2.0/(d+1.0))
 	return (2.0/(d+1.0))
 
-def score(p0, p1):
+def onScore(p0, p1):
 	posDiff = (p1.pos-p0.pos).squaredLength()
 	frontAngleMatch = angleScore(p0.inTangent  | p1.inTangent)
 	backAngleMatch  = angleScore(p0.outTangent | p1.outTangent)
 	return posDiff *(frontAngleMatch + backAngleMatch)
+
+def offScore(p0, p1):
+	return (p1[1] - p0[1]).squaredLength()
 
 def indexOfMin(values):
 	i = 0
@@ -30,7 +33,7 @@ def indexOfMin(values):
 			i = j
 	return i
 
-def matchTwoContours(fromC, toC, table):
+def matchTwoContours(fromC, toC, table, score):
 	lenFrom = len(fromC)
 	lenTo = len(toC)
 	# dynamic programming init
@@ -82,7 +85,7 @@ def matchTwoGlyphs(fromG, toG):
 			toC   = toG[t]   # toC   = target Contour
 			n = len(toC)
 			table = [[None for x in xrange(n+1)] for y in fromC]
-			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]+[toC[i]], table), i, n) for i in xrange(n)]
+			permutedMatches = [fix(matchTwoContours(fromC, toC[i:]+toC[:i]+[toC[i]], table, onScore), i, n) for i in xrange(n)]
 			i = indexOfMin(permutedMatches)
 			matchings[f][t] = permutedMatches[i]
 		return matchings[f][t]
@@ -129,12 +132,18 @@ def prepareGlyph(g):
 	return contours, offs
 
 def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
+	if srcOffs == []: return {}
 	srcContour = srcG[srcCs[0]]
 	tgtContour = tgtG[tgtCs[0]]
 	n = len(tgtOffContour)
-	if tgtSeg0 == tgtSeg1:
-		return {}
-	i = (tgtSeg0+1) % n
+	i = tgtSeg0
+	tgtOffs = []
+	while i != tgtSeg1:
+		tgtOffs.extend(tgtOffContour[i])
+		i = (i+1) % n
+	if tgtOffs == []: return {}
+	permut, matchQuality = matchTwoContours(srcOffs, tgtOffs, offScore)
+	return dict((srcOffs[s][0], tgtOffs[t][0]) for (s,t) in enumerate(permut))
 
 class PointNameMatcher(object):
 	def __init__(self, g0, g1, withOff=False):
@@ -151,7 +160,7 @@ class PointNameMatcher(object):
 				tName = tgtG[t][tgtSeg].name
 				m[fName] = tName
 				if not withOff: continue
-				#m.extend(getOffMatching(srcOffs[f][srcSeg], tgtOffs[t], perm[srcSeg-1], tgtSeg))
+				m.update(getOffMatching(srcOffs[f][srcSeg], tgtOffs[t], perm[srcSeg-1], tgtSeg))
 	def map(self, fName):
 		try:
 			return self._map[fName]
@@ -229,10 +238,9 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph,
 				cmd.set('stem', stemName)
 			else:
 				HF.delCommandAttrib(cmd, 'stem')
-		elif 'zone' in cmd: # Find the correct name of the zone in the target font if it exists
+		elif HF.commandHasAttrib(cmd, 'zone'): # Find the correct name of the zone in the target font if it exists
 			pt = getCmdPoint(targetGlyph, cmd.get('point'))
-			if pt == None:
-				continue
+			if pt == None: continue
 			zone = AH.zoneAt(pt.y)
 			if zone == None:
 				#print "Command '{0}' killed.".format(cmd.get('code'))
