@@ -1,3 +1,4 @@
+#coding=utf-8
 from defconAppKit.windows.baseWindow import BaseWindowController
 from lib.doodleMenus import BaseMenu
 from AppKit import *

@@ -3,11 +3,20 @@
 <plist version="1.0">
 <dict>
 	<key>addToMenu</key>
-	<array/>
+	<array>
+		<dict>
+			<key>path</key>
+			<string>auto/TransferPanel.py</string>
+			<key>preferredName</key>
+			<string>Auto-Match</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+	</array>
 	<key>developer</key>
-	<string>Jeremie Hornus</string>
+	<string>Jeremie Hornus and Samuel Hornus</string>
 	<key>developerURL</key>
-	<string>https://github.com/sansplomb/</string>
+	<string>www.typosansplomb.com</string>
 	<key>html</key>
 	<false/>
 	<key>launchAtStartUp</key>
@@ -19,7 +28,7 @@
 	<key>requiresVersionMajor</key>
 	<string>1</string>
 	<key>requiresVersionMinor</key>
-	<string>5</string>
+	<string>6</string>
 	<key>timeStamp</key>
 	<real>1397987588.273319</real>
 	<key>version</key>
