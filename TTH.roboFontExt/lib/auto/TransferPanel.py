@@ -12,10 +12,9 @@ class TransferPanel(BaseWindowController):
 		panelSize = 320, 170
 		ps = 20, 20, panelSize[0], panelSize[1]
 		win = FloatingWindow(ps, "Auto Transfer", minSize=panelSize, maxSize=panelSize)
-
-		self.fontsNames = [f.info.postscriptFullName for f in AllFonts()]
-
+		self.fontsNames = [f.info.familyName+'-'+f.info.styleName for f in AllFonts()]
 		self.fontsNames.sort()
+
 		top = 10
 		win.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source Font: ")
 		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, callback=self.updateUI)
@@ -45,7 +44,9 @@ class TransferPanel(BaseWindowController):
 		self.window = win
 
 		self.updateUI(None)
+
 		win.open()
+		print "window opened"
 
 	def __del__(self):
 		self.window = None
@@ -63,7 +64,7 @@ class TransferPanel(BaseWindowController):
 
 	def getFontModelForName(self, name):
 		for f in AllFonts():
-			if f.info.postscriptFullName == name:
+			if f.info.familyName+'-'+f.info.styleName == name:
 				return tthTool.fontModelForFont(f)
 
 	def getFontModels(self):
