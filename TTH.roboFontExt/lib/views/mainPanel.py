@@ -164,8 +164,8 @@ class MainPanel(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Auto-hinting...", # 1
-			"Transfer...", # 2
+			"Auto-Hint...", # 1
+			"Auto-Match...", # 2
 			NSMenuItem.separatorItem(),
 			"Monochrome", # 4
 			"Grayscale", # 5

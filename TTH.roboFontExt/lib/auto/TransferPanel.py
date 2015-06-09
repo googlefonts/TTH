@@ -11,7 +11,7 @@ class TransferPanel(BaseWindowController):
 		super(TransferPanel, self).__init__()
 		panelSize = 320, 170
 		ps = 20, 20, panelSize[0], panelSize[1]
-		win = FloatingWindow(ps, "Auto Transfer", minSize=panelSize, maxSize=panelSize)
+		win = FloatingWindow(ps, "Auto-Match", minSize=panelSize, maxSize=panelSize)
 		self.fontsNames = [f.info.familyName+'-'+f.info.styleName for f in AllFonts()]
 		self.fontsNames.sort()
 
