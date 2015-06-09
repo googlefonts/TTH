@@ -164,8 +164,8 @@ class MainPanel(BaseWindowController):
 
 		self.wTools.gear.setItems(
 			[firstItem,
-			"Auto-Hint...", # 1
-			"Auto-Match...", # 2
+			"Auto-Hint…", # 1
+			"Auto-Match…", # 2
 			NSMenuItem.separatorItem(),
 			"Monochrome", # 4
 			"Grayscale", # 5
@@ -175,9 +175,9 @@ class MainPanel(BaseWindowController):
 			"Program", # 9
 			"Assembly", # 10
 			NSMenuItem.separatorItem(),
-			"Control Values...", # 12
+			"Control Values…", # 12
 			NSMenuItem.separatorItem(),
-			"Preferences...", # 14
+			"Preferences…", # 14
 			NSMenuItem.separatorItem(),
 			"Compile all TTF data", # 16
 			]
