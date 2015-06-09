@@ -92,7 +92,7 @@ class TransferPanel(BaseWindowController):
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
 			tg = tfm.f[gName]
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, transferDeltas=False)
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, transferDeltas=True)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()
