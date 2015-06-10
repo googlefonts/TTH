@@ -298,7 +298,6 @@ class AutoHinting():
 			rightmost = 0
 		#----------------
 		ret = i,leftmost, j,rightmost
-		#print "findLeftRight returns", ret
 		return ret
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -350,7 +349,7 @@ class AutoHinting():
 		leadAli = grp.alignments[grp.leaderPos]
 		lead = leadAli.leaderPoint(0, contours)
 		if (not lead.touched) and interpolateIsPossible:
-			# If NO alignment in the group had beed processed yet,
+			# If NO alignment in the group has been processed yet,
 			# then add a starting point by interpolation:
 			leftmost, rightmost = bounds
 			self.addInterpolate(leftmost, lead, rightmost, False)
@@ -495,7 +494,7 @@ class AutoHinting():
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-	def autoHintX(self, g, contours, stems):
+	def autoHintX_PP(self, g, contours, stems):
 		alignments = self.makeAlignments(contours, True) # for X auto-hinting
 		#self.printAlignments(alignments, 'X')
 		if len(alignments) == 0: return g.name
@@ -540,7 +539,7 @@ class AutoHinting():
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-	def autoHintXPAW(self, g, contours, stems):
+	def autoHintX_PAW(self, g, contours, stems):
 		alignments = self.makeAlignments(contours, True) # for X auto-hinting
 		#self.printAlignments(alignments, 'X')
 		if len(alignments) == 0: return g.name
@@ -558,7 +557,7 @@ class AutoHinting():
 		bounds = None
 		interpolateIsPossible = False
 
-		leftmost = leftGroup.alignments[lmPos].leaderPoint(0, contours)
+		leftmost  = leftGroup.alignments[lmPos].leaderPoint(0, contours)
 		rightmost = rightGroup.alignments[rmPos].leaderPoint(0, contours)
 
 		# Anchor the leftmost point
@@ -588,6 +587,44 @@ class AutoHinting():
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
+	def autoHintX_SCAN(self, g, contours, stems):
+		alignments = self.makeAlignments(contours, True) # for X auto-hinting
+		#self.printAlignments(alignments, 'X')
+		if len(alignments) == 0: return g.name
+		for _, alignment in alignments.iteritems():
+			alignment.putLeadersFirst(contours)
+
+		groups = self.makeGroups(contours, alignments, stems, mergeLoneAlignments=True, debug=False)
+		for grp in groups: grp.prepare(alignments)
+
+		# Find the left and right points to be anchored to lsb and rsb.
+		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
+		if leftGrpIdx == None: return g.name
+		leftGroup  = groups[leftGrpIdx]
+		rightGroup = groups[rightGrpIdx]
+
+		leftmost  = leftGroup.alignments[lmPos].leaderPoint(0, contours)
+		rightmost = rightGroup.alignments[rmPos].leaderPoint(0, contours)
+		self.addSingleLink('lsb', leftmost.name, False, None).set('round', 'true')
+		self.addSingleLink(rightmost.name, 'rsb', False, None).set('align', 'round')
+		leftGroup.leaderPos = lmPos
+		self.processGroup_X(leftGroup, contours, False, None)
+
+		groups.sort(key=lambda g: g.alignments[0].pos)
+
+		pt = leftmost
+		for grp in groups:
+			if grp.leaderPos != None:
+				pt = grp.alignments[grp.leaderPos].leaderPoint(0, contours)
+				continue
+			nextPt = grp.alignments[0].leaderPoint(0, contours)
+			self.addSingleLink(pt.name, nextPt.name, False, None).set('align', 'round')
+			pt = nextPt
+			grp.leaderPos = 0
+			self.processGroup_X(grp, contours, False, None)
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def autohint(self, gm, doX, doY, method):
 		# get the current font
 		font = self.fm.f
@@ -614,9 +651,11 @@ class AutoHinting():
 		if doX:
 			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
 			if method == kTTHAutoHintMethod_PreserveAdvanceWidth:
-				rx = self.autoHintXPAW(g, contours, stemsList[0])
+				rx = self.autoHintX_PAW(g, contours, stemsList[0])
+			elif method == kTTHAutoHintMethod_Scan:
+				rx = self.autoHintX_SCAN(g, contours, stemsList[0])
 			else:
-				rx = self.autoHintX(g, contours, stemsList[0])
+				rx = self.autoHintX_PP(g, contours, stemsList[0])
 		else:
 			rx = None
 		for c in contours:
