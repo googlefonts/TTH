@@ -30,7 +30,7 @@ class TextRenderer(object):
 			self.slot = self.face.glyph
 		except:
 			self.face = None
-			print 'ERROR: FreeType could not load temporary font'
+			print 'ERROR: FreeType could not load temporary font', face_path
 		# a dictionary mapping text size in pixel to  dict index->TRGlyphData
 		# storing the glyph's image/bitmap/advance/... already loaded.
 		self.caches = {}

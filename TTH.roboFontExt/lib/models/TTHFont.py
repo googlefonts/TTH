@@ -56,6 +56,7 @@ class TTHFont(object):
 		tempFull = tempfile.NamedTemporaryFile(suffix='.ttf', delete=False)
 		self.tempFullFontPath = tempFull.name
 		tempFull.close()
+		self.lastFontGenerationReport = ""
 
 		self.updatePartialFont(tthTool.requiredGlyphsForPartialTempFont)
 
@@ -111,7 +112,7 @@ class TTHFont(object):
 	def stemsnap(self, ss):
 		self.getFLLib()['stemsnap'] = ss
 
-	@property # FIXME: describe this. used in generationg the (GASP ? and) PREP tables
+	@property # FIXME: describe this. used in generating the (GASP ? and) PREP tables
 	def codeppm(self):
 		return HF.getOrPutDefault(self.getFLLib(), "codeppm", 72)
 	@codeppm.setter
@@ -335,7 +336,11 @@ class TTHFont(object):
 			return None
 
 	def regenTextRenderer(self):
-		self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewMode)
+		try:
+			self.textRenderer = textRenderer.TextRenderer(self.tempPartialFontPath, self.bitmapPreviewMode)
+		except:
+			print "Could not load the temporary font, that was generated with the following report:"
+			print self.lastFontGenerationReport
 
 	def setHdmxPpemSizes(self, ppems):
 		self.hdmx_ppem_sizes = ppems
@@ -532,7 +537,7 @@ When do we regenerate a partial font?
 				key = tables.k_glyph_assembly_key
 				if key in oldG.lib:
 					newG.lib[key] = oldG.lib[key]
-			tempFont.generate(self.tempPartialFontPath, 'ttf',
+			self.lastFontGenerationReport = tempFont.generate(self.tempPartialFontPath, 'ttf',
 					decompose     = False,
 					checkOutlines = False,
 					autohint      = False,
