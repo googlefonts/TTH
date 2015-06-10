@@ -89,6 +89,9 @@ class TTHTool(object):
 		self.programWindow  = None
 		self.TTHWindows     = []
 
+		# Tool activation
+		self.isActive = False
+
 	def __del__(self):
 		pass
 
@@ -300,6 +303,7 @@ class TTHTool(object):
 		self.programWindow = None
 
 	def becomeActive(self):
+		self.isActive = True
 		for f in AllFonts():
 			fm = self.fontModelForFont(f)
 		self.updatePartialFontIfNeeded()
@@ -311,6 +315,7 @@ class TTHTool(object):
 		#UpdateCurrentGlyphView()
 
 	def becomeInactive(self):
+		self.isActive = False
 		for fm in self._fontModels.itervalues():
 			fm.killPreviewInGlyphWindow()
 		for f in AllFonts():
@@ -355,6 +360,7 @@ class TTHTool(object):
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
 	def hintingProgramHasChanged(self, fm):
+		if not self.isActive: return
 		fm.updatePartialFont(self.requiredGlyphsForPartialTempFont)
 		self.updateDisplay()
 
