@@ -5,6 +5,8 @@ from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 import auto
 
+gPAW = False
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Alignment(object):
@@ -148,6 +150,8 @@ class AutoHinting():
 		self.doubleLinkCommandName = { False: 'doubleh', True:'doublev' }
 		self.alignCommandName = { False: 'alignb', True:'alignt' }
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def makeAlignments(self, contours, X):
 		if X: X = 0
 		else: X = 1
@@ -188,6 +192,8 @@ class AutoHinting():
 			alignments[pos] = alignment
 		return alignments
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def printAlignments(self, alignments, axis):
 		print "Alignments for", axis
 		for pos, alignment in sorted(alignments.iteritems(), reverse=True):
@@ -198,6 +204,8 @@ class AutoHinting():
 					print str(cont)+'.'+str(seg),
 				print "}",
 			print ""
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def makeGroups(self, contours, alignments, stems, mergeLoneAlignments=False, debug=False):
 		groups = []
@@ -255,6 +263,8 @@ class AutoHinting():
 			grp.alignments = [alignments[p] for (p,x) in grp.alignments]
 		return groups
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def findLeftRight(self, groups):
 		if len(groups) == 0: return None, None, None, None
 		groupWeights = [((i,g), sum([a.weight for a in g.alignments])) for (i, g) in enumerate(groups)]
@@ -289,6 +299,8 @@ class AutoHinting():
 		#print "findLeftRight returns", ret
 		return ret
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def linearPropagation(self, lead, alignments, contours, isHorizontal):
 		src = lead
 		srcpos = self.proj(src.shearedPos)
@@ -306,6 +318,8 @@ class AutoHinting():
 			srcpos = tgtpos
 			ali.addLinks(0, contours, isHorizontal, self)
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def propagate(self, grp, contours, isHorizontal):
 		leadAli = grp.alignments[grp.leaderPos]
 		lead = leadAli.leaderPoint(0, contours)
@@ -316,6 +330,8 @@ class AutoHinting():
 		leadAli.addLinks(0, contours, isHorizontal, self)
 		self.linearPropagation(lead,  leftAlignments, contours, isHorizontal)
 		self.linearPropagation(lead, rightAlignments, contours, isHorizontal)
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def processGroup_X(self, grp, contours, interpolateIsPossible, bounds):
 		if len(grp.alignments) == 1:
@@ -338,6 +354,8 @@ class AutoHinting():
 			self.addInterpolate(leftmost, lead, rightmost, False)
 		lead.touched = True
 		self.propagate(grp, contours, False)
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def processGroup_Y(self, grp, contours, interpolateIsPossible, bounds, findZone):
 		zone = None
@@ -379,6 +397,8 @@ class AutoHinting():
 		self.propagate(grp, contours, True)
 		return lead
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def guessStemForWidth(self, width, isHorizontal):
 		candidatesList = []
 		bestD = 10000000
@@ -397,6 +417,8 @@ class AutoHinting():
 				bestName = stemName
 		return bestName
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def addSingleLink(self, p1name, p2name, isHorizontal, stemName):
 		cmd = ET.Element('ttc')
 		cmd.set('active', 'true')
@@ -407,6 +429,8 @@ class AutoHinting():
 			cmd.set('stem', stemName)
 		self.gm.addCommand(cmd, update=False)
 		return cmd
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def addInterpolate(self, p1, p, p2, isHorizontal):
 		cmd = ET.Element('ttc')
@@ -421,6 +445,8 @@ class AutoHinting():
 		cmd.set('align', 'round')
 		self.gm.addCommand(cmd, update=False)
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def addAlign(self, pointName, (zoneName, isTopZone, ys, ye)):
 		cmd = ET.Element('ttc')
 		cmd.set('active', 'true')
@@ -432,12 +458,16 @@ class AutoHinting():
 		cmd.set('zone', zoneName)
 		self.gm.addCommand(cmd, update=False)
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
 	def zoneAt(self, y):
 		for item in self.fm.zones.iteritems():
 			zd = zoneData(item)
 			zoneName, isTop, yStart, yEnd = zd
 			if helperFunctions.inInterval(y, (yStart, yEnd)):
 				return zd
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def autoHintY(self, contours, stems):
 		alignments = self.makeAlignments(contours, False) # for Y auto-hinting
@@ -460,6 +490,8 @@ class AutoHinting():
 		for group in groups:
 			self.processGroup_Y(group, contours, interpolateIsPossible, bounds, findZone=False)
 		return (bottom != None and top != None)
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def autoHintX(self, g, contours, stems):
 		alignments = self.makeAlignments(contours, True) # for X auto-hinting
@@ -504,6 +536,56 @@ class AutoHinting():
 			if grp.leaderPos != None: continue
 			self.processGroup_X(grp, contours, interpolateIsPossible, bounds)
 
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+	def autoHintXPAW(self, g, contours, stems):
+		alignments = self.makeAlignments(contours, True) # for X auto-hinting
+		#self.printAlignments(alignments, 'X')
+		if len(alignments) == 0: return g.name
+		for _, alignment in alignments.iteritems():
+			alignment.putLeadersFirst(contours)
+
+		groups = self.makeGroups(contours, alignments, stems, mergeLoneAlignments=True, debug=False)
+		for grp in groups: grp.prepare(alignments)
+
+		# Find the left and right points to be anchored to lsb and rsb.
+		leftGrpIdx,lmPos, rightGrpIdx,rmPos = self.findLeftRight(groups)
+		if leftGrpIdx == None: return g.name
+		leftGroup = groups[leftGrpIdx]
+		rightGroup = groups[rightGrpIdx]
+		bounds = None
+		interpolateIsPossible = False
+
+		leftmost = leftGroup.alignments[lmPos].leaderPoint(0, contours)
+		rightmost = rightGroup.alignments[rmPos].leaderPoint(0, contours)
+
+		# Anchor the leftmost point
+		self.addSingleLink('lsb', leftmost.name, False, None).set('round', 'true')
+		leftGroup.leaderPos = lmPos
+		self.processGroup_X(leftGroup, contours, False, None)
+		
+
+		# Anchor the rightmost point if they live in different groups
+		# (If not, then the processGroup will take care of the single links
+		#  and interpolation will not be possible)
+		if leftGrpIdx != rightGrpIdx:
+			self.addSingleLink('rsb', rightmost.name, False, None).set('round', 'true')
+			interpolateIsPossible = True
+			bounds = leftmost, rightmost
+			rightGroup.leaderPos = rmPos
+			self.processGroup_X(rightGroup, contours, False, None)
+		else:
+			stemWidth = getWidthOfTwoPointsStem(leftmost, rightmost, False)
+			stemName = self.guessStemForWidth(stemWidth, False)
+			link = self.addSingleLink(leftmost.name, rightmost.name, False, stemName)
+			if stemName == None: link.set('round', 'true')
+			self.addSingleLink(rightmost.name, 'rsb', False, None).set('align', 'round')
+
+		for grp in groups:
+			if grp.leaderPos != None: continue
+			self.processGroup_X(grp, contours, interpolateIsPossible, bounds)
+
+# . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 	def autohint(self, gm, doX, doY):
 		# get the current font
@@ -530,7 +612,14 @@ class AutoHinting():
 
 		if doX:
 			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
-			rx = self.autoHintX(g, contours, stemsList[0])
+			global gPAW
+			if gPAW:
+				print "Preserve Advance Width"
+				rx = self.autoHintXPAW(g, contours, stemsList[0])
+			else:
+				print "Preserve Proportions"
+				rx = self.autoHintX(g, contours, stemsList[0])
+			gPAW = not gPAW
 		else:
 			rx = None
 		for c in contours:

@@ -4,6 +4,7 @@ import auto
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
 from auto import hint
+reload(hint)
 
 class AutoHintingSheet(object):
 	def __init__(self, parentWindow):
@@ -61,8 +62,6 @@ class AutoHintingSheet(object):
 		doX = self.w.boxHintingAxis.hintXBox.get()
 		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
-		reload(hint)
-
 		gm.prepareUndo('AutoHinting Glyph')
 		hint.AutoHinting(fm).autohint(gm, doX, doY)
 		tthTool.hintingProgramHasChanged(fm)
@@ -74,7 +73,6 @@ class AutoHintingSheet(object):
 		doX = self.w.boxHintingAxis.hintXBox.get()
 		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
-		reload(hint)
 		fm.f.prepareUndo('AutoHinting Font')
 		AH = hint.AutoHinting(fm)
 		TTHGlyph.silent = True
