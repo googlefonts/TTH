@@ -1,5 +1,5 @@
 #coding=utf-8
-from vanilla import Box, Button, CheckBox, Group, EditText, ProgressBar, Sheet, TextBox, Slider
+from vanilla import Box, Button, CheckBox, Group, EditText, ProgressBar, Sheet, TextBox, Slider, RadioGroup
 import auto
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
@@ -12,38 +12,38 @@ class AutoHintingSheet(object):
 		yBounds, xBounds = fm.stemSizeBounds
 
 		sheetWidth  = 320
-		sheetHeight = 190
+		sheetHeight = 380
 		sheetSize = (sheetWidth, sheetHeight)
 
 		self.w = Sheet(sheetSize, minSize=sheetSize, maxSize=sheetSize, parentWindow=parentWindow)
 		w = self.w
 
-		w.boxHintingAxis = Box((230, 10, 80, 60), title='Hinting Axis')
+		w.boxMethod = Box((10, 10, 210, 100), title='Method')
+		w.boxMethod.methodRadioGroup = RadioGroup((10, 10,-10, -10), ['Preserve Proportions', 'Preserve Advance Width', 'Scan'], sizeStyle='small')
+		w.boxMethod.methodRadioGroup.set(0)
 
-		w.boxHintingAxis.hintXBox = CheckBox((10,10,50,22), 'X', sizeStyle = 'small', value=True)
-		w.boxHintingAxis.hintYBox = CheckBox((-32,10,50,22), 'Y', sizeStyle = 'small', value=True)
-
-		w.boxStemDetection = Box((10, 10, 210, 130), title='Stems Detection')
-
-		w.boxStemDetection.xGroup = Group((0, 0, -0, 30))
+		w.boxHintingAxis = Box((230, 10, 80, 100), title='Hint Axis')
+		w.boxHintingAxis.hintXBox = CheckBox((10, 10, 50, 22), 'X', sizeStyle = 'small', value=True)
+		w.boxHintingAxis.hintYBox = CheckBox((10, 30, 50, 22), 'Y', sizeStyle = 'small', value=True)
+		
+		w.boxStemDetection = Box((10, 120, -10, 130), title='Stems Detection')
+		w.boxStemDetection.xGroup = Group((0, 0, -0, 27))
 		w.boxStemDetection.xGroup.minW    = EditText((10, 10, 40, 17), text=str(xBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 		w.boxStemDetection.xGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ X Stems ≤', sizeStyle = 'small', alignment='center')
 		w.boxStemDetection.xGroup.maxW    = EditText((-50, 10, 40, 17), text=str(xBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
-
-		w.boxStemDetection.yGroup = Group((0, 30, -0, 30))
+		w.boxStemDetection.yGroup = Group((0, 27, -0, 27))
 		w.boxStemDetection.yGroup.minW    = EditText((10, 10, 40, 17), text=str(yBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 		w.boxStemDetection.yGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ Y Stems ≤', sizeStyle = 'small', alignment='center')
 		w.boxStemDetection.yGroup.maxW    = EditText((-50, 10, 40, 17), text=str(yBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
-
 		w.boxStemDetection.tolLabel = TextBox((10, 72, 110, 20), u'Angle Tolerance (°)', sizeStyle = 'small', alignment='left')
 		w.boxStemDetection.tolerance = EditText((-50, 70, 40, 17), text=str(fm.angleTolerance), sizeStyle = 'small', continuous=False, callback=self.handleTolerance)
 		w.boxStemDetection.toleranceSlider = Slider((10, -20, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
 
-		w.boxAutoHint = Box((230, 70, 80, 70), title='Process')
+		w.boxAutoHint = Box((10, 260, -10, 70), title='Process')
 		w.boxAutoHint.hintGlyphButton = Button((10, 5, -10, 20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
 		w.boxAutoHint.hintFontButton = Button((10, 30, -10, 20), "Font", sizeStyle='small', callback=self.hintFont)
 
-		w.progressBar = ProgressBar((10, 140, -10, 20))
+		w.progressBar = ProgressBar((10, 330, -10, 20))
 		w.progressBar.show(0)
 		w.closeButton = Button((-90, -32, 80, 20), "Close", sizeStyle='small', callback=self.closeCallback)
 

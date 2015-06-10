@@ -38,7 +38,7 @@ class TransferPanel(BaseWindowController):
 
 		top = 105
 		td = getExtensionDefault(defaultKeyDoTransferDelta, fallback=False)
-		win.transferDeltaCheckBox = CheckBox((10, top, 150,20), 'Also transfer delta commands', None, td)
+		win.transferDeltaCheckBox = CheckBox((10, top, -10,20), 'Also transfer delta commands', None, td)
 
 		top = -50
 		win.progressBar = ProgressBar((5,top,-5,20))
