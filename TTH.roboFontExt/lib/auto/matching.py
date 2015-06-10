@@ -137,8 +137,8 @@ def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
 	i = tgtSeg0
 	tgtOffs = []
 	while i != tgtSeg1:
-		tgtOffs.extend(tgtOffContour[i])
 		i = (i+1) % n
+		tgtOffs.extend(tgtOffContour[i])
 	if tgtOffs == []: return {}
 	n = len(tgtOffs)
 	table = [[None for x in xrange(n)] for y in srcOffs]

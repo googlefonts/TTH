@@ -1,9 +1,8 @@
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 from lib.UI.spaceCenter.glyphSequenceEditText import splitText
 from mojo.UI import UpdateCurrentGlyphView
-from mojo.roboFont import CurrentGlyph, AllFonts
+from mojo.roboFont import CurrentFont, CurrentGlyph, AllFonts
 from mojo.events import getActiveEventTool
-from robofab.world import *
 
 import string
 from commons import helperFunctions
