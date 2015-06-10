@@ -1,6 +1,5 @@
 import math
 import xml.etree.ElementTree as ET
-from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from drawing import geom
 import auto
@@ -252,4 +251,3 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph,
 	targetGM.compile(targetFM)
 	if hasSGM: sourceFM.delGlyphModelForGlyph(sourceGlyph)
 	if hasTGM: targetFM.delGlyphModelForGlyph(targetGlyph)
-	tthTool.hintingProgramHasChanged(targetFM)

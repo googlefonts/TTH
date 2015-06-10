@@ -1,5 +1,4 @@
 from mojo.roboFont import CurrentFont, RFont
-from mojo.events import getActiveEventTool
 from fontTools import ttLib
 
 import os, tempfile
@@ -170,10 +169,10 @@ class TTHFont(object):
 
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
-	def createPreviewInGlyphWindowIfNeeded(self):
+	def createPreviewInGlyphWindowIfNeeded(self, nsView):
 		badFont = not HF.fontIsQuadratic(self.f)
 		if (not badFont) and self._pigw == None:
-			self._pigw = self.createPreviewInGlyphWindow()
+			self._pigw = self.createPreviewInGlyphWindow(nsView)
 			return True
 		return False
 
@@ -192,10 +191,8 @@ class TTHFont(object):
 		if self._pigw == None: return
 		self._pigw.setHidden_(visible == 0)
 
-	def createPreviewInGlyphWindow(self):
-		eventController = getActiveEventTool()
-		if eventController is None: return
-		superview = eventController.getNSView().enclosingScrollView().superview()
+	def createPreviewInGlyphWindow(self, nsView):
+		superview = nsView.enclosingScrollView().superview()
 		if superview == None: return
 		newView = PIGW.PreviewInGlyphWindow.alloc().initWithFontAndTool(self, tthTool)
 		superview.addSubview_(newView)

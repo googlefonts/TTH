@@ -102,6 +102,7 @@ class TransferPanel(BaseWindowController):
 			sg = sfm.f[gName]
 			tg = tfm.f[gName]
 			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
+			tthTool.hintingProgramHasChanged(tfm)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()
@@ -112,3 +113,4 @@ class TransferPanel(BaseWindowController):
 		self.window.progressBar.show(1)
 		matching.transferHintsBetweenTwoFonts(sfm, tfm, td, self.window.progressBar)
 		self.window.progressBar.show(0)
+		tthTool.hintingProgramHasChanged(tfm)

@@ -144,10 +144,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		tthTool.currentFontHasChanged(font)
 
 	def glyphWindowWillOpen(self, window):
-		'''Install the previewInGlyphWindow'''
-		fm = tthTool.getFontModel()
-		if fm is not None:
-			fm.createPreviewInGlyphWindowIfNeeded()
+		pass
 
 	def glyphWindowWillClose(self, window):
 		'''Destroy the previewInGlyphWindow'''
@@ -175,7 +172,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# we do this here, because it fails to do it in `becomeActive` :-(
 		# (The NSView's superview seems not ready at that time)
-		if fm.createPreviewInGlyphWindowIfNeeded():
+		if fm.createPreviewInGlyphWindowIfNeeded(self.getNSView()):
 			self.refreshView()
 
 		if g == None: return
