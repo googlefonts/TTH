@@ -51,9 +51,9 @@ class TransferPanel(BaseWindowController):
 
 		top = -30
 		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close, sizeStyle="small")
-		left = -140
-		win.transferGlyphButton = Button((left, top, 60, 20), "Glyph", callback=self.transferGlyph, sizeStyle="small")
-		left += 70
+		left = -180
+		win.transferGlyphButton = Button((left, top, 100, 20), "Current Glyph", callback=self.transferGlyph, sizeStyle="small")
+		left += 110
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
 
 		self.window = win
@@ -74,12 +74,11 @@ class TransferPanel(BaseWindowController):
 	def updateUI(self, sender):
 		sfm, tfm = self.getFontModels()
 		diffFont = (not (sfm is tfm)) and (sfm != None)
-		if AllFonts == [] or CurrentGlyph() == None:
+		g = CurrentGlyph()
+		if AllFonts == [] or g== None:
 			gName = None
 			okGlyph = False
 		else:
-			gm = tthTool.getGlyphModel()
-			g = gm.RFGlyph
 			gName = g.name
 			okGlyph = (gName in sfm.f) and (gName in tfm.f)
 
@@ -114,11 +113,11 @@ class TransferPanel(BaseWindowController):
 	def transferGlyph(self, sender):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
-		gm = tthTool.getGlyphModel()
-		g = gm.RFGlyph
+		g = CurrentGlyph()
 		gName = None
 		if g != None:
 			gName = g.name
+		print gName
 		td = self.window.transferDeltaCheckBox.get()
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
