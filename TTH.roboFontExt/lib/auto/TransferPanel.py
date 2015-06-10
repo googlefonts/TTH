@@ -46,7 +46,7 @@ class TransferPanel(BaseWindowController):
 		win.transferDeltaCheckBox = CheckBox((10, top, -10,20), 'Also transfer delta commands', None, td, sizeStyle="small")
 
 		top = -50
-		win.progressBar = ProgressBar((5,top,-5,20))
+		win.progressBar = ProgressBar((10,top,-10,20))
 		win.progressBar.show(0)
 
 		top = -30
@@ -122,6 +122,7 @@ class TransferPanel(BaseWindowController):
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
 			tg = tfm.f[gName]
+			print sg, tg
 			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
 			tthTool.hintingProgramHasChanged(tfm)
 
@@ -138,5 +139,6 @@ class TransferPanel(BaseWindowController):
 
 	def refreshFontsButtonCallback(self, sender):
 		self.fontsNames = [displayName(f) for f in AllFonts()]
+		self.fontsNames.sort()
 		self.updatePopUps()
 		self.updateUI(None)
