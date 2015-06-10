@@ -22,39 +22,39 @@ class TransferPanel(BaseWindowController):
 		self.fontsNames.sort()
 
 		top = 10
-		win.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source Font: ")
-		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, callback=self.updateUI)
+		win.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source Font: ", sizeStyle="small")
+		win.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, sizeStyle="small", callback=self.updateUI)
 
 		top = 40
-		win.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target Font: ")
-		win.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, callback=self.updateUI)
+		win.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target Font: ", sizeStyle="small")
+		win.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, sizeStyle="small", callback=self.updateUI)
 
 		gm = tthTool.getGlyphModel()
 		gName = gm.RFGlyph.name
 
 		top = 70
-		win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', alignment='left')
-		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
+		win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', sizeStyle="small", alignment='left')
+		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, sizeStyle="small", callback=self.checkGlyphName)
 
 		top = 105
 		td = getExtensionDefault(defaultKeyDoTransferDelta, fallback=False)
-		win.transferDeltaCheckBox = CheckBox((10, top, -10,20), 'Also transfer delta commands', None, td)
+		win.transferDeltaCheckBox = CheckBox((10, top, -10,20), 'Also transfer delta commands', None, td, sizeStyle="small")
 
 		top = -50
 		win.progressBar = ProgressBar((5,top,-5,20))
 		win.progressBar.show(0)
 
 		top = -30
-		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close)
+		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close, sizeStyle="small")
 		left = -140
-		win.transferGlyphButton = Button((left, top, 60, 20), "Glyph", callback=self.transferGlyph)
+		win.transferGlyphButton = Button((left, top, 60, 20), "Glyph", callback=self.transferGlyph, sizeStyle="small")
 		left += 70
-		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont)
+		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
 
 		# imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
 		# imgRefresh.setSize_((10, 13))
 		#self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
-		
+
 		self.window = win
 
 		self.updateUI(None)
