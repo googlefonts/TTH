@@ -5,7 +5,9 @@ from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 import auto
 
-gPAW = False
+kTTHAutoHintMethod_PreserveProportion   = 0
+kTTHAutoHintMethod_PreserveAdvanceWidth = 1
+kTTHAutoHintMethod_Scan                 = 2
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -563,7 +565,6 @@ class AutoHinting():
 		self.addSingleLink('lsb', leftmost.name, False, None).set('round', 'true')
 		leftGroup.leaderPos = lmPos
 		self.processGroup_X(leftGroup, contours, False, None)
-		
 
 		# Anchor the rightmost point if they live in different groups
 		# (If not, then the processGroup will take care of the single links
@@ -587,7 +588,7 @@ class AutoHinting():
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
-	def autohint(self, gm, doX, doY):
+	def autohint(self, gm, doX, doY, method):
 		# get the current font
 		font = self.fm.f
 		# get the italic angle
@@ -612,14 +613,10 @@ class AutoHinting():
 
 		if doX:
 			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem
-			global gPAW
-			if gPAW:
-				print "Preserve Advance Width"
+			if method == kTTHAutoHintMethod_PreserveAdvanceWidth:
 				rx = self.autoHintXPAW(g, contours, stemsList[0])
 			else:
-				print "Preserve Proportions"
 				rx = self.autoHintX(g, contours, stemsList[0])
-			gPAW = not gPAW
 		else:
 			rx = None
 		for c in contours:

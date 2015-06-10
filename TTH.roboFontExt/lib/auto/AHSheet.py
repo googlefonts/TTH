@@ -25,7 +25,7 @@ class AutoHintingSheet(object):
 		w.boxHintingAxis = Box((230, 10, 80, 100), title='Hint Axis')
 		w.boxHintingAxis.hintXBox = CheckBox((10, 10, 50, 22), 'X', sizeStyle = 'small', value=True)
 		w.boxHintingAxis.hintYBox = CheckBox((10, 30, 50, 22), 'Y', sizeStyle = 'small', value=True)
-		
+
 		w.boxStemDetection = Box((10, 120, -10, 130), title='Stems Detection')
 		w.boxStemDetection.xGroup = Group((0, 0, -0, 27))
 		w.boxStemDetection.xGroup.minW    = EditText((10, 10, 40, 17), text=str(xBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
@@ -56,6 +56,13 @@ class AutoHintingSheet(object):
 	def closeCallback(self, sender):
 		self.close()
 
+	def AHMethod(self):
+		m = self.w.boxMethod.methodRadioGroup.get()
+		if m == 0: return hint.kTTHAutoHintMethod_PreserveProportion
+		if m == 1: return hint.kTTHAutoHintMethod_PreserveAdvanceWidth
+		if m == 2: return hint.kTTHAutoHintMethod_Scan
+		return hint.kTTHAutoHintMethod_PreserveProportion
+
 	def hintGlyph(self, sender):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# the undo does not work here, why ?
@@ -63,7 +70,7 @@ class AutoHintingSheet(object):
 		doY = self.w.boxHintingAxis.hintYBox.get()
 		if not (doX or doY): return
 		gm.prepareUndo('AutoHinting Glyph')
-		hint.AutoHinting(fm).autohint(gm, doX, doY)
+		hint.AutoHinting(fm).autohint(gm, doX, doY, self.AHMethod())
 		tthTool.hintingProgramHasChanged(fm)
 		gm.performUndo()
 
@@ -83,10 +90,11 @@ class AutoHintingSheet(object):
 		progress._nsObject.setMaxValue_(maxCount)
 		progress.set(0)
 		progress.show(1)
+		method = self.AHMethod()
 		for g in fm.f:
 			hasG = fm.hasGlyphModelForGlyph(g)
 			gm = fm.glyphModelForGlyph(g)
-			noName, rx, ry = AH.autohint(gm, doX, doY)
+			noName, rx, ry = AH.autohint(gm, doX, doY, method)
 			if noName:
 				glyphsWithOnPointsWithNoName.append(g.name)
 			if not hasG: fm.delGlyphModelForGlyph(g)
