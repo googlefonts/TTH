@@ -2,8 +2,9 @@
 from defconAppKit.windows.baseWindow import BaseWindowController
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 from mojo.roboFont import AllFonts
-from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox
+from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox, ImageButton
 from mojo.roboFont import CurrentGlyph, CurrentFont, AllFonts
+from AppKit import NSImage, NSImageNameRefreshTemplate
 from models.TTHTool import uniqueInstance as tthTool, DefaultKeyStub
 from auto import matching
 reload(matching)
@@ -23,6 +24,11 @@ class TransferPanel(BaseWindowController):
 		self.fontsNames.sort()
 
 		win.boxFonts = Box((10, 10, -10, 80), title='Fonts')
+
+		imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
+		imgRefresh.setSize_((10, 13))
+		win.refreshFontsButton = ImageButton((-30, 5, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshFontsButtonCallback, sizeStyle="small")
+
 		top = 10
 		win.boxFonts.srcFontsLabel = TextBox((10, top+2, 85, 20), "Source: ", sizeStyle="small")
 		win.boxFonts.srcFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, sizeStyle="small", callback=self.updateUI)
@@ -30,9 +36,6 @@ class TransferPanel(BaseWindowController):
 		top = 30
 		win.boxFonts.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target: ", sizeStyle="small")
 		win.boxFonts.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, sizeStyle="small", callback=self.updateUI)
-
-		gm = tthTool.getGlyphModel()
-		gName = CurrentGlyph().name
 
 		# top = 70
 		# win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', sizeStyle="small", alignment='left')
@@ -53,10 +56,6 @@ class TransferPanel(BaseWindowController):
 		left += 70
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
 
-		# imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
-		# imgRefresh.setSize_((10, 13))
-		#self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
-
 		self.window = win
 
 		self.updateUI(None)
@@ -74,11 +73,22 @@ class TransferPanel(BaseWindowController):
 
 	def updateUI(self, sender):
 		sfm, tfm = self.getFontModels()
-		diffFont = not (sfm is tfm)
-		gName = CurrentGlyph().name
-		okGlyph = (gName in sfm.f) and (gName in tfm.f)
+		diffFont = (not (sfm is tfm)) and (sfm != None)
+		if AllFonts == [] or CurrentGlyph() == None:
+			gName = None
+			okGlyph = False
+		else:
+			gm = tthTool.getGlyphModel()
+			g = gm.RFGlyph
+			gName = g.name
+			okGlyph = (gName in sfm.f) and (gName in tfm.f)
+
 		self.window.transferGlyphButton.enable(diffFont and okGlyph)
 		self.window.transferFontButton.enable(diffFont)
+
+	def updatePopUps(self):
+		self.window.boxFonts.srcFontsPopup.setItems(self.fontsNames)
+		self.window.boxFonts.tgtFontsPopup.setItems(self.fontsNames)
 
 	def getFontModelForName(self, name):
 		for f in AllFonts():
@@ -86,6 +96,8 @@ class TransferPanel(BaseWindowController):
 				return tthTool.fontModelForFont(f)
 
 	def getFontModels(self):
+		if self.fontsNames == []:
+			return None, None
 		sfpsname = self.fontsNames[self.window.boxFonts.srcFontsPopup.get()]
 		tfpsname = self.fontsNames[self.window.boxFonts.tgtFontsPopup.get()]
 		sfm = self.getFontModelForName(sfpsname)
@@ -102,7 +114,11 @@ class TransferPanel(BaseWindowController):
 	def transferGlyph(self, sender):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
-		gName = CurrentGlyph().name
+		gm = tthTool.getGlyphModel()
+		g = gm.RFGlyph
+		gName = None
+		if g != None:
+			gName = g.name
 		td = self.window.transferDeltaCheckBox.get()
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
@@ -120,3 +136,8 @@ class TransferPanel(BaseWindowController):
 		matching.transferHintsBetweenTwoFonts(sfm, tfm, td, self.window.progressBar)
 		self.window.progressBar.show(0)
 		tthTool.hintingProgramHasChanged(tfm)
+
+	def refreshFontsButtonCallback(self, sender):
+		self.fontsNames = [displayName(f) for f in AllFonts()]
+		self.updatePopUps()
+		self.updateUI(None)
