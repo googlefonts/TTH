@@ -615,11 +615,13 @@ class AutoHinting():
 		pt = leftmost
 		for grp in groups:
 			if grp.leaderPos != None:
-				pt = grp.alignments[grp.leaderPos].leaderPoint(0, contours)
+				grp.alignments.sort(key=lambda a:a.pos)
+				pt = grp.alignments[-1].leaderPoint(0, contours)
 				continue
+			grp.alignments.sort(key=lambda a:a.pos)
 			nextPt = grp.alignments[0].leaderPoint(0, contours)
 			self.addSingleLink(pt.name, nextPt.name, False, None).set('align', 'round')
-			pt = nextPt
+			pt = grp.alignments[-1].leaderPoint(0, contours)
 			grp.leaderPos = 0
 			self.processGroup_X(grp, contours, False, None)
 
