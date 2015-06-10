@@ -1,0 +1,1 @@
+print 'Should compile all glyphs assembly'

@@ -1,0 +1,1 @@
+print 'Should compile TTF Font'

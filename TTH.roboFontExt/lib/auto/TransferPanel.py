@@ -51,6 +51,10 @@ class TransferPanel(BaseWindowController):
 		left += 70
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont)
 
+		# imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
+		# imgRefresh.setSize_((10, 13))
+		#self.wTools.button = ImageButton((-30, -20, 30, 18), imageObject=imgRefresh, bordered=False, callback=self.refreshButtonCallback, sizeStyle="small")
+		
 		self.window = win
 
 		self.updateUI(None)
