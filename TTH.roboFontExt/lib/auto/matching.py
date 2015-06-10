@@ -189,7 +189,7 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 			targetG = targetFont[sourceG.name]
 			if len(sourceG) == len(targetG) and len(sourceG) > 0:
 				# same number of contours
-				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG)
+				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas)
 		else:
 			msg.append(sourceG.name.join(["Warning: glyph "," not found in target font."]))
 		if progress:
