@@ -179,7 +179,7 @@ def getCmdPoint(glyph, name):
 		break
 	return pt
 
-def transferHintsBetweenTwoFonts(sourceFM, targetFM, progress=None):
+def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progress=None):
 	sourceFont = sourceFM.f
 	targetFont = targetFM.f
 	msg = []

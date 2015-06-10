@@ -1,10 +1,13 @@
 #coding=utf-8
 from defconAppKit.windows.baseWindow import BaseWindowController
+from mojo.extensions import getExtensionDefault, setExtensionDefault
 from mojo.roboFont import AllFonts
 from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox
-from models.TTHTool import uniqueInstance as tthTool
+from models.TTHTool import uniqueInstance as tthTool, DefaultKeyStub
 from auto import matching
 reload(matching)
+
+defaultKeyDoTransferDelta = DefaultKeyStub + "DoTransferDelta"
 
 def displayName(f):
 	return f.info.familyName+'-'+f.info.styleName
@@ -33,6 +36,10 @@ class TransferPanel(BaseWindowController):
 		win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', alignment='left')
 		win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, callback=self.checkGlyphName)
 
+		top = 105
+		td = getExtensionDefault(defaultKeyDoTransferDelta, fallback=False)
+		win.transferDeltaCheckBox = CheckBox((10, top, 150,20), 'Also transfer delta commands', None, td)
+
 		top = -50
 		win.progressBar = ProgressBar((5,top,-5,20))
 		win.progressBar.show(0)
@@ -55,6 +62,7 @@ class TransferPanel(BaseWindowController):
 
 	def close(self, sender):
 		if self.window:
+			setExtensionDefault(defaultKeyDoTransferDelta, self.window.transferDeltaCheckBox.get())
 			self.window.close()
 			self.window = None
 
@@ -89,16 +97,18 @@ class TransferPanel(BaseWindowController):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
 		gName = self.window.glyphName.get()
+		td = self.window.transferDeltaCheckBox.get()
 		if (gName in sfm.f) and (gName in tfm.f):
 			sg = sfm.f[gName]
 			tg = tfm.f[gName]
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, transferDeltas=True)
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
+		td = self.window.transferDeltaCheckBox.get()
 		self.window.progressBar._nsObject.setMaxValue_(len(sfm.f))
 		self.window.progressBar.set(0)
 		self.window.progressBar.show(1)
-		matching.transferHintsBetweenTwoFonts(sfm, tfm, self.window.progressBar)
+		matching.transferHintsBetweenTwoFonts(sfm, tfm, td, self.window.progressBar)
 		self.window.progressBar.show(0)
