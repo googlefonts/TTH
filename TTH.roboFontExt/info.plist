@@ -6,6 +6,30 @@
 	<array>
 		<dict>
 			<key>path</key>
+			<string>commons/ShipFont.py</string>
+			<key>preferredName</key>
+			<string>Ship Font</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>path</key>
+			<string>commons/CompileAllGlyphs.py</string>
+			<key>preferredName</key>
+			<string>Compile All Glyphs</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>path</key>
+			<string>commons/ClearAllTTHData.py</string>
+			<key>preferredName</key>
+			<string>Clear all TTH Data</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>path</key>
 			<string>commons/OpenAutoMatch.py</string>
 			<key>preferredName</key>
 			<string>Auto-Match</string>

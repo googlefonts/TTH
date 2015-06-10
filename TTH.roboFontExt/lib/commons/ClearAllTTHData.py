@@ -1,0 +1,1 @@
+print 'Should clean the UFO'
