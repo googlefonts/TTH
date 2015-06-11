@@ -51,9 +51,9 @@ class TransferPanel(BaseWindowController):
 
 		top = -30
 		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close, sizeStyle="small")
-		left = -180
-		win.transferGlyphButton = Button((left, top, 100, 20), "Current Glyph", callback=self.transferGlyph, sizeStyle="small")
-		left += 110
+		left = -190
+		win.transferGlyphButton = Button((left, top, 110, 20), "Selected Glyphs", callback=self.transferGlyphs, sizeStyle="small")
+		left += 120
 		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
 
 		self.window = win
@@ -74,15 +74,7 @@ class TransferPanel(BaseWindowController):
 	def updateUI(self, sender):
 		sfm, tfm = self.getFontModels()
 		diffFont = (not (sfm is tfm)) and (sfm != None)
-		g = CurrentGlyph()
-		if AllFonts == [] or g== None:
-			gName = None
-			okGlyph = False
-		else:
-			gName = g.name
-			okGlyph = (gName in sfm.f) and (gName in tfm.f)
-
-		self.window.transferGlyphButton.enable(diffFont and okGlyph)
+		self.window.transferGlyphButton.enable(diffFont)
 		self.window.transferFontButton.enable(diffFont)
 
 	def updatePopUps(self):
@@ -103,28 +95,26 @@ class TransferPanel(BaseWindowController):
 		tfm = self.getFontModelForName(tfpsname)
 		return sfm, tfm
 
-	# def checkGlyphName(self, sender):
-	# 	sfm, tfm = self.getFontModels()
-	# 	gName = self.window.glyphName.get()
-	# 	ok = (gName in sfm.f) and (gName in tfm.f)
-	# 	if not ok:
-	# 		print 'Glyph not found'
-
-	def transferGlyph(self, sender):
+	def transferGlyphs(self, sender):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
-		g = CurrentGlyph()
-		gName = None
-		if g != None:
-			gName = g.name
-		print gName
 		td = self.window.transferDeltaCheckBox.get()
-		if (gName in sfm.f) and (gName in tfm.f):
-			sg = sfm.f[gName]
-			tg = tfm.f[gName]
-			print sg, tg
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
-			tthTool.hintingProgramHasChanged(tfm)
+		self.window.progressBar.set(0)
+		self.window.progressBar.show(1)
+		gNamesList = []
+		for g in CurrentFont():
+			if g.selected:
+				gNamesList.append(g.name)
+		inc = 100/len(gNamesList)
+		for gName in gNamesList:
+			if (gName in sfm.f) and (gName in tfm.f):
+				sg = sfm.f[gName]
+				tg = tfm.f[gName]
+				matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
+				tfm.f[gName].mark = (1, .5, 0, .5)
+				self.window.progressBar.increment(inc)
+		self.window.progressBar.show(0)
+		tthTool.hintingProgramHasChanged(tfm)
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()
