@@ -1,7 +1,6 @@
 #coding=utf-8
 from defconAppKit.windows.baseWindow import BaseWindowController
 from mojo.extensions import getExtensionDefault, setExtensionDefault
-from mojo.roboFont import AllFonts
 from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox, ImageButton
 from mojo.roboFont import CurrentGlyph, CurrentFont, AllFonts
 from AppKit import NSImage, NSImageNameRefreshTemplate
@@ -99,22 +98,26 @@ class TransferPanel(BaseWindowController):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
 		td = self.window.transferDeltaCheckBox.get()
+		gNamesList = CurrentFont().selection
+		if not gNamesList: return
 		self.window.progressBar.set(0)
+		self.window.progressBar._nsObject.setMaxValue_(len(gNamesList))
 		self.window.progressBar.show(1)
-		gNamesList = []
-		for g in CurrentFont():
-			if g.selected:
-				gNamesList.append(g.name)
-		if gNamesList == []: return
-		inc = 100/len(gNamesList)
+		nInc = max(1, len(gNamesList)/25) # at most 25 increments of the progress bar
+		count = 0
 		for gName in gNamesList:
 			if (gName in sfm.f) and (gName in tfm.f):
 				sg = sfm.f[gName]
 				tg = tfm.f[gName]
 				matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
 				tfm.f[gName].mark = (1, .5, 0, .5)
-				self.window.progressBar.increment(inc)
+				count += 1
+				if count == nInc:
+					self.window.progressBar.increment(count)
+					count = 0
+		self.window.progressBar.increment(count)
 		self.window.progressBar.show(0)
+		self.window.progressBar.set(0)
 		tthTool.hintingProgramHasChanged(tfm)
 
 	def transferFont(self, sender):
@@ -126,6 +129,7 @@ class TransferPanel(BaseWindowController):
 		self.window.progressBar.show(1)
 		matching.transferHintsBetweenTwoFonts(sfm, tfm, td, self.window.progressBar)
 		self.window.progressBar.show(0)
+		self.window.progressBar.set(0)
 		tthTool.hintingProgramHasChanged(tfm)
 
 	def refreshFontsButtonCallback(self, sender):

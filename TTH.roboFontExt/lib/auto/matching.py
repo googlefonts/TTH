@@ -146,12 +146,13 @@ def getOffMatching(srcOffs, tgtOffContour, tgtSeg0, tgtSeg1):
 
 class PointNameMatcher(object):
 	def __init__(self, g0, g1, withOff=False):
+		m = {'lsb':'lsb', 'rsb':'rsb'}
+		self._map = m
 		# g0 and g1 are two objects of class 'Glyph'
+		if (len(g0) == 0) or (len(g1) == 0): return
 		srcG, srcOffs = prepareGlyph(g0)
 		tgtG, tgtOffs = prepareGlyph(g1)
 		matchings = matchTwoGlyphs(srcG, tgtG)
-		m = {'lsb':'lsb', 'rsb':'rsb'}
-		self._map = m
 		if matchings == None: return
 		for f, (t, perm) in enumerate(matchings):
 			for srcSeg, tgtSeg in enumerate(perm):
@@ -161,10 +162,7 @@ class PointNameMatcher(object):
 				if not withOff: continue
 				m.update(getOffMatching(srcOffs[f][srcSeg], tgtOffs[t], perm[srcSeg-1], tgtSeg))
 	def map(self, fName):
-		try:
-			return self._map[fName]
-		except:
-			return None
+		return self._map.get(fName)
 
 def getCmdPoint(glyph, name):
 	if name == 'lsb':
