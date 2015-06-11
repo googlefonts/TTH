@@ -18,7 +18,7 @@ class TransferPanel(BaseWindowController):
 	def __init__(self):
 		super(TransferPanel, self).__init__()
 		panelSize = 320, 170
-		ps = 20, 20, panelSize[0], panelSize[1]
+		ps = panelSize[0], panelSize[1]
 		win = FloatingWindow(ps, "Auto-Match", minSize=panelSize, maxSize=panelSize)
 		self.fontsNames = [displayName(f) for f in AllFonts()]
 		self.fontsNames.sort()
@@ -105,6 +105,7 @@ class TransferPanel(BaseWindowController):
 		for g in CurrentFont():
 			if g.selected:
 				gNamesList.append(g.name)
+		if gNamesList == []: return
 		inc = 100/len(gNamesList)
 		for gName in gNamesList:
 			if (gName in sfm.f) and (gName in tfm.f):
