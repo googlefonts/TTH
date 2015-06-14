@@ -211,16 +211,22 @@ class TTHFont(object):
 		if 'delta' not in zone:
 			if deltaValue != 0: zone['delta'] = {}
 			else: return
-		deltas = zone['delta']
-		key    = str(PPMSize)
+		deltas  = zone['delta']
+		key     = str(PPMSize)
+		changed = False
 		if deltaValue == 0:
 			if key in deltas:
 				del deltas[key]
 				if len(deltas) == 0:
 					del zone['delta']
+				changed = True
 		else:
+			changed = deltas.get(key, None) != deltaValue
 			deltas[key] = deltaValue
+		if not changed: return
 		self.saveZonesToUFO()
+		self.dirtyCVT()
+		self.writeCVTandPREP()
 
 	def zoneAtPoint(self, point):
 		for name, zone in self.zones.iteritems():

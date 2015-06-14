@@ -4,9 +4,9 @@ In Refactor
 
 BUGS
 ------------------------------
-Fix popover bug when multiple deltas are on the same point at various ppem sizes DONE
+DONE Fix popover bug when multiple deltas are on the same point at various ppem sizes
 ------------------------------
-Adding delta to zone in glyph window should recompile CVT+PREP+GlyphProgram
+DONE Adding delta to zone in glyph window should recompile CVT+PREP+GlyphProgram
 ------------------------------
 Try to ensure consistent numbering of zones and stems after CVT editing
 and re-assemble glyphs whose stem/zone cvt-numbers have changed

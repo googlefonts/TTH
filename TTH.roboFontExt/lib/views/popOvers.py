@@ -570,6 +570,7 @@ class ZoneDeltaPopover(TTHCommandPopover):
 	def zoneDeltaOffsetSliderCallback(self, sender):
 		zoneDeltaOffset = int(sender.get() - 8)
 		self.fm.setZoneDelta((self.zoneName, self.zone), tthTool.PPM_Size, zoneDeltaOffset)
+		self.gm.updateGlyphProgram(self.fm)
 
 	def sizeHasChanged(self, size):
 		if 'delta' in self.zone:
