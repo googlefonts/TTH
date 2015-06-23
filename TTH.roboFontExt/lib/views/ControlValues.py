@@ -490,6 +490,9 @@ class ControlValuesSheet(object):
 		self.verticalStemView.box.stemsList.setPosSize((0, 0, -0, -22))
 		self.verticalStemView.titlebox.setPosSize((10, height-(height/2.0)-44, -10, 14))
 
+	def resetUI(self):
+		pass
+
 	# - - - - - - - - - - - - - - - - - - - - - - - - ZONES FUNCTION
 
 	def clearZones(self, sender):

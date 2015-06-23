@@ -177,6 +177,8 @@ class TTHTool(object):
 		setExtensionDefault(defaultKeyPreviewTo, toS)
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def changeSize(self, size):
 		#print "Change size"
@@ -255,6 +257,8 @@ class TTHTool(object):
 		for fm in self._fontModels.itervalues():
 			fm.setPreviewInGlyphWindowVisibility(onOff)
 		UpdateCurrentGlyphView()
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 # - - - - - - - - - - - - - - - - - - - ACTIVE / INACTIVE
 
@@ -328,34 +332,50 @@ class TTHTool(object):
 	def setShowBitmap(self, onOff):
 		self.showBitmap = onOff
 		setExtensionDefault(defaultKeyShowBitmap, onOff)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setBitmapOpacity(self, value):
 		self.bitmapOpacity = value
 		setExtensionDefault(defaultKeyBitmapOpacity, value)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setShowOutline(self, onOff):
 		self.showOutline = onOff
 		setExtensionDefault(defaultKeyShowOutline, onOff)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setOutlineThickness(self, value):
 		self.outlineThickness = value
 		setExtensionDefault(defaultKeyOutlineThickness, value)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setShowGrid(self, onOff):
 		self.showGrid = onOff
 		setExtensionDefault(defaultKeyShowGrid, onOff)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setGridOpacity(self, value):
 		self.gridOpacity = value
 		setExtensionDefault(defaultKeyGridOpacity, value)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setShowCenterPixels(self, onOff):
 		self.showCenterPixel = onOff
 		setExtensionDefault(defaultKeyShowCenterPixels, onOff)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 	def setCenterPixelSize(self, value):
 		self.centerPixelSize = value
 		setExtensionDefault(defaultKeyCenterPixelSize, value)
+		if self.mainPanel.curSheet:
+			self.mainPanel.curSheet.resetUI()
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 

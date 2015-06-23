@@ -49,6 +49,9 @@ class AutoHintingSheet(object):
 
 		w.open()
 
+	def resetUI(self):
+		pass
+
 	def close(self):
 		self.w.close()
 		tthTool.mainPanel.curSheet = None

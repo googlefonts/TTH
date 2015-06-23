@@ -75,6 +75,20 @@ class PreferencesSheet(object):
 		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		self.w.open()
 
+	def resetUI(self):
+		b = self.w.viewAndSettingsBox
+		b.displayBitmapCheckBox.set(tthTool.showBitmap)
+		b.bitmapOpacitySlider.set(tthTool.bitmapOpacity)
+		b.displayHintedOutlineCheckBox.set(tthTool.showOutline)
+		b.outlineThicknessSlider.set(tthTool.outlineThickness)
+		b.displayGridCheckBox.set(tthTool.showGrid)
+		b.gridOpacitySlider.set(tthTool.gridOpacity)
+		b.displayPixelCentersCheckBox.set(tthTool.showCenterPixel)
+		b.pixelCentersSizeSlider.set(tthTool.centerPixelSize)
+		b.displayPreviewInGlyphWindowCheckBox.set(tthTool.showPreviewInGlyphWindow)
+		b.displayFromEditText.set(tthTool.previewFrom)
+		b.displayToEditText.set(tthTool.previewTo)
+
 	###########
 	# Callbacks
 	###########
