@@ -480,7 +480,7 @@ When do we regenerate a partial font?
 					releaseMode   = False,\
 					glyphOrder    = None,\
 					progressBar   = None)
-			self.editComponentsFlags(self.f, self.tempFullFontPath)
+			#self.editComponentsFlags(self.f, self.tempFullFontPath)
 		#except:
 		#	print 'ERROR: Unable to generate full font'
 
