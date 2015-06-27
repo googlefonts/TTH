@@ -4,8 +4,9 @@ from mojo.UI import *
 from mojo.events import getActiveEventTool
 import string
 
-from commons import helperFunctions
+from commons import helperFunctions, HotKeys
 from models.TTHTool import uniqueInstance as tthTool
+reload(HotKeys)
 
 #reload(helperFunctions)
 
@@ -13,13 +14,14 @@ class PreferencesSheet(object):
 
 	def __init__(self, parentWindow):
 
-		self.w = Sheet((505, 350), parentWindow=parentWindow)
+		self.w = Sheet((505, 550), parentWindow=parentWindow)
 
 		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
 
 		self.w.autohintingBox = Box((10, 19, -10, -40))
 
 		self.w.hotKeysBox = Box((10, 19, -10, -40))
+		self.hotKeyChangers, lastTop = HotKeys.fillBox(self.w.hotKeysBox)
 
 		preferencesSegmentDescriptions = [
 			dict(width=67, title="View", toolTip="View"),
