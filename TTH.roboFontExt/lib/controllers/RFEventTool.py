@@ -13,7 +13,7 @@ import math
 # reloaded in main.py
 from models.TTHTool import uniqueInstance as tthTool
 # reloaded below
-from commons import helperFunctions
+from commons import helperFunctions, HotKeys
 from drawing import textRenderer, geom, utilities as DR
 # reloaded elsewhere
 from models import TTHGlyph
@@ -291,50 +291,66 @@ class TTH_RF_EventTool(BaseEventTool):
 		if mod['commandDown']: return
 		if mod['optionDown']:  return
 		if mod['controlDown']: return
+		hot = HotKeys.gHotKeys.get(key, None)
+		if hot is None: return
+		print hot
 		tool = tthTool.selectedHintingTool
-		toolKeys = {'a':'Align', 's':'Single Link', 'd':'Double Link', 'i':'Interpolation', 'm':'Middle Delta', 'f':'Final Delta', 't':'Selection'}
-		if key in toolKeys:
-			if tool != None:
-				tool.reset()
-			tthTool.setTool(toolKeys[key])
-		elif key == 'o':
+		if hot == HotKeys.kTTH_HotKey_Select_Align_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Align')
+		elif hot == HotKeys.kTTH_HotKey_Select_Single_Link_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Single Link')
+		elif hot == HotKeys.kTTH_HotKey_Select_Double_Link_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Double Link')
+		elif hot == HotKeys.kTTH_HotKey_Select_Interpolate_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Interpolation')
+		elif hot == HotKeys.kTTH_HotKey_Select_Middle_Delta_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Middle Delta')
+		elif hot == HotKeys.kTTH_HotKey_Select_Final_Delta_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Final Delta')
+		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Outline:
 			tthTool.setShowOutline(not tthTool.showOutline)
 			UpdateCurrentGlyphView()
-		elif key == 'B':
+		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Bitmap:
 			tthTool.setShowBitmap(not tthTool.showBitmap)
 			UpdateCurrentGlyphView()
-		elif key == 'G':
+		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Grid:
 			tthTool.setShowGrid(not tthTool.showGrid)
 			UpdateCurrentGlyphView()
-		elif key == 'c':
+		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Center_Pixels:
 			tthTool.setShowCenterPixels(not tthTool.showCenterPixel)
 			UpdateCurrentGlyphView()
-		elif key in 'hvS':
+		elif hot == HotKeys.kTTH_HotKey_Change_Axis:
 			if tthTool.selectedAxis == 'Y':
 				tthTool.changeAxis('X')
 			else:
 				tthTool.changeAxis('Y')
 			UpdateCurrentGlyphView()
-		elif key == 'R':
+		elif hot == HotKeys.kTTH_HotKey_Switch_Rounding:
 			if tool != None:
 				tool.switchRounding()
 				tool.updateUI()
-		elif key == 'A':
+		elif hot == HotKeys.kTTH_HotKey_Change_Alignment:
 			if tool != None:
 				tool.changeAlignement()
 				tool.updateUI()
-		elif key == '-':
+		elif hot == HotKeys.kTTH_HotKey_Change_Size_Down:
 			if tthTool.PPM_Size > 9:
 				tthTool.changeSize(tthTool.PPM_Size-1)
-		elif key == '=' or key == '+':
+		elif hot == HotKeys.kTTH_HotKey_Change_Size_Up:
 			tthTool.changeSize(tthTool.PPM_Size+1)
-		elif key == 'p':
+		elif hot == HotKeys.kTTH_HotKey_Change_Preview_Mode:
 			bitmapPreviewList = ['Monochrome', 'Grayscale', 'Subpixel']
 			fm = tthTool.getFontModel()
 			i = bitmapPreviewList.index(fm.bitmapPreviewMode)
 			fm.bitmapPreviewMode = bitmapPreviewList[(i+1)%3]
 			tthTool.updateDisplay()
-		elif key == 'P':
+		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Preview_In_GW:
 			fm = tthTool.getFontModel()
 			cur = tthTool.showPreviewInGlyphWindow
 			tthTool.setPreviewInGlyphWindowState(not cur)

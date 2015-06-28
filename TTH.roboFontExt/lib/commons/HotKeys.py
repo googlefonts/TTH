@@ -2,25 +2,25 @@
 from vanilla import TextBox, Button, EditText
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 
-DefaultKeyStub = "com.sansplomb.TTH."
+DefaultHotKeyStub = "com.sansplomb.TTH.HotKey."
 
-kTTH_HotKey_Select_Align_Tool        = "Select Align Tool"
-kTTH_HotKey_Select_Single_Link_Tool  = "Select SingleLink Tool"
-kTTH_HotKey_Select_Double_Link_Tool  = "Select DoubleLink Tool"
-kTTH_HotKey_Select_Interpolate_Tool  = "Select Interpolate Tool"
-kTTH_HotKey_Select_Middle_Delta_Tool = "Select Middle Delta Tool"
-kTTH_HotKey_Select_Final_Delta_Tool  = "Select Final Delta Tool"
-kTTH_HotKey_Show_Outline             = "Switch Show Outline"
-kTTH_HotKey_Show_Bitmap              = "Switch Show Bitmap"
-kTTH_HotKey_Show_Grid                = "Switch Show Grid"
-kTTH_HotKey_Show_Preview_In_GW       = "Switch Show Preview In Glyph Window"
-kTTH_HotKey_Show_Center_Pixels       = "Switch Show Center Pixels"
-kTTH_HotKey_Switch_Rounding          = "Switch Rounding"
-kTTH_HotKey_Change_Axis              = "Change Axis"
-kTTH_HotKey_Change_Alignment         = "Change Alignment"
-kTTH_HotKey_Change_Size_Up           = "Change Size Up"
-kTTH_HotKey_Change_Size_Down         = "Change Size Down"
-kTTH_HotKey_Change_Preview_Mode      = "Change Preview Mode"
+kTTH_HotKey_Select_Align_Tool          = "Select Align Tool"
+kTTH_HotKey_Select_Single_Link_Tool    = "Select SingleLink Tool"
+kTTH_HotKey_Select_Double_Link_Tool    = "Select DoubleLink Tool"
+kTTH_HotKey_Select_Interpolate_Tool    = "Select Interpolate Tool"
+kTTH_HotKey_Select_Middle_Delta_Tool   = "Select Middle Delta Tool"
+kTTH_HotKey_Select_Final_Delta_Tool    = "Select Final Delta Tool"
+kTTH_HotKey_Switch_Show_Outline        = "Switch Show Outline"
+kTTH_HotKey_Switch_Show_Bitmap         = "Switch Show Bitmap"
+kTTH_HotKey_Switch_Show_Grid           = "Switch Show Grid"
+kTTH_HotKey_Switch_Show_Preview_In_GW  = "Switch Show Preview In Glyph Window"
+kTTH_HotKey_Switch_Show_Center_Pixels  = "Switch Show Center Pixels"
+kTTH_HotKey_Switch_Rounding            = "Switch Rounding"
+kTTH_HotKey_Change_Axis                = "Change Axis"
+kTTH_HotKey_Change_Alignment           = "Change Alignment"
+kTTH_HotKey_Change_Size_Up             = "Change Size Up"
+kTTH_HotKey_Change_Size_Down           = "Change Size Down"
+kTTH_HotKey_Change_Preview_Mode        = "Change Preview Mode"
 
 hotKeyDefaults = [
         (kTTH_HotKey_Select_Align_Tool, 'a'),
@@ -29,11 +29,11 @@ hotKeyDefaults = [
         (kTTH_HotKey_Select_Interpolate_Tool, 'i'),
         (kTTH_HotKey_Select_Middle_Delta_Tool, 'm'),
         (kTTH_HotKey_Select_Final_Delta_Tool, 'f'),
-        (kTTH_HotKey_Show_Outline, 'o'),
-        (kTTH_HotKey_Show_Bitmap, 'B'),
-        (kTTH_HotKey_Show_Grid, 'G'),
-        (kTTH_HotKey_Show_Preview_In_GW, 'P'),
-        (kTTH_HotKey_Show_Center_Pixels, 'c'),
+        (kTTH_HotKey_Switch_Show_Outline, 'o'),
+        (kTTH_HotKey_Switch_Show_Bitmap, 'B'),
+        (kTTH_HotKey_Switch_Show_Grid, 'G'),
+        (kTTH_HotKey_Switch_Show_Preview_In_GW, 'P'),
+        (kTTH_HotKey_Switch_Show_Center_Pixels, 'c'),
         (kTTH_HotKey_Switch_Rounding, 'R'),
         (kTTH_HotKey_Change_Axis, 'hvS'),
         (kTTH_HotKey_Change_Alignment, 'A'),
@@ -50,18 +50,19 @@ def removeSpace(s):
 gHotKeys = {}
 
 for keyID, default in hotKeyDefaults:
-    key = getExtensionDefault(DefaultKeyStub + removeSpace(keyID), fallback = default)
-    setExtensionDefault(DefaultKeyStub + removeSpace(keyID), key)
+    key = getExtensionDefault(DefaultHotKeyStub + removeSpace(keyID), fallback = default)
+    setExtensionDefault(DefaultHotKeyStub + removeSpace(keyID), key)
     for c in key: # for each character
-        gHotKeys[key] = keyID
+        #print c,"-->",keyID
+        gHotKeys[c] = keyID
 
 class HotKeyPrefChanger(object):
 	def __init__(self, parent, top, hotKeyID):
 		self.hotKeyID = hotKeyID
 		self.attrName = removeSpace(hotKeyID)
-                keys = getExtensionDefault(DefaultKeyStub + self.attrName, fallback = '')
+                keys = getExtensionDefault(DefaultHotKeyStub + self.attrName, fallback = '')
 		# label
-		textLabel = TextBox((10, top, 150, 18), hotKeyID, sizeStyle='small')
+		textLabel = TextBox((10, top, 250, 18), hotKeyID, sizeStyle='small')
 		labelAttrName = "hotKeyDescription_" + self.attrName
 		parent.__setattr__(labelAttrName, textLabel)
 		# hotkey
@@ -78,20 +79,25 @@ class HotKeyPrefChanger(object):
 		pass#self.hotText.set(self.default)
 
         def edit(self, sender):
-            keys = getExtensionDefault(DefaultKeyStub + self.attrName, fallback = '')
+            defKey = DefaultHotKeyStub + self.attrName
+            curKeys = getExtensionDefault(defKey, fallback = '')
             wish = sender.get()
             newKeys = []
             for c in wish:
+                if c in [' ', '\t', '\n', '\r']: continue
                 h = gHotKeys.get(c, None)
                 if (h is None) or (h == self.attrName):
                     newKeys.append(c)
-            for c in keys:
+            if newKeys == []:
+                sender.set(''.join(curKeys))
+                return
+            for c in curKeys:
                 if c not in newKeys:
                     del gHotKeys[c]
             for c in newKeys:
                 gHotKeys[c] = self.hotKeyID
             s = ''.join(newKeys)
-            setExtensionDefault(DefaultKeyStub + self.attrName, s)
+            setExtensionDefault(defKey, s)
             sender.set(s)
 
 def fillBox(box):

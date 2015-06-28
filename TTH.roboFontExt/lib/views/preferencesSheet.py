@@ -14,7 +14,7 @@ class PreferencesSheet(object):
 
 	def __init__(self, parentWindow):
 
-		self.w = Sheet((505, 550), parentWindow=parentWindow)
+		self.w = Sheet((505, 520), parentWindow=parentWindow)
 
 		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
 
