@@ -293,7 +293,6 @@ class TTH_RF_EventTool(BaseEventTool):
 		if mod['controlDown']: return
 		hot = HotKeys.gHotKeys.get(key, None)
 		if hot is None: return
-		print hot
 		tool = tthTool.selectedHintingTool
 		if hot == HotKeys.kTTH_HotKey_Select_Align_Tool:
 			if tool: tool.reset()

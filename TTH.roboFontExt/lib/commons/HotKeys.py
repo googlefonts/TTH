@@ -2,7 +2,7 @@
 from vanilla import TextBox, Button, EditText
 from mojo.extensions import getExtensionDefault, setExtensionDefault
 
-DefaultHotKeyStub = "com.sansplomb.TTH.HotKey."
+DefaultHotKeyPrefix = "com.sansplomb.TTH.HotKey."
 
 kTTH_HotKey_Select_Align_Tool          = "Select Align Tool"
 kTTH_HotKey_Select_Single_Link_Tool    = "Select SingleLink Tool"
@@ -50,8 +50,8 @@ def removeSpace(s):
 gHotKeys = {}
 
 for keyID, default in hotKeyDefaults:
-    key = getExtensionDefault(DefaultHotKeyStub + removeSpace(keyID), fallback = default)
-    setExtensionDefault(DefaultHotKeyStub + removeSpace(keyID), key)
+    key = getExtensionDefault(DefaultHotKeyPrefix + removeSpace(keyID), fallback = default)
+    setExtensionDefault(DefaultHotKeyPrefix + removeSpace(keyID), key)
     for c in key: # for each character
         #print c,"-->",keyID
         gHotKeys[c] = keyID
@@ -60,7 +60,7 @@ class HotKeyPrefChanger(object):
 	def __init__(self, parent, top, hotKeyID):
 		self.hotKeyID = hotKeyID
 		self.attrName = removeSpace(hotKeyID)
-                keys = getExtensionDefault(DefaultHotKeyStub + self.attrName, fallback = '')
+                keys = getExtensionDefault(DefaultHotKeyPrefix + self.attrName, fallback = '')
 		# label
 		textLabel = TextBox((10, top, 250, 18), hotKeyID, sizeStyle='small')
 		labelAttrName = "hotKeyDescription_" + self.attrName
@@ -79,7 +79,7 @@ class HotKeyPrefChanger(object):
 		pass#self.hotText.set(self.default)
 
         def edit(self, sender):
-            defKey = DefaultHotKeyStub + self.attrName
+            defKey = DefaultHotKeyPrefix + self.attrName
             curKeys = getExtensionDefault(defKey, fallback = '')
             wish = sender.get()
             newKeys = []
