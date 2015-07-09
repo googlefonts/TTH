@@ -58,6 +58,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		# Stores the click position during mouseDown event
 		self.mouseDownClickPos = None
 
+		# Storage to save the current tool name when CONTROL-clicking
+		self.nonControlKeyToolName = None
+
 	def __del__(self):
 		pass
 
@@ -221,6 +224,10 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF at mouse Down'''
 		self.mouseDownClickPos = geom.makePoint(point)
 		tool = tthTool.selectedHintingTool
+		if self.getModifiers()['optionDown']:
+			if tool: self.nonControlKeyToolName = tool.name
+			tthTool.setTool('Selection')
+			tool = tthTool.getTool('Selection')
 		if tool: tool.mouseDown(point, clickCount)
 
 	def mouseMoved(self, point):
@@ -251,6 +258,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		tool = tthTool.selectedHintingTool
 		if tool != None:
 			tool.mouseUp(point)
+		if self.nonControlKeyToolName != None:
+			tthTool.setTool(self.nonControlKeyToolName)
+			self.nonControlKeyToolName = None
 
 	def rightMouseDown(self, point, clickCount):
 		gm = tthTool.getGlyphModel()
