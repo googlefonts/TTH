@@ -186,6 +186,7 @@ class TTHTool(object):
 			size = int(size)
 		except ValueError:
 			size = 9
+		if self.PPM_Size == size: return
 		self.PPM_Size = size
 		setExtensionDefault(defaultKeyCurrentPPMSize, size)
 		eventController = getActiveEventTool()

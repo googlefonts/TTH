@@ -127,9 +127,9 @@ class MainPanel(BaseWindowController):
 		# UI for delta range
 		self.wTools.DeltaRangeText = TextBox((-120, 58, 40, 15), "Range:", sizeStyle = "mini")
 		self.wTools.DeltaRange1ComboBox = ComboBox((-80, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini",
-				callback=self.DeltaRange1ComboBoxCallback)
+				callback=self.DeltaRange1ComboBoxCallback, continuous=False)
 		self.wTools.DeltaRange2ComboBox = ComboBox((-43, 56, 33, 15), self.PPMSizesList, sizeStyle = "mini",
-				callback=self.DeltaRange2ComboBoxCallback)
+				callback=self.DeltaRange2ComboBoxCallback, continuous=False)
 		self.wTools.DeltaRangeText.show(False)
 		self.wTools.DeltaRange1ComboBox.show(False)
 		self.wTools.DeltaRange2ComboBox.show(False)
@@ -249,7 +249,7 @@ class MainPanel(BaseWindowController):
 		except:
 			size = tthTool.selectedHintingTool.range1
 		sender.set(str(size))
-		tthTool.selectedHintingTool.setRange(sender.get(), tthTool.selectedHintingTool.range2)
+		tthTool.selectedHintingTool.setRange(size, tthTool.selectedHintingTool.range2)
 		self.unlock()
 
 	def DeltaRange2ComboBoxCallback(self, sender):
@@ -260,7 +260,7 @@ class MainPanel(BaseWindowController):
 		except:
 			size = tthTool.selectedHintingTool.range2
 		sender.set(str(size))
-		tthTool.selectedHintingTool.setRange(tthTool.selectedHintingTool.range1, sender.get())
+		tthTool.selectedHintingTool.setRange(tthTool.selectedHintingTool.range1, size)
 		self.unlock()
 
 	def gearMenuCallback(self, sender):

@@ -68,8 +68,8 @@ class DeltaTool(TTHCommandTool):
 		w.DeltaOffsetEditText.set(str(self.offset))
 
 	def setRange(self, value1, value2):
-		value1 = min(56, max(9, value1))
-		value2 = min(56, max(9, value2))
+		value1 = max(9, value1)
+		value2 = max(9, value2)
 		if value2 < value1:
 			value2 = value1
 		self.range1 = value1
