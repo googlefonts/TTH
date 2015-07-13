@@ -222,12 +222,42 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
+		print self.getModifiers()
+		if self.currentPopover != None:
+			self.currentPopover.close()
 		self.mouseDownClickPos = geom.makePoint(point)
 		tool = tthTool.selectedHintingTool
 		if self.getModifiers()['optionDown']:
 			if tool: self.nonControlKeyToolName = tool.name
-			tthTool.setTool('Selection')
-			tool = tthTool.getTool('Selection')
+			gm = tthTool.getGlyphModel()
+			separator = NSMenuItem.separatorItem()
+			items = []
+			menuAction = NSMenu.alloc().init()
+			menuController = BaseMenu()
+			cmd = gm.commandClicked(geom.makePoint(point))
+			if cmd is None:
+				items.append(('Clear All Program', gm.deleteAllCommands))
+				items.append(('Clear X Commands', gm.deleteXCommands))
+				items.append(('Clear Y Commands', gm.deleteYCommands))
+				items.append(('Clear All Deltas', gm.deleteAllDeltas))
+				items.append(separator)
+				items.append(('Deactivate All Commands', gm.deactivateAllCommands))
+				items.append(('Activate All Commands', gm.activateAllCommands))
+			else:
+				items.append(('Delete Command', TTHGlyph.CommandRemover(gm, cmd)))
+				code = cmd.get('code')
+				if 'double' in code:
+					items.append(('Convert to Single Link', TTHGlyph.CommandConverter(gm, cmd)))
+				if 'single' in code:
+					items.append(('Reverse Direction', TTHGlyph.CommandReverser(gm, cmd)))
+					items.append(('Convert to Double Link', TTHGlyph.CommandConverter(gm, cmd)))
+			if hasattr(menuController, 'buildAdditionContextualMenuItems'):
+				menuController.buildAdditionContextualMenuItems(menuAction, items)
+			else:
+				menuController.buildAdditionContectualMenuItems(menuAction, items)
+			if cmd != None:
+				menuAction.insertItem_atIndex_(separator, 1)
+			NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
 		if tool: tool.mouseDown(point, clickCount)
 
 	def mouseMoved(self, point):
@@ -263,36 +293,14 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.nonControlKeyToolName = None
 
 	def rightMouseDown(self, point, clickCount):
-		gm = tthTool.getGlyphModel()
-		separator = NSMenuItem.separatorItem()
-		items = []
-		menuAction = NSMenu.alloc().init()
-		menuController = BaseMenu()
-		cmd = gm.commandClicked(geom.makePoint(point))
-		if cmd is None:
-			items.append(('Clear All Program', gm.deleteAllCommands))
-			items.append(('Clear X Commands', gm.deleteXCommands))
-			items.append(('Clear Y Commands', gm.deleteYCommands))
-			items.append(('Clear All Deltas', gm.deleteAllDeltas))
-			items.append(separator)
-			items.append(('Deactivate All Commands', gm.deactivateAllCommands))
-			items.append(('Activate All Commands', gm.activateAllCommands))
-		else:
-			items.append(('Delete Command', TTHGlyph.CommandRemover(gm, cmd)))
-			code = cmd.get('code')
-			if 'double' in code:
-				items.append(('Convert to Single Link', TTHGlyph.CommandConverter(gm, cmd)))
-			if 'single' in code:
-				items.append(('Reverse Direction', TTHGlyph.CommandReverser(gm, cmd)))
-				items.append(('Convert to Double Link', TTHGlyph.CommandConverter(gm, cmd)))
-		if hasattr(menuController, 'buildAdditionContextualMenuItems'):
-			menuController.buildAdditionContextualMenuItems(menuAction, items)
-		else:
-			menuController.buildAdditionContectualMenuItems(menuAction, items)
-		if cmd != None:
-			menuAction.insertItem_atIndex_(separator, 1)
-		NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
-
+		self.mouseDownClickPos = geom.makePoint(point)
+		previousTool = tthTool.selectedHintingTool
+		tthTool.setTool('Selection')
+		tool = tthTool.getTool('Selection')
+		if tool: 
+			tool.mouseDown(point, clickCount)
+			tool.mouseUp(point)
+		tthTool.setTool(previousTool.name)
 # - - - - - - - - - - - - - - - - - - - - - - - - KEY EVENTS
 
 	def keyUp(self, event):
