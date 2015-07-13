@@ -222,7 +222,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def mouseDown(self, point, clickCount):
 		'''This function is called by RF at mouse Down'''
-		print self.getModifiers()
 		if self.currentPopover != None:
 			self.currentPopover.close()
 		self.mouseDownClickPos = geom.makePoint(point)
@@ -240,6 +239,8 @@ class TTH_RF_EventTool(BaseEventTool):
 				items.append(('Clear X Commands', gm.deleteXCommands))
 				items.append(('Clear Y Commands', gm.deleteYCommands))
 				items.append(('Clear All Deltas', gm.deleteAllDeltas))
+				items.append(('Clear X Deltas', gm.deleteXDeltas))
+				items.append(('Clear Y Deltas', gm.deleteYDeltas))
 				items.append(separator)
 				items.append(('Deactivate All Commands', gm.deactivateAllCommands))
 				items.append(('Activate All Commands', gm.activateAllCommands))
