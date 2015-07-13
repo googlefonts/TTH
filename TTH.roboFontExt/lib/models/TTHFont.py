@@ -531,6 +531,7 @@ When do we regenerate a partial font?
 				if key in lib:
 					tempFont.lib[key] = lib[key]
 			for name in glyphSet:
+				if name not in self.f: continue
 				oldG = self.f[name]
 				if not self.hasGlyphModelForGlyph(oldG):
 					self.glyphModelForGlyph(oldG, compile=False).compileToUFO(self)
