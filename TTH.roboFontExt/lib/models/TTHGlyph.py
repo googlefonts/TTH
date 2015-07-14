@@ -388,6 +388,22 @@ class TTHGlyph(object):
 		self.performUndo()
 
 	def deleteYDeltas(self, item=0):
+		self.prepareUndo("Clear Y Deltas")
+		cmds = [cmd for cmd in self.hintingCommands if 'deltav' not in cmd.get('code')]
+		self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
+		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
+
+	def deleteXDeltas(self, item=0):
+		self.prepareUndo("Clear X Deltas")
+		cmds = [cmd for cmd in self.hintingCommands if 'deltah' not in cmd.get('code')]
+		self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
+		self.updateGlyphProgram(tthTool.getFontModel())
+		self.performUndo()
+
+	def deleteYDeltas(self, item=0):
 		self.prepareUndo("Clear X Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'deltav' not in cmd.get('code')]
 		self.hintingCommands.clear()
