@@ -10,6 +10,7 @@ kTTH_HotKey_Select_Double_Link_Tool    = "Select DoubleLink Tool"
 kTTH_HotKey_Select_Interpolate_Tool    = "Select Interpolate Tool"
 kTTH_HotKey_Select_Middle_Delta_Tool   = "Select Middle Delta Tool"
 kTTH_HotKey_Select_Final_Delta_Tool    = "Select Final Delta Tool"
+kTTH_HotKey_Select_Selection_Tool      = "Select Selection Tool"
 kTTH_HotKey_Switch_Show_Outline        = "Switch Show Outline"
 kTTH_HotKey_Switch_Show_Bitmap         = "Switch Show Bitmap"
 kTTH_HotKey_Switch_Show_Grid           = "Switch Show Grid"
@@ -29,6 +30,7 @@ hotKeyDefaults = [
         (kTTH_HotKey_Select_Interpolate_Tool, 'i'),
         (kTTH_HotKey_Select_Middle_Delta_Tool, 'm'),
         (kTTH_HotKey_Select_Final_Delta_Tool, 'f'),
+        (kTTH_HotKey_Select_Selection_Tool, 't'),
         (kTTH_HotKey_Switch_Show_Outline, 'o'),
         (kTTH_HotKey_Switch_Show_Bitmap, 'B'),
         (kTTH_HotKey_Switch_Show_Grid, 'G'),

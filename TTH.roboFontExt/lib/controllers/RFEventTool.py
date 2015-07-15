@@ -325,6 +325,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		elif hot == HotKeys.kTTH_HotKey_Select_Final_Delta_Tool:
 			if tool: tool.reset()
 			tthTool.setTool('Final Delta')
+		elif hot == HotKeys.kTTH_HotKey_Select_Selection_Tool:
+			if tool: tool.reset()
+			tthTool.setTool('Selection')
 		elif hot == HotKeys.kTTH_HotKey_Switch_Show_Outline:
 			tthTool.setShowOutline(not tthTool.showOutline)
 			UpdateCurrentGlyphView()
