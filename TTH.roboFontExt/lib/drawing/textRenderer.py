@@ -103,7 +103,7 @@ class TextRenderer(object):
 		try:
 			for index in idxes:
 				self.render_func(self.get_glyph_bitmap(index), scale, x, oy, alpha)
-				x += int((self.get_advance(index)[0]+32)/64)
+				x += int((self.get_advance(index)[0]+32)/64)*scale
 		except:
 			pass
 		self.pen = x, oy

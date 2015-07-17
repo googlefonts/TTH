@@ -41,12 +41,12 @@ class PreviewInGlyphWindow(NSView):
 
 	def drawRect_(self, rect):
 		if not self.tthTool: return
+
 		self.recomputeFrame()
-
 		self.clickableSizesGlyphWindow = {}
-
 		eventController = getActiveEventTool()
 		if eventController is None: return
+
 		glyph = eventController.getGlyph()
 		if glyph == None: return
 
@@ -54,29 +54,40 @@ class PreviewInGlyphWindow(NSView):
 		if not tr: return
 		if not tr.isOK(): return
 
-		# Draw main glyph enlarged in frame
+		# Draw main glyph enlarged in frame or preview string is preview panel checkbox True
 
+		if self.tthTool.previewPanel.window.showStringInGlyphWindowCheckBox.get():
+			(namedGlyphList, curGlyphName) = self.tthTool.prepareText(glyph, self.fontModel.f)
+			glyphList = namedGlyphList
+		else:
+			glyphList = [glyph.name]
+		
 		ppem = self.tthTool.PPM_Size
 		drawScale = 170.0/ppem
 		tr.set_cur_size(ppem)
 
-		TRGlyph = tr.get_name_bitmap(glyph.name)
-		if tr.render_mode == FT_RENDER_MODE_LCD:
-			TRGlyph = TRGlyph[0]
-			gWidth = TRGlyph.bitmap.width/3.0
-		else:
-			gWidth = TRGlyph.bitmap.width
-		gHeight = TRGlyph.bitmap.rows
-		left = TRGlyph.left
-		top = TRGlyph.top
+		gWidth = 0
+		gHeightList = []
+		topsList = []
+		for i, glyphName in enumerate(glyphList):
+			TRGlyph = tr.get_name_bitmap(glyphName)
+			if tr.render_mode == FT_RENDER_MODE_LCD:
+				TRGlyph = TRGlyph[0]
+				gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
+			else:
+				gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
+			gHeightList.append(TRGlyph.bitmap.rows)
+			if i == 0:
+				left = TRGlyph.left
+			topsList.append(TRGlyph.top)
+		top = max(topsList)
+		gHeight = max(gHeightList)
 
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
 		frameWidth  = gWidth  * drawScale+2*margin
 		frameHeight = gHeight * drawScale+2*margin
-
-		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((frameOriginX, frameOriginY), (frameWidth, frameHeight)), 3, 3)
@@ -101,8 +112,8 @@ class PreviewInGlyphWindow(NSView):
 			xAxisPath.setLineWidth_(1)
 			xAxisPath.stroke()
 
-		glyphname = [glyph.name]
-		delta_pos = tr.render_named_glyph_list(glyphname, drawScale, 1)
+		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
+		delta_pos = tr.render_named_glyph_list(glyphList, drawScale, 1)
 
 		# Draw waterfall of ppem for glyph
 		advance = 40
@@ -114,7 +125,7 @@ class PreviewInGlyphWindow(NSView):
 
 			tr.set_cur_size(size)
 			tr.set_pen((advance, 40))
-			delta_pos = tr.render_named_glyph_list(glyphname)
+			delta_pos = tr.render_named_glyph_list(glyphList)
 
 			if size == ppem: color = redColor
 			DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)

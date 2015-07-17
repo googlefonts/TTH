@@ -28,7 +28,7 @@ class PreviewPanel(TTHWindow):
 		win.previewEditText = ComboBox((10, 10, -10, 22), tthTool.previewSampleStringsList,
 			callback=self.previewEditTextCallback)
 		win.previewEditText.set(tthTool.previewString)
-
+		win.showStringInGlyphWindowCheckBox = CheckBox((10, 36, 200, 10), 'Show string in Glyph Window', sizeStyle='mini')
 		win.view = Canvas((10, 50, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 
 		win.bind("move", self.movedOrResizedCallback)

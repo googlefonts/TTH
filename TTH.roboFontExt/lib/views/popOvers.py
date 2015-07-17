@@ -435,13 +435,13 @@ class DeltaPopover(TTHCommandPopover):
 				v1, v2 = size, int(self.cmd.get('ppm2'))
 			else:
 				v1, v2 = int(self.cmd.get('ppm1')), size
-			if self.cmd.get('code')[0] == 'f':
-				tool = tthTool.getTool('Final Delta')
-			else:
-				tool = tthTool.getTool('Middle Delta')
-			tool.setRange(v1, v2)
-			v1 = str(tool.range1)
-			v2 = str(tool.range2)
+			# if self.cmd.get('code')[0] == 'f':
+			# 	tool = tthTool.getTool('Final Delta')
+			# else:
+			# 	tool = tthTool.getTool('Middle Delta')
+			# tool.setRange(v1, v2)
+			v1 = str(v1)
+			v2 = str(v2)
 			self.cmd.set('ppm1', v1)
 			self.cmd.set('ppm2', v2)
 			pc.popover.DeltaRange1ComboBox.set(v1)
