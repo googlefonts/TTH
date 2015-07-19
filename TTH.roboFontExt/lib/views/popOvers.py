@@ -299,6 +299,9 @@ class AlignPopover(TTHCommandPopover):
 		self.open()
 
 	def zoneCheckBoxCallback(self, sender):
+		if self.zonesListItems == []:
+			sender.set(0)
+			return
 		if sender.get() == 1:
 			self.gm.prepareUndo("Align to Zone")
 			use_type = False # so, we use zones
