@@ -23,6 +23,10 @@ class CompareFontsWindow(BaseWindowController):
 			setDefault('drawingSegmentType', 'qcurve')
 
 		self.loadedUFOs = {}
+		self.size = 9
+		self.PPMSizesList = [str(i) for i in range(8, 73)]
+		self.rasteriserMode = 'Monochrome'
+		self.rModes = ['Monochrome', 'Grayscale', 'Subpixel']
 
 		panelSize = 600, 500
 		ps = 0, 0, panelSize[0], panelSize[1]
@@ -47,7 +51,14 @@ class CompareFontsWindow(BaseWindowController):
 						selectionCallback=self.UFOSelectedCallBack
 						)
 
-		win.view = Canvas((10, 110, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
+		win.PPEMSizeComboBox = ComboBox((10, 110, 40, 16),
+				self.PPMSizesList, sizeStyle = "small",
+				callback=self.PPEMSizeComboBoxCallback)
+		win.PPEMSizeComboBox.set(str(self.size))
+
+		win.rasterizerModePopUpButton = PopUpButton((60, 110, 100, 16), self.rModes, sizeStyle = "small", callback=self.rasterizerModePopUpButtonCallback)
+
+		win.view = Canvas((10, 130, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 		win.bind("move", self.movedOrResizedCallback)
 		win.bind("resize", self.movedOrResizedCallback)
 		win.bind("close", self.closedCallback)
@@ -55,6 +66,17 @@ class CompareFontsWindow(BaseWindowController):
 		self.w = win
 
 		win.open()
+
+	def PPEMSizeComboBoxCallback(self, sender):
+		try:
+			self.size = int(sender.get())
+		except ValueError:
+			self.size = 9
+		self.setNeedsDisplay()
+
+	def rasterizerModePopUpButtonCallback(self, sender):
+		self.rasteriserMode = self.rModes[sender.get()]
+		self.setNeedsDisplay()
 
 	def loadUFOButtonCallback(self, sender):
 		self.loadedUFOs = {}
@@ -79,7 +101,7 @@ class CompareFontsWindow(BaseWindowController):
 		self.OpenUFOCallback(pathList)
 
 	def calculateCanvasSize(self, winPosSize):
-		return (winPosSize[2], winPosSize[3]-120)
+		return (winPosSize[2], winPosSize[3]-140)
 
 	def movedOrResizedCallback(self, sender):
 		self.resizeView(self.w.getPosSize())
@@ -122,19 +144,32 @@ class CompareFontsWindow(BaseWindowController):
 
 	def draw(self):
 		if self.loadedUFOs == {}: return
-		fm = self.loadedUFOs[self.w.UFOsList[self.w.UFOsList.getSelection()[0]]['tail']][1]
-		if fm == None: return
-		tr = fm.textRenderer
-		if not tr: return
-		if not tr.isOK(): return
-		glyph = fm.f['space']
-		(namedGlyphList, curGlyphName) = tthTool.prepareText(glyph, fm.f)
-		glyphs = tr.names_to_indices(namedGlyphList)
-		# render user string
-		tr.set_cur_size(20)#tthTool.PPM_Size)
-		ps = self.w.getPosSize()
-		tr.set_pen((20, ps[3] - 220))
-		tr.render_indexed_glyph_list(glyphs)
-
+		
+		adv = 0
+		height = self.size + 10
+		
+		#fm = self.loadedUFOs[self.w.UFOsList[self.w.UFOsList.getSelection()[0]]['tail']][1]
+		for tail in self.w.UFOsList:
+			path, fm, requiredGlyphs = self.loadedUFOs[tail['tail']]
+			if fm == None: return
+			fm.bitmapPreviewMode = self.rasteriserMode
+			tr = fm.textRenderer
+			if not tr: return
+			if not tr.isOK(): return
+			glyph = fm.f['space']
+			(namedGlyphList, curGlyphName) = tthTool.prepareText(glyph, fm.f)
+			glyphs = tr.names_to_indices(namedGlyphList)
+			# render user string
+			tr.set_cur_size(self.size)#tthTool.PPM_Size)
+			ps = self.w.getPosSize()
+			tr.set_pen((adv + 20, ps[3] - 220))
+			x, y = tr.render_indexed_glyph_list(glyphs)
+			adv += x + 10
+			
+			if tail['tail'] != self.w.UFOsList[0]['tail']:
+				tr.set_pen((20, ps[3] - 220 - height))
+				tr.render_indexed_glyph_list(glyphs)
+				height += self.size + 10
+				
 
 
