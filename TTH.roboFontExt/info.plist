@@ -6,6 +6,14 @@
 	<array>
 		<dict>
 			<key>path</key>
+			<string>commons/OpenCompareFonts.py</string>
+			<key>preferredName</key>
+			<string>Compare Fonts...</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>path</key>
 			<string>commons/ShipFont.py</string>
 			<key>preferredName</key>
 			<string>Ship Font</string>
