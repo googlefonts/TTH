@@ -579,12 +579,6 @@ When do we regenerate a partial font?
 				pass
 		glyphSet = set()
 		addGlyph(glyphSet, 'space')
-		#for i in string.lowercase:
-		#	addGlyph(glyphSet, i)
-		#for i in string.uppercase:
-		#	addGlyph(glyphSet, i)
-		#for i in ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero']:
-		#	addGlyph(glyphSet, i)
 		addGlyph(glyphSet, curGlyphName)
 		for name in text:
 			addGlyph(glyphSet, name)
