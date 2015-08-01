@@ -2,6 +2,15 @@
 In Refactor
 ==============================
 
+==============================
+For v0.8 :
+==============================
+
+Editer les Deltas en glissant les antennes 
+------------------------------
+Améliorer le Compare Fonts
+
+
 BUGS
 ------------------------------
 DONE Fix popover bug when multiple deltas are on the same point at various ppem sizes
