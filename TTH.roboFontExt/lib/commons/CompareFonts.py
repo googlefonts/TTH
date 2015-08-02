@@ -26,7 +26,8 @@ class CompareFontsWindow(BaseWindowController):
 		self.previewString = 'hamburgefontsiv'
 
 		self.loadedUFOs = {}
-		self.size = 9
+		self.size1 = 9
+		self.size2 = 9
 		self.PPMSizesList = [str(i) for i in range(8, 73)]
 		self.scale = 1
 		self.scaleList = [str(i) for i in range(1, 10)]
@@ -46,7 +47,7 @@ class CompareFontsWindow(BaseWindowController):
 
 		columnDescriptions = (sorted([{'tail':k} for k in self.loadedUFOs]))
 
-		win.UFOsList = List((10, 40, -10, 70), 
+		win.UFOsList = List((30, 40, -10, 70), 
 						columnDescriptions, 
 						allowsMultipleSelection=False,
 						showColumnTitles=False,
@@ -56,13 +57,23 @@ class CompareFontsWindow(BaseWindowController):
 						selectionCallback=self.UFOSelectedCallBack
 						)
 
-		win.PPEMSizeComboBox = ComboBox((10, 110, 40, 16),
-				self.PPMSizesList, sizeStyle = "small",
-				callback=self.PPEMSizeComboBoxCallback)
-		win.PPEMSizeComboBox.set(str(self.size))
+		win.upButton = Button((10, 40, 10, 35), u'↑', sizeStyle = "small", callback = self.upButtonCallback)
+		win.upButton.getNSButton().setBordered_(False)
+		win.downButton = Button((10, 75, 10, 35), u'↓', sizeStyle = "small", callback = self.downButtonCallback)
+		win.downButton.getNSButton().setBordered_(False)
 
-		win.rasterizerModePopUpButton = PopUpButton((60, 110, 100, 16), self.rModes, sizeStyle = "small", callback=self.rasterizerModePopUpButtonCallback)
-		win.scalePopUpButton = PopUpButton((170, 110, 40, 16), self.scaleList, sizeStyle = "small", callback=self.scalePopUpButtonCallback)
+		win.PPEMSize1ComboBox = ComboBox((10, 110, 40, 16),
+				self.PPMSizesList, sizeStyle = "small",
+				callback=self.PPEMSize1ComboBoxCallback)
+		win.PPEMSize1ComboBox.set(str(self.size1))
+
+		win.PPEMSize2ComboBox = ComboBox((60, 110, 40, 16),
+				self.PPMSizesList, sizeStyle = "small",
+				callback=self.PPEMSize2ComboBoxCallback)
+		win.PPEMSize2ComboBox.set(str(self.size1))
+
+		win.rasterizerModePopUpButton = PopUpButton((110, 110, 100, 16), self.rModes, sizeStyle = "small", callback=self.rasterizerModePopUpButtonCallback)
+		win.scalePopUpButton = PopUpButton((220, 110, 40, 16), self.scaleList, sizeStyle = "small", callback=self.scalePopUpButtonCallback)
 
 		win.view = Canvas((10, 130, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 		win.bind("move", self.movedOrResizedCallback)
@@ -73,11 +84,47 @@ class CompareFontsWindow(BaseWindowController):
 
 		win.open()
 
-	def PPEMSizeComboBoxCallback(self, sender):
+	def upButtonCallback(self, sender):
+		if self.w.UFOsList.getSelection() == []: return
+		sel = self.w.UFOsList.getSelection()[0]
+		if sel == 0: return
+		UFOsList = self.w.UFOsList.get()
+		UFOsList[sel], UFOsList[sel-1] = UFOsList[sel-1], UFOsList[sel]
+		self.w.UFOsList.set(UFOsList)
+
+
+	def downButtonCallback(self, sender):
+		if self.w.UFOsList.getSelection() == []: return
+		sel = self.w.UFOsList.getSelection()[0]
+		if sel == len(self.w.UFOsList.get())-1: return
+		UFOsList = self.w.UFOsList.get()
+		UFOsList[sel], UFOsList[sel+1] = UFOsList[sel+1], UFOsList[sel]
+		self.w.UFOsList.set(UFOsList)
+
+	def PPEMSize1ComboBoxCallback(self, sender):
 		try:
-			self.size = int(sender.get())
+			self.size1 = int(sender.get())
+			if self.size1 > self.size2:
+				self.size1 == self.size2
+			sender.set(str(self.size1))
 		except ValueError:
-			self.size = 9
+			self.size1 = 9
+			if self.size1 > self.size2:
+				self.size1 == self.size2
+			sender.set(str(self.size1))
+		self.setNeedsDisplay()
+
+	def PPEMSize2ComboBoxCallback(self, sender):
+		try:
+			self.size2 = int(sender.get())
+			if self.size2 < self.size1:
+				self.size2 == self.size1
+			sender.set(str(self.size2))
+		except ValueError:
+			self.size2 = 9
+			if self.size2 < self.size1:
+				self.size2 == self.size1
+			sender.set(str(self.size2))
 		self.setNeedsDisplay()
 
 	def rasterizerModePopUpButtonCallback(self, sender):
@@ -129,20 +176,19 @@ class CompareFontsWindow(BaseWindowController):
 		self.setNeedsDisplay()
 
 	def prepareText(self, font):
-		texts = self.previewString
+		text = self.previewString
 		udata = font.naked().unicodeData
 		output = []
 
-		for text in texts:
-			# replace /name pattern
-			sp = text.split('/')
-			nbsp = len(sp)
-			output = output + splitText(sp[0], udata)
-			for i in range(1,nbsp):
-				sub = sp[i].split(' ', 1)
-				output.append(str(sub[0]))
-				if len(sub) > 1:
-					output = output + splitText(sub[1], udata)
+		# replace /name pattern
+		sp = text.split('/')
+		nbsp = len(sp)
+		output = output + splitText(sp[0], udata)
+		for i in range(1,nbsp):
+			sub = sp[i].split(' ', 1)
+			output.append(str(sub[0]))
+			if len(sub) > 1:
+				output = output + splitText(sub[1], udata)
 		return output
 
 
@@ -182,10 +228,10 @@ class CompareFontsWindow(BaseWindowController):
 
 	def draw(self):
 		if self.loadedUFOs == {}: return
-		
 		adv = 0
-		height = (self.size + 10)*self.scale
+		height = (self.size1 + 10)*self.scale
 		starty = 200 + height
+		
 		#fm = self.loadedUFOs[self.w.UFOsList[self.w.UFOsList.getSelection()[0]]['tail']][1]
 		for tail in self.w.UFOsList:
 			path, fm, requiredGlyphs = self.loadedUFOs[tail['tail']]
@@ -197,16 +243,19 @@ class CompareFontsWindow(BaseWindowController):
 			namedGlyphList = self.prepareText(fm.f)
 			glyphs = tr.names_to_indices(namedGlyphList)
 			# render user string
-			tr.set_cur_size(self.size)#tthTool.PPM_Size)
-			ps = self.w.getPosSize()
-			tr.set_pen((adv + 20, ps[3] - starty))
-			x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
+			for size in range(self.size1-1, self.size2, 1):
+				tr.set_cur_size(size)
+				ps = self.w.getPosSize()
+				tr.set_pen((adv + 20, ps[3] - starty - height))
+				x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
+				height += (size + 10)*self.scale
 			adv += x + 10*self.scale
+			height = (self.size1 + 10)*self.scale
 			
-			if tail['tail'] != self.w.UFOsList[0]['tail']:
-				tr.set_pen((20, ps[3] - starty - height))
-				tr.render_indexed_glyph_list(glyphs, scale=self.scale)
-				height += (self.size + 10)*self.scale
+			# if tail['tail'] != self.w.UFOsList[0]['tail']:
+			# 	tr.set_pen((20, ps[3] - starty - height))
+			# 	tr.render_indexed_glyph_list(glyphs, scale=self.scale)
+			# 	height += (self.size + 10)*self.scale
 				
 
 
