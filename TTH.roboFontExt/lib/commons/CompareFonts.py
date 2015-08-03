@@ -9,6 +9,8 @@ from robofab.world import *
 
 from views import TTHWindow
 from models.TTHTool import uniqueInstance as tthTool
+from models import TTHFont
+from commons import helperFunctions
 
 DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyCompareFontsWindowPosSize = DefaultKeyStub + "compareFontsWindowPosSize"
@@ -36,7 +38,7 @@ class CompareFontsWindow(BaseWindowController):
 
 		panelSize = 600, 500
 		ps = 0, 0, panelSize[0], panelSize[1]
-		win = FloatingWindow(ps, "Compare Fonts", minSize=(350, 200))
+		win = Window(ps, "Compare Fonts", minSize=(350, 200))
 
 		win.previewEditText = ComboBox((10, 10, -130, 22), tthTool.previewSampleStringsList,
 			callback=self.previewEditTextCallback)
@@ -139,8 +141,14 @@ class CompareFontsWindow(BaseWindowController):
 		self.loadedUFOs = {}
 		self.showGetFile(['ufo'], callback=self.OpenUFOCallback,allowsMultipleSelection=True)
 
+	def fontModelForFont(self, font):
+		if not helperFunctions.fontIsQuadratic(font):
+			return None
+		model = TTHFont.TTHFont(font)
+		return model
 
 	def OpenUFOCallback(self, sender):
+		tailsList = []
 		for path in sender:
 			if path is None:
 				continue
@@ -149,12 +157,23 @@ class CompareFontsWindow(BaseWindowController):
 			else:
 				UFO = RFont(path, showUI=False)
 				head, tail = os.path.split(path)
-				fm = tthTool.fontModelForFont(UFO)
+				fm = self.fontModelForFont(UFO)
 				self.loadedUFOs[tail] = [path, fm, set(['space'])]
-		self.w.UFOsList.set([{'tail':tail} for tail in self.loadedUFOs])
+				tailsList.append(tail)
+		self.w.UFOsList.set([{'tail':tail} for tail in tailsList])
+
+		self.previewEditTextCallback(self.w.previewEditText)
 
 	def buttonRefreshUFOsCallback(self, sender):
-		pathList = [path for tail, (path, fm, requiredGlyphs) in self.loadedUFOs.iteritems()]
+		tailList = []
+		pathList = []
+		for i in self.w.UFOsList.get():
+			tailList.append(i['tail'])
+		tailToPath = {tail:path for tail, (path, fm, requiredGlyphs) in self.loadedUFOs.iteritems()}
+
+		for i in tailList:
+			if i in tailToPath:
+				pathList.append(tailToPath[i])
 		self.OpenUFOCallback(pathList)
 
 	def calculateCanvasSize(self, winPosSize):
@@ -243,7 +262,7 @@ class CompareFontsWindow(BaseWindowController):
 			namedGlyphList = self.prepareText(fm.f)
 			glyphs = tr.names_to_indices(namedGlyphList)
 			# render user string
-			for size in range(self.size1-1, self.size2, 1):
+			for size in range(self.size1, self.size2+1, 1):
 				tr.set_cur_size(size)
 				ps = self.w.getPosSize()
 				tr.set_pen((adv + 20, ps[3] - starty - height))
