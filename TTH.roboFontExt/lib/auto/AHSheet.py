@@ -12,7 +12,7 @@ class AutoHintingSheet(object):
 		yBounds, xBounds = fm.stemSizeBounds
 
 		sheetWidth  = 320
-		sheetHeight = 380
+		sheetHeight = 400
 		sheetSize = (sheetWidth, sheetHeight)
 
 		self.w = Sheet(sheetSize, minSize=sheetSize, maxSize=sheetSize, parentWindow=parentWindow)
@@ -26,7 +26,7 @@ class AutoHintingSheet(object):
 		w.boxHintingAxis.hintXBox = CheckBox((10, 10, 50, 22), 'X', sizeStyle = 'small', value=True)
 		w.boxHintingAxis.hintYBox = CheckBox((10, 30, 50, 22), 'Y', sizeStyle = 'small', value=True)
 
-		w.boxStemDetection = Box((10, 120, -10, 130), title='Stems Detection')
+		w.boxStemDetection = Box((10, 120, -10, 150), title='Stems Detection')
 		w.boxStemDetection.xGroup = Group((0, 0, -0, 27))
 		w.boxStemDetection.xGroup.minW    = EditText((10, 10, 40, 17), text=str(xBounds[0]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 		w.boxStemDetection.xGroup.stemLabel = TextBox((50, 12 ,-50, 17), u'≤ X Stems ≤', sizeStyle = 'small', alignment='center')
@@ -37,13 +37,15 @@ class AutoHintingSheet(object):
 		w.boxStemDetection.yGroup.maxW    = EditText((-50, 10, 40, 17), text=str(yBounds[1]), sizeStyle = 'small', continuous=False, callback=self.handleStemBounds)
 		w.boxStemDetection.tolLabel = TextBox((10, 72, 110, 20), u'Angle Tolerance (°)', sizeStyle = 'small', alignment='left')
 		w.boxStemDetection.tolerance = EditText((-50, 70, 40, 17), text=str(fm.angleTolerance), sizeStyle = 'small', continuous=False, callback=self.handleTolerance)
-		w.boxStemDetection.toleranceSlider = Slider((10, -20, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
+		w.boxStemDetection.toleranceSlider = Slider((10, -45, -10, 20 ), sizeStyle='small', minValue=0, maxValue=45, value=fm.angleTolerance, tickMarkCount=46, stopOnTickMarks=True, callback=self.toleranceSliderCallback)
+		w.boxStemDetection.groupLabel = TextBox((10, 112, 110, 20), u'Grouping Threshold', sizeStyle = 'small', alignment='left')
+		w.boxStemDetection.groupingThreshold = EditText((-50, 110, 40, 17), text=str(fm.groupingThreshold), sizeStyle = 'small', continuous=False, callback=self.handleGroupingThreshold)
 
-		w.boxAutoHint = Box((10, 260, -10, 70), title='Process')
+		w.boxAutoHint = Box((10, 280, -10, 70), title='Process')
 		w.boxAutoHint.hintGlyphButton = Button((10, 5, -10, 20), "Glyph", sizeStyle='small', callback=self.hintGlyph)
 		w.boxAutoHint.hintFontButton = Button((10, 30, -10, 20), "Font", sizeStyle='small', callback=self.hintFont)
 
-		w.progressBar = ProgressBar((10, 330, -10, 20))
+		w.progressBar = ProgressBar((10, 350, -10, 20))
 		w.progressBar.show(0)
 		w.closeButton = Button((-90, -32, 80, 20), "Close", sizeStyle='small', callback=self.closeCallback)
 
@@ -156,3 +158,13 @@ class AutoHintingSheet(object):
 		sender.set(value)
 		fm = tthTool.getFontModel()
 		fm.stemSizeBounds = ((minY, maxY), (minX, maxX))
+
+	def handleGroupingThreshold(self, sender):
+		try:
+			value = int(sender.get())
+		except ValueError:
+			value = 10
+		value = max(0, min(100, abs(value)))
+		fm = tthTool.getFontModel()
+		fm.groupingThreshold = value
+

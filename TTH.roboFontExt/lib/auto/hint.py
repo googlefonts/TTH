@@ -183,7 +183,7 @@ class AutoHinting():
 		for pos, pts in byPos:
 			# Merge everything within 10 units : maybe too big or not
 			# adapted to some situation...
-			if pos - lastPos < 10:
+			if pos - lastPos < self.fm.groupingThreshold:
 				pos = lastPos
 				alignment = alignments[pos]
 			else:

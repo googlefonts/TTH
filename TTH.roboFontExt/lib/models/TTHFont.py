@@ -95,6 +95,13 @@ class TTHFont(object):
 	def angleTolerance(self, at):
 		self.getSPLib()['angleTolerance'] = at
 
+	@property
+	def groupingThreshold(self):
+		return self.getSPVal('groupingThreshold', 10)
+	@groupingThreshold.setter
+	def groupingThreshold(self, gt):
+		self.getSPLib()['groupingThreshold'] = gt
+
 	@property # the minimum and maximum width of horizontal/vertical stems
 	def stemSizeBounds(self):
 		return self.getSPVal('stemSizeBounds', ((20, 200), (20,200)))
