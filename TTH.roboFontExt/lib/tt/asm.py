@@ -82,7 +82,7 @@ def getAlign(command, pointIndex, regs):
 				'RTG[ ]' ]
 	return []
 
-def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
+def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs, g):
 	Header = [tables.autoPush(0),
 			'RCVT[ ]' ]
 	IF = ['IF[ ]']
@@ -99,7 +99,11 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs):
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
 
-		zoneCV = zone_to_cvt[command.get('zone')]
+		zoneCV = zone_to_cvt.get(command.get('zone'))
+		if zoneCV is None:
+			print "[TTH WARNING] in glyph {} command refers to non-existing zone:".format(g.name)
+			print command.attrib
+			continue
 		IF.extend([
 					tables.autoPush(pointIndex),
 					'MDAP[1]'])
@@ -134,7 +138,7 @@ def processAlign(commandsList, pointNameToIndex, regs):
 		elif command.get('code') == 'alignv':
 			regs.y_instructions.extend(align)
 
-def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
+def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 	Header = [ tables.autoPush(0),
 			'RS[ ]',
 			tables.autoPush(0),
@@ -153,8 +157,13 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs):
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
 
-		if 'stem' in command:
-			stemCV = stem_to_cvt[command.get('stem')]
+		#if 'stem' in command:
+		if HF.commandHasAttrib(command, 'stem'):
+			stemCV = stem_to_cvt.get(command.get('stem'))
+			if stemCV is None:
+				print "[TTH WARNING] in glyph {} command refers to non-existing stem:".format(g.name)
+				print command.attrib
+				continue
 			asm = [ tables.autoPush(point2Index, stemCV, point1Index, 4),
 					'CALL[ ]' ]
 		else:
@@ -212,7 +221,7 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 			regs.y_instructions.extend(interpolate)
 
 
-def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
+def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 	for command in commandsList:
 		if command.get('active') == 'false':
 			continue
@@ -244,7 +253,11 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs):
 			regs.RP0 = point1Index
 
 		if HF.commandHasAttrib(command, 'stem'):
-			stemCV = stem_to_cvt[command.get('stem')]
+			stemCV = stem_to_cvt.get(command.get('stem'))
+			if stemCV is None:
+				print "[TTH WARNING] in glyph {} command refers to non-existing stem:".format(g.name)
+				print command.attrib
+				continue
 			single_stem = [
 							tables.autoPush(0),
 							'RS[ ]',
@@ -450,15 +463,15 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 
 	for groupType, commands in groupedCommands:
 		if groupType == 'alignToZone':
-			processAlignToZone(commands, pointNameToIndex, zone_to_cvt, regs)
+			processAlignToZone(commands, pointNameToIndex, zone_to_cvt, regs, g)
 		elif groupType == 'align':
 			processAlign(commands, pointNameToIndex, regs)
 		elif groupType == 'double':
-			processDouble(commands, pointNameToIndex, stem_to_cvt, regs)
+			processDouble(commands, pointNameToIndex, stem_to_cvt, regs, g)
 		elif groupType == 'interpolate':
 			processInterpolate(commands, pointNameToIndex, regs)
 		elif groupType == 'single':
-			processSingle(commands, pointNameToIndex, stem_to_cvt, regs)
+			processSingle(commands, pointNameToIndex, stem_to_cvt, regs, g)
 		elif groupType == 'mdelta':
 			processDelta(commands, pointNameToIndex, regs)
 		elif groupType == 'fdelta':
