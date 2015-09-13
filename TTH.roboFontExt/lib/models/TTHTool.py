@@ -156,11 +156,11 @@ class TTHTool(object):
 # - - - - - - - - - - - - - - - - - - - - - DISPLAY UPDATE
 
 	def updateDisplay(self):
-		if self.programWindow.isVisible():
+		if self.programWindow and self.programWindow.isVisible():
 			self.programWindow.updateProgramList()
-		if self.assemblyWindow.isVisible():
+		if self.assemblyWindow and self.assemblyWindow.isVisible():
 			self.assemblyWindow.updateAssemblyList()
-		if self.previewPanel.isVisible():
+		if self.previewPanel and self.previewPanel.isVisible():
 			self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 

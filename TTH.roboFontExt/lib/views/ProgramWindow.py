@@ -1,11 +1,19 @@
+import objc
 from mojo.extensions import getExtensionDefault
+
 from vanilla import FloatingWindow, List, CheckBoxListCell, SliderListCell, PopUpButtonListCell
+
 from AppKit import NSLeftMouseUpMask, NSObject, NSCell, NSPopUpButtonCell, NSString, NSAttributedString, NSComboBoxCell, NSMiniControlSize, NSColor, NSTableViewSolidVerticalGridLineMask
+from AppKit import NSMenu
+#from AppKit import NSButtonCell, NSMomentaryLightButton, NSFont, NSSwitchButton, NSMomentaryPushInButton, NSSmallControlSize
 try:
 	from AppKit import NSTableViewDashedHorizontalGridLineMask
 	TTHTableViewDashedHorizontalGridLineMask = NSTableViewDashedHorizontalGridLineMask
 except:
 	TTHTableViewDashedHorizontalGridLineMask = 8
+
+#from lib.doodleMenus import BaseMenu
+
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions as HF
 from views import TTHWindow, tableDelegate, HiddenComboBoxCell
@@ -36,7 +44,6 @@ def stringOfBool(b):
 	if b: return 'true'
 	else: return 'false'
 
-
 class ProgramWindow(TTHWindow):
 	def __init__(self):
 		super(ProgramWindow, self).__init__(defaultKeyProgramWindowPosSize, defaultKeyProgramWindowVisibility)
@@ -53,8 +60,10 @@ class ProgramWindow(TTHWindow):
 
 		checkBox = CheckBoxListCell()
 
-		comboBoxCellPPM1 = self.ComboBoxListCell(PPMSizesList)
-		comboBoxCellPPM2 = self.ComboBoxListCell(PPMSizesList)
+		comboBoxCellPPM1 = self.makeComboBoxListCell(PPMSizesList)
+		comboBoxCellPPM2 = self.makeComboBoxListCell(PPMSizesList)
+
+		#deleteButtonCell = self.makeButtonListCell()
 
 		popUpCellStems = PopUpButtonListCell([])
 		popUpCellAlign = PopUpButtonListCell([])
@@ -63,6 +72,7 @@ class ProgramWindow(TTHWindow):
 
 		columnDescriptions = [
 			{"title": "index",  "width":  30, "editable": False},
+			#{"title": "delete", "width":  30, "editable": True, "cell":deleteButtonCell},
 			{"title": "#",  "width":  17, "editable": False},
 			{"title": "active", "width":  35, "editable": True, "cell":checkBox},
 			{"title": "code",   "width": 100, "editable": False},
@@ -86,10 +96,30 @@ class ProgramWindow(TTHWindow):
 					enableDelete=False,
 					showColumnTitles=True,
 					editCallback = self.editCallback)
-		tableView = win.programList.getNSTableView()
-		tableView.setGridStyleMask_(NSTableViewSolidVerticalGridLineMask + TTHTableViewDashedHorizontalGridLineMask)
+
+		# - - - - - - - - - - - Menu for deleting commands
+
+		menu  = NSMenu.alloc().init()
+		#items = [ ("Delete Command...", self.menuCallback) ]
+		#menuController = BaseMenu()
+		#if hasattr(menuController, 'buildAdditionContextualMenuItems'):
+		#	menuController.buildAdditionContextualMenuItems(menu, items)
+		#else:
+		#	menuController.buildAdditionContectualMenuItems(menu, items)
+		s = objc.selector(self.menuCallback, signature="v@:")
+		menu.addItemWithTitle_action_keyEquivalent_("Delete Command...", s, '')
+		menu.setAutoenablesItems_(False)
+		#menu.itemAtIndex_(0).setEnabled_(True)
+		#print tableView.menu().itemAtIndex_(0).title()
+
+		# - - - - - - - - - - - delegation
+
 		self.delegate = tableDelegate.ProgramPanelTableDelegate.alloc().initWithMaster(self)
+		tableView = win.programList.getNSTableView()
+		#tableView.setMenu_(menu)
+		tableView.setGridStyleMask_(NSTableViewSolidVerticalGridLineMask + TTHTableViewDashedHorizontalGridLineMask)
 		tableView.setDelegate_(self.delegate)
+
 		self.window = win
 
 		# - - - - - - - - - - - NSableViewDelegate stuff
@@ -104,6 +134,11 @@ class ProgramWindow(TTHWindow):
 		self.dummyPopup.setMenu_(None)
 
 		self.dummyCombo = HiddenComboBoxCell.HiddenComboBoxListCell.alloc().init()
+
+		# - - - end of __init__()
+
+	def menuCallback(self):
+		print "hi"
 
 	def refreshFromFontModel(self):
 		fm = tthTool.getFontModel()
@@ -293,12 +328,22 @@ class ProgramWindow(TTHWindow):
 
 		return cell
 
-	def ComboBoxListCell(self, items):
+	def makeComboBoxListCell(self, items):
 		cell = NSComboBoxCell.alloc().init()
 		cell.setControlSize_(NSMiniControlSize)
 		cell.setBordered_(False)
 		cell.addItemsWithObjectValues_(items)
 		return cell
 
+#	def makeButtonListCell(self,title=None):
+#	    cell = NSButtonCell.alloc().init()
+#	    cell.setButtonType_(NSMomentaryPushInButton)#NSMomentaryLightButton)
+#	    cell.setControlSize_(NSSmallControlSize)
+#	    font = NSFont.systemFontOfSize_(NSFont.systemFontSizeForControlSize_(NSSmallControlSize))
+#	    cell.setFont_(font)
+#	    if title is None:
+#		  title = ""
+#	    cell.setTitle_(title)
+#	    return cell
 
 if tthTool._printLoadings: print "ProgramWindow, ",

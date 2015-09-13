@@ -267,7 +267,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		separator = NSMenuItem.separatorItem()
 		separator2 = NSMenuItem.separatorItem()
 		items = []
-		menuAction = NSMenu.alloc().init()
+		menu = NSMenu.alloc().init()
 		menuController = BaseMenu()
 		cmd = gm.commandClicked(geom.makePoint(point))
 		if cmd is None:
@@ -290,12 +290,12 @@ class TTH_RF_EventTool(BaseEventTool):
 				items.append(('Reverse Direction', TTHGlyph.CommandReverser(gm, cmd)))
 				items.append(('Convert to Double Link', TTHGlyph.CommandConverter(gm, cmd)))
 		if hasattr(menuController, 'buildAdditionContextualMenuItems'):
-			menuController.buildAdditionContextualMenuItems(menuAction, items)
+			menuController.buildAdditionContextualMenuItems(menu, items)
 		else:
-			menuController.buildAdditionContectualMenuItems(menuAction, items)
+			menuController.buildAdditionContectualMenuItems(menu, items)
 		if cmd != None:
-			menuAction.insertItem_atIndex_(separator, 1)
-		NSMenu.popUpContextMenu_withEvent_forView_(menuAction, self.getCurrentEvent(), self.getNSView())
+			menu.insertItem_atIndex_(separator, 1)
+		NSMenu.popUpContextMenu_withEvent_forView_(menu, self.getCurrentEvent(), self.getNSView())
 # - - - - - - - - - - - - - - - - - - - - - - - - KEY EVENTS
 
 	def keyUp(self, event):
