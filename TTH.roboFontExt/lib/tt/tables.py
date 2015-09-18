@@ -42,7 +42,8 @@ def write_hdmx(fm):
 		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
 		tr.set_cur_size(size)
 		for glyphName in fm.f.glyphOrder:
-			widths[glyphName] = abs((tr.get_name_advance(glyphName)[0]+32) / 64)
+			widths[glyphName] = max(0, (tr.get_name_advance(glyphName)[0]+32) / 64)
+			widths[glyphName] = min(256, widths[glyphName])
 		ppems[str(size)] = widths
 	fm.f.lib[k_hdmx_key] = ppems
 
