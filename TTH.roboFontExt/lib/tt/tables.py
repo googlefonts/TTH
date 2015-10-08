@@ -30,6 +30,7 @@ def autoPush(*args):
 	if 8 < nArgs < 256:
 		mnemonic = "N" + mnemonic
 	elif nArgs >= 256:
+		# FIXME: tt_instructions_error is not defined!
 		raise tt_instructions_error, "More than 255 push arguments (%s)" % nArgs
 
 	return (' '.join([mnemonic]+[str(a) for a in args]))

@@ -18,10 +18,11 @@ commandGroups = [	('alignToZone', ['alignt', 'alignb']),
 				('interpolate', ['interpolatev', 'interpolateh']),
 				('mdelta',      ['mdeltah', 'mdeltav']),
 				('fdelta',      ['fdeltah', 'fdeltav']) ]
-commandToGroup = dict(sum([[(code, g) for code in group] for g,group in commandGroups], []))
+commandToGroup = dict(sum([[(code, groupName) for code in group] for groupName,group in commandGroups], []))
 
 def getCommandGroup(command):
-	return commandToGroup[command.get('code')]
+	# Might throw exception if command's code is unknown
+	return commandToGroup.get[command.get('code')]
 
 def getDeltaGroup(delta):
 	group = ''
@@ -38,8 +39,10 @@ def groupList(l, classifier):
 		curGroup = classifier(e)
 		if curGroup == None: continue
 		if prevGroup == curGroup:
+			# append element |e| to the group that is already at the end of |groups|
 			groups[-1][1].append(e)
 		else:
+			# append element |e| to a new group appended to |groups|
 			groups.append((curGroup,[e]))
 		prevGroup = curGroup
 	return groups
@@ -98,10 +101,12 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs, g):
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
+			print command
+			continue
 
 		zoneCV = zone_to_cvt.get(command.get('zone'))
 		if zoneCV is None:
-			print "[TTH WARNING] in glyph {} command refers to non-existing zone:".format(g.name)
+			print "[TTH ERROR] in glyph {} command refers to non-existing zone:".format(g.name)
 			print command.attrib
 			continue
 		IF.extend([
@@ -130,6 +135,8 @@ def processAlign(commandsList, pointNameToIndex, regs):
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
+			print command
+			continue
 
 		align = getAlign(command, pointIndex, regs)
 
@@ -156,6 +163,8 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
+			print command
+			continue
 
 		#if 'stem' in command:
 		if HF.commandHasAttrib(command, 'stem'):
@@ -202,9 +211,10 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
+			print command
+			continue
 
-		interpolate = [
-						tables.autoPush(pointIndex, point1Index, point2Index),
+		interpolate = [	tables.autoPush(pointIndex, point1Index, point2Index),
 						'SRP1[ ]',
 						'SRP2[ ]',
 						'IP[ ]'
@@ -231,6 +241,8 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			point2Index = pointNameToIndex[command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
+			print command
+			continue
 
 		single_RP0 = []
 		single_stem = []
@@ -379,6 +391,8 @@ def processDeltaCommand(command, pointNameToIndex):
 		pointIndex = pointNameToIndex[command.get('point')]
 	except:
 		print "[TTH ERROR] command's point has no index in the glyph"
+		print command
+		return []
 
 	ppm1 = int(command.get('ppm1'))
 	ppm2 = int(command.get('ppm2'))
