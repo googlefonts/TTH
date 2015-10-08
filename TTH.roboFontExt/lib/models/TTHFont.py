@@ -11,13 +11,16 @@ from models import TTHGlyph
 
 from views import previewInGlyphWindow as PIGW
 
-import tt
+#import tt
 from tt import tables
 
 reload(HF)
 reload(textRenderer)
 reload(TTHGlyph)
 reload(tables)
+
+FL_tth_key = "com.fontlab.v2.tth"
+SP_tth_key = "com.sansplomb.tth"
 
 class TTHFont(object):
 	def __init__(self, font):
@@ -168,11 +171,11 @@ class TTHFont(object):
 
 	def getFLLib(self):
 		'''A plist with custom 'FontLab' data'''
-		return HF.getOrPutDefault(self.f.lib, tt.FL_tth_key, {})
+		return HF.getOrPutDefault(self.f.lib, FL_tth_key, {})
 
 	def getSPLib(self):
 		'''A plist with custom 'SansPlomb' data'''
-		return HF.getOrPutDefault(self.f.lib, tt.SP_tth_key, {})
+		return HF.getOrPutDefault(self.f.lib, SP_tth_key, {})
 
 # - - - - - - - - - - - - - - - - PREVIEW IN GLYPH-WINDOW
 
@@ -211,7 +214,7 @@ class TTHFont(object):
 # - - - - - - - - - - - - - - - - ZONES & ZONE LABELS
 
 	def saveZonesToUFO(self):
-		self.f.lib[tt.FL_tth_key]["zones"] = self.zones
+		self.f.lib[FL_tth_key]["zones"] = self.zones
 
 	def setZoneDelta(self, (zoneName, zone), PPMSize, deltaValue):
 		assert(zoneName in self.zones)
@@ -360,7 +363,7 @@ class TTHFont(object):
 	def saveStemsToUFO(self):
 		stems = self.horizontalStems.copy()
 		stems.update(self.verticalStems)
-		self.f.lib[tt.FL_tth_key]["stems"] = stems
+		self.f.lib[FL_tth_key]["stems"] = stems
 
 	def guessStem(self, point1, point2):
 		diff = geom.makePoint(point1) - geom.makePoint(point2)
@@ -496,9 +499,9 @@ When do we regenerate a partial font?
 		tail = tail[:-4]
 		tail += '_glyf.' + 'ttf'
 		fontpath_glyph = os.path.join(head, tail)
-		tt = ttLib.TTFont(destination)
-		glyfTable = tt['glyf']
-		for glyphName in tt.glyphOrder:
+		ttl = ttLib.TTFont(destination)
+		glyfTable = ttl['glyf']
+		for glyphName in ttl.glyphOrder:
 			glyph = glyfTable[glyphName]
 			if glyph.isComposite():
 				for component in glyph.components:
@@ -512,7 +515,7 @@ When do we regenerate a partial font?
 						compoFlags = compoFlags & (~0x200)
 					component.flags = compoFlags
 
-		tt.save(fontpath_glyph)
+		ttl.save(fontpath_glyph)
 		os.remove(destination)
 		os.rename(fontpath_glyph, destination)
 

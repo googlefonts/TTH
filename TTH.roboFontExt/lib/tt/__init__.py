@@ -1,30 +1,30 @@
 
 from commons import helperFunctions as HF
 
-FL_tth_key = "com.fontlab.v2.tth"
-SP_tth_key = "com.sansplomb.tth"
+#def modifiesLSBOrRSB(cmd):
+#	code = cmd.get('code')
+#	targets = ['lsb', 'rsb']
+#	if code in ['alignh', 'alignv', 'alignt', 'alignb']:
+#		return cmd.get('point') in targets
+#	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
+#		return cmd.get('point') in targets
+#	elif code in ['singlev', 'singleh']:
+#		return cmd.get('point2') in targets
+#	elif code in ['doublev', 'doubleh']:
+#		return (cmd.get('point1') in targets) or (cmd.get('point2') in targets)
+#	elif code in ['interpolatev', 'interpolateh']:
+#		return cmd.get('point') in targets
+#	else:
+#		return False
 
-def modifiesLSBOrRSB(cmd):
-	code = cmd.get('code')
-	targets = ['lsb', 'rsb']
-	if code in ['alignh', 'alignv', 'alignt', 'alignb']:
-		return cmd.get('point') in targets
-	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
-		return cmd.get('point') in targets
-	elif code in ['singlev', 'singleh']:
-		return cmd.get('point2') in targets
-	elif code in ['doublev', 'doubleh']:
-		return (cmd.get('point1') in targets) or (cmd.get('point2') in targets)
-	elif code in ['interpolatev', 'interpolateh']:
-		return cmd.get('point') in targets
-	else:
-		return False
+middleDeltaCodes = ['mdeltah', 'mdeltav']
+finalDeltaCodes  = ['fdeltah', 'fdeltav']
 
 def compare(A, B):
-	A_isMiddleDelta = A.get('code') in ['mdeltah', 'mdeltav']
-	B_isMiddleDelta = B.get('code') in ['mdeltah', 'mdeltav']
-	A_isFinalDelta  = A.get('code') in ['fdeltah', 'fdeltav']
-	B_isFinalDelta  = B.get('code') in ['fdeltah', 'fdeltav']
+	A_isMiddleDelta = A.get('code') in middleDeltaCodes
+	B_isMiddleDelta = B.get('code') in middleDeltaCodes
+	A_isFinalDelta  = A.get('code') in finalDeltaCodes
+	B_isFinalDelta  = B.get('code') in finalDeltaCodes
 	ba = (True, True)
 	ab = (True, False)
 	dontcare = (False, False)
@@ -63,7 +63,7 @@ def compare(A, B):
 			target.append(c.get('point'))
 			sources.append([c.get('point1'), c.get('point2')])
 		else:
-			print "[WARNING] Command has a problem!"
+			print "[WARNING] Command has a problem!\n", c
 			target.append(None)
 			sources.append([])
 
@@ -87,6 +87,9 @@ def sort(cmds):
 	x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
 	for c in cmds:
 		code = c.get('code')
+		if code is None:
+			print "[WARNING] Command has a problem!\n", c
+			continue
 		if code == 'fdeltah':
 			fdeltah.append(c)
 		elif code == 'fdeltav':
