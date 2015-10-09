@@ -35,6 +35,19 @@ def autoPush(*args):
 
 	return (' '.join([mnemonic]+[str(a) for a in args]))
 
+def purgeTables(fm):
+	l = fm.f.lib
+	for key in [k_hdmx_key,
+			k_VDMX_key,
+			k_LTSH_key,
+			k_CVT_key,
+			k_prep_key,
+			k_fpgm_key,
+			k_gasp_key,
+			k_maxp_maxStorage_key]:
+		if key in l:
+			del l[key]
+
 def write_hdmx(fm):
 	fm.generateFullTempFont()
 	ppems = {}

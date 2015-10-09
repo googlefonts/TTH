@@ -344,6 +344,16 @@ class TTHGlyph(object):
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
+	def setCommands(self, cmds):
+		if self.hintingCommands is None:
+			self.hintingCommands = ET.Element('ttProgram')
+		else:
+			self.hintingCommands.clear()
+		self.hintingCommands.extend(cmds)
+		self.dirtyHinting()
+		if len(cmds) == 0 and kTTProgramKey in self._g.lib:
+			del self._g.lib[kTTProgramKey]
+
 	def clearCommands(self, x, y):
 		if x and y:
 			cmds = []
@@ -351,13 +361,7 @@ class TTHGlyph(object):
 			cmds = [c for c in self.hintingCommands if c.get('code')[-1] != 'h']
 		else:
 			cmds = [c for c in self.hintingCommands if c.get('code')[-1] == 'h']
-
-		if self.hintingCommands is None:
-			self.hintingCommands = ET.Element('ttProgram')
-		else:
-			self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
-		self.dirtyHinting()
+		self.setCommands(cmds)
 
 	def deleteXCommands(self, item=0):
 		self.prepareUndo("Clear X Commands")
@@ -374,48 +378,41 @@ class TTHGlyph(object):
 	def deleteAllDeltas(self, item=0):
 		self.prepareUndo("Clear All Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'delta' not in cmd.get('code')]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
+		self.setCommands(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
 	def deleteXDeltas(self, item=0):
 		self.prepareUndo("Clear X Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'deltah' not in cmd.get('code')]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
+		self.setCommands(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
 	def deleteYDeltas(self, item=0):
 		self.prepareUndo("Clear Y Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'deltav' not in cmd.get('code')]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
+		self.setCommands(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
 	def deleteXDeltas(self, item=0):
 		self.prepareUndo("Clear X Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'deltah' not in cmd.get('code')]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
+		self.setCommands(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
 	def deleteYDeltas(self, item=0):
 		self.prepareUndo("Clear X Deltas")
 		cmds = [cmd for cmd in self.hintingCommands if 'deltav' not in cmd.get('code')]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
+		self.setCommands(cmds)
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
 	def cleanCommands(self):
 		cmds = [c for c in self.hintingCommands if self.commandIsOK(c)]
-		self.hintingCommands.clear()
-		self.hintingCommands.extend(cmds)
-		self.dirtyHinting()
+		self.setCommands(cmds)
 
 	def glyphProgramDoesNotTouchLSBOrRSB(self):
 		if len(self._g.components) > 0:

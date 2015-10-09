@@ -456,6 +456,7 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 	g.lib[tables.k_glyph_assembly_key] = []
 	sortedCommands = gm.sortedHintingCommands
 	if sortedCommands == []:
+		del g.lib[tables.k_glyph_assembly_key]
 		return
 
 	nbPointsContour = 0

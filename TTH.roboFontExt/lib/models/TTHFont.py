@@ -419,6 +419,41 @@ class TTHFont(object):
 				'round': dict((str(uiStem[str(i)+' px']),i) for i in range(1,7)),
 				}
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT CLEANING
+
+	def clearAllGlyphs(self, progress=None):
+		TTHGlyph.silent = True
+		counter = 0
+		maxCount = len(self.f)
+		for g in self.f:
+			gm = self.glyphModelForGlyph(g, compile=False)
+			gm.clearCommands(True, True)
+			if tables.k_glyph_assembly_key in g.lib:
+				# clear the assembly data in the glyph's lib
+				del g.lib[tables.k_glyph_assembly_key]
+			self.delGlyphModelForGlyph(g)
+			counter += 1
+			if (progress != None) and counter == 30:
+				progress.increment(30)
+				counter = 0
+		if progress != None:
+			progress.increment(counter)
+		tthTool.hintingProgramHasChanged(self)
+		TTHGlyph.silent = False
+
+	def purgeHintingData(self, progress=None):
+		print "Purging glyphs...",
+		self.clearAllGlyphs(progress)
+		print ", SP and FL libs...",
+		if SP_tth_key in self.f.lib: # purge SansPlomb lib
+			del self.f.lib[SP_tth_key]
+		if FL_tth_key in self.f.lib: # purge FontLab TTH lib
+			del self.f.lib[FL_tth_key]
+		# Purge various tables
+		print ", tables...",
+		tables.purgeTables(self)
+		print "done."
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
 	_helpOnFontGeneration = '''
