@@ -22,7 +22,7 @@ commandToGroup = dict(sum([[(code, groupName) for code in group] for groupName,g
 
 def getCommandGroup(command):
 	# Might throw exception if command's code is unknown
-	return commandToGroup.get[command.get('code')]
+	return commandToGroup[command.get('code')]
 
 def getDeltaGroup(delta):
 	group = ''
