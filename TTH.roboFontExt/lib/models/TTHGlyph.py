@@ -351,8 +351,6 @@ class TTHGlyph(object):
 			self.hintingCommands.clear()
 		self.hintingCommands.extend(cmds)
 		self.dirtyHinting()
-		if len(cmds) == 0 and kTTProgramKey in self._g.lib:
-			del self._g.lib[kTTProgramKey]
 
 	def clearCommands(self, x, y):
 		if x and y:
