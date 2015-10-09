@@ -447,6 +447,9 @@ class TTHFont(object):
 		print ", SP and FL libs...",
 		if SP_tth_key in self.f.lib: # purge SansPlomb lib
 			del self.f.lib[SP_tth_key]
+		self.zones = {}
+		self.horizontalStems = {}
+		self.verticalStems   = {}
 		if FL_tth_key in self.f.lib: # purge FontLab TTH lib
 			del self.f.lib[FL_tth_key]
 		# Purge various tables

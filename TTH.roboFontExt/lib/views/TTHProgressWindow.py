@@ -14,6 +14,7 @@ class TTHProgressWindow(object):
 		w.title = TextBox((10, 10, -10, 20), t)
 		w.info  = TextBox((10, 40, -10, 20), "")
 		w.bar   = ProgressBar((10, 70, -10, 10), maxValue = maxi)
+		w.center()
 		w.open()
 		self.w = w
 

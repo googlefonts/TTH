@@ -1,4 +1,4 @@
-from mojo.extensions import getExtensionDefault
+from mojo.extensions import getExtensionDefault, setExtensionDefault
 
 class TTHWindow(object):
 	def __init__(self, posSizeKey, visibilityKey):
