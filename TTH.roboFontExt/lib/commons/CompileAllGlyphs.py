@@ -1,4 +1,8 @@
-print 'Should compile all glyphs assembly'
+print '''
+--------------------------------
+Will compile all glyphs assembly
+--------------------------------
+'''
 
 from robofab.interface.all.dialogs import Message as FabMessage
 

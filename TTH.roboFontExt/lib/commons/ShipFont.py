@@ -16,7 +16,7 @@ def go():
 		FabMessage("This is not a UFO.\nNothing to do.")
 		return
 
-	fname = fname[-4:]+".ttf"
+	fname = fname[:-4]+".ttf"
 
 	fm = tthTool.fontModelForFont(font)
 	if fm is None:
@@ -31,6 +31,6 @@ def go():
 			releaseMode   = False,\
 			glyphOrder    = None,\
 			progressBar   = None)
-	print "TTF font", fname, "shipped."
+	print "TTF font shipped to file:", fname
 
 go()

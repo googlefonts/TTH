@@ -515,19 +515,18 @@ When do we regenerate a partial font?
 		print "done."
 
 	def generateFullTempFont(self):
-		#try:
-			if tables.k_hdmx_key in self.f.lib:
-				del self.f.lib[tables.k_hdmx_key]
-			self.f.generate(self.tempFullFontPath, 'ttf',\
-					decompose     = False,\
-					checkOutlines = False,\
-					autohint      = False,\
-					releaseMode   = False,\
-					glyphOrder    = None,\
-					progressBar   = None)
-			#self.editComponentsFlags(self.f, self.tempFullFontPath)
-		#except:
-		#	print 'ERROR: Unable to generate full font'
+		if tables.k_hdmx_key in self.f.lib:
+			del self.f.lib[tables.k_hdmx_key]
+		output = self.f.generate(self.tempFullFontPath, 'ttf',\
+				decompose     = False,\
+				checkOutlines = False,\
+				autohint      = False,\
+				releaseMode   = False,\
+				glyphOrder    = None,\
+				progressBar   = None)
+		if "ERROR" in output:
+			print output
+		#self.editComponentsFlags(self.f, self.tempFullFontPath)
 
 	def editComponentsFlags(self, workingUFO, destination):
 		(head, tail) = os.path.split(destination)
