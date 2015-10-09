@@ -496,23 +496,34 @@ When do we regenerate a partial font?
 			progress.increment(counter)
 		TTHGlyph.silent = False
 
-	def compileAllTTFData(self):
-		print "Compiling CVT, PREP,",
+	def compileAllTTFData(self, progress=None):
+		progress.setInfo("CVT and PREP...")
 		self.dirtyCVT()
 		self.writeCVTandPREP()
-		print "FPGM,",
+		if progress:
+			progress.increment(10)
+			progress.setInfo("FPGM...")
 		tables.write_FPGM(self)
-		print "gasp,",
+		if progress:
+			progress.increment(10)
+			progress.setInfo("gasp...")
 		tables.write_gasp(self)
-		print "VDMX,",
+		if progress:
+			progress.increment(10)
+			progress.setInfo("VDMX...")
 		tables.write_VDMX(self)
-		print "LTSH,",
+		if progress:
+			progress.increment(10)
+			progress.setInfo("LTSH...")
 		tables.write_LTSH(self)
-		print "hdmx,",
+		if progress:
+			progress.increment(10)
+			progress.setInfo("hdmx...")
 		tables.write_hdmx(self)
-		print "glyphs,",
-		self.compileAllGlyphs()
-		print "done."
+		if progress:
+			progress.increment(10)
+			progress.setInfo("glyphs...")
+		self.compileAllGlyphs(progress)
 
 	def generateFullTempFont(self):
 		if tables.k_hdmx_key in self.f.lib:

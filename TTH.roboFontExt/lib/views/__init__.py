@@ -1,4 +1,4 @@
-from mojo.extensions import *
+#from mojo.extensions import *
 
 class TTHWindow(object):
 	def __init__(self, posSizeKey, visibilityKey):
