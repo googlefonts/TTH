@@ -180,9 +180,7 @@ class MainPanel(BaseWindowController):
 			NSMenuItem.separatorItem(),
 			u"Control Values…", # 12
 			NSMenuItem.separatorItem(),
-			u"Preferences…", # 14
-			NSMenuItem.separatorItem(),
-			"Compile all TTF data", # 16
+			u"Preferences…" # 14
 			]
 			)
 
@@ -297,8 +295,6 @@ class MainPanel(BaseWindowController):
 			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 14:
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
-		elif gearOption == 16:
-			fm.compileAllTTFData()
 
 	#################
 	# Display updates
