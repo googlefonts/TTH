@@ -223,28 +223,41 @@ class TTHGlyph(object):
 					if len(names) > 1 and names[0] != 'inserted':
 						self._nameToCSI[names[0]] = csi
 
-	def pointClicked(self, clickPos, alsoOff = False):
-		if len(self._g) == 0: return (None, False, -1.0)
-		# 'best', 'dist' and 'on' are lists of length one: This is a
-		# workaround in python2 to access the variables in the outer scope
-		# (in function 'update' below). python3 would use the 'nonlocal'
-		# keyword.
-		seg  = self._g[0][0]
-		best = [(seg.onCurve, 0, 0, len(seg.points)-1)]
-		dist = [(clickPos - geom.makePoint(best[0][0])).squaredLength()]
-		on   = [True]
+	def pointClickedOnGlyph(self, clickPos, glyph, best, dist, component, on, alsoOff = False):
+		if len(glyph) == 0: return
 		def update(p, cont, seg, idx, isOn):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = (p, cont, seg, idx)
+				best[0] = (p, cont, seg, idx, component)
 				on[0] = isOn
-		for cont, contour in enumerate(self._g):
+		for cont, contour in enumerate(glyph):
 			for seg, segment in enumerate(contour):
 				update(segment.onCurve, cont, seg, len(segment.points)-1, True)
 				if not alsoOff: continue
 				for idx, p in enumerate(segment.offCurve):
 					update(p, cont, seg, idx, False)
+
+	def pointClicked(self, clickPos, fontModel, alsoOff = False):
+		# 'best', 'dist' and 'on' are lists of length one: This is a
+		# workaround in python2 to access the variables in the outer scope
+		# (in function 'update' below). python3 would use the 'nonlocal'
+		# keyword.
+		best = [None]
+		dist = [999999999.0]
+		on   = [True]
+		def update(p, cont, seg, idx, isOn):
+			d = (clickPos - geom.makePoint(p)).squaredLength()
+			if d < dist[0]:
+				dist[0] = d
+				best[0] = (p, cont, seg, idx, None)
+				on[0] = isOn
+		self.pointClickedOnGlyph(clickPos, self._g, best, dist, None, on, alsoOff)
+
+		for comp in self._g.components:
+			offset = geom.makePointForPair(comp.offset)
+			self.pointClickedOnGlyph(clickPos-offset, fontModel.f[comp.baseGlyph], best, dist, comp, on, alsoOff) 
+
 		fakeLSB = makeRPoint(self.positionForPointName('lsb'), 'lsb')
 		fakeRSB = makeRPoint(self.positionForPointName('rsb'), 'rsb')
 		update(fakeLSB, 0, 0, 0, True)

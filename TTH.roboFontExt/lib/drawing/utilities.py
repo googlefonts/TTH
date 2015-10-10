@@ -44,9 +44,26 @@ def drawCircleAtPoint(r, w, x, y, color):
 	path.setLineWidth_(w)
 	path.stroke()
 
+def drawSquareAtPoint(d, x, y, color):
+	color.set()
+	path = NSBezierPath.bezierPath()
+	path.moveToPoint_((x+d, y+d))
+	path.lineToPoint_((x-d, y+d))
+	path.lineToPoint_((x-d, y-d))
+	path.lineToPoint_((x+d, y-d))
+	path.fill()
+
+def drawTriangleAtPoint(d, x, y, color):
+	color.set()
+	path = NSBezierPath.bezierPath()
+	path.moveToPoint_((x, y+d))
+	path.lineToPoint_((x-d, y-d))
+	path.lineToPoint_((x+d, y-d))
+	path.fill()
+
 def drawLozengeAtPoint(scale, r, x, y, color):
 	color.set()
-	d =scale * r
+	d = scale * r
 	path = NSBezierPath.bezierPath()
 	path.moveToPoint_((x+d, y))
 	path.lineToPoint_((x, y+d))
@@ -54,6 +71,19 @@ def drawLozengeAtPoint(scale, r, x, y, color):
 	path.lineToPoint_((x, y-d))
 	path.lineToPoint_((x+d, y))
 	path.fill()
+
+def drawComponentsPoints(scale, glyph, fontModel):
+	for c in glyph.components:
+		offset_x, offset_y = c.offset
+		for c in fontModel.f[c.baseGlyph]:
+			for p in c.points:
+				pointType = p.type
+				if pointType == 'qcurve':
+					drawSquareAtPoint(3*scale, p.x + offset_x, p.y + offset_y, kDiscColor)
+				elif pointType == 'line':
+					drawTriangleAtPoint(4*scale, p.x + offset_x, p.y + offset_y, kDiscColor)
+				elif pointType == 'offCurve':
+					pass
 
 def drawSideBearingsPointsOfGlyph(scale, size, glyph):
 	r = size*scale

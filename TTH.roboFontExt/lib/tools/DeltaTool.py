@@ -108,7 +108,7 @@ class DeltaTool(TTHCommandTool):
 		gm.addCommand(cmd)
 
 	def mouseDown(self, point, clickCount):
-		super(DeltaTool, self).mouseDown(point,  clickCount)
+		super(DeltaTool, self).mouseDown(point, clickCount)
 		self.pitch = tthTool.getFontModel().getPitch()
 		self.originalOffset = self.offset
 		self.cancel = False

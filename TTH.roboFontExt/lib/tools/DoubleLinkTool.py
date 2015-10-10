@@ -45,8 +45,8 @@ class DoubleLinkTool(TTHCommandTool):
 
 	def mouseUp(self, point):
 		if not self.dragging: return
-		gm = tthTool.getGlyphModel()
-		tgt = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
+		gm, fm = tthTool.getGlyphAndFontModel()
+		tgt = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
 		if tgt[0]:
 			s = self.startPoint[0]
 			t = tgt[0][0]

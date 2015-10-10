@@ -189,6 +189,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
 
 		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
+
 		if simpleDrawing: return
 
 		self.drawZones(scale, pitch, fm)
@@ -213,6 +214,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF whenever the Foreground of the
 		glyph Window needs redraw'''
 		if 0 == self.numberOfRectsToDraw(): return
+
+		g, fm = tthTool.getRGAndFontModel()
+		if len(g.components) > 0:
+			DR.drawComponentsPoints(scale, g, fm)
+
 		tool = tthTool.selectedHintingTool
 		if tool and tool.dragging:
 			self.drawCommands(scale, True)

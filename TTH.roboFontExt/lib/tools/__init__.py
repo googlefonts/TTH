@@ -131,9 +131,14 @@ class TTHCommandTool(object):
 	# - - - - MOUSE EVENTS
 
 	def magnet(self):
-		tgt = tthTool.getGlyphModel().pointClicked(self.mouseDraggedPos, alsoOff=self.worksOnOFF)
+		gm, fm = tthTool.getGlyphAndFontModel()
+		tgt = gm.pointClicked(self.mouseDraggedPos, fm, alsoOff=self.worksOnOFF)
 		if tgt[0]:
-			return True, geom.makePoint(tgt[0][0])
+			p = geom.makePoint(tgt[0][0])
+			compo = tgt[0][4]
+			if compo:
+				p = p + geom.makePointForPair(compo.offset)
+			return True, p
 		else:
 			return False, self.mouseDraggedPos
 
@@ -144,12 +149,12 @@ class TTHCommandTool(object):
 	def mouseDown(self, point, clickCount):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
-		gm = tthTool.getGlyphModel()
-		src = gm.pointClicked(geom.makePoint(point), alsoOff=self.worksOnOFF)
+		gm, fm = tthTool.getGlyphAndFontModel()
+		src = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
 		if src[0]:
 			self.dragging = True
 			self.startPoint = src[0]
-			# src[0] is a quadruple (point, cont, seg, idx) with
+			# src[0] is a quintuple (point, cont, seg, idx, component) with
 			# glyph[cont][seg].points[idx] == point
 		else:
 			self.dragging = False
