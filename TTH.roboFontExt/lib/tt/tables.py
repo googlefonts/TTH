@@ -2,7 +2,6 @@ import math, time
 from fontTools.ttLib.tables._g_a_s_p import GASP_SYMMETRIC_GRIDFIT, GASP_SYMMETRIC_SMOOTHING, GASP_DOGRAY, GASP_GRIDFIT
 from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
 from commons import helperFunctions as HF
-from drawing import textRenderer as TR
 
 #import novo
 
@@ -48,12 +47,10 @@ def purgeTables(fm):
 		if key in l:
 			del l[key]
 
-def write_hdmx(fm):
-	fm.generateFullTempFont()
+def write_hdmx(fm, tr):
 	ppems = {}
 	for size in fm.hdmx_ppem_sizes:
 		widths = {}
-		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
 		tr.set_cur_size(size)
 		for glyphName in fm.f.glyphOrder:
 			w = (tr.get_name_advance(glyphName)[0]+32) / 64
@@ -61,8 +58,7 @@ def write_hdmx(fm):
 		ppems[str(size)] = widths
 	fm.f.lib[k_hdmx_key] = ppems
 
-def write_VDMX(fm):
-	fm.generateFullTempFont()
+def write_VDMX(fm, tr):
 	upm = fm.UPM
 	halfUpm = upm / 2
 	VDMX = {
@@ -81,7 +77,6 @@ def write_VDMX(fm):
 	# We will add only one record here from 8 to 255 ppem
 	vTableRecord = {}
 	for yPelHeight in range(8, 256, 1):
-		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
 		tr.set_cur_size(yPelHeight)
 		linYMax = (tr.face.bbox.yMax * yPelHeight + halfUpm) / upm
 		linYMin = (tr.face.bbox.yMin * yPelHeight + halfUpm) / upm
@@ -100,16 +95,9 @@ def write_VDMX(fm):
 	VDMX['groups'].append(vTableRecord)
 	fm.f.lib[k_VDMX_key] = VDMX
 
-def write_LTSH(fm, maxSize = 255, verbose=False):
-	clock0 = time.time()
-	fm.generateFullTempFont()
+def write_LTSH(fm, tr, maxSize = 255):
 	font = fm.f
 	thresholds = dict((g.name, maxSize) for g in font)
-
-	clock1 = time.time()
-	if verbose:
-		print "[LTSH] Font generated in", (clock1-clock0), "seconds"
-	clock0 = clock1
 
 	#import gc
 	#gc.disable()
@@ -124,17 +112,12 @@ def write_LTSH(fm, maxSize = 255, verbose=False):
 	glyphsToCheck = dict((g.name, g) for g in font)
 	#glyphsToCheck = dict((name, font[name]) for name in ['.notdef', 'A'])
 
-	clock1 = time.time()
-	if verbose:
-		print "[LTSH] Glyph set generated in", (clock1-clock0), "seconds"
-	clock0 = clock1
 	#gc.enable()
 
 	upm = fm.UPM
 	halfUpm = upm / 2
 	out = ''
 	for size in range(maxSize-1, 0, -1):
-		tr = TR.TextRenderer(fm.tempFullFontPath, 'Monochrome', cacheContours=False)
 		tr.set_cur_size(size)
 		toRemove = []
 		for name, g in glyphsToCheck.iteritems():
@@ -181,11 +164,6 @@ def write_LTSH(fm, maxSize = 255, verbose=False):
 						+', should be '+str(nv)+'\n')
 		print count,"errors:"
 		print(''.join(s))
-
-	clock1 = time.time()
-	if verbose:
-		print "LTSH dictionary generated in", (clock1-clock0), "seconds"
-	clock0 = clock1
 
 	font.lib[k_LTSH_key] = thresholds
 

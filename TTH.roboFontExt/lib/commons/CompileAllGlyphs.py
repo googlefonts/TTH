@@ -13,7 +13,7 @@ def go():
 		return
 	exn = None
 	fm = tthTool.fontModelForFont(font)
-	pbw = TTHProgressWindow.TTHProgressWindow("Compiling all glyphs...", len(font)+60)
+	pbw = TTHProgressWindow.TTHProgressWindow("Compiling all glyphs...", len(font)+100)
 	try:
 		fm.compileAllTTFData(pbw)
 	except Exception as inst:
