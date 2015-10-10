@@ -17,6 +17,13 @@ DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyCompareFontsWindowPosSize = DefaultKeyStub + "compareFontsWindowPosSize"
 defaultKeyCompareFontsWindowVisibility = DefaultKeyStub + "compareFontsWindowVisibility"
 
+class UFOdata(object):
+	def __init__(self, path, fontModel):
+		self.path = path
+		self.fm = fontModel
+		self.tail = os.path.split(path)[1]
+		self.weight = self.fm.f.info.openTypeOS2WeightClass
+		self.requiredGlyphs = set('space')
 
 class CompareFontsWindow(BaseWindowController):
 	def __init__(self):
@@ -28,7 +35,7 @@ class CompareFontsWindow(BaseWindowController):
 
 		self.previewString = 'hamburgefontsiv'
 
-		self.loadedUFOs = {}
+		self.UFOList = []
 		self.size1 = 9
 		self.size2 = 9
 		self.PPMSizesList = [str(i) for i in range(8, 73)]
@@ -41,28 +48,26 @@ class CompareFontsWindow(BaseWindowController):
 		ps = 0, 0, panelSize[0], panelSize[1]
 		win = Window(ps, "Compare Fonts", minSize=(350, 200))
 
-		win.previewEditText = ComboBox((10, 10, -130, 22), tthTool.previewSampleStringsList,
+		win.previewEditText = ComboBox((10, 10, -130, 22), [self.previewString],
 			callback=self.previewEditTextCallback)
 		win.previewEditText.set(self.previewString)
 		win.loadUFOButton = Button((-120, 10, 90, 22), 'Load UFOs', callback=self.loadUFOButtonCallback)
 		win.buttonrefreshUFOs = Button((-20, 10, 10, 10), u"↺", callback=self.buttonRefreshUFOsCallback)
 		win.buttonrefreshUFOs.getNSButton().setBordered_(False)
 
-		columnDescriptions = (sorted([{'tail':k} for k in self.loadedUFOs]))
-
-		win.UFOsList = List((30, 40, -10, 70), 
-						columnDescriptions, 
+		win.UIList = List((30, 40, -10, 70), 
+						[], 
 						allowsMultipleSelection=False,
 						showColumnTitles=False,
 						columnDescriptions=[{'title':'tail', 'width':600}],
-						enableDelete=False,
-						allowsEmptySelection=False,
-						selectionCallback=self.UFOSelectedCallBack
+						enableDelete=False
 						)
 
-		win.upButton = Button((10, 40, 10, 35), u'↑', sizeStyle = "small", callback = self.upButtonCallback)
+		win.upButton = Button((10, 40, 10, 10), u'↑', sizeStyle = "small", callback = self.upButtonCallback)
 		win.upButton.getNSButton().setBordered_(False)
-		win.downButton = Button((10, 75, 10, 35), u'↓', sizeStyle = "small", callback = self.downButtonCallback)
+		win.removeButton = Button((10, 65, 10, 10), u'-', sizeStyle = "small", callback = self.removeButtonCallback)
+		win.removeButton.getNSButton().setBordered_(False)
+		win.downButton = Button((10, 95, 10, 10), u'↓', sizeStyle = "small", callback = self.downButtonCallback)
 		win.downButton.getNSButton().setBordered_(False)
 
 		win.PPEMSize1ComboBox = ComboBox((10, 110, 40, 16),
@@ -88,21 +93,31 @@ class CompareFontsWindow(BaseWindowController):
 		win.open()
 
 	def upButtonCallback(self, sender):
-		if self.w.UFOsList.getSelection() == []: return
-		sel = self.w.UFOsList.getSelection()[0]
+		if self.w.UIList.getSelection() == []: return
+		sel = self.w.UIList.getSelection()[0]
 		if sel == 0: return
-		UFOsList = self.w.UFOsList.get()
-		UFOsList[sel], UFOsList[sel-1] = UFOsList[sel-1], UFOsList[sel]
-		self.w.UFOsList.set(UFOsList)
+		UIList = self.w.UIList.get()
+		UIList[sel], UIList[sel-1] = UIList[sel-1], UIList[sel]
+		T = self.UFOList
+		T[sel], T[sel-1] = T[sel-1], T[sel]
+		self.w.UIList.set(UIList)
 
+	def removeButtonCallback(self, sender):
+		if len(self.w.UIList.getSelection()) == 1:
+			self.UFOList.pop(self.w.UIList.getSelection()[0])
+			self.w.UIList.setSelection([])
+			self.w.UIList.set([{'tail':x.tail} for x in self.UFOList])
+			self.setNeedsDisplay()
 
 	def downButtonCallback(self, sender):
-		if self.w.UFOsList.getSelection() == []: return
-		sel = self.w.UFOsList.getSelection()[0]
-		if sel == len(self.w.UFOsList.get())-1: return
-		UFOsList = self.w.UFOsList.get()
-		UFOsList[sel], UFOsList[sel+1] = UFOsList[sel+1], UFOsList[sel]
-		self.w.UFOsList.set(UFOsList)
+		if self.w.UIList.getSelection() == []: return
+		sel = self.w.UIList.getSelection()[0]
+		if sel == len(self.w.UIList.get())-1: return
+		UIList = self.w.UIList.get()
+		UIList[sel], UIList[sel+1] = UIList[sel+1], UIList[sel]
+		T = self.UFOList
+		T[sel], T[sel+1] = T[sel+1], T[sel]
+		self.w.UIList.set(UIList)
 
 	def PPEMSize1ComboBoxCallback(self, sender):
 		try:
@@ -139,7 +154,6 @@ class CompareFontsWindow(BaseWindowController):
 		self.setNeedsDisplay()
 
 	def loadUFOButtonCallback(self, sender):
-		self.loadedUFOs = {}
 		self.showGetFile(['ufo'], callback=self.OpenUFOCallback,allowsMultipleSelection=True)
 
 	def fontModelForFont(self, font):
@@ -149,7 +163,6 @@ class CompareFontsWindow(BaseWindowController):
 		return model
 
 	def OpenUFOCallback(self, sender):
-		tailsList = []
 		for path in sender:
 			if path is None:
 				continue
@@ -157,24 +170,16 @@ class CompareFontsWindow(BaseWindowController):
 				continue
 			else:
 				UFO = RFont(path, showUI=False)
-				head, tail = os.path.split(path)
-				fm = self.fontModelForFont(UFO)
-				self.loadedUFOs[tail] = [path, fm, set(['space'])]
-				tailsList.append(tail)
-		self.w.UFOsList.set([{'tail':tail} for tail in tailsList])
-
-		self.previewEditTextCallback(self.w.previewEditText)
+				myUFO = UFOdata(path, self.fontModelForFont(UFO))
+				myUFO.requiredGlyphs = self.updatePartialFontIfNeeded(myUFO.fm, myUFO.requiredGlyphs)
+				self.UFOList.append(myUFO)
+		self.UFOList.sort(key=lambda x:x.weight)
+		self.w.UIList.set([{'tail':x.tail} for x in self.UFOList])
+		self.setNeedsDisplay()
 
 	def buttonRefreshUFOsCallback(self, sender):
-		tailList = []
-		pathList = []
-		for i in self.w.UFOsList.get():
-			tailList.append(i['tail'])
-		tailToPath = {tail:path for tail, (path, fm, requiredGlyphs) in self.loadedUFOs.iteritems()}
-
-		for i in tailList:
-			if i in tailToPath:
-				pathList.append(tailToPath[i])
+		pathList = [x.path for x in self.UFOList]
+		self.UFOList = []
 		self.OpenUFOCallback(pathList)
 
 	def calculateCanvasSize(self, winPosSize):
@@ -192,9 +197,6 @@ class CompareFontsWindow(BaseWindowController):
 	def setNeedsDisplay(self):
 		self.w.view.getNSView().setNeedsDisplay_(True)
 
-	def UFOSelectedCallBack(self, sender):
-		self.setNeedsDisplay()
-
 	def prepareText(self, font):
 		text = self.previewString
 		udata = font.naked().unicodeData
@@ -211,7 +213,6 @@ class CompareFontsWindow(BaseWindowController):
 				output = output + splitText(sub[1], udata)
 		return output
 
-
 	def updatePartialFontIfNeeded(self, fm, curSet):
 		"""Re-create the partial font if new glyphs are required."""
 		text = self.prepareText(fm.f)
@@ -225,46 +226,36 @@ class CompareFontsWindow(BaseWindowController):
 			return newSet
 		return curSet
 
-
 	def previewEditTextCallback(self, sender):
 		if sender.get() != None:
 			self.previewString = sender.get()
 		else:
-			self.previewString = '/?'
+			self.previewString = ''
 		self.w.previewEditText.set(self.previewString)
-
-
-		if self.loadedUFOs == {}: return
-
-		for tail, (path, fm, requiredGlyphs) in self.loadedUFOs.iteritems():
-			tr = fm.textRenderer
-			if not tr: continue
-			if not tr.isOK(): continue
-			namedGlyphList = self.prepareText(fm.f)
-			glyphs = tr.names_to_indices(namedGlyphList)
-			requiredGlyphs = self.updatePartialFontIfNeeded(fm, requiredGlyphs)
-
+		if self.UFOList == []: return
+		for ufo in self.UFOList:
+			ufo.requiredGlyphs = self.updatePartialFontIfNeeded(ufo.fm, ufo.requiredGlyphs)
 		self.setNeedsDisplay()
 
 	def draw(self):
-		if self.loadedUFOs == {}: return
+		if self.UFOList == []: return
 		adv = 0
 		height = (self.size1 + 10)*self.scale
-		starty = 200 + height
+		starty = 150 + height
 		ps = self.w.getPosSize()
-		#canvasHeight = (((self.size1 + self.size2 + 20)*(self.size2 - self.size1+1))/2.0)*self.scale
-		
+		canvasHeight = 0
 
-		#fm = self.loadedUFOs[self.w.UFOsList[self.w.UFOsList.getSelection()[0]]['tail']][1]
-		for tail in self.w.UFOsList:
-			path, fm, requiredGlyphs = self.loadedUFOs[tail['tail']]
-			if fm == None: return
-			fm.bitmapPreviewMode = self.rasteriserMode
-			tr = fm.textRenderer
+		for tail in self.w.UIList:
+			ufos = [u for u in self.UFOList if u.tail == tail['tail']]
+			if ufos == []: continue
+			ufo = ufos[0]
+			if ufo.fm == None: return
+			ufo.fm.bitmapPreviewMode = self.rasteriserMode
+			tr = ufo.fm.textRenderer
 			if not tr: return
 			if not tr.isOK(): return
-			namedGlyphList = self.prepareText(fm.f)
-			glyphs = tr.names_to_indices(namedGlyphList)
+			
+			glyphs = tr.names_to_indices(self.prepareText(ufo.fm.f))
 			
 			# render user string
 			for size in range(self.size1, self.size2+1, 1):
@@ -282,11 +273,6 @@ class CompareFontsWindow(BaseWindowController):
 		newHeight = max(ps[3], canvasHeight)
 		newPosSize = ps[0], ps[1], newWidth, newHeight
 		self.resizeView(newPosSize)
-
-			# if tail['tail'] != self.w.UFOsList[0]['tail']:
-			# 	tr.set_pen((20, ps[3] - starty - height))
-			# 	tr.render_indexed_glyph_list(glyphs, scale=self.scale)
-			# 	height += (self.size + 10)*self.scale
 				
 
 
