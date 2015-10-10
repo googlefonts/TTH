@@ -13,9 +13,13 @@ def go():
 		return
 	exn = None
 	fm = tthTool.fontModelForFont(font)
-	pbw = TTHProgressWindow.TTHProgressWindow("Compiling all glyphs...", len(font)+60)
+	if fm is None:
+		FabMessage("Can't find the TTHFont instance. Sorry. Bye.")
+		return
+	pbw = TTHProgressWindow.TTHProgressWindow("Compiling all glyphs...", len(font))
 	try:
-		fm.compileAllTTFData(pbw)
+		if pbw: pbw.setInfo("(please wait)")
+		fm.compileAllGlyphs(pbw)
 	except Exception as inst:
 		exn = inst
 	finally:

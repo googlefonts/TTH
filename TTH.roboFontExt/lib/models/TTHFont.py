@@ -442,20 +442,20 @@ class TTHFont(object):
 		TTHGlyph.silent = False
 
 	def purgeHintingData(self, progress=None):
-		print "Purging glyphs...",
+		if progress: progress.setInfo("Purging glyphs...")
 		self.clearAllGlyphs(progress)
-		print ", SP and FL libs...",
-		if SP_tth_key in self.f.lib: # purge SansPlomb lib
-			del self.f.lib[SP_tth_key]
+		if progress: progress.setInfo("Purging tables...")
 		self.zones = {}
 		self.horizontalStems = {}
 		self.verticalStems   = {}
+		if SP_tth_key in self.f.lib: # purge SansPlomb lib
+			del self.f.lib[SP_tth_key]
 		if FL_tth_key in self.f.lib: # purge FontLab TTH lib
 			del self.f.lib[FL_tth_key]
 		# Purge various tables
-		print ", tables...",
 		tables.purgeTables(self)
-		print "done."
+		# FIXME: I'm not sure we can re-add stems/zones after this purge has
+		# been done.. TEST
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 
@@ -500,7 +500,13 @@ When do we regenerate a partial font?
 		TTHGlyph.silent = False
 
 	def compileAllTTFData(self, progress=None):
-		progress.setInfo("CVT and PREP...")
+		if progress:
+			progress.setInfo("Generating temporary font...")
+		self.generateFullTempFont()
+		tr = textRenderer.TextRenderer(self.tempFullFontPath, 'Monochrome', cacheContours=False)
+		if progress:
+			progress.increment(40)
+			progress.setInfo("CVT and PREP...")
 		self.dirtyCVT()
 		self.writeCVTandPREP()
 		if progress:
@@ -514,18 +520,18 @@ When do we regenerate a partial font?
 		if progress:
 			progress.increment(10)
 			progress.setInfo("VDMX...")
-		tables.write_VDMX(self)
+		tables.write_VDMX(self, tr)
 		if progress:
 			progress.increment(10)
 			progress.setInfo("LTSH...")
-		tables.write_LTSH(self)
+		tables.write_LTSH(self, tr)
 		if progress:
 			progress.increment(10)
 			progress.setInfo("hdmx...")
-		tables.write_hdmx(self)
+		tables.write_hdmx(self, tr)
 		if progress:
 			progress.increment(10)
-			progress.setInfo("glyphs...")
+			progress.setInfo("compiling all glyphs...")
 		self.compileAllGlyphs(progress)
 
 	def generateFullTempFont(self):
