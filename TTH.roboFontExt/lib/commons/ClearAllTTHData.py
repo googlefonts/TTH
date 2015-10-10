@@ -18,7 +18,15 @@ def go():
 	if choice != 1:
 		return
 	fm = tthTool.fontModelForFont(font)
-	fm.purgeHintingData()
+	if fm is None:
+		FabMessage("Can't find the TTHFont instance. Sorry. Bye.")
+		return
+	try:
+		fm.purgeHintingData()
+	except Exception as inst:
+		print "[TTH ERROR] An error happened during the compilation of the glyphs' hinting program in font", font.fileName
+		print exn
+		return
 	print "TTH data purged from font", font.fileName
 
 go()

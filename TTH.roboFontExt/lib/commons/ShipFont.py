@@ -20,17 +20,27 @@ def go():
 
 	fm = tthTool.fontModelForFont(font)
 	if fm is None:
-		FabMessage("Shipping Font Error. Sorry. Bye.")
+		FabMessage("Can't find the TTHFont instance. Sorry. Bye.")
 		return
 
-	fm.compileAllTTFData()
-	font.generate(fname, 'ttf',\
-			decompose     = False,\
-			checkOutlines = False,\
-			autohint      = False,\
-			releaseMode   = False,\
-			glyphOrder    = None,\
-			progressBar   = None)
-	print "TTF font shipped to file:", fname
+	pbw = TTHProgressWindow.TTHProgressWindow("Compiling all glyphs...", len(font))
+	try:
+		fm.compileAllTTFData(pbw)
+		font.generate(fname, 'ttf',\
+				decompose     = False,\
+				checkOutlines = False,\
+				autohint      = False,\
+				releaseMode   = False,\
+				glyphOrder    = None,\
+				progressBar   = None)
+	except Exception as inst:
+		exn = inst
+	finally:
+		if pbw: pbw.close()
+	if exn:
+		print "[TTH ERROR] An error happened during the compilation of the glyphs' hinting program in font", font.fileName
+		print exn
+	else:
+		print "TTF font shipped to file:", fname
 
 go()
