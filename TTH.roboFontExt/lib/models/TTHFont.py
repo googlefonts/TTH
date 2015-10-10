@@ -442,20 +442,20 @@ class TTHFont(object):
 		TTHGlyph.silent = False
 
 	def purgeHintingData(self, progress=None):
-		print "Purging glyphs...",
+		if progress: progress.setInfo("Purging glyphs...")
 		self.clearAllGlyphs(progress)
-		print ", SP and FL libs...",
-		if SP_tth_key in self.f.lib: # purge SansPlomb lib
-			del self.f.lib[SP_tth_key]
+		if progress: progress.setInfo("Purging tables...")
 		self.zones = {}
 		self.horizontalStems = {}
 		self.verticalStems   = {}
+		if SP_tth_key in self.f.lib: # purge SansPlomb lib
+			del self.f.lib[SP_tth_key]
 		if FL_tth_key in self.f.lib: # purge FontLab TTH lib
 			del self.f.lib[FL_tth_key]
 		# Purge various tables
-		print ", tables...",
 		tables.purgeTables(self)
-		print "done."
+		# FIXME: I'm not sure we can re-add stems/zones after this purge has
+		# been done.. TEST
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT GENERATION
 

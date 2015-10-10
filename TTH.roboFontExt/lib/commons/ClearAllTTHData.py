@@ -4,6 +4,8 @@ from robofab.interface.all.dialogs import AskYesNoCancel as AskYesNoCancel
 
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
+from views import TTHProgressWindow
+reload(TTHProgressWindow)
 
 def go():
 	font = CurrentFont()
@@ -21,12 +23,18 @@ def go():
 	if fm is None:
 		FabMessage("Can't find the TTHFont instance. Sorry. Bye.")
 		return
+	pbw = TTHProgressWindow.TTHProgressWindow("Clear all TTH data...", len(font))
+	exn = None
 	try:
-		fm.purgeHintingData()
+		fm.purgeHintingData(pbw)
 	except Exception as inst:
+		exn = inst
+	finally:
+		if pbw: pbw.close()
+	if exn:
 		print "[TTH ERROR] An error happened during the compilation of the glyphs' hinting program in font", font.fileName
 		print exn
-		return
-	print "TTH data purged from font", font.fileName
+	else:
+		print "TTH data purged from font", font.fileName
 
 go()
