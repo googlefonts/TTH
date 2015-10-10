@@ -7,8 +7,6 @@ from vanilla import *
 from mojo.canvas import Canvas
 from robofab.world import *
 
-from views import TTHWindow
-from models.TTHTool import uniqueInstance as tthTool
 from models import TTHFont
 from commons import helperFunctions
 from drawing import utilities as DR
@@ -83,10 +81,11 @@ class CompareFontsWindow(BaseWindowController):
 		win.rasterizerModePopUpButton = PopUpButton((110, 110, 100, 16), self.rModes, sizeStyle = "small", callback=self.rasterizerModePopUpButtonCallback)
 		win.scalePopUpButton = PopUpButton((220, 110, 40, 16), self.scaleList, sizeStyle = "small", callback=self.scalePopUpButtonCallback)
 
-		win.view = Canvas((10, 130, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 		win.bind("move", self.movedOrResizedCallback)
 		win.bind("resize", self.movedOrResizedCallback)
 		win.bind("close", self.closedCallback)
+
+		win.view = Canvas((10, 130, -10, -10), delegate = self, canvasSize = self.calculateCanvasSize(ps))
 
 		self.w = win
 
@@ -183,10 +182,11 @@ class CompareFontsWindow(BaseWindowController):
 		self.OpenUFOCallback(pathList)
 
 	def calculateCanvasSize(self, winPosSize):
-		return (winPosSize[2], winPosSize[3]-140)
+		return (winPosSize[2], winPosSize[3])#-140)
 
 	def movedOrResizedCallback(self, sender):
-		self.resizeView(self.w.getPosSize())
+		pass
+		#self.resizeView(self.w.getPosSize())
 
 	def closedCallback(self, sender):
 		setDefault('drawingSegmentType', self.originalCurveDrawingPref)
@@ -239,40 +239,56 @@ class CompareFontsWindow(BaseWindowController):
 
 	def draw(self):
 		if self.UFOList == []: return
-		adv = 0
-		height = (self.size1 + 10)*self.scale
-		starty = 150 + height
-		ps = self.w.getPosSize()
-		canvasHeight = 0
+		s1 = self.size1
+		s2 = self.size2
+		canvasHeight = 10+self.scale*((s1+s2+20)*(s2-s1+1)/2.0 + 10.0)
+		trGlyphs = []
 
-		for tail in self.w.UIList:
-			ufos = [u for u in self.UFOList if u.tail == tail['tail']]
+		for uiUfo in self.w.UIList:
+			ufos = [u for u in self.UFOList if u.tail == uiUfo['tail']]
 			if ufos == []: continue
 			ufo = ufos[0]
-			if ufo.fm == None: return
+			if ufo.fm == None: continue
 			ufo.fm.bitmapPreviewMode = self.rasteriserMode
 			tr = ufo.fm.textRenderer
-			if not tr: return
-			if not tr.isOK(): return
-			
+			if not tr: continue
+			if not tr.isOK(): continue
 			glyphs = tr.names_to_indices(self.prepareText(ufo.fm.f))
-			
-			# render user string
-			for size in range(self.size1, self.size2+1, 1):
+			trGlyphs.append((tr, glyphs))
+
+		xPos = 10
+		yPos = 10
+		for tr, glyphs in trGlyphs:	
+			tr.set_cur_size(s2)
+			tr.set_pen((xPos + 10*self.scale, -200*self.scale))
+			x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
+			xPos += x + 10*self.scale
+		canvasWidth = xPos
+
+		ps = self.w.getPosSize()
+		ps = ps[2]-20, ps[3]-140
+		newWidth  = max(ps[0], canvasWidth)
+		newHeight = max(ps[1], canvasHeight)
+		v = self.w.view.getNSView()
+		boundsSize = v.bounds().size
+		boundsSize = boundsSize.width, boundsSize.height
+		frameSize = v.frame().size
+		frameSize = frameSize.width, frameSize.height
+		newSize = newWidth, newHeight
+		if boundsSize != newSize or frameSize != newSize:
+			self.w.view.getNSView().setFrame_(((0,0),(newWidth, newHeight)))
+			self.w.view.getNSView().setBoundsSize_((newWidth, newHeight))
+		
+		xPos = 10
+		for tr, glyphs in trGlyphs:
+			yPos = max(10, newHeight - canvasHeight)
+			colWidth = 0
+			for size in range(s2, s1-1, -1):
 				displaysize = str(size)
-				DR.drawPreviewSize(displaysize, adv + 10, ps[3] - starty - height, DR.kBlackColor)
+				DR.drawPreviewSize(str(size), xPos, yPos, DR.kBlackColor)
 				tr.set_cur_size(size)
-				tr.set_pen((adv + 20, ps[3] - starty - height))
+				tr.set_pen((xPos + 10*self.scale, yPos))
 				x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
-				height += (size + 10)*self.scale
-			canvasHeight = height
-			adv += x + 10*self.scale
-			height = (self.size1 + 10)*self.scale
-			
-		newWidth = max(ps[2], adv)
-		newHeight = max(ps[3], canvasHeight)
-		newPosSize = ps[0], ps[1], newWidth, newHeight
-		self.resizeView(newPosSize)
-				
-
-
+				if size == self.size2: colWidth = x
+				yPos += (size + 10)*self.scale
+			xPos += colWidth + 10*self.scale
