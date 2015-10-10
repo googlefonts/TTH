@@ -11,6 +11,7 @@ from views import TTHWindow
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHFont
 from commons import helperFunctions
+from drawing import utilities as DR
 
 DefaultKeyStub = "com.sansplomb.TTH."
 defaultKeyCompareFontsWindowPosSize = DefaultKeyStub + "compareFontsWindowPosSize"
@@ -250,7 +251,10 @@ class CompareFontsWindow(BaseWindowController):
 		adv = 0
 		height = (self.size1 + 10)*self.scale
 		starty = 200 + height
+		ps = self.w.getPosSize()
+		#canvasHeight = (((self.size1 + self.size2 + 20)*(self.size2 - self.size1+1))/2.0)*self.scale
 		
+
 		#fm = self.loadedUFOs[self.w.UFOsList[self.w.UFOsList.getSelection()[0]]['tail']][1]
 		for tail in self.w.UFOsList:
 			path, fm, requiredGlyphs = self.loadedUFOs[tail['tail']]
@@ -261,16 +265,24 @@ class CompareFontsWindow(BaseWindowController):
 			if not tr.isOK(): return
 			namedGlyphList = self.prepareText(fm.f)
 			glyphs = tr.names_to_indices(namedGlyphList)
+			
 			# render user string
 			for size in range(self.size1, self.size2+1, 1):
+				displaysize = str(size)
+				DR.drawPreviewSize(displaysize, adv + 10, ps[3] - starty - height, DR.kBlackColor)
 				tr.set_cur_size(size)
-				ps = self.w.getPosSize()
 				tr.set_pen((adv + 20, ps[3] - starty - height))
 				x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
 				height += (size + 10)*self.scale
+			canvasHeight = height
 			adv += x + 10*self.scale
 			height = (self.size1 + 10)*self.scale
 			
+		newWidth = max(ps[2], adv)
+		newHeight = max(ps[3], canvasHeight)
+		newPosSize = ps[0], ps[1], newWidth, newHeight
+		self.resizeView(newPosSize)
+
 			# if tail['tail'] != self.w.UFOsList[0]['tail']:
 			# 	tr.set_pen((20, ps[3] - starty - height))
 			# 	tr.render_indexed_glyph_list(glyphs, scale=self.scale)
