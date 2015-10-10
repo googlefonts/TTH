@@ -261,16 +261,24 @@ class CompareFontsWindow(BaseWindowController):
 			if not tr.isOK(): return
 			namedGlyphList = self.prepareText(fm.f)
 			glyphs = tr.names_to_indices(namedGlyphList)
+			ps = self.w.getPosSize()
 			# render user string
 			for size in range(self.size1, self.size2+1, 1):
 				tr.set_cur_size(size)
-				ps = self.w.getPosSize()
 				tr.set_pen((adv + 20, ps[3] - starty - height))
 				x, y = tr.render_indexed_glyph_list(glyphs, scale=self.scale)
 				height += (size + 10)*self.scale
+				advanceWidthCurrentGlyph = x
 			adv += x + 10*self.scale
 			height = (self.size1 + 10)*self.scale
 			
+			width = ps[2]
+			newWidth = advanceWidthCurrentGlyph
+			print width, newWidth
+			if width < newWidth:
+				ps = ps[0], ps[1], newWidth, ps[3]
+				self.resizeView(ps)
+
 			# if tail['tail'] != self.w.UFOsList[0]['tail']:
 			# 	tr.set_pen((20, ps[3] - starty - height))
 			# 	tr.render_indexed_glyph_list(glyphs, scale=self.scale)
