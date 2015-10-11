@@ -124,6 +124,7 @@ class DeltaTool(TTHCommandTool):
 		self.pitch = tthTool.getFontModel().getPitch()
 		self.originalOffset = self.offset
 		self.cancel = False
+		if self.dragging: return
 		gm, fm = tthTool.getGlyphAndFontModel()
 		clickedPoint = geom.makePoint(point)
 		listDistCmd = []
