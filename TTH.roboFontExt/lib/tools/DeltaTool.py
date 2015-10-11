@@ -153,7 +153,7 @@ class DeltaTool(TTHCommandTool):
 			listDistCmd.append((d, c))
 		if listDistCmd != []:
 			d, c = min(listDistCmd)
-			if d < 10.0*10.0:
+			if d <= 10.0*10.0:
 				c.set('active', 'false')
 				cont, seg, idx = gm.csiOfPointName(c.get('point'), fm, c.get('base'))
 				compIdx = c.get('base')

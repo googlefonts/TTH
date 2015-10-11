@@ -168,19 +168,18 @@ class MainPanel(BaseWindowController):
 		self.wTools.gear.setItems(
 			[firstItem,
 			u"Auto-Hint…", # 1
-			u"Auto-Match…", # 2
 			NSMenuItem.separatorItem(),
-			"Monochrome", # 4
-			"Grayscale", # 5
-			"Subpixel", # 6
+			"Monochrome", # 3
+			"Grayscale", # 4
+			"Subpixel", # 5
 			NSMenuItem.separatorItem(),
-			"Preview", # 8
-			"Program", # 9
-			"Assembly", # 10
+			"Preview", # 7
+			"Program", # 8
+			"Assembly", # 9
 			NSMenuItem.separatorItem(),
-			u"Control Values…", # 12
+			u"Control Values…", # 11
 			NSMenuItem.separatorItem(),
-			u"Preferences…" # 14
+			u"Preferences…" # 13
 			]
 			)
 
@@ -266,34 +265,27 @@ class MainPanel(BaseWindowController):
 		if gearOption == 1:
 			reload(AHSheet)
 			self.curSheet = AHSheet.AutoHintingSheet(self.wTools)
-		elif gearOption == 2:
-			reload(TransferPanel)
-			global comSansPlombTransferPanel
-			if comSansPlombTransferPanel != None:
-				comSansPlombTransferPanel.close(None)
-				comSansPlombTransferPanel = None
-			comSansPlombTransferPanel = TransferPanel.TransferPanel()
 		fm = tthTool.getFontModel()
-		if gearOption in [4,5,6]:
+		if gearOption in [3,4,5]:
 			modes = ["Monochrome", "Grayscale", "Subpixel"]
 			if fm != None and fm.bitmapPreviewMode != modes[gearOption-4]:
 				fm.bitmapPreviewMode = modes[gearOption-4]
 				if tthTool.previewPanel.isVisible():
 					tthTool.previewPanel.setNeedsDisplay()
 				UpdateCurrentGlyphView()
-		elif gearOption == 8:
+		elif gearOption == 7:
 			tthTool.updatePartialFontIfNeeded()
 			tthTool.previewPanel.show()
 			tthTool.updateDisplay()
-		elif gearOption == 9:
+		elif gearOption == 8:
 			tthTool.programWindow.show()
 			tthTool.updateDisplay()
-		elif gearOption == 10:
+		elif gearOption == 9:
 			tthTool.assemblyWindow.show()
 			tthTool.updateDisplay()
-		elif gearOption == 12:
+		elif gearOption == 11:
 			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
-		elif gearOption == 14:
+		elif gearOption == 13:
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
 
 	#################
