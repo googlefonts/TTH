@@ -13,7 +13,7 @@ def go():
 		FabMessage("This is not a Quadratic/TrueType UFO.\nNothing to clean.")
 		return
 
-	choice = AskYesNoCancel('Shall I really clean the TTH data in UFO\n\t{} ?'.format(font.fileName),
+	choice = AskYesNoCancel('Shall I really clear the TTH data in UFO\n\t{} ?'.format(font.fileName),
 			title="TTH",
 			default=0,
 			informativeText="(You might lose a lot of hard work.)")
