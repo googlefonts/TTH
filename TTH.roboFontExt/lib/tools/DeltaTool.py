@@ -125,8 +125,6 @@ class DeltaTool(TTHCommandTool):
 	def mouseDown(self, point, clickCount):
 		super(DeltaTool, self).mouseDown(point, clickCount)
 		self.pitch = tthTool.getFontModel().getPitch()
-		self.originalOffset = self.offset
-		self.cancel = False
 		if self.dragging: return
 		gm, fm = tthTool.getGlyphAndFontModel()
 		clickedPoint = geom.makePoint(point)
@@ -172,11 +170,8 @@ class DeltaTool(TTHCommandTool):
 	def mouseUp(self, point):
 		if not self.dragging: return
 		self.dragging = False
-		if self.cancel:
-			self.cancel = False
-			self.editedCommand = None
-			return
 		self.addCommand()
+		self.editedCommand = None
 
 	def draw(self, scale):
 		if not self.dragging: return
@@ -190,11 +185,6 @@ class DeltaTool(TTHCommandTool):
 		startPt = self.startPoint.pos
 		value  = 8.0/self.pitch * (self.mouseDraggedPos[coord] - startPt[coord])
 		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
-		if abs(pvalue) > abs(value):
-			self.setOffset(self.originalOffset)
-			self.cancel = True
-			return
-		self.cancel = False
 		value = min(8, max(-8, int(value)))
 		end = startPt + value*self.pitch/8.0 * unit
 		self.setOffset(value)
