@@ -125,6 +125,12 @@ class TTHGlyph(object):
 	def pointOfCSI(self, csi):
 		return self._g[csi[0]][csi[1]].points[csi[2]]
 
+	def getComponent(self, baseGlyph):
+		components = [c for c in self._g.components if c.baseGlyph == baseGlyph]
+		if len(components) > 0:
+			return components[0]
+		return None
+
 	def positionForPointName(self, name, fm=None, baseGlyph=None):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
@@ -135,9 +141,8 @@ class TTHGlyph(object):
 		else:
 			offset = geom.Point(0,0)
 			if baseGlyph != None:
-				components = [c for c in self._g.components if c.baseGlyph == baseGlyph]
-				if len(components) > 0:
-					comp = components[0]
+				comp = self.getComponent(baseGlyph)
+				if comp:
 					offset = geom.makePointForPair(comp.offset)
 					gm = fm.glyphModelForGlyph(fm.f[baseGlyph])
 					return gm.positionForPointName(name) + offset
@@ -159,10 +164,16 @@ class TTHGlyph(object):
 		command-popovers for example.'''
 		self._sortedHintingCommands = None
 
-	def csiOfPointName(self, name):
+	def csiOfPointName(self, name, fm=None, baseGlyph=None):
 		if None == self._nameToCSI:
 			self.buildNameToCSIDict()
 		try:
+			if baseGlyph != None:
+				comp = self.getComponent(baseGlyph)
+				if comp:
+					gm = fm.glyphModelForGlyph(fm.f[baseGlyph])
+					return gm.csiOfPointName(name)
+				return None
 			return self._nameToCSI[name]
 		except:
 			return None

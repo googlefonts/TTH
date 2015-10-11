@@ -125,6 +125,7 @@ class DeltaTool(TTHCommandTool):
 		self.originalOffset = self.offset
 		self.cancel = False
 		gm, fm = tthTool.getGlyphAndFontModel()
+		clickedPoint = geom.makePoint(point)
 		listDistCmd = []
 		for c in gm.hintingCommands:
 			cmd_code = c.get('code')
@@ -137,23 +138,26 @@ class DeltaTool(TTHCommandTool):
 			else:
 				if (X and cmd_code != 'mdeltah'): continue
 				if (Y and cmd_code != 'mdeltav'): continue
-			if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
-				offset = int(c.get('delta'))
-				deltaPoint = gm.positionForPointName(c.get('point'))
-				clickedPoint = geom.makePoint(point)
-				if X and cmd_code[-1] == 'h':
-					deltaPoint += geom.Point((offset/8.0)*self.pitch, 0)
-				elif Y and cmd_code[-1] == 'v':
-					deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
-					
-				d = (clickedPoint - deltaPoint).squaredLength()
-				listDistCmd.append((d, c))
+			if not (int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2'))): continue
+			offset = int(c.get('delta'))
+			deltaPoint = gm.positionForPointName(c.get('point'), fm, c.get('base'))
+			if X and cmd_code[-1] == 'h':
+				deltaPoint += geom.Point((offset/8.0)*self.pitch, 0)
+			elif Y and cmd_code[-1] == 'v':
+				deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
+			d = (clickedPoint - deltaPoint).squaredLength()
+			listDistCmd.append((d, c))
 		if listDistCmd != []:
 			d, c = min(listDistCmd)
 			if d < 10.0*10.0:
 				c.set('active', 'false')
-				cont, seg, idx = gm.csiOfPointName(c.get('point'))
-				self.startPoint = PointLocation(gm.RFGlyph[cont][seg][idx], cont, seg, idx, None)
+				cont, seg, idx = gm.csiOfPointName(c.get('point'), fm, c.get('base'))
+				comp = gm.getComponent(c.get('base'))
+				if comp:
+					g = fm.f[comp.baseGlyph]
+				else:
+					g = gm.RFGlyph
+				self.startPoint = PointLocation(g[cont][seg][idx], cont, seg, idx, comp)
 				self.dragging = True
 				self.editedCommand = c
 
