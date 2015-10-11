@@ -431,7 +431,7 @@ def processDeltaCommand(command, pointNameToIndex):
 		deltaInstructions.append(tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP1[ ]')
 
-	elif deltasP2:
+	if deltasP2:
 		for relativeSize in deltasP2:
 			arg = ((relativeSize -16) << 4 ) + tables.stepToSelector[step]
 			deltaPList += [arg, pointIndex]
@@ -439,7 +439,7 @@ def processDeltaCommand(command, pointNameToIndex):
 		deltaInstructions.append(tables.autoPush(*deltaPList))
 		deltaInstructions.append('DELTAP2[ ]')
 
-	elif deltasP3:
+	if deltasP3:
 		for relativeSize in deltasP3:
 			arg = ((relativeSize -32) << 4 ) + tables.stepToSelector[step]
 			deltaPList += [arg, pointIndex]
