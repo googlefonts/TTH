@@ -212,5 +212,5 @@ def drawDoubleArrow(scale, pos1, pos2, active, iColor, size=10):
 	path.stroke()
 	return offCurve
 
-class CommandLabel(object):
-	def __init__(self, center, size, text, )
+#class CommandLabel(object):
+	#def __init__(self, center, size, text, )
