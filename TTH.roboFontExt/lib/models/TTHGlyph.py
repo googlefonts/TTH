@@ -18,15 +18,16 @@ def makeRPoint(pos, name):
 	return RPoint(pos.x, pos.y, None, name)
 
 class PointLocation(object):
-	def __init__(self, g, rfPoint, cont, seg, idx, component):
+	def __init__(self, rfPoint, cont, seg, idx, compIdx, compOffset):
 		p = geom.makePoint(rfPoint)
-		if component: p = p + geom.makePointForPair(g.components[component].offset)
+		if compIdx != None:
+			p = p + compOffset
 		self.pos = p
 		self.rfPoint = rfPoint
 		self.cont = cont
 		self.seg = seg
 		self.idx = idx
-		self.component = component
+		self.component = compIdx
 
 class CommandRemover(object):
 	def __init__(self, gm, cmd):
@@ -245,13 +246,13 @@ class TTHGlyph(object):
 					if len(names) > 1 and names[0] != 'inserted':
 						self._nameToCSI[names[0]] = csi
 
-	def pointClickedOnGlyph(self, clickPos, glyph, best, dist, component, on, alsoOff = False):
+	def pointClickedOnGlyph(self, clickPos, glyph, best, dist, compIdx, compOffset, on, alsoOff = False):
 		if len(glyph) == 0: return
 		def update(p, cont, seg, idx, isOn):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = PointLocation(glyph, p, cont, seg, idx, component)
+				best[0] = PointLocation(p, cont, seg, idx, compIdx, compOffset)
 				on[0] = isOn
 		for cont, contour in enumerate(glyph):
 			for seg, segment in enumerate(contour):
@@ -272,13 +273,13 @@ class TTHGlyph(object):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = PointLocation(self._g, p, cont, seg, idx, None)
+				best[0] = PointLocation(p, cont, seg, idx, None, None)
 				on[0] = isOn
-		self.pointClickedOnGlyph(clickPos, self._g, best, dist, None, on, alsoOff)
+		self.pointClickedOnGlyph(clickPos, self._g, best, dist, None, None, on, alsoOff)
 
 		for i,compo in enumerate(self._g.components):
 			offset = geom.makePointForPair(compo.offset)
-			self.pointClickedOnGlyph(clickPos-offset, fontModel.f[compo.baseGlyph], best, dist, i, on, alsoOff) 
+			self.pointClickedOnGlyph(clickPos-offset, fontModel.f[compo.baseGlyph], best, dist, i, offset, on, alsoOff) 
 
 		fakeLSB = makeRPoint(self.positionForPointName('lsb'), 'lsb')
 		fakeRSB = makeRPoint(self.positionForPointName('rsb'), 'rsb')

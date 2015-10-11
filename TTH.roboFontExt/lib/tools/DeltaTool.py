@@ -153,13 +153,16 @@ class DeltaTool(TTHCommandTool):
 			if d < 10.0*10.0:
 				c.set('active', 'false')
 				cont, seg, idx = gm.csiOfPointName(c.get('point'), fm, c.get('base'))
-				comp = c.get('base')
-				if comp:
-					comp = int(comp)
-					g = fm.f[gm.RFGlyph.components[comp].baseGlyph]
+				compIdx = c.get('base')
+				offset = None
+				if compIdx:
+					compIdx = int(compIdx)
+					compo = gm.RFGlyph.components[compIdx]
+					g = fm.f[compo.baseGlyph]
+					offset = geom.makePointForPair(compo.offset)
 				else:
 					g = gm.RFGlyph
-				self.startPoint = PointLocation(g, g[cont][seg][idx], cont, seg, idx, comp)
+				self.startPoint = PointLocation(g[cont][seg][idx], cont, seg, idx, compIdx, offset)
 				self.dragging = True
 				self.editedCommand = c
 
