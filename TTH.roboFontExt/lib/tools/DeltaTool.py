@@ -1,6 +1,7 @@
 
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
+from models.TTHGlyph import PointLocation
 from drawing import geom, utilities as DR
 from AppKit import NSBezierPath
 
@@ -13,6 +14,7 @@ class DeltaTool(TTHCommandTool):
 			super(DeltaTool, self).__init__("Middle Delta")
 		self.worksOnOFF = True
 		self.final = final
+		self.editedCommand = None
 		self.mono  = True
 		self.gray  = True
 		self.offset = 0
@@ -91,58 +93,76 @@ class DeltaTool(TTHCommandTool):
 			code += 'h'
 		else:
 			code += 'v'
-		cmd = self.genNewCommand()
+		doModify = False
+		if self.editedCommand is None:
+			cmd = self.genNewCommand()
+		else:
+			cmd = self.editedCommand
+			doModify = True
+			self.editedCommand = None
 		cmd.set('code',  code)
-		self.setupCommandPointFromLoc('point', cmd, self.startPoint)
-		cmd.set('ppm1',  str(self.range1))
-		cmd.set('ppm2',  str(self.range2))
 		cmd.set('delta', str(self.offset))
-		if self.gray:
-			cmd.set('gray', 'true')
+		cmd.set('active', 'true')
+		if not doModify:
+			self.setupCommandPointFromLoc('point', cmd, self.startPoint)
+			cmd.set('ppm1',  str(self.range1))
+			cmd.set('ppm2',  str(self.range2))
+			if self.gray:
+				cmd.set('gray', 'true')
+			else:
+				cmd.set('gray', 'false')
+			if self.mono:
+				cmd.set('mono', 'true')
+			else:
+				cmd.set('mono', 'false')
+			gm.addCommand(fm, cmd)
 		else:
-			cmd.set('gray', 'false')
-		if self.mono:
-			cmd.set('mono', 'true')
-		else:
-			cmd.set('mono', 'false')
-		gm.addCommand(fm, cmd)
+			gm.updateGlyphProgram(fm)
 
 	def mouseDown(self, point, clickCount):
 		super(DeltaTool, self).mouseDown(point, clickCount)
 		self.pitch = tthTool.getFontModel().getPitch()
 		self.originalOffset = self.offset
+		self.cancel = False
 		gm, fm = tthTool.getGlyphAndFontModel()
 		listDistCmd = []
 		for c in gm.hintingCommands:
 			cmd_code = c.get('code')
+			if c.get('active', 'true') == 'false': continue
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
-			if (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
-				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
-					offset = int(c.get('delta'))
-					deltaPoint = gm.positionForPointName(c.get('point'))
-					clickedPoint = geom.makePoint(point)
-					if X and cmd_code[-1] == 'h':
-						deltaPoint += geom.Point((offset/8.0)*self.pitch, 0)
-					elif Y and cmd_code[-1] == 'v':
-						deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
-						
-					d = (clickedPoint - deltaPoint).squaredLength()
-					listDistCmd.append((d, c))
+			if self.final:
+				if (X and cmd_code != 'fdeltah'): continue
+				if (Y and cmd_code != 'fdeltav'): continue
+			else:
+				if (X and cmd_code != 'mdeltah'): continue
+				if (Y and cmd_code != 'mdeltav'): continue
+			if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
+				offset = int(c.get('delta'))
+				deltaPoint = gm.positionForPointName(c.get('point'))
+				clickedPoint = geom.makePoint(point)
+				if X and cmd_code[-1] == 'h':
+					deltaPoint += geom.Point((offset/8.0)*self.pitch, 0)
+				elif Y and cmd_code[-1] == 'v':
+					deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
+					
+				d = (clickedPoint - deltaPoint).squaredLength()
+				listDistCmd.append((d, c))
 		if listDistCmd != []:
 			d, c = min(listDistCmd)
 			if d < 10.0*10.0:
-				print c.attrib
+				c.set('active', 'false')
 				cont, seg, idx = gm.csiOfPointName(c.get('point'))
-				self.startPoint = gm.RFGlyph[cont][seg][idx], cont, seg, idx, None
+				self.startPoint = PointLocation(gm.RFGlyph[cont][seg][idx], cont, seg, idx, None)
 				self.dragging = True
-		self.cancel = False
+				self.editedCommand = c
 
 	def mouseUp(self, point):
 		if not self.dragging: return
 		self.dragging = False
 		if self.cancel:
 			self.cancel = False
+			self.editedCommand = None
 			return
 		self.addCommand()
 
@@ -155,7 +175,7 @@ class DeltaTool(TTHCommandTool):
 		else:
 			coord = 1
 			unit,perp = perp,unit
-		startPt = geom.makePoint(self.startPoint.pos)
+		startPt = self.startPoint.pos
 		value  = 8.0/self.pitch * (self.mouseDraggedPos[coord] - startPt[coord])
 		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
 		if abs(pvalue) > abs(value):
