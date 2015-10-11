@@ -18,9 +18,9 @@ def makeRPoint(pos, name):
 	return RPoint(pos.x, pos.y, None, name)
 
 class PointLocation(object):
-	def __init__(self, rfPoint, cont, seg, idx, component):
+	def __init__(self, g, rfPoint, cont, seg, idx, component):
 		p = geom.makePoint(rfPoint)
-		if component: p = p + geom.makePointForPair(component.offset)
+		if component: p = p + geom.makePointForPair(g.components[component].offset)
 		self.pos = p
 		self.rfPoint = rfPoint
 		self.cont = cont
@@ -125,13 +125,7 @@ class TTHGlyph(object):
 	def pointOfCSI(self, csi):
 		return self._g[csi[0]][csi[1]].points[csi[2]]
 
-	def getComponent(self, baseGlyph):
-		components = [c for c in self._g.components if c.baseGlyph == baseGlyph]
-		if len(components) > 0:
-			return components[0]
-		return None
-
-	def positionForPointName(self, name, fm=None, baseGlyph=None):
+	def positionForPointName(self, name, fm=None, comp=None):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
 		if name == 'lsb':
@@ -140,13 +134,11 @@ class TTHGlyph(object):
 			return geom.Point(self.RFGlyph.width, 0)
 		else:
 			offset = geom.Point(0,0)
-			if baseGlyph != None:
-				comp = self.getComponent(baseGlyph)
-				if comp:
-					offset = geom.makePointForPair(comp.offset)
-					gm = fm.glyphModelForGlyph(fm.f[baseGlyph])
-					return gm.positionForPointName(name) + offset
-				return offset
+			if comp:
+				compo = self._g.components[int(comp)]
+				offset = geom.makePointForPair(compo.offset)
+				gm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+				return gm.positionForPointName(name) + offset
 			else:
 				csi = self.csiOfPointName(name)
 				return geom.makePoint(self.pointOfCSI(csi))
@@ -164,16 +156,14 @@ class TTHGlyph(object):
 		command-popovers for example.'''
 		self._sortedHintingCommands = None
 
-	def csiOfPointName(self, name, fm=None, baseGlyph=None):
+	def csiOfPointName(self, name, fm=None, comp=None):
 		if None == self._nameToCSI:
 			self.buildNameToCSIDict()
 		try:
-			if baseGlyph != None:
-				comp = self.getComponent(baseGlyph)
-				if comp:
-					gm = fm.glyphModelForGlyph(fm.f[baseGlyph])
-					return gm.csiOfPointName(name)
-				return None
+			if comp:
+				compo = self._g.components[int(comp)]
+				gm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+				return gm.csiOfPointName(name)
 			return self._nameToCSI[name]
 		except:
 			return None
@@ -261,7 +251,7 @@ class TTHGlyph(object):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = PointLocation(p, cont, seg, idx, component)
+				best[0] = PointLocation(glyph, p, cont, seg, idx, component)
 				on[0] = isOn
 		for cont, contour in enumerate(glyph):
 			for seg, segment in enumerate(contour):
@@ -282,13 +272,13 @@ class TTHGlyph(object):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = PointLocation(p, cont, seg, idx, None)
+				best[0] = PointLocation(self._g, p, cont, seg, idx, None)
 				on[0] = isOn
 		self.pointClickedOnGlyph(clickPos, self._g, best, dist, None, on, alsoOff)
 
-		for comp in self._g.components:
-			offset = geom.makePointForPair(comp.offset)
-			self.pointClickedOnGlyph(clickPos-offset, fontModel.f[comp.baseGlyph], best, dist, comp, on, alsoOff) 
+		for i,compo in enumerate(self._g.components):
+			offset = geom.makePointForPair(compo.offset)
+			self.pointClickedOnGlyph(clickPos-offset, fontModel.f[compo.baseGlyph], best, dist, i, on, alsoOff) 
 
 		fakeLSB = makeRPoint(self.positionForPointName('lsb'), 'lsb')
 		fakeRSB = makeRPoint(self.positionForPointName('rsb'), 'rsb')
@@ -346,7 +336,8 @@ class TTHGlyph(object):
 			if ptName in ['lsb', 'rsb']: continue
 			baseGm = self
 			if base in cmd.attrib:
-				baseGm = fm.glyphModelForGlyph(fm.f[cmd.get(base)])
+				compo = self._g.components[int(cmd.get(base))]
+				baseGm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
 			csi = baseGm.csiOfPointName(ptName)
 			if csi is None:
 				if verbose: absent.append((cmd.get('code'), key, ptName))

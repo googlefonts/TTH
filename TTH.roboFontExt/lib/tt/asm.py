@@ -85,6 +85,11 @@ def getAlign(command, pointIndex, regs):
 				'RTG[ ]' ]
 	return []
 
+def baseName(cmd, base):
+	name = cmd.get(base)
+	if name is None: return ''
+	return 'compo'+name
+
 def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs, g):
 	Header = [tables.autoPush(0),
 			'RCVT[ ]' ]
@@ -96,7 +101,7 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs, g):
 		if command.get('active') == 'false':
 			continue
 
-		name = command.get('base', '') + command.get('point')
+		name = baseName(command,'base') + command.get('point')
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
 		else:
@@ -130,7 +135,7 @@ def processAlign(commandsList, pointNameToIndex, regs):
 		if command.get('active') == 'false':
 			continue
 
-		name = command.get('base', '') + command.get('point')
+		name = baseName(command,'base') + command.get('point')
 
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
@@ -160,7 +165,7 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			continue
 
 		try:
-			name = command.get('base1', '') + command.get('point1') 
+			name = baseName(command,'base1') + command.get('point1') 
 			point1Index = pointNameToIndex[name]
 		except:
 			print "[TTH ERROR] command's point1 has no index in the glyph"
@@ -168,7 +173,7 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			continue
 
 		try:
-			name = command.get('base2', '') + command.get('point2') 
+			name = baseName(command,'base2') + command.get('point2') 
 			point2Index = pointNameToIndex[name]
 		except:
 			print "[TTH ERROR] command's point2 has no index in the glyph"
@@ -216,9 +221,9 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			pointIndex  = pointNameToIndex[command.get('base','')+command.get('point')]
-			point1Index = pointNameToIndex[command.get('base1','')+command.get('point1')]
-			point2Index = pointNameToIndex[command.get('base2','')+command.get('point2')]
+			pointIndex  = pointNameToIndex[baseName(command,'base')+command.get('point')]
+			point1Index = pointNameToIndex[baseName(command,'base1')+command.get('point1')]
+			point2Index = pointNameToIndex[baseName(command,'base2')+command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point(s) has no index in the glyph"
 			print command.attrib
@@ -247,8 +252,8 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			continue
 
 		try:
-			point1Index = pointNameToIndex[command.get('base1','')+command.get('point1')]
-			point2Index = pointNameToIndex[command.get('base2','')+command.get('point2')]
+			point1Index = pointNameToIndex[baseName(command,'base1')+command.get('point1')]
+			point2Index = pointNameToIndex[baseName(command,'base2')+command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
 			print command.attrib
@@ -397,11 +402,12 @@ def processDeltaCommand(command, pointNameToIndex):
 
 	deltaInstructions = []
 
+	name = baseName(command,'base')+command.get('point')
 	try:
-		pointIndex = pointNameToIndex[command.get('base','')+command.get('point')]
+		pointIndex = pointNameToIndex[name]
 	except:
-		print "[TTH ERROR] command's point has no index in the glyph"
-		print command
+		print "[TTH ERROR] command's point has no index in the glyph", name
+		print command.attrib
 		return []
 
 	ppm1 = int(command.get('ppm1'))
@@ -456,10 +462,10 @@ def makePointRFNameToIndexDict(fm, gm):
 		for point in contour.points:
 			result[gm.hintingNameForPoint(point)] = index
 			index += 1
-	for compo in gm.RFGlyph.components:
+	for i,compo in enumerate(gm.RFGlyph.components):
 		for contour in fm.f[compo.baseGlyph]:
 			for point in contour.points:
-				result[compo.baseGlyph + gm.hintingNameForPoint(point)] = index
+				result['compo'+str(i) + gm.hintingNameForPoint(point)] = index
 				index += 1
 
 	return result

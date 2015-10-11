@@ -34,8 +34,8 @@ class TTHCommandTool(object):
 		base = 'base'
 		if c in '12': base = base + c
 		cmd.set(which, loc.rfPoint.name)
-		if loc.component:
-			cmd.set(base, loc.component.baseGlyph)
+		if loc.component != None:
+			cmd.set(base, str(loc.component))
 
 	def switchRounding(self):
 		self.roundDistance = not self.roundDistance
