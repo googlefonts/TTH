@@ -117,7 +117,7 @@ class PreviewPanel(TTHWindow):
 			if y < 0:
 				width, height = tr.pen
 				x = width+40
-				y = ps[3] - 310
+				y = ps[3] - 280
 
 		# render current glyph at various sizes
 		advance = 10
