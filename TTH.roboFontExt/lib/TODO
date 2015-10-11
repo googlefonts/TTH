@@ -6,11 +6,6 @@ In Refactor
 For v0.8 :
 ==============================
 
-Possibilité de hinter les composites
-------------------------------
-Editer les Deltas en glissant les antennes 
-------------------------------
-Améliorer le Compare Fonts
 ------------------------------
 Supprimer une commande dans la program window
 ------------------------------
@@ -19,6 +14,13 @@ Positionement intelligent des labels pour eviter les chevauchements
 Probleme d'affichage des commandes transferée par automatch quand TTH est activé
 ------------------------------
 Plantage de Auto-Match quand Transfer Font (El Capitan)
+------------------------------
+Possibilité de hinter les composites		DONE
+------------------------------
+Editer les Deltas en glissant les antennes	DONE
+------------------------------
+Améliorer le Compare Fonts				DONE
+------------------------------
 
 BUGS
 ------------------------------
