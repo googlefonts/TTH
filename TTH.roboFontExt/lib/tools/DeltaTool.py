@@ -82,9 +82,12 @@ class DeltaTool(TTHCommandTool):
 		w.DeltaRange2ComboBox.set(str(self.range2))
 
 	def addCommand(self):
-		if self.offset == 0:
-			return
 		gm, fm = tthTool.getGlyphAndFontModel()
+		if self.offset == 0:
+			if self.editedCommand != None:
+				gm.removeHintingCommand(self.editedCommand)
+				self.editedCommand = None
+			return
 		if self.final:
 			code = 'fdelta'
 		else:
