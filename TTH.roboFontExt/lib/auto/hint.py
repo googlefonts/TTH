@@ -465,6 +465,7 @@ class AutoHinting():
 		for item in self.fm.zones.iteritems():
 			zd = zoneData(item)
 			zoneName, isTop, yStart, yEnd = zd
+			# print "Zone {} has width {}".format(zoneName, abs(yStart-yEnd))
 			if helperFunctions.inInterval(y, (yStart, yEnd)):
 				return zd
 
