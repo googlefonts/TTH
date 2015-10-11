@@ -34,9 +34,9 @@ class InterpolationTool(TTHCommandTool):
 			code = 'interpolatev'
 		cmd = self.genNewCommand()
 		cmd.set('code',   code)
-		cmd.set('point1', self.interpolatedPoint1[0].name)
-		cmd.set('point',  self.interpolatedPoint[0].name)
-		cmd.set('point2', self.startPoint[0].name)
+		self.setupCommandPointFromLoc('point1', cmd, self.interpolatedPoint1)
+		self.setupCommandPointFromLoc('point',  cmd, self.interpolatedPoint)
+		self.setupCommandPointFromLoc('point2', cmd, self.startPoint)
 		align = self.getAlignment()
 		if align != 'None':
 			cmd.set('align', align)
@@ -47,9 +47,10 @@ class InterpolationTool(TTHCommandTool):
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm, fm = tthTool.getGlyphAndFontModel()
 		src = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
-		if src[0]:
+		src = src[0]
+		if src:
 			self.dragging = True
-			self.startPoint = src[0] # a quadruple (onCurve, cont, seg, idx)
+			self.startPoint = src # a quadruple (onCurve, cont, seg, idx)
 		elif self.lookingForPoint2:
 			self.startPoint = None
 			return
@@ -62,11 +63,12 @@ class InterpolationTool(TTHCommandTool):
 		if not self.lookingForPoint2:
 			gm, fm = tthTool.getGlyphAndFontModel()
 			mid = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
-			s = self.startPoint[0]
-			if mid[0]: m = mid[0][0]
-			if mid[0] and (s.x != m.x or s.y != m.y):
+			mid = mid[0]
+			s = self.startPoint.pos
+			if mid: m = mid.pos
+			if mid and (s.x != m.x or s.y != m.y):
 				self.interpolatedPoint1 = self.startPoint
-				self.interpolatedPoint = mid[0] # a quadruple (onCurve, cont, seg, idx)
+				self.interpolatedPoint = mid # a quadruple (onCurve, cont, seg, idx)
 				self.lookingForPoint2 = True
 			else:
 				self.dragging = False
@@ -76,9 +78,9 @@ class InterpolationTool(TTHCommandTool):
 			if not self.realClick(point): return
 			gm = tthTool.getGlyphModel()
 			if self.startPoint:
-				e = self.startPoint[0]
-				s = self.interpolatedPoint1[0]
-				m = self.interpolatedPoint[0]
+				e = self.startPoint.pos
+				s = self.interpolatedPoint1.pos
+				m = self.interpolatedPoint.pos
 				if (s.x != e.x or s.y != e.y) and (m.x != e.x or m.y != e.y):
 					self.addCommand()
 			self.lookingForPoint2 = False
@@ -91,23 +93,12 @@ class InterpolationTool(TTHCommandTool):
 		if not self.dragging: return
 		locked, p = self.magnet()
 		if self.lookingForPoint2:
-			startPos = geom.makePoint(self.interpolatedPoint1[0])
-			compo1 = self.interpolatedPoint1[4]
-			if compo1:
-				startPos = startPos + geom.makePointForPair(compo1.offset)
-			
-			midPos = geom.makePoint(self.interpolatedPoint[0])
-			compo2 = self.interpolatedPoint[4]
-			if compo2:
-				midPos = midPos + geom.makePointForPair(compo2.offset)
-
+			startPos = self.interpolatedPoint1.pos
+			midPos = self.interpolatedPoint.pos
 			DR.drawDoubleArrow(scale, midPos, startPos, True, DR.kInterpolateColor, 20)
 			DR.drawDoubleArrow(scale, midPos, p, True, DR.kInterpolateColor, -20)
 		else:
-			startPos = geom.makePoint(self.startPoint[0])
-			compo = self.startPoint[4]
-			if compo:
-				startPos = startPos + geom.makePointForPair(compo.offset)
+			startPos = self.startPoint.pos
 			DR.drawDoubleArrow(scale, p, startPos, True, DR.kInterpolateColor, 20)
 		if locked:
 			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kInterpolateColor)

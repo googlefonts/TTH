@@ -96,12 +96,12 @@ def processAlignToZone(commandsList, pointNameToIndex, zone_to_cvt, regs, g):
 		if command.get('active') == 'false':
 			continue
 
-		name = command.get('point')
+		name = command.get('base', '') + command.get('point')
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
-			print command
+			print command.atrib
 			continue
 
 		zoneCV = zone_to_cvt.get(command.get('zone'))
@@ -136,7 +136,7 @@ def processAlign(commandsList, pointNameToIndex, regs):
 			pointIndex = pointNameToIndex[name]
 		else:
 			print "[TTH ERROR] point {} has no index in the glyph".format(name)
-			print command
+			print command.attrib
 			continue
 
 		align = getAlign(command, pointIndex, regs)
@@ -160,12 +160,21 @@ def processDouble(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			continue
 
 		try:
-			point1Index = pointNameToIndex[command.get('point1')]
-			point2Index = pointNameToIndex[command.get('point2')]
+			name = command.get('base1', '') + command.get('point1') 
+			point1Index = pointNameToIndex[name]
 		except:
-			print "[TTH ERROR] command's point has no index in the glyph"
-			print command
+			print "[TTH ERROR] command's point1 has no index in the glyph"
+			print command.attrib
 			continue
+
+		try:
+			name = command.get('base2', '') + command.get('point2') 
+			point2Index = pointNameToIndex[name]
+		except:
+			print "[TTH ERROR] command's point2 has no index in the glyph"
+			print command.attrib
+			continue
+
 
 		#if 'stem' in command:
 		if HF.commandHasAttrib(command, 'stem'):
@@ -207,12 +216,12 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			pointIndex  = pointNameToIndex[command.get('point')]
-			point1Index = pointNameToIndex[command.get('point1')]
-			point2Index = pointNameToIndex[command.get('point2')]
+			pointIndex  = pointNameToIndex[command.get('base','')+command.get('point')]
+			point1Index = pointNameToIndex[command.get('base1','')+command.get('point1')]
+			point2Index = pointNameToIndex[command.get('base2','')+command.get('point2')]
 		except:
-			print "[TTH ERROR] command's point has no index in the glyph"
-			print command
+			print "[TTH ERROR] command's point(s) has no index in the glyph"
+			print command.attrib
 			continue
 
 		interpolate = [	tables.autoPush(pointIndex, point1Index, point2Index),
@@ -238,11 +247,11 @@ def processSingle(commandsList, pointNameToIndex, stem_to_cvt, regs, g):
 			continue
 
 		try:
-			point1Index = pointNameToIndex[command.get('point1')]
-			point2Index = pointNameToIndex[command.get('point2')]
+			point1Index = pointNameToIndex[command.get('base1','')+command.get('point1')]
+			point2Index = pointNameToIndex[command.get('base2','')+command.get('point2')]
 		except:
 			print "[TTH ERROR] command's point has no index in the glyph"
-			print command
+			print command.attrib
 			continue
 
 		single_RP0 = []
@@ -389,7 +398,7 @@ def processDeltaCommand(command, pointNameToIndex):
 	deltaInstructions = []
 
 	try:
-		pointIndex = pointNameToIndex[command.get('point')]
+		pointIndex = pointNameToIndex[command.get('base','')+command.get('point')]
 	except:
 		print "[TTH ERROR] command's point has no index in the glyph"
 		print command

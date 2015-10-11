@@ -19,13 +19,10 @@ class AlignTool(TTHCommandTool):
 
 	def addCommand(self):
 		gm, fm = tthTool.getGlyphAndFontModel()
-		point = self.startPoint[0]
-		zoneName, zone = fm.zoneAtPoint(point)
+		zoneName, zone = fm.zoneAtPoint(self.startPoint.rfPoint)
 		align = self.getAlignment()
 		cmd = self.genNewCommand()
-		cmd.set('point', point.name)
-		if self.startPoint[4]:
-			cmd.set('base', self.startPoint[4].baseGlyph)
+		self.setupCommandPointFromLoc('point', cmd, self.startPoint)
 		if tthTool.selectedAxis == 'X':
 			cmd.set('code', 'alignh')
 			if align != 'None': cmd.set('align', align)
@@ -54,9 +51,6 @@ class AlignTool(TTHCommandTool):
 			direction = geom.Point(1, 0)
 		else:
 			direction = geom.Point(0, 1)
-		q = geom.makePoint(self.startPoint[0])
-		compo = self.startPoint[4]
-		if compo:
-			q = q + geom.makePointForPair(compo.offset)
-		DR.drawArrowAtPoint(scale, 20, direction, q, DR.kArrowColor)
-		DR.drawArrowAtPoint(scale, 20, direction.opposite(), q, DR.kArrowColor)
+		opposite = direction.opposite()
+		DR.drawArrowAtPoint(scale, 20, direction, self.startPoint.pos, DR.kArrowColor)
+		DR.drawArrowAtPoint(scale, 20, opposite,  self.startPoint.pos, DR.kArrowColor)

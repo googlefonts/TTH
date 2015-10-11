@@ -510,12 +510,12 @@ class TTH_RF_EventTool(BaseEventTool):
 	def setLabelPosSize(self, cmd, pos, size):
 		cmd.set('labelPosSize', '#'.join([str(pos), str(size)]))
 
-	def drawAlign(self, gm, cmd, scale, direction, simple):
+	def drawAlign(self, fm, gm, cmd, scale, direction, simple):
 		color = DR.kArrowColor
 		active = cmd.get('active', 'true') == 'true'
 		if not active:
 			color = DR.kInactiveColor
-		pos = gm.positionForPointName(cmd.get('point'))
+		pos = gm.positionForPointName(cmd.get('point'), fm, cmd.get('base'))
 		DR.drawArrowAtPoint(scale, 10, direction, pos, color)
 		DR.drawArrowAtPoint(scale, 10, direction.opposite(), pos, color)
 		if simple: return
@@ -532,10 +532,10 @@ class TTH_RF_EventTool(BaseEventTool):
 				whiteColor, DR.kArrowColor, self.getNSView(), active))
 		self.setLabelPosSize(cmd, labelPos, labelSize)
 
-	def drawDoubleLink(self, cmd, scale, gm, simple):
+	def drawDoubleLink(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
-		pos1 = gm.positionForPointName(cmd.get('point1'))
-		pos2 = gm.positionForPointName(cmd.get('point2'))
+		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'), fm, cmd.get('base2'))
 		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, DR.kDoublinkColor)
 		if simple: return
 		# Compute label text
@@ -552,14 +552,14 @@ class TTH_RF_EventTool(BaseEventTool):
 				self.getNSView(), active)
 		self.setLabelPosSize(cmd, offCurve, labelSize)
 
-	def drawLink(self, cmd, scale, gm, simple):
+	def drawLink(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
 		if active:
 			color = DR.kLinkColor
 		else:
 			color = DR.kInactiveColor
-		pos1 = gm.positionForPointName(cmd.get('point1'))
-		pos2 = gm.positionForPointName(cmd.get('point2'))
+		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'), fm, cmd.get('base2'))
 		offCurve = DR.drawSingleArrow(scale, pos1, pos2, color, 10)
 		if simple: return
 
@@ -585,11 +585,11 @@ class TTH_RF_EventTool(BaseEventTool):
 		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
 		self.setLabelPosSize(cmd, offCurve, labelSize)
 
-	def drawInterpolate(self, cmd, scale, gm, simple):
+	def drawInterpolate(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
-		pos  = gm.positionForPointName(cmd.get('point'))
-		pos1 = gm.positionForPointName(cmd.get('point1'))
-		pos2 = gm.positionForPointName(cmd.get('point2'))
+		pos  = gm.positionForPointName(cmd.get('point'), fm, cmd.get('base'))
+		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'), fm, cmd.get('base2'))
 		offCurve = DR.drawDoubleArrow(scale, pos1, pos, active, DR.kInterpolateColor)
 		offCurve = DR.drawDoubleArrow(scale, pos, pos2, active, DR.kInterpolateColor)
 		if simple: return
@@ -603,8 +603,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
 		self.setLabelPosSize(cmd, pos, labelSize)
 
-	def drawDelta(self, cmd, scale, gm, pitch, simple):
-		pos  = gm.positionForPointName(cmd.get('point'))
+	def drawDelta(self, cmd, scale, fm, gm, pitch, simple):
+		pos  = gm.positionForPointName(cmd.get('point'), fm, cmd.get('base'))
 		active = cmd.get('active', 'true') == 'true'
 		cmd_code = cmd.get('code')
 		if active:
@@ -652,18 +652,18 @@ class TTH_RF_EventTool(BaseEventTool):
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
 			if Y and cmd_code in ['alignv', 'alignt', 'alignb']:
-				self.drawAlign(gm, c, scale, geom.Point(0,1), simple)
+				self.drawAlign(fm, gm, c, scale, geom.Point(0,1), simple)
 			elif X and cmd_code == 'alignh':
-				self.drawAlign(gm, c, scale, geom.Point(1,0), simple)
+				self.drawAlign(fm, gm, c, scale, geom.Point(1,0), simple)
 			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
-				self.drawDoubleLink(c, scale, gm, simple)
+				self.drawDoubleLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
-				self.drawLink(c, scale, gm, simple)
+				self.drawLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'interpolateh') or (Y and cmd_code == 'interpolatev'):
-				self.drawInterpolate(c, scale, gm, simple)
+				self.drawInterpolate(c, scale, fm, gm, simple)
 			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
 				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
-					self.drawDelta(c, scale, gm, fm.getPitch(), simple)
+					self.drawDelta(c, scale, fm, gm, fm.getPitch(), simple)
 				else:
 					drawn = False
 			else:

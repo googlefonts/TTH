@@ -24,6 +24,19 @@ class TTHCommandTool(object):
 		cmd.set('active', 'true')
 		return cmd
 
+	def setupCommandPointFromLoc(self, which, cmd, loc):
+		'''parameter which is either 'point', 'point1' or 'point2'.'''
+		if 'point' not in which:
+			print "[TTH ERROR] in setupCommandPointFromLoc"
+			raise Exception
+			return
+		c = which[-1]
+		base = 'base'
+		if c in '12': base = base + c
+		cmd.set(which, loc.rfPoint.name)
+		if loc.component:
+			cmd.set(base, loc.component.baseGlyph)
+
 	def switchRounding(self):
 		self.roundDistance = not self.roundDistance
 
@@ -133,12 +146,9 @@ class TTHCommandTool(object):
 	def magnet(self):
 		gm, fm = tthTool.getGlyphAndFontModel()
 		tgt = gm.pointClicked(self.mouseDraggedPos, fm, alsoOff=self.worksOnOFF)
-		if tgt[0]:
-			p = geom.makePoint(tgt[0][0])
-			compo = tgt[0][4]
-			if compo:
-				p = p + geom.makePointForPair(compo.offset)
-			return True, p
+		loc = tgt[0]
+		if loc:
+			return True, loc.pos
 		else:
 			return False, self.mouseDraggedPos
 
@@ -151,11 +161,12 @@ class TTHCommandTool(object):
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm, fm = tthTool.getGlyphAndFontModel()
 		src = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
-		if src[0]:
+		loc = src[0]
+		if loc:
 			self.dragging = True
-			self.startPoint = src[0]
-			# src[0] is a quintuple (point, cont, seg, idx, component) with
-			# glyph[cont][seg].points[idx] == point
+			self.startPoint = loc
+			# loc is an object of type TTHGlyph::PointLocation(rfPoint, cont, seg, idx, component) with
+			# glyph[cont][seg].points[idx] == rfPoint
 		else:
 			self.dragging = False
 			self.startPoint = None

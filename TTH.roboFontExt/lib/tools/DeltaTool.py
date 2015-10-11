@@ -93,7 +93,7 @@ class DeltaTool(TTHCommandTool):
 			code += 'v'
 		cmd = self.genNewCommand()
 		cmd.set('code',  code)
-		cmd.set('point', self.startPoint[0].name)
+		self.setupCommandPointFromLoc('point', cmd, self.startPoint)
 		cmd.set('ppm1',  str(self.range1))
 		cmd.set('ppm2',  str(self.range2))
 		cmd.set('delta', str(self.offset))
@@ -130,10 +130,7 @@ class DeltaTool(TTHCommandTool):
 		else:
 			coord = 1
 			unit,perp = perp,unit
-		startPt = geom.makePoint(self.startPoint[0])
-		compo = self.startPoint[4]
-		if compo:
-			startPt = startPt + geom.makePointForPair(compo.offset)
+		startPt = geom.makePoint(self.startPoint.pos)
 		value  = 8.0/self.pitch * (self.mouseDraggedPos[coord] - startPt[coord])
 		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
 		if abs(pvalue) > abs(value):

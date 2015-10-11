@@ -17,6 +17,17 @@ silent = False
 def makeRPoint(pos, name):
 	return RPoint(pos.x, pos.y, None, name)
 
+class PointLocation(object):
+	def __init__(self, rfPoint, cont, seg, idx, component):
+		p = geom.makePoint(rfPoint)
+		if component: p = p + geom.makePointForPair(component.offset)
+		self.pos = p
+		self.rfPoint = rfPoint
+		self.cont = cont
+		self.seg = seg
+		self.idx = idx
+		self.component = component
+
 class CommandRemover(object):
 	def __init__(self, gm, cmd):
 		self.gm = gm
@@ -114,7 +125,7 @@ class TTHGlyph(object):
 	def pointOfCSI(self, csi):
 		return self._g[csi[0]][csi[1]].points[csi[2]]
 
-	def positionForPointName(self, name):
+	def positionForPointName(self, name, fm=None, baseGlyph=None):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
 		if name == 'lsb':
@@ -122,8 +133,18 @@ class TTHGlyph(object):
 		elif name == 'rsb':
 			return geom.Point(self.RFGlyph.width, 0)
 		else:
-			csi = self.csiOfPointName(name)
-			return geom.makePoint(self.pointOfCSI(csi))
+			offset = geom.Point(0,0)
+			if baseGlyph != None:
+				components = [c for c in self._g.components if c.baseGlyph == baseGlyph]
+				if len(components) > 0:
+					comp = components[0]
+					offset = geom.makePointForPair(comp.offset)
+					gm = fm.glyphModelForGlyph(fm.f[baseGlyph])
+					return gm.positionForPointName(name) + offset
+				return offset
+			else:
+				csi = self.csiOfPointName(name)
+				return geom.makePoint(self.pointOfCSI(csi))
 
 	def dirtyGeometry(self):
 		'''This should be called whenever the geometry of the associated
@@ -229,7 +250,7 @@ class TTHGlyph(object):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = (p, cont, seg, idx, component)
+				best[0] = PointLocation(p, cont, seg, idx, component)
 				on[0] = isOn
 		for cont, contour in enumerate(glyph):
 			for seg, segment in enumerate(contour):
@@ -250,7 +271,7 @@ class TTHGlyph(object):
 			d = (clickPos - geom.makePoint(p)).squaredLength()
 			if d < dist[0]:
 				dist[0] = d
-				best[0] = (p, cont, seg, idx, None)
+				best[0] = PointLocation(p, cont, seg, idx, None)
 				on[0] = isOn
 		self.pointClickedOnGlyph(clickPos, self._g, best, dist, None, on, alsoOff)
 
