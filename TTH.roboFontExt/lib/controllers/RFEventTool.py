@@ -528,9 +528,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			labelPos = pos + scale * geom.Point(10,+20)
 		else:
 			labelPos = pos + scale * geom.Point(10,-20)
-		labelSize = geom.makePointForPair(DR.drawTextAtPoint(scale, text, labelPos,\
-				whiteColor, DR.kArrowColor, self.getNSView(), active))
-		self.setLabelPosSize(cmd, labelPos, labelSize)
+		return DR.CommandLabel(cmd, scale, text, labelPos, whiteColor, DR.kArrowColor, active)
 
 	def drawDoubleLink(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
@@ -548,9 +546,9 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'D_' + stemName
 		else:
 			text = 'D'
-		labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
-				self.getNSView(), active)
-		self.setLabelPosSize(cmd, offCurve, labelSize)
+		#labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
+		#		self.getNSView(), active)
+		return DR.CommandLabel(cmd, scale, text, offCurve, whiteColor, DR.kDoublinkColor, active)
 
 	def drawLink(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
@@ -582,8 +580,8 @@ class TTH_RF_EventTool(BaseEventTool):
 					color = stemColor
 				else:
 					color = DR.kInactiveColor
-		labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
-		self.setLabelPosSize(cmd, offCurve, labelSize)
+		#labelSize = DR.drawTextAtPoint(scale, text, offCurve, textColor, color, self.getNSView(), active)
+		return DR.CommandLabel(cmd, scale, text, offCurve, textColor, color, active)
 
 	def drawInterpolate(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
@@ -600,8 +598,8 @@ class TTH_RF_EventTool(BaseEventTool):
 			text = 'I_' + extension
 		# square root takes the label a bit further when we zoom in
 		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
-		labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
-		self.setLabelPosSize(cmd, pos, labelSize)
+		#labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
+		return DR.CommandLabel(cmd, scale, text, pos, whiteColor, DR.kInterpolateColor, active)
 
 	def drawDelta(self, cmd, scale, fm, gm, pitch, simple):
 		pos  = gm.positionForPointName(cmd.get('point'), fm, cmd.get('base'))
@@ -641,35 +639,47 @@ class TTH_RF_EventTool(BaseEventTool):
 			labelPos = pos + 10*scale*geom.Point(-1,+1)
 		else:
 			labelPos = pos + 10*scale*geom.Point(-1,-1)
-		labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
-		self.setLabelPosSize(cmd, labelPos, labelSize)
+		#labelSize = DR.drawTextAtPoint(scale, text, labelPos, whiteColor, color, self.getNSView(), active)
+		#self.setLabelPosSize(cmd, labelPos, labelSize)
+		return DR.CommandLabel(cmd, scale, text, labelPos, whiteColor, color, active)
 
 	def drawCommands(self, scale, simple):
 		gm, fm = tthTool.getGlyphAndFontModel()
+		commandLabels = []
 		for c in gm.hintingCommands:
 			drawn = True
 			cmd_code = c.get('code')
 			X = (tthTool.selectedAxis == 'X')
 			Y = not X
+			label = None
 			if Y and cmd_code in ['alignv', 'alignt', 'alignb']:
-				self.drawAlign(fm, gm, c, scale, geom.Point(0,1), simple)
+				label = self.drawAlign(fm, gm, c, scale, geom.Point(0,1), simple)
 			elif X and cmd_code == 'alignh':
-				self.drawAlign(fm, gm, c, scale, geom.Point(1,0), simple)
+				label = self.drawAlign(fm, gm, c, scale, geom.Point(1,0), simple)
 			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
-				self.drawDoubleLink(c, scale, fm, gm, simple)
+				label = self.drawDoubleLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
-				self.drawLink(c, scale, fm, gm, simple)
+				label = self.drawLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'interpolateh') or (Y and cmd_code == 'interpolatev'):
-				self.drawInterpolate(c, scale, fm, gm, simple)
+				label = self.drawInterpolate(c, scale, fm, gm, simple)
 			elif (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
 				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
-					self.drawDelta(c, scale, fm, gm, fm.getPitch(), simple)
+					label = self.drawDelta(c, scale, fm, gm, fm.getPitch(), simple)
 				else:
 					drawn = False
 			else:
 				drawn = False
-			if not drawn: # make sure we can't click on the command's label
+			if drawn and (not simple):
+				commandLabels.append(label)
+			else: # make sure we can't click on the command's label
 				self.setLabelPosSize(c, geom.Point(0.0, 0.0), geom.Point(-1.0, -1.0))
+		if simple: return
+		i = 0
+		while i < 10 and DR.untangleLabels(commandLabels):
+			i += 1
+		for c in commandLabels:
+			self.setLabelPosSize(c.cmd, c.center, c.size)
+			c.draw(scale, self.getNSView())
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

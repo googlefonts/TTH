@@ -212,5 +212,123 @@ def drawDoubleArrow(scale, pos1, pos2, active, iColor, size=10):
 	path.stroke()
 	return offCurve
 
-#class CommandLabel(object):
-	#def __init__(self, center, size, text, )
+from commons import helperFunctions as HF
+
+class CommandLabel(object):
+	def __init__(self, cmd, scale, title, pos, textColor, backgroundColor, active):
+		self.cmd = cmd
+		self.center = pos
+		if not active:
+			self.bkgndColor = kInactiveColor
+			self.textColor = NSColor.whiteColor()
+		else:
+			self.bkgndColor = backgroundColor
+			self.textColor = textColor
+
+		kLabelTextAttributes[NSForegroundColorAttributeName] = self.textColor
+		text = NSAttributedString.alloc().initWithString_attributes_(title, kLabelTextAttributes)
+		width, height = text.size()
+		self.text = title
+		self.fontSize = kLabelTextAttributes[NSFontAttributeName].pointSize()
+		width = width*scale
+		width += 8.0*scale
+		height = 13*scale
+		self.size = geom.Point(width, height)
+		self.speed = geom.Point(0,0)
+		self.count = 0
+	
+	def reset(self):
+		self.speed = geom.Point(0,0);
+		self.count = 0
+	
+	def __lt__(self, other):
+		return self.center.y-0.5*self.size.y > other.center.y-0.5*other.size.y
+
+	def lo(self):
+		return self.center - 0.5 * self.size
+
+	def hi(self):
+		return self.center + 0.5 * self.size
+	
+	def touch(self, other):
+		lo  = self.lo()
+		hi  = self.hi()
+		olo = other.lo()
+		ohi = other.hi()
+		xtouch = HF.intervalsIntersect((lo.x, hi.x), (olo.x, ohi.x))
+		ytouch = HF.intervalsIntersect((lo.y, hi.y), (olo.y, ohi.y))
+		return xtouch and ytouch
+
+	def updateSpeed(self, other):
+		diff = self.center - other.center
+		if diff.length() < 0.1:
+			weird = True
+			diff = geom.Point(0,1)
+		minDiffX = 1.0*(0.51 * (self.size.x + other.size.x) - abs(diff.x))
+		minDiffY = 1.0*(0.51 * (self.size.y + other.size.y) - abs(diff.y))
+		workInX = 0
+		#diff = diff.normalized()
+		if minDiffX > 0.0 and abs(diff.x) > 0.000001:
+			workInX = minDiffX/abs(diff.x)
+		workInY = 0
+		if minDiffY > 0.0 and abs(diff.y) > 0.000001:
+			workInY = minDiffY/abs(diff.y)
+		if workInX == 0 and workInY == 0: return
+		if workInX == 0:
+			work = 0.5 * workInY
+		elif workInY == 0:
+			work = 0.5 * workInX
+		else:
+			work = 0.5 * min(workInX, workInY)
+		self.speed = self.speed + work * diff
+		other.speed = other.speed - work * diff
+		self.count += 1
+		other.count += 1
+
+	def draw(self, scale, nsView):
+		shadow = NSShadow.alloc().init()
+		shadow.setShadowColor_(kShadowColor)
+		shadow.setShadowOffset_((0, -1))
+		shadow.setShadowBlurRadius_(2)
+
+		corner = self.center - 0.5*geom.Point(self.size.x, self.fontSize*scale)
+
+		context = NSGraphicsContext.currentContext()
+
+		thePath = NSBezierPath.bezierPath()
+		thePath.appendBezierPathWithRoundedRect_xRadius_yRadius_((corner, self.size), 3*scale, 3*scale)
+
+		context.saveGraphicsState()
+		shadow.set()
+		thePath.setLineWidth_(scale)
+		self.bkgndColor.set()
+		thePath.fill()
+		kBorderColor.set()
+		thePath.stroke()
+		context.restoreGraphicsState()
+		kLabelTextAttributes[NSForegroundColorAttributeName] = self.textColor
+		nsView._drawTextAtPoint(self.text, kLabelTextAttributes, corner+0.5*self.size+geom.Point(0,scale), drawBackground=False)
+
+from bisect import insort
+
+def untangleLabels(labels):
+	labels.sort(key=lambda l:l.center.y+0.5*l.size.y)
+	up = []
+	someContact = False
+	for cl in labels:
+		cl.reset()
+	for cl in labels:
+		down_top = cl.hi()
+		while up and up[0].lo().y > down_top.y:
+			up.pop()
+		for candidate in up:
+			if cl.touch(candidate):
+				someContact = True
+				cl.updateSpeed(candidate)
+		insort(up, cl)
+	if not someContact:
+		return False
+	for cl in labels:
+		if cl.count == 0: continue
+		cl.center = cl.center + (1.0 / cl.count) * cl.speed
+	return True
