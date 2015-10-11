@@ -337,8 +337,11 @@ class TTHGlyph(object):
 			if ptName in ['lsb', 'rsb']: continue
 			baseGm = self
 			if base in cmd.attrib:
-				compo = self._g.components[int(cmd.get(base))]
-				baseGm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+				try:
+					compo = self._g.components[int(cmd.get(base))]
+					baseGm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+				except:
+					return False
 			csi = baseGm.csiOfPointName(ptName)
 			if csi is None:
 				if verbose: absent.append((cmd.get('code'), key, ptName))
