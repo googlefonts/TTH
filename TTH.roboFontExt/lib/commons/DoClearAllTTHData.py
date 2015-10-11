@@ -1,7 +1,7 @@
 
 from robofab.interface.all.dialogs import Message as FabMessage
 from robofab.interface.all.dialogs import AskYesNoCancel as AskYesNoCancel
-
+from mojo.roboFont import CurrentFont
 from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 from views import TTHProgressWindow
