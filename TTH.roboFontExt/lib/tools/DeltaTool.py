@@ -111,6 +111,31 @@ class DeltaTool(TTHCommandTool):
 		super(DeltaTool, self).mouseDown(point, clickCount)
 		self.pitch = tthTool.getFontModel().getPitch()
 		self.originalOffset = self.offset
+		gm, fm = tthTool.getGlyphAndFontModel()
+		listDistCmd = []
+		for c in gm.hintingCommands:
+			cmd_code = c.get('code')
+			X = (tthTool.selectedAxis == 'X')
+			Y = not X
+			if (X and cmd_code in ['mdeltah', 'fdeltah']) or (Y and cmd_code in ['mdeltav', 'fdeltav']):
+				if int(c.get('ppm1')) <= tthTool.PPM_Size <= int(c.get('ppm2')):
+					offset = int(c.get('delta'))
+					deltaPoint = gm.positionForPointName(c.get('point'))
+					clickedPoint = geom.makePoint(point)
+					if X and cmd_code[-1] == 'h':
+						deltaPoint += geom.Point((offset/8.0)*self.pitch, 0)
+					elif Y and cmd_code[-1] == 'v':
+						deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
+						
+					d = (clickedPoint - deltaPoint).squaredLength()
+					listDistCmd.append((d, c))
+		if listDistCmd != []:
+			d, c = min(listDistCmd)
+			if d < 10.0*10.0:
+				print c.attrib
+				cont, seg, idx = gm.csiOfPointName(c.get('point'))
+				self.startPoint = gm.RFGlyph[cont][seg][idx], cont, seg, idx, None
+				self.dragging = True
 		self.cancel = False
 
 	def mouseUp(self, point):
