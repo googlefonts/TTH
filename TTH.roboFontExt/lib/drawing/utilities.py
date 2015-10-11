@@ -242,7 +242,7 @@ class CommandLabel(object):
 		self.count = 0
 	
 	def __lt__(self, other):
-		return self.center.y-0.5*self.size.y > other.center.y-0.5*other.size.y
+		return self.center.y+0.5*self.size.y < other.center.y+0.5*other.size.y
 
 	def lo(self):
 		return self.center - 0.5 * self.size
@@ -312,20 +312,20 @@ class CommandLabel(object):
 from bisect import insort
 
 def untangleLabels(labels):
-	labels.sort(key=lambda l:l.center.y+0.5*l.size.y)
-	up = []
 	someContact = False
 	for cl in labels:
 		cl.reset()
+	below = []
+	labels.sort(key=lambda l:l.center.y-0.5*l.size.y)
 	for cl in labels:
-		down_top = cl.hi()
-		while up and up[0].lo().y > down_top.y:
-			up.pop()
-		for candidate in up:
+		below_bottom = cl.lo()
+		while below and below[0].hi().y < below_bottom.y:
+			below.pop()
+		for candidate in below:
 			if cl.touch(candidate):
 				someContact = True
 				cl.updateSpeed(candidate)
-		insort(up, cl)
+		insort(below, cl)
 	if not someContact:
 		return False
 	for cl in labels:
