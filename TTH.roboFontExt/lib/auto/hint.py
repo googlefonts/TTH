@@ -570,7 +570,7 @@ class AutoHinting():
 		# (If not, then the processGroup will take care of the single links
 		#  and interpolation will not be possible)
 		if leftGrpIdx != rightGrpIdx:
-			self.addSingleLink('rsb', rightmost.name, False, None).set('round', 'true')
+			self.addSingleLink('rsb', rightmost.name, False, None).set('align', 'round')
 			interpolateIsPossible = True
 			bounds = leftmost, rightmost
 			rightGroup.leaderPos = rmPos

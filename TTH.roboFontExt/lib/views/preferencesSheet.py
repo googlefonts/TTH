@@ -14,26 +14,22 @@ class PreferencesSheet(object):
 
 	def __init__(self, parentWindow):
 
-		self.w = Sheet((505, 520), parentWindow=parentWindow)
+		self.w = Sheet((505, 400), parentWindow=parentWindow)
 
 		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
-
-		self.w.autohintingBox = Box((10, 19, -10, -40))
 
 		self.w.hotKeysBox = Box((10, 19, -10, -40))
 		self.hotKeyChangers, lastTop = HotKeys.fillBox(self.w.hotKeysBox)
 
 		preferencesSegmentDescriptions = [
 			dict(width=67, title="View", toolTip="View"),
-			dict(width=67, title="Auto-hinting", toolTip="Auto-hinting"),
 			dict(width=67, title="Hot Keys", toolTip="Hot Keys")
 		]
 
-		self.w.controlsSegmentedButton = SegmentedButton((147, 10, 220, 18), preferencesSegmentDescriptions, callback=self.preferencesSegmentedButtonCallback, sizeStyle="mini")
+		self.w.controlsSegmentedButton = SegmentedButton((180, 10, 220, 18), preferencesSegmentDescriptions, callback=self.preferencesSegmentedButtonCallback, sizeStyle="mini")
 		self.w.controlsSegmentedButton.set(0)
 
 		self.w.viewAndSettingsBox.show(True)
-		self.w.autohintingBox.show(False)
 		self.w.hotKeysBox.show(False)
 
 		self.w.viewAndSettingsBox.displayBitmapCheckBox = CheckBox((10, 10, 18, 18), "", callback=self.displayBitmapCheckBoxCallback, value=tthTool.showBitmap, sizeStyle="small")
@@ -70,9 +66,9 @@ class PreferencesSheet(object):
 		self.w.viewAndSettingsBox.displayToEditText.set(tthTool.previewTo)
 
 		self.w.viewAndSettingsBox.previewSampleStringsTextBox = TextBox((10, 140, -10, 18), 'Preview Samples:', sizeStyle='small')
-		self.w.viewAndSettingsBox.previewSampleStringsList = List((10, 155, -10, 80), [{"PreviewString": v} for v in tthTool.previewSampleStringsList], columnDescriptions=[{"title": "PreviewString", "width": 465, "editable": True}], showColumnTitles=False, editCallback=self.previewSampleStringsListEditCallBack)
-		self.w.viewAndSettingsBox.addStringButton = SquareButton((10, 235, 22, 22), "+", sizeStyle = 'small', callback=self.addStringButtonCallback)
-		self.w.viewAndSettingsBox.removeStringButton = SquareButton((32, 235, 22, 22), "-", sizeStyle = 'small', callback=self.removeStringButtonCallback)
+		self.w.viewAndSettingsBox.previewSampleStringsList = List((10, 155, -10, 140), [{"PreviewString": v} for v in tthTool.previewSampleStringsList], columnDescriptions=[{"title": "PreviewString", "width": 465, "editable": True}], showColumnTitles=False, editCallback=self.previewSampleStringsListEditCallBack)
+		self.w.viewAndSettingsBox.addStringButton = SquareButton((10, 295, 22, 22), "+", sizeStyle = 'small', callback=self.addStringButtonCallback)
+		self.w.viewAndSettingsBox.removeStringButton = SquareButton((32, 295, 22, 22), "-", sizeStyle = 'small', callback=self.removeStringButtonCallback)
 
 		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		self.w.open()
@@ -105,16 +101,12 @@ class PreferencesSheet(object):
 	def preferencesSegmentedButtonCallback(self, sender):
 		if sender.get() == 0:
 			self.w.viewAndSettingsBox.show(True)
-			self.w.autohintingBox.show(False)
 			self.w.hotKeysBox.show(False)
+			self.w.resize(505, 400)
 		if sender.get() == 1:
 			self.w.viewAndSettingsBox.show(False)
-			self.w.autohintingBox.show(True)
-			self.w.hotKeysBox.show(False)
-		if sender.get() == 2:
-			self.w.viewAndSettingsBox.show(False)
-			self.w.autohintingBox.show(False)
 			self.w.hotKeysBox.show(True)
+			self.w.resize(505, 520)
 
 	def bitmapOpacitySliderCallBack(self, sender):
 		tthTool.setBitmapOpacity(sender.get())
