@@ -428,7 +428,7 @@ class AutoHinting():
 		cmd.set('point2', p2name)
 		if stemName != None:
 			cmd.set('stem', stemName)
-		self.gm.addCommand(cmd, update=False)
+		self.gm.addCommand(self.fm, cmd, update=False)
 		return cmd
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -444,7 +444,7 @@ class AutoHinting():
 		cmd.set('point2', p2.name)
 		cmd.set('point', p.name)
 		cmd.set('align', 'round')
-		self.gm.addCommand(cmd, update=False)
+		self.gm.addCommand(self.fm, cmd, update=False)
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
@@ -457,7 +457,7 @@ class AutoHinting():
 			cmd.set('code', 'alignb')
 		cmd.set('point', pointName)
 		cmd.set('zone', zoneName)
-		self.gm.addCommand(cmd, update=False)
+		self.gm.addCommand(self.fm, cmd, update=False)
 
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 

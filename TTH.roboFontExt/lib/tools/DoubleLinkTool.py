@@ -41,7 +41,7 @@ class DoubleLinkTool(TTHCommandTool):
 			cmd.set('stem', stem)
 		else:
 			cmd.set('round', 'true')
-		gm.addCommand(cmd)
+		gm.addCommand(fm, cmd)
 
 	def mouseUp(self, point):
 		if not self.dragging: return
@@ -59,6 +59,10 @@ class DoubleLinkTool(TTHCommandTool):
 	def draw(self, scale):
 		if not self.dragging: return
 		locked, p = self.magnet()
-		DR.drawDoubleArrow(scale, geom.makePoint(self.startPoint[0]), p, True, DR.kDoublinkColor, 20)
+		q = geom.makePoint(self.startPoint[0])
+		compo = self.startPoint[4]
+		if compo:
+			q = q + geom.makePointForPair(compo.offset)
+		DR.drawDoubleArrow(scale, q, p, True, DR.kDoublinkColor, 20)
 		if locked:
 			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kDoublinkColor)

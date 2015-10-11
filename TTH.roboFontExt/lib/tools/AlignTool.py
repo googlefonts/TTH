@@ -24,6 +24,8 @@ class AlignTool(TTHCommandTool):
 		align = self.getAlignment()
 		cmd = self.genNewCommand()
 		cmd.set('point', point.name)
+		if self.startPoint[4]:
+			cmd.set('base', self.startPoint[4].baseGlyph)
 		if tthTool.selectedAxis == 'X':
 			cmd.set('code', 'alignh')
 			if align != 'None': cmd.set('align', align)
@@ -36,7 +38,7 @@ class AlignTool(TTHCommandTool):
 		else:
 			cmd.set('code', 'alignv')
 			if align != 'None': cmd.set('align', align)
-		gm.addCommand(cmd)
+		gm.addCommand(fm, cmd)
 
 	def mouseUp(self, point):
 		if not self.dragging: return
@@ -52,6 +54,9 @@ class AlignTool(TTHCommandTool):
 			direction = geom.Point(1, 0)
 		else:
 			direction = geom.Point(0, 1)
-		pos = geom.makePoint(self.startPoint[0])
-		DR.drawArrowAtPoint(scale, 20, direction, pos, DR.kArrowColor)
-		DR.drawArrowAtPoint(scale, 20, direction.opposite(), pos, DR.kArrowColor)
+		q = geom.makePoint(self.startPoint[0])
+		compo = self.startPoint[4]
+		if compo:
+			q = q + geom.makePointForPair(compo.offset)
+		DR.drawArrowAtPoint(scale, 20, direction, q, DR.kArrowColor)
+		DR.drawArrowAtPoint(scale, 20, direction.opposite(), q, DR.kArrowColor)

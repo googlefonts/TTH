@@ -69,7 +69,7 @@ class TTHGlyph(object):
 		# public variables
 		self.hintingCommands = None
 		# load stuff from the UFO Lib
-		self.loadFromUFO()
+		self.loadFromUFO(fm)
 		if compile:
 			self.compile(fm)
 
@@ -305,23 +305,26 @@ class TTHGlyph(object):
 	def compileToUFO(self, fm):
 		# compile to TT assembly language and write it in UFO lib.
 		if fm.stem_to_cvt is None: fm.writeCVTandPREP()
-		tt.asm.writeAssembly(self, fm.stem_to_cvt, fm.zone_to_cvt)
+		tt.asm.writeAssembly(fm, self, fm.stem_to_cvt, fm.zone_to_cvt)
 
-	def commandIsOK(self, cmd, verbose = False, absent = []):
-		for key in ['point', 'point1', 'point2']:
+	def commandIsOK(self, cmd, fm, verbose = False, absent = []):
+		for base, key in [('base', 'point'), ('base1', 'point1'), ('base2', 'point2')]:
 			if not helperFunctions.commandHasAttrib(cmd, key): continue
 			ptName = cmd.get(key)
 			if ptName in ['lsb', 'rsb']: continue
-			csi = self.csiOfPointName(ptName)
+			baseGm = self
+			if base in cmd.attrib:
+				baseGm = fm.glyphModelForGlyph(fm.f[cmd.get(base)])
+			csi = baseGm.csiOfPointName(ptName)
 			if csi is None:
 				if verbose: absent.append((cmd.get('code'), key, ptName))
 				return False
 			# Rename the command's point using the RF name
-			cmd.set(key, self.pointOfCSI(csi).name)
+			cmd.set(key, baseGm.pointOfCSI(csi).name)
 		return True
 
-	def addCommand(self, cmd, update=True):
-		if not self.commandIsOK(cmd): return
+	def addCommand(self, fm, cmd, update=True):
+		if not self.commandIsOK(cmd, fm): return
 		self.prepareUndo("Add '{}' Command".format(cmd.get('code')))
 		self.hintingCommands.append(cmd)
 		self.dirtyHinting()
@@ -421,8 +424,8 @@ class TTHGlyph(object):
 		self.updateGlyphProgram(tthTool.getFontModel())
 		self.performUndo()
 
-	def cleanCommands(self):
-		cmds = [c for c in self.hintingCommands if self.commandIsOK(c)]
+	def cleanCommands(self, fm):
+		cmds = [c for c in self.hintingCommands if self.commandIsOK(c, fm)]
 		self.setCommands(cmds)
 
 	def glyphProgramDoesNotTouchLSBOrRSB(self):
@@ -436,7 +439,7 @@ class TTHGlyph(object):
 		return True
 
 	def compile(self, fm):
-		self.cleanCommands()
+		self.cleanCommands(fm)
 		self.saveCommandsToUFO()
 		self.compileToUFO(fm)
 
@@ -449,7 +452,7 @@ class TTHGlyph(object):
 		# write self.hintingCommands to UFO lib.
 		self._g.lib[kTTProgramKey] = Data(ET.tostring(self.hintingCommands))
 
-	def loadFromUFO(self):
+	def loadFromUFO(self, fm):
 		"""Load what can be loaded from the UFO Lib."""
 		self.dirtyHinting()
 		self.clearCommands(True, True)
@@ -468,7 +471,7 @@ class TTHGlyph(object):
 			if 'delta' in cmd.get('code'):
 				cmd.set('gray', cmd.get('gray', 'true'))
 				cmd.set('mono', cmd.get('mono', 'true'))
-			if self.commandIsOK(cmd, verbose = True, absent = absent):
+			if self.commandIsOK(cmd, fm, verbose = True, absent = absent):
 				self.hintingCommands.append(cmd)
 		if silent: return
 		message = "[TTH WARNING] In glyph "+self._g.name+":"

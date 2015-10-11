@@ -78,12 +78,8 @@ def drawComponentsPoints(scale, glyph, fontModel):
 		for c in fontModel.f[c.baseGlyph]:
 			for p in c.points:
 				pointType = p.type
-				if pointType == 'qcurve':
+				if pointType != 'offCurve':
 					drawSquareAtPoint(3*scale, p.x + offset_x, p.y + offset_y, kDiscColor)
-				elif pointType == 'line':
-					drawTriangleAtPoint(4*scale, p.x + offset_x, p.y + offset_y, kDiscColor)
-				elif pointType == 'offCurve':
-					pass
 
 def drawSideBearingsPointsOfGlyph(scale, size, glyph):
 	r = size*scale

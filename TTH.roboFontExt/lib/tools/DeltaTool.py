@@ -105,7 +105,7 @@ class DeltaTool(TTHCommandTool):
 			cmd.set('mono', 'true')
 		else:
 			cmd.set('mono', 'false')
-		gm.addCommand(cmd)
+		gm.addCommand(fm, cmd)
 
 	def mouseDown(self, point, clickCount):
 		super(DeltaTool, self).mouseDown(point, clickCount)
@@ -131,6 +131,9 @@ class DeltaTool(TTHCommandTool):
 			coord = 1
 			unit,perp = perp,unit
 		startPt = geom.makePoint(self.startPoint[0])
+		compo = self.startPoint[4]
+		if compo:
+			startPt = startPt + geom.makePointForPair(compo.offset)
 		value  = 8.0/self.pitch * (self.mouseDraggedPos[coord] - startPt[coord])
 		pvalue = 8.0/self.pitch * (self.mouseDraggedPos[1-coord] - startPt[1-coord])
 		if abs(pvalue) > abs(value):

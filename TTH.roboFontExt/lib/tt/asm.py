@@ -130,7 +130,8 @@ def processAlign(commandsList, pointNameToIndex, regs):
 		if command.get('active') == 'false':
 			continue
 
-		name = command.get('point')
+		name = command.get('base', '') + command.get('point')
+
 		if name in pointNameToIndex:
 			pointIndex = pointNameToIndex[name]
 		else:
@@ -439,16 +440,22 @@ def processDeltaCommand(command, pointNameToIndex):
 
 	return deltaInstructions
 
-def makePointRFNameToIndexDict(gm):
+def makePointRFNameToIndexDict(fm, gm):
 	result = {}
 	index = 0
 	for contour in gm.RFGlyph:
 		for point in contour.points:
 			result[gm.hintingNameForPoint(point)] = index
 			index += 1
+	for compo in gm.RFGlyph.components:
+		for contour in fm.f[compo.baseGlyph]:
+			for point in contour.points:
+				result[compo.baseGlyph + gm.hintingNameForPoint(point)] = index
+				index += 1
+
 	return result
 
-def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
+def writeAssembly(fm, gm, stem_to_cvt, zone_to_cvt):
 	g = gm.RFGlyph
 	if g == None:
 		return
@@ -465,7 +472,7 @@ def writeAssembly(gm, stem_to_cvt, zone_to_cvt):
 
 	regs = Registers()
 
-	pointNameToIndex = makePointRFNameToIndexDict(gm)
+	pointNameToIndex = makePointRFNameToIndexDict(fm, gm)
 	pointNameToIndex['lsb'] = nbPointsContour
 	pointNameToIndex['rsb'] = nbPointsContour+1
 	regs.x_instructions = ['SVTCA[1]']

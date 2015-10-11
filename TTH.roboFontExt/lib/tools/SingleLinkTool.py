@@ -56,7 +56,7 @@ class SingleLinkTool(TTHCommandTool):
 				align = self.getAlignment()
 				if align != 'None':
 					cmd.set('align', align)
-		gm.addCommand(cmd)
+		gm.addCommand(fm, cmd)
 
 	def mouseUp(self, point):
 		if not self.dragging: return

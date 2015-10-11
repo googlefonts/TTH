@@ -246,7 +246,7 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph,
 			else:
 				#print cmd.get('zone'), "--zone-->", zone[0]
 				cmd.set('zone', zone[0])
-		targetGM.addCommand(cmd, update=False)
+		targetGM.addCommand(targetFM, cmd, update=False)
 	targetGM.compile(targetFM)
 	if hasSGM: sourceFM.delGlyphModelForGlyph(sourceGlyph)
 	if hasTGM: targetFM.delGlyphModelForGlyph(targetGlyph)

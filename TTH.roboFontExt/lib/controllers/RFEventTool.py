@@ -68,7 +68,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def didUndo(self, font):
 		gm, fm = tthTool.getGlyphAndFontModel()
-		gm.loadFromUFO()
+		gm.loadFromUFO(fm)
 		gm.updateGlyphProgram(fm)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

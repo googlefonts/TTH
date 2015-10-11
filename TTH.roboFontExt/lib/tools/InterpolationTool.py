@@ -40,7 +40,7 @@ class InterpolationTool(TTHCommandTool):
 		align = self.getAlignment()
 		if align != 'None':
 			cmd.set('align', align)
-		gm.addCommand(cmd)
+		gm.addCommand(fm, cmd)
 
 	def mouseDown(self, point, clickCount):
 		self.mouseDownClickPos = geom.makePoint(point)
@@ -92,11 +92,22 @@ class InterpolationTool(TTHCommandTool):
 		locked, p = self.magnet()
 		if self.lookingForPoint2:
 			startPos = geom.makePoint(self.interpolatedPoint1[0])
+			compo1 = self.interpolatedPoint1[4]
+			if compo1:
+				startPos = startPos + geom.makePointForPair(compo1.offset)
+			
 			midPos = geom.makePoint(self.interpolatedPoint[0])
+			compo2 = self.interpolatedPoint[4]
+			if compo2:
+				midPos = midPos + geom.makePointForPair(compo2.offset)
+
 			DR.drawDoubleArrow(scale, midPos, startPos, True, DR.kInterpolateColor, 20)
 			DR.drawDoubleArrow(scale, midPos, p, True, DR.kInterpolateColor, -20)
 		else:
 			startPos = geom.makePoint(self.startPoint[0])
+			compo = self.startPoint[4]
+			if compo:
+				startPos = startPos + geom.makePointForPair(compo.offset)
 			DR.drawDoubleArrow(scale, p, startPos, True, DR.kInterpolateColor, 20)
 		if locked:
 			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kInterpolateColor)
