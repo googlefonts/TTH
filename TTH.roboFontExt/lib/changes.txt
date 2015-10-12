@@ -1,0 +1,21 @@
+
+Changes in version 0.7.8
+========================
+
+- Command labels in the glyph window are jiggled so that none hides another
+- Mouse clicks are scale-sensitive, so zooming in makes it easier to click on the desired feature
+- In Compare Font: refresh view when font order changes
+- Fixed raised exception when moving a delta antenna on LSB/RSB
+
+Changes in version 0.7.7
+========================
+
+- Auto-hinting
+- Auto-match (transfer commands between fonts)
+- A handy tool for comparing fonts
+- Composites hinting enabled
+- Celtas draggables
+- gasp table editable
+- Cew selection tool and popover for editing commands attributes
+- Interactive program panel
+- Lots of debug and improvements

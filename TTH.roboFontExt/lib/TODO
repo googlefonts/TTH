@@ -22,6 +22,38 @@ Editer les Deltas en glissant les antennes	DONE
 Améliorer le Compare Fonts				DONE
 ------------------------------
 
+========================================= Gia' bugs
+
+- (DONE with reload()?) auto-match : parfois en Y, l'ancre s'accroche pas sur la zone qui est pourtant dispo (ou alors pas d'ancre du tout).
+
+- au bout d'un moment, le bitmap de .notdef apparait au bout d'un moment.
+
+- DONE (BUG AVEC TRACKPAD) double-clic sur vignette, positionnement des labels.
+
+- CVT: stems: création d'une stem, apres clic : plantage.
+
+- "DONE" trop de deltas : difficile de choisir un delta pour le supprimer. (ds la fenetre Program)
+- DONE tirer les antennes des deltas.
+- delta : en X ET Y
+- delta : indicateur visuel de Mono/Gray
+- fusion des delta sur les ranges
+- delta : 5 sur 9-15:, pour 12, 5 est trop, diminuer a 4. comment faire facilement.
+- range 9-20 --> applied sur 9-15 only ??
+
+- DONE hinter les composites
+
+- DONE Compare Font : trier automatiquement par graisse
+- DONE Compare Font : supprimer UNE SEULE fonte
+- DONE Compare Font: affficher la taille du dessin
+- Compare Font : rafraichissement de la fonte TTF quand l'UFO change
+
+- PreviewWindow : zoom-out a fond : fenetre saccadé
+- PreviewWindow : ajouter bouton pour Mono/Gray/Sub
+
+- import/export des zones/stems d'un UFO à l'autre.
+
+========================================= End of Gia' bugs
+
 BUGS
 ------------------------------
 DONE Fix popover bug when multiple deltas are on the same point at various ppem sizes
