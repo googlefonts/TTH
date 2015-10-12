@@ -1,9 +1,13 @@
 
+from robofab.objects.objectsRF import RPoint
 from tools import TTHCommandTool
 from models.TTHTool import uniqueInstance as tthTool
 from models.TTHGlyph import PointLocation
 from drawing import geom, utilities as DR
 from AppKit import NSBezierPath
+
+def makeRPoint(pos, name):
+	return RPoint(pos.x, pos.y, None, name)
 
 class DeltaTool(TTHCommandTool):
 
@@ -153,17 +157,22 @@ class DeltaTool(TTHCommandTool):
 			d, c = min(listDistCmd)
 			if d <= 10.0*10.0:
 				c.set('active', 'false')
-				cont, seg, idx = gm.csiOfPointName(c.get('point'), fm, c.get('base'))
-				compIdx = c.get('base')
-				offset = None
-				if compIdx:
-					compIdx = int(compIdx)
-					compo = gm.RFGlyph.components[compIdx]
-					g = fm.f[compo.baseGlyph]
-					offset = geom.makePointForPair(compo.offset)
+				pointName = c.get('point')
+				if pointName in ['lsb','rsb']:
+					fakePos = makeRPoint(gm.positionForPointName(pointName), pointName)
+					self.startPoint = PointLocation(fakePos, 0, 0, 0, None, None)
 				else:
-					g = gm.RFGlyph
-				self.startPoint = PointLocation(g[cont][seg][idx], cont, seg, idx, compIdx, offset)
+					cont, seg, idx = gm.csiOfPointName(pointName, fm, c.get('base'))
+					compIdx = c.get('base')
+					offset = None
+					if compIdx:
+						compIdx = int(compIdx)
+						compo = gm.RFGlyph.components[compIdx]
+						g = fm.f[compo.baseGlyph]
+						offset = geom.makePointForPair(compo.offset)
+					else:
+						g = gm.RFGlyph
+					self.startPoint = PointLocation(g[cont][seg][idx], cont, seg, idx, compIdx, offset)
 				self.dragging = True
 				self.editedCommand = c
 

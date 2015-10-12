@@ -134,7 +134,6 @@ class TTHGlyph(object):
 		elif name == 'rsb':
 			return geom.Point(self.RFGlyph.width, 0)
 		else:
-			offset = geom.Point(0,0)
 			if comp:
 				compo = self._g.components[int(comp)]
 				offset = geom.makePointForPair(compo.offset)
