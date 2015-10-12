@@ -100,6 +100,7 @@ class CompareFontsWindow(BaseWindowController):
 		T = self.UFOList
 		T[sel], T[sel-1] = T[sel-1], T[sel]
 		self.w.UIList.set(UIList)
+		self.setNeedsDisplay()
 
 	def removeButtonCallback(self, sender):
 		if len(self.w.UIList.getSelection()) == 1:
@@ -117,6 +118,7 @@ class CompareFontsWindow(BaseWindowController):
 		T = self.UFOList
 		T[sel], T[sel+1] = T[sel+1], T[sel]
 		self.w.UIList.set(UIList)
+		self.setNeedsDisplay()
 
 	def PPEMSize1ComboBoxCallback(self, sender):
 		try:
