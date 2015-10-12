@@ -260,11 +260,12 @@ class TTHGlyph(object):
 				for idx, p in enumerate(segment.offCurve):
 					update(p, cont, seg, idx, False)
 
-	def pointClicked(self, clickPos, fontModel, alsoOff = False):
+	def pointClicked(self, clickPos, fontModel, scale, alsoOff = False):
 		# 'best', 'dist' and 'on' are lists of length one: This is a
 		# workaround in python2 to access the variables in the outer scope
 		# (in function 'update' below). python3 would use the 'nonlocal'
 		# keyword.
+		thresh = 10.0 * 10.0 * scale * scale
 		best = [None]
 		dist = [999999999.0]
 		on   = [True]
@@ -284,7 +285,7 @@ class TTHGlyph(object):
 		fakeRSB = makeRPoint(self.positionForPointName('rsb'), 'rsb')
 		update(fakeLSB, 0, 0, 0, True)
 		update(fakeRSB, 0, 0, 0, True)
-		if dist[0] <= 10.0 * 10.0:
+		if dist[0] <= thresh:
 			return (best[0], on[0], dist[0])
 		else:
 			return (None, False, -1.0)

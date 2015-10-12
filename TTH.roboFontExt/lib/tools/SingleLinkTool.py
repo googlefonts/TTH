@@ -58,22 +58,22 @@ class SingleLinkTool(TTHCommandTool):
 					cmd.set('align', align)
 		gm.addCommand(fm, cmd)
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		if not self.dragging: return
 		gm, fm = tthTool.getGlyphAndFontModel()
-		tgt = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
+		tgt = gm.pointClicked(geom.makePoint(point), fm, scale, alsoOff=self.worksOnOFF)
 		loc = tgt[0]
 		if loc:
 			s = self.startPoint.pos
 			if (s.x != loc.pos.x or s.y != loc.pos.y):
 				self.addCommand(loc)
-		super(SingleLinkTool, self).mouseUp(point)
+		super(SingleLinkTool, self).mouseUp(point, scale)
 
 	# - - - - DRAW
 
 	def draw(self, scale):
 		if not self.dragging: return
-		locked, p = self.magnet()
+		locked, p = self.magnet(scale)
 		DR.drawSingleArrow(scale, self.startPoint.pos, p, DR.kLinkColor, 20)
 		if locked:
 			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kLinkColor)

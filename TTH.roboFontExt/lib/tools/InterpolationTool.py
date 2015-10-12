@@ -42,11 +42,11 @@ class InterpolationTool(TTHCommandTool):
 			cmd.set('align', align)
 		gm.addCommand(fm, cmd)
 
-	def mouseDown(self, point, clickCount):
+	def mouseDown(self, point, clickCount, scale):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm, fm = tthTool.getGlyphAndFontModel()
-		src = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
+		src = gm.pointClicked(geom.makePoint(point), fm, scale, alsoOff=self.worksOnOFF)
 		src = src[0]
 		if src:
 			self.dragging = True
@@ -58,11 +58,11 @@ class InterpolationTool(TTHCommandTool):
 			self.dragging = False
 			self.startPoint = None
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		if not self.dragging: return
 		if not self.lookingForPoint2:
 			gm, fm = tthTool.getGlyphAndFontModel()
-			mid = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
+			mid = gm.pointClicked(geom.makePoint(point), fm, scale, alsoOff=self.worksOnOFF)
 			mid = mid[0]
 			s = self.startPoint.pos
 			if mid: m = mid.pos
@@ -91,7 +91,7 @@ class InterpolationTool(TTHCommandTool):
 
 	def draw(self, scale):
 		if not self.dragging: return
-		locked, p = self.magnet()
+		locked, p = self.magnet(scale)
 		if self.lookingForPoint2:
 			startPos = self.interpolatedPoint1.pos
 			midPos = self.interpolatedPoint.pos

@@ -13,11 +13,11 @@ class SelectionTool(TTHCommandTool):
 	def updateUI(self):
 		self.hideUI()
 
-	def mouseDown(self, point, clickCount):
+	def mouseDown(self, point, clickCount, scale):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.dragging = False
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		if not self.realClick(point): return
 		gm, fm = tthTool.getGlyphAndFontModel()
 		# Have we clicked on a command label?

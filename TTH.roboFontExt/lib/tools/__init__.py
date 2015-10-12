@@ -143,9 +143,9 @@ class TTHCommandTool(object):
 
 	# - - - - MOUSE EVENTS
 
-	def magnet(self):
+	def magnet(self, scale):
 		gm, fm = tthTool.getGlyphAndFontModel()
-		tgt = gm.pointClicked(self.mouseDraggedPos, fm, alsoOff=self.worksOnOFF)
+		tgt = gm.pointClicked(self.mouseDraggedPos, fm, scale, alsoOff=self.worksOnOFF)
 		loc = tgt[0]
 		if loc:
 			return True, loc.pos
@@ -156,11 +156,11 @@ class TTHCommandTool(object):
 		upPoint = geom.makePoint(point)
 		return (upPoint - self.mouseDownClickPos).squaredLength() <= 42.0
 
-	def mouseDown(self, point, clickCount):
+	def mouseDown(self, point, clickCount, scale):
 		self.mouseDownClickPos = geom.makePoint(point)
 		self.mouseDraggedPos = self.mouseDownClickPos
 		gm, fm = tthTool.getGlyphAndFontModel()
-		src = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
+		src = gm.pointClicked(geom.makePoint(point), fm, scale, alsoOff=self.worksOnOFF)
 		loc = src[0]
 		if loc:
 			self.dragging = True
@@ -171,10 +171,10 @@ class TTHCommandTool(object):
 			self.dragging = False
 			self.startPoint = None
 
-	def mouseDragged(self, point):
+	def mouseDragged(self, point, scale):
 		self.mouseDraggedPos = geom.makePoint(point)
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		self.dragging = False
 
 	# - - - - DRAW
