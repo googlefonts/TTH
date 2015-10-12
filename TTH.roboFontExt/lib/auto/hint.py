@@ -1,7 +1,6 @@
 
 import weakref, math
 import xml.etree.ElementTree as ET
-from models.TTHTool import uniqueInstance as tthTool
 from commons import helperFunctions
 import auto
 
@@ -142,11 +141,8 @@ def zoneData((zoneName, zone)):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 class AutoHinting():
-	def __init__(self, fontModel = None):
-		if fontModel == None:
-			self.fm = tthTool.getFontModel()
-		else:
-			self.fm = fontModel
+	def __init__(self, fontModel):
+		self.fm = fontModel
 		self.gm = None
 		self.singleLinkCommandName = { False: 'singleh', True:'singlev' }
 		self.doubleLinkCommandName = { False: 'doubleh', True:'doublev' }

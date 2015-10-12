@@ -26,7 +26,6 @@ reload(DR)
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
-blackColor        = NSColor.blackColor()
 centerpixelsColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.5)
 gridColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.1)
 stemColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1)
@@ -101,7 +100,6 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		self.sizeHasChanged()
 		tthTool.becomeActive()
-		#self.calculateHdmx()
 
 	def becomeInactive(self):
 		'''This function is called by RF when another tool button is
@@ -584,7 +582,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			if stemName == None and extension != '': text = 'S_' + extension
 			elif stemName != None:
 				text = 'S_' + stemName
-				textColor = blackColor
+				textColor = DR.kBlackColor
 				if active:
 					color = stemColor
 				else:
