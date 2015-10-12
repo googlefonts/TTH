@@ -14,8 +14,8 @@ Changes in version 0.7.7
 - Auto-match (transfer commands between fonts)
 - A handy tool for comparing fonts
 - Composites hinting enabled
-- Celtas draggables
+- Deltas' tip are drag-able
 - gasp table editable
-- Cew selection tool and popover for editing commands attributes
+- New selection tool and popover for editing commands attributes
 - Interactive program panel
 - Lots of debug and improvements
