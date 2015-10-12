@@ -1,3 +1,4 @@
+#coding=utf-8
 from mojo.extensions    import ExtensionBundle, setExtensionDefault
 from mojo.events        import BaseEventTool
 from mojo.roboFont      import CurrentFont, AllFonts
@@ -44,6 +45,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# Precomputed NSBezierPath'es
 		self.cachedPathes = {'grid':None, 'centers':None}
+
+		# The scale of the glyph window drawing from the last draw
+		self.glyphWindowScale = 1.0
 
 		# The 'radius' of pixel centers from the last 'draw()' call.
 		# Used in drawCenterPixel()
@@ -167,6 +171,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF whenever the Background of the
 		glyph Window needs redraw'''
 
+		self.glyphWindowScale = scale
+
 		if 0 == self.numberOfRectsToDraw(): return
 
 		g, fm = tthTool.getRGAndFontModel()
@@ -234,7 +240,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			if tool: self.nonControlKeyToolName = tool.name
 			tthTool.setTool('Selection')
 			tool = tthTool.getTool('Selection')
-		if tool: tool.mouseDown(point, clickCount)
+		if tool: tool.mouseDown(point, clickCount, self.glyphWindowScale)
 
 	def mouseMoved(self, point):
 		'''This function is called by RF at mouse moved (while not clicked)'''
@@ -246,14 +252,17 @@ class TTH_RF_EventTool(BaseEventTool):
 		tool = tthTool.selectedHintingTool
 		if tool is None: return False
 		if not tool.dragging: return False
-		tool.mouseDragged(point)
+		tool.mouseDragged(point, self.glyphWindowScale)
 		return True
 
 	def mouseUp(self, point):
 		'''This function is called by RF at mouse Up'''
 		gm, fm = tthTool.getGlyphAndFontModel()
 		upPoint = geom.makePoint(point)
-		realClick = (upPoint - self.mouseDownClickPos).squaredLength() <= 25.0
+
+		thresh = 5.0 * self.glyphWindowScale
+		thresh = thresh * thresh
+		realClick = (upPoint - self.mouseDownClickPos).squaredLength() <= thresh
 		# Handle click in PIGW
 		if fm != None and realClick:
 			pigw = fm.previewInGlyphWindow
@@ -263,7 +272,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.currentPopover.close()
 		tool = tthTool.selectedHintingTool
 		if tool != None:
-			tool.mouseUp(point)
+			tool.mouseUp(point, self.glyphWindowScale)
 		if self.nonControlKeyToolName != None:
 			tthTool.setTool(self.nonControlKeyToolName)
 			self.nonControlKeyToolName = None
@@ -630,9 +639,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		value = cmd.get('delta')
 		if cmd_code[0] == 'm':
-			text = 'delta_M:'
+			text = u'M ∆ '
 		else:
-			text = 'delta_F:'
+			text = u'F ∆ '
 		text = text + value
 
 		if cmd.get('code')[-1] == 'v' and int(value) < 0:

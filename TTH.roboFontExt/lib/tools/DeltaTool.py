@@ -126,8 +126,8 @@ class DeltaTool(TTHCommandTool):
 		else:
 			gm.updateGlyphProgram(fm)
 
-	def mouseDown(self, point, clickCount):
-		super(DeltaTool, self).mouseDown(point, clickCount)
+	def mouseDown(self, point, clickCount, scale):
+		super(DeltaTool, self).mouseDown(point, clickCount, scale)
 		self.pitch = tthTool.getFontModel().getPitch()
 		if self.dragging: return
 		gm, fm = tthTool.getGlyphAndFontModel()
@@ -153,9 +153,10 @@ class DeltaTool(TTHCommandTool):
 				deltaPoint += geom.Point(0, (offset/8.0)*self.pitch)
 			d = (clickedPoint - deltaPoint).squaredLength()
 			listDistCmd.append((d, c))
+		thresh = 10.0*10.0*scale*scale
 		if listDistCmd != []:
 			d, c = min(listDistCmd)
-			if d <= 10.0*10.0:
+			if d <= thresh:
 				c.set('active', 'false')
 				pointName = c.get('point')
 				if pointName in ['lsb','rsb']:
@@ -176,7 +177,7 @@ class DeltaTool(TTHCommandTool):
 				self.dragging = True
 				self.editedCommand = c
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		if not self.dragging: return
 		self.dragging = False
 		self.addCommand()

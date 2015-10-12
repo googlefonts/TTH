@@ -43,23 +43,23 @@ class DoubleLinkTool(TTHCommandTool):
 			cmd.set('round', 'true')
 		gm.addCommand(fm, cmd)
 
-	def mouseUp(self, point):
+	def mouseUp(self, point, scale):
 		if not self.dragging: return
 		gm, fm = tthTool.getGlyphAndFontModel()
-		tgt = gm.pointClicked(geom.makePoint(point), fm, alsoOff=self.worksOnOFF)
+		tgt = gm.pointClicked(geom.makePoint(point), fm, scale, alsoOff=self.worksOnOFF)
 		loc = tgt[0]
 		if loc:
 			s = self.startPoint.pos
 			t = loc.pos
 			if (s.x != t.x or s.y != t.y):
 				self.addCommand(loc)
-		super(DoubleLinkTool, self).mouseUp(point)
+		super(DoubleLinkTool, self).mouseUp(point, scale)
 
 	# - - - - DRAW
 
 	def draw(self, scale):
 		if not self.dragging: return
-		locked, p = self.magnet()
+		locked, p = self.magnet(scale)
 		DR.drawDoubleArrow(scale, self.startPoint.pos, p, True, DR.kDoublinkColor, 20)
 		if locked:
 			DR.drawCircleAtPoint(10*scale, 2*scale, p.x, p.y, DR.kDoublinkColor)
