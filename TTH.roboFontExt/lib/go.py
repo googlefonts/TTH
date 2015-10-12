@@ -29,7 +29,7 @@ def getPythonFiles(root):
 		if "freetype" in dirpath: continue
 		base = os.path.split(dirpath)[1]
 		for f in filenames:
-			if f == 'do.py': continue
+			if f == 'go.py': continue
 			if f.endswith(".py"):
 				n = f[:-3]
 				if n == '__init__':
@@ -78,17 +78,17 @@ def dependencies():
 		reloaded = set(sum([reloadsOf[x] for x in reloaded],list(reloaded)))
 		newCount = len(reloaded)
 
-	print "When lib/main.py is reloaded, the following modules are reloaded:"
-	for n in sorted(reloaded):
-		print '\t',n
+	#print "When lib/main.py is reloaded, the following modules are reloaded:"
+	#for n in sorted(reloaded):
+	#	print '\t',n
 
 	filesThatImportUniqueInstance = [f for f in importsOf.keys() if 'models/TTHTool/uniqueInstance' in importsOf[f]]
-	print "Files that import TTHTool::uniqueInstance :"
-	for n in filesThatImportUniqueInstance:
-		print '\t',n
+	#print "Files that import TTHTool::uniqueInstance :"
+	#for n in filesThatImportUniqueInstance:
+	#	print '\t',n
 	
 	diff = set(filesThatImportUniqueInstance).difference(reloaded)
-	print "Files that import TTHTool::uniqueInstance BUT are NOT reloaded:"
+	print "Files that import TTHTool::uniqueInstance BUT are NOT reloaded when lib/main.py is reloaded:"
 	for n in sorted(diff):
 		print '\t',n
 
@@ -131,6 +131,7 @@ def fileShouldBeReleased(f):
 				'ClearAllTTHData.py',
 				'CompileAllGlyphs.py',
 				'ShipFont.py']
+	if f == 'TODO': return False
 	return True
 
 def makeRelease():
@@ -151,9 +152,6 @@ def makeRelease():
 			return
 		# cp stuff
 		for (dirpath, dirnames, filenames) in os.walk(extFullPath):
-			lib_skip_files=['TODO', 'go.py']
-			if dirpath.endswith('lib'):
-				filenames[:] = [f for f in filenames if f not in lib_skip_files]
 			filenames[:] = [f for f in filenames if fileShouldBeReleased(f)]
 			base = dirpath.replace('TTH.roboFontExt', '_release/TTH.roboFontExt')
 			if not os.path.isdir(base): os.mkdir(base)
@@ -172,16 +170,15 @@ def makeRelease():
 # ===============================================================
 # ===============================================================
 
-try:
-	command = sys.argv[1].upper()
+command = sys.argv[1].upper()
 
-	if 'DEP' in command:
-		dependencies()
-	elif 'COUNT' in command or 'FUN' in command:
-		countFunctions()
-	elif 'RELEASE' in command:
-		makeRelease()
-except:
+if 'DEP' in command:
+	dependencies()
+elif 'COUNT' in command or 'FUN' in command:
+	countFunctions()
+elif 'RELEASE' in command:
+	makeRelease()
+else:
 	print '''USAGE:
 	./go.py dep
 	./go.py (count|fun) [FILE] )

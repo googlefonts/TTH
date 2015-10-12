@@ -6,7 +6,7 @@ from vanilla import *
 from mojo.extensions import ExtensionBundle, setExtensionDefault, getExtensionDefault
 from mojo.UI import UpdateCurrentGlyphView
 
-from auto import AHSheet, TransferPanel
+from auto import AHSheet
 from views import preferencesSheet, ControlValues
 from models.TTHTool import uniqueInstance as tthTool
 
