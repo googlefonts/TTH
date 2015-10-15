@@ -268,8 +268,8 @@ class MainPanel(BaseWindowController):
 		fm = tthTool.getFontModel()
 		if gearOption in [3,4,5]:
 			modes = ["Monochrome", "Grayscale", "Subpixel"]
-			if fm != None and fm.bitmapPreviewMode != modes[gearOption-4]:
-				fm.bitmapPreviewMode = modes[gearOption-4]
+			if fm != None and fm.bitmapPreviewMode != modes[gearOption-3]:
+				fm.bitmapPreviewMode = modes[gearOption-3]
 				if tthTool.previewPanel.isVisible():
 					tthTool.previewPanel.setNeedsDisplay()
 				UpdateCurrentGlyphView()
