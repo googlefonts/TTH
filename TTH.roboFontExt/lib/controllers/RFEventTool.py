@@ -528,9 +528,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		if simple: return
 		code = cmd.get('code')
 		if helperFunctions.commandHasAttrib(cmd, 'align'):
-			text = 'A_' + self.getCommandAlignLabel(cmd)
+			text = u'⚓︎ ' + self.getCommandAlignLabel(cmd)
 		elif code in ['alignt', 'alignb']:
-			text = 'A_' + cmd.get('zone')
+			text = u'⚓︎ ' + cmd.get('zone')
 		if code == 'alignt':
 			labelPos = pos + scale * geom.Point(10,+20)
 		else:
