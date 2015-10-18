@@ -528,9 +528,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		if simple: return
 		code = cmd.get('code')
 		if helperFunctions.commandHasAttrib(cmd, 'align'):
-			text = u'⚓︎ ' + self.getCommandAlignLabel(cmd)
+			text = u'☩ ' + self.getCommandAlignLabel(cmd)
 		elif code in ['alignt', 'alignb']:
-			text = u'⚓︎ ' + cmd.get('zone')
+			text = u'☩ '  + cmd.get('zone')
 		if code == 'alignt':
 			labelPos = pos + scale * geom.Point(10,+20)
 		else:
@@ -547,12 +547,12 @@ class TTH_RF_EventTool(BaseEventTool):
 		stemName = cmd.get('stem')
 		isRound = cmd.get('round', 'false') == 'true'
 		if isRound:
-			if stemName != None: text = 'D_' + stemName
+			if stemName != None: text = u'☊ ' + stemName
 			else: text = 'R'
 		elif stemName != None:
-			text = 'D_' + stemName
+			text = u'☊ ' + stemName
 		else:
-			text = 'D'
+			text = u'☊'
 		#labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
 		#		self.getNSView(), active)
 		return DR.CommandLabel(cmd, scale, text, offCurve, whiteColor, DR.kDoublinkColor, active)
@@ -578,10 +578,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif stemName != None:                   text = 'R_' + stemName
 			else:                                    text = 'R'
 		else:
-			text = 'S'
-			if stemName == None and extension != '': text = 'S_' + extension
+			text = u'⤴'
+			if stemName == None and extension != '': text = u'⤴ ' + extension
 			elif stemName != None:
-				text = 'S_' + stemName
+				text = u'⤴ ' + stemName
 				textColor = DR.kBlackColor
 				if active:
 					color = stemColor
@@ -600,9 +600,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		if simple: return
 		extension = self.getCommandAlignLabel(cmd)
 		if extension == '':
-			text = 'I'
+			text = u'⇹'
 		else:
-			text = 'I_' + extension
+			text = u'⇹ ' + extension
 		# square root takes the label a bit further when we zoom in
 		pos = pos + math.sqrt(scale)*10.0*geom.Point(1.0, -1.0)
 		#labelSize = DR.drawTextAtPoint(scale, text, pos, whiteColor, DR.kInterpolateColor, self.getNSView(), active)
