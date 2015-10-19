@@ -123,7 +123,10 @@ def countFunctions():
 
 def fileShouldBeReleased(f):
 	if f[0] == '.': return False
-	if f.endswith('.pyc'): return True
+	if f.endswith('.pyc'):
+		if f in ['go.pyc']:
+			return False
+		return True
 	if f.endswith('.py'):
 		return f in ['main.py',
 				'OpenAutoMatch.py',
