@@ -251,36 +251,35 @@ class CommandLabel(object):
 		return self.center + 0.5 * self.size
 	
 	def touch(self, other):
-		lo  = self.lo()
-		hi  = self.hi()
-		olo = other.lo()
-		ohi = other.hi()
+		si = 0.02 * self.size
+		lo  = self.lo() + si
+		hi  = self.hi() - si
+		osi = 0.02 * other.size
+		olo = other.lo() + osi
+		ohi = other.hi() - osi
 		xtouch = HF.intervalsIntersect((lo.x, hi.x), (olo.x, ohi.x))
 		ytouch = HF.intervalsIntersect((lo.y, hi.y), (olo.y, ohi.y))
 		return xtouch and ytouch
 
 	def updateSpeed(self, other):
 		diff = self.center - other.center
+		adif = diff.absolute()
+		minDiffX = 0.5 * (self.size.x + other.size.x) - adif.x
+		minDiffY = 0.5 * (self.size.y + other.size.y) - adif.y
 		if diff.length() < 0.1:
-			weird = True
 			diff = geom.Point(0,1)
-		minDiffX = 1.0*(0.51 * (self.size.x + other.size.x) - abs(diff.x))
-		minDiffY = 1.0*(0.51 * (self.size.y + other.size.y) - abs(diff.y))
+			adif = diff
+		if minDiffX <= 0.0: return
+		if minDiffY <= 0.0: return
 		workInX = 0
-		#diff = diff.normalized()
-		if minDiffX > 0.0 and abs(diff.x) > 0.000001:
-			workInX = minDiffX/abs(diff.x)
+		if minDiffX > 0.0 and adif.x > 0.00001:
+			workInX = minDiffX / adif.x
 		workInY = 0
-		if minDiffY > 0.0 and abs(diff.y) > 0.000001:
-			workInY = minDiffY/abs(diff.y)
+		if minDiffY > 0.0 and adif.y > 0.00001:
+			workInY = minDiffY / adif.y
 		if workInX == 0 and workInY == 0: return
-		if workInX == 0:
-			work = 0.5 * workInY
-		elif workInY == 0:
-			work = 0.5 * workInX
-		else:
-			work = 0.5 * min(workInX, workInY)
-		self.speed = self.speed + work * diff
+		work = 0.5 * min(w for w in [workInX, workInY] if w > 0)
+		self.speed = self.speed   + work * diff
 		other.speed = other.speed - work * diff
 		self.count += 1
 		other.count += 1
@@ -330,5 +329,5 @@ def untangleLabels(labels):
 		return False
 	for cl in labels:
 		if cl.count == 0: continue
-		cl.center = cl.center + (1.0 / cl.count) * cl.speed
+		cl.center = cl.center + cl.speed
 	return True
