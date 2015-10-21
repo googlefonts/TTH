@@ -35,6 +35,8 @@ class TTHTool(object):
 		# For debugging the (re)loading order of the modules
 		self._printLoadings = True
 
+		print "\n *** NEW TTHTool model created\n"
+
 		# The current Point/Pixel Per Em size for displaying the hinted preview
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
 		# The current hinting axis: 'X' or 'Y'

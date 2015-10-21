@@ -30,9 +30,6 @@ class DoubleLinkTool(TTHCommandTool):
 		cmd.set('code', code)
 		self.setupCommandPointFromLoc('point1', cmd, self.startPoint)
 		self.setupCommandPointFromLoc('point2', cmd, targetLoc)
-		align = self.getAlignment()
-		if align != 'None':
-			cmd.set('align', align)
 		if stem == 'None':
 			stem = None
 		if stem == 'Guess':

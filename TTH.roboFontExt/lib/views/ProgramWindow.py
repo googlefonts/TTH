@@ -284,7 +284,7 @@ class ProgramWindow(TTHWindow):
 				else:
 					return self.dummyPopup
 		elif colID == 'align':
-			if (not ('single' in uiCode or 'double' in uiCode or 'interpolate' in uiCode or uiCode == 'alignv' or uiCode == 'alignh') ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
+			if (not ('single' in uiCode or 'interpolate' in uiCode or uiCode == 'alignv' or uiCode == 'alignh') ) or (uiCmd['round']) or (not (uiCmd['stem'] in ['', 'None'])):
 				return self.dummyPopup
 			else:
 				cell.removeAllItems()
