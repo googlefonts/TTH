@@ -127,7 +127,7 @@ class TTHCommandPopover(object):
 	def stateCheckBoxCallback(self, senderCheckBox):
 		if senderCheckBox.get() == 0:
 			# FIXME: is it of any use to prepare undo stuff while the RGlyph will not change?
-			# It might be beeter to do that on TTHGLyph, if we impleemnt support for undo in it
+			# It might be better to do that on TTHGLyph, if we implement support for undo in it
 			self.gm.prepareUndo("Deactivate Command")
 			self.cmd.set('active', 'false')
 		else:

@@ -27,6 +27,8 @@ class TTHFont(object):
 		# the corresponding Robofont font
 		self.f = font
 
+		print "\n ** NEW TTHFont model created for font {}\n".format(font.fileName)
+
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
 		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
