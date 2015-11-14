@@ -5,6 +5,7 @@ from mojo.roboFont import CurrentFont, CurrentGlyph, AllFonts
 from mojo.events import getActiveEventTool
 
 import string
+from datetime import datetime
 from commons import helperFunctions
 
 # IMPORTANT: All the modules that use the unique instance of TTHTool and are
@@ -35,7 +36,8 @@ class TTHTool(object):
 		# For debugging the (re)loading order of the modules
 		self._printLoadings = True
 
-		print "\n *** NEW TTHTool model created\n"
+		print "\n *** NEW TTHTool model created ",
+		print datetime.today()
 
 		# The current Point/Pixel Per Em size for displaying the hinted preview
 		self.PPM_Size = getExtensionDefault(defaultKeyCurrentPPMSize, fallback=9)
@@ -137,6 +139,7 @@ class TTHTool(object):
 		return self._fontModels[key]
 
 	def delFontModelForFont(self, font):
+		if font is None: return
 		key = font.fileName
 		if key in self._fontModels:
 			model = self._fontModels[key]

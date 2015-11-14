@@ -51,8 +51,8 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 		noName = True
 		name = "noname"
 	nextOff = geom.makePoint(contour[(sidx+1) % contourLen].points[0])
-	nextOn = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
-	prevOn = geom.makePoint(contour[sidx-1].onCurve)
+	nextOn  = geom.makePoint(contour[(sidx+1) % contourLen].onCurve)
+	prevOn  = geom.makePoint(contour[sidx-1].onCurve)
 	if len(segment.points) > 1:
 		prevOff = segment[-2]
 	else:
@@ -69,7 +69,7 @@ def makeHintingData(g, ital, (cidx, sidx), computeWeight=False):
 	idx = len(segment.points) - 1
 	return noName, HintingData(onPt, segment.type, name, shearedOn, prevOff, nextOff, (cidx, sidx, idx), weight)
 
-def makeContours(g, ital):
+def makeContours(g, ital, includeComponents=False):
 	contours = [[] for c in g]
 	gNoNames = False
 	# make a copy of all contours with hinting data

@@ -336,7 +336,7 @@ class TTHGlyph(object):
 			ptName = cmd.get(key)
 			if ptName in ['lsb', 'rsb']: continue
 			baseGm = self
-			if base in cmd.attrib:
+			if helperFunctions.commandHasAttrib(cmd, base):
 				try:
 					compo = self._g.components[int(cmd.get(base))]
 					baseGm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
