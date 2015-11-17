@@ -161,9 +161,13 @@ def prepareGlyph(f, g, withOff):
 
 	xs = sum([[float(p.pos.x) for p in c] for c in onContours], [])
 	ys = sum([[float(p.pos.y) for p in c] for c in onContours], [])
+	if (len(xs) <= 1) or (len(ys) <= 1):
+		return None, None, None
 	lo = geom.Point(min(xs), min(ys))
 	hi = geom.Point(max(xs), max(ys))
 	dim = hi - lo
+	if dim.x < 1e-4: dim.x = 1.0
+	if dim.y < 1e-4: dim.y = 1.0
 	# Rescale the glyph to fit in a square box from (0,0) to (1000,1000)
 	for c in onContours:
 		for sp in c: sp.fit(lo, dim)
@@ -193,6 +197,12 @@ class PointNameMatcher(object):
 		self._nameMap = m
 		srcG, srcOffs, srcCompIdx = prepareGlyph(f0, g0, withOff)
 		tgtG, tgtOffs, tgtCompIdx = prepareGlyph(f1, g1, withOff)
+		if srcG == None:
+			print "[TTH Warning] glyph {} in font {} has less than one control point".format(g0.name, f0.fileName)
+			return
+		if tgtG == None:
+			print "[TTH Warning] glyph {} in font {} has less than one control point".format(g1.name, f1.fileName)
+			return
 		matchings = matchTwoGlyphs(srcG, tgtG)
 		if matchings == None: return
 		for srcContour, (tgtContour, perm) in enumerate(matchings):
@@ -200,7 +210,7 @@ class PointNameMatcher(object):
 				srcCompName = srcCompIdx[srcContour], srcG[srcContour][srcSeg].name
 				tgtCompName = tgtCompIdx[tgtContour], tgtG[tgtContour][tgtSeg].name
 				m[srcCompName] = tgtCompName
-				if not withOff: continue # FIXME: off comp
+				if not withOff: continue
 				m.update(getOffMatching(srcCompIdx[srcContour], srcOffs[srcContour][srcSeg],\
 						tgtCompIdx[tgtContour], tgtOffs[tgtContour], perm[srcSeg-1], tgtSeg))
 	def map(self, srcCompName):

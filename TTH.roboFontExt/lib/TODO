@@ -34,7 +34,7 @@ Améliorer le Compare Fonts				DONE
 
 - "DONE" trop de deltas : difficile de choisir un delta pour le supprimer. (ds la fenetre Program)
 - DONE tirer les antennes des deltas.
-- delta : en X ET Y
+- delta : en X ET Y (donc, en diagonal)
 - delta : indicateur visuel de Mono/Gray
 - fusion des delta sur les ranges
 - delta : 5 sur 9-15:, pour 12, 5 est trop, diminuer a 4. comment faire facilement.
