@@ -261,16 +261,22 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph,
 		#print cmd
 		if (not transferDeltas) and ('delta' in cmd.get('code')):
 			continue
+		bug = False
 		for (k,b) in [('point','base'), ('point1','base1'), ('point2','base2')]:
 			if HF.commandHasAttrib(cmd, k):
 				oldCompName = int(cmd.get(b,'-1')), cmd.get(k)
 				newComp, newName = pm.map(oldCompName)
 				#print oldCompName, "==>", newComp, newName
+				if newComp == None:
+					bug = True
+					continue
 				cmd.set(k, newName)
 				if newComp != -1:
 					cmd.set(b, str(newComp))
 				else:
 					HF.delCommandAttrib(cmd, b)
+		if bug:
+			continue
 		if HF.commandHasAttrib(cmd, 'stem'): # Find the correct name of the stem in the target font
 			isHorizontal = (cmd.get('code') == 'singlev')
 			src = targetGM.positionForPointName(cmd.get('point1'), targetFM, cmd.get('base1'))
