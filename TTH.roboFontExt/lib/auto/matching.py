@@ -189,7 +189,7 @@ def getOffMatching(srcCompIdx, srcOffs, tgtCompIdx, tgtOffContour, tgtSeg0, tgtS
 	n = len(tgtOffs)
 	table = [[None for x in xrange(n)] for y in srcOffs]
 	permut, matchQuality = matchTwoContours(srcOffs, tgtOffs, table, offScore)
-	return dict(((srcCompIdx,srcOffs[s][0]), (tgtCompIdx, tgtOffs[t][0])) for (s,t) in enumerate(permut))
+	return dict(((srcCompIdx,srcOffs[s].name), (tgtCompIdx, tgtOffs[t].name)) for (s,t) in enumerate(permut))
 
 class PointNameMatcher(object):
 	def __init__(self, f0, g0, f1, g1, withOff=False):
@@ -241,6 +241,13 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 		print '\n'.join(msg)
 
 def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False):
+	#try:
+		transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas)
+	#except:
+	#	print "There was an EXCEPTION RAISED while transfering hints between:"
+	#	print sourceFM.f.fileName,":",sourceGlyph.name," and ", targetFM.f.fileName,":",targetGlyph.name
+
+def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False):
 	hasSGM   = sourceFM.hasGlyphModelForGlyph(sourceGlyph)
 	sourceGM = sourceFM.glyphModelForGlyph(sourceGlyph)
 	hasTGM   = targetFM.hasGlyphModelForGlyph(targetGlyph)
@@ -276,7 +283,9 @@ def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph,
 				else:
 					HF.delCommandAttrib(cmd, b)
 		if bug:
-			continue
+			print "There was an error when transfering hints between:"
+			print sourceFM.f.fileName,":",sourceGlyph.name," and ", targetFM.f.fileName,":",targetGlyph.name
+			break
 		if HF.commandHasAttrib(cmd, 'stem'): # Find the correct name of the stem in the target font
 			isHorizontal = (cmd.get('code') == 'singlev')
 			src = targetGM.positionForPointName(cmd.get('point1'), targetFM, cmd.get('base1'))
