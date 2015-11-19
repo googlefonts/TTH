@@ -133,15 +133,15 @@ class TTHComponent(object):
 	def xform(self, p):
 		return geom.Point(self.scale[0]*p.x + self.offset[0], self.scale[1]*p.y + self.offset[1])
 
-def prepareGlyph(f, g, withOff):
-	comps = [TTHComponent(g,-1,(0,0),(1,1))]
-	for idx, comp in enumerate(g.components):
-		comps.append(TTHComponent(f[comp.baseGlyph], idx, comp.offset, comp.scale))
+def prepareGlyph(fm, gm, withOff):
+	comps = [TTHComponent(gm,-1,(0,0),(1,1))]
+	for idx, comp in enumerate(gm.RFGlyph.components):
+		comps.append(TTHComponent(fm.glyphModelForGlyph(fm.f[comp.baseGlyph]), idx, comp.offset, comp.scale))
 	onContours = []
 	compIndices = []
 	offContours = []
 	for compo in comps:
-		for cidx, contour in enumerate(compo.g):
+		for cidx, contour in enumerate(compo.g.RFGlyph):
 			newContour  = []
 			contourOffs = []
 			contourLen = len(contour)
@@ -152,9 +152,10 @@ def prepareGlyph(f, g, withOff):
 				else: prevOff = compo.xform(contour[sidx-1].onCurve)
 				outTangent = (nextOff-onPt).normalized()
 				inTangent  = (onPt-prevOff).normalized()
-				newContour.append(SimplePoint(onPt, seg.onCurve.name, inTangent, outTangent))
+				name = compo.g.hintingNameForPoint(seg.onCurve)
+				newContour.append(SimplePoint(onPt, name, inTangent, outTangent))
 				if not withOff: continue
-				contourOffs.append([SimplePoint(geom.makePoint(o), o.name) for o in seg.offCurve])
+				contourOffs.append([SimplePoint(geom.makePoint(o), compo.g.hintingNameForPoint(o)) for o in seg.offCurve])
 			onContours.append(newContour)
 			offContours.append(contourOffs)
 			compIndices.append(compo.idx)
@@ -192,16 +193,16 @@ def getOffMatching(srcCompIdx, srcOffs, tgtCompIdx, tgtOffContour, tgtSeg0, tgtS
 	return dict(((srcCompIdx,srcOffs[s].name), (tgtCompIdx, tgtOffs[t].name)) for (s,t) in enumerate(permut))
 
 class PointNameMatcher(object):
-	def __init__(self, f0, g0, f1, g1, withOff=False):
+	def __init__(self, fm0, gm0, fm1, gm1, withOff=False):
 		m  = {(-1,'lsb'):(-1,'lsb'), (-1,'rsb'):(-1,'rsb')}
 		self._nameMap = m
-		srcG, srcOffs, srcCompIdx = prepareGlyph(f0, g0, withOff)
-		tgtG, tgtOffs, tgtCompIdx = prepareGlyph(f1, g1, withOff)
+		srcG, srcOffs, srcCompIdx = prepareGlyph(fm0, gm0, withOff)
+		tgtG, tgtOffs, tgtCompIdx = prepareGlyph(fm1, gm1, withOff)
 		if srcG == None:
-			print "[TTH Warning] glyph {} in font {} has less than one control point".format(g0.name, f0.fileName)
+			print "[TTH Warning] glyph {} in font {} has less than one control point".format(gm0.RFGlyph.name, fm0.f.fileName)
 			return
 		if tgtG == None:
-			print "[TTH Warning] glyph {} in font {} has less than one control point".format(g1.name, f1.fileName)
+			print "[TTH Warning] glyph {} in font {} has less than one control point".format(gm1.RFGlyph.name, fm1.f.fileName)
 			return
 		matchings = matchTwoGlyphs(srcG, tgtG)
 		if matchings == None: return
@@ -213,6 +214,8 @@ class PointNameMatcher(object):
 				if not withOff: continue
 				m.update(getOffMatching(srcCompIdx[srcContour], srcOffs[srcContour][srcSeg],\
 						tgtCompIdx[tgtContour], tgtOffs[tgtContour], perm[srcSeg-1], tgtSeg))
+		#for k,v in m.iteritems():
+		#	print k,' --> ',v
 	def map(self, srcCompName):
 		return self._nameMap.get(srcCompName, (None, None))
 
@@ -259,7 +262,7 @@ def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyp
 		return
 	AH = auto.hint.AutoHinting(targetFM)
 	getWidth = auto.hint.getWidthOfTwoPointsStem
-	pm = PointNameMatcher(sourceFM.f, sourceGlyph, targetFM.f, targetGlyph, transferDeltas)
+	pm = PointNameMatcher(sourceFM.f, sourceGM, targetFM.f, targetGM, transferDeltas)
 	targetGM.clearCommands(True, True)
 	for inCmd in inCommands:
 		cmd = ET.Element('ttc')
@@ -273,8 +276,8 @@ def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyp
 			if HF.commandHasAttrib(cmd, k):
 				oldCompName = int(cmd.get(b,'-1')), cmd.get(k)
 				newComp, newName = pm.map(oldCompName)
-				#print oldCompName, "==>", newComp, newName
-				if newComp == None:
+				if (newComp) == None or (newName == None):
+					print "[TTH ERROR]", oldCompName, "==>", newComp, newName
 					bug = True
 					continue
 				cmd.set(k, newName)

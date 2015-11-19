@@ -129,6 +129,8 @@ class TTHGlyph(object):
 	def positionForPointName(self, name, fm=None, comp=None):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
+		if name == None:
+			print "\npositionForPointName(",name,',',fm,',',comp,")\n"
 		if name == 'lsb':
 			return geom.Point(0,0)
 		elif name == 'rsb':
