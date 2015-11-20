@@ -262,7 +262,7 @@ def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyp
 		return
 	AH = auto.hint.AutoHinting(targetFM)
 	getWidth = auto.hint.getWidthOfTwoPointsStem
-	pm = PointNameMatcher(sourceFM.f, sourceGM, targetFM.f, targetGM, transferDeltas)
+	pm = PointNameMatcher(sourceFM, sourceGM, targetFM, targetGM, transferDeltas)
 	targetGM.clearCommands(True, True)
 	for inCmd in inCommands:
 		cmd = ET.Element('ttc')
