@@ -133,6 +133,9 @@ class TTHComponent(object):
 	def xform(self, p):
 		return geom.Point(self.scale[0]*p.x + self.offset[0], self.scale[1]*p.y + self.offset[1])
 
+def numberOfContours(f, g):
+	return sum([len(f[c.baseGlyph]) for c in g.components], len(g))
+
 def prepareGlyph(fm, gm, withOff):
 	comps = [TTHComponent(gm,-1,(0,0),(1,1))]
 	for idx, comp in enumerate(gm.RFGlyph.components):
@@ -227,7 +230,9 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 	for sourceG in sourceFont:
 		if sourceG.name in targetFont:
 			targetG = targetFont[sourceG.name]
-			if len(sourceG) == len(targetG) and len(sourceG) > 0:
+			numSourceContours = numberOfContours(sourceFM.f, sourceG)
+			numTargetContours = numberOfContours(targetFM.f, targetG)
+			if numTargetContours == numSourceContours and numSourceContours > 0:
 				# same number of contours
 				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas)
 				targetG.mark = (1, .5, 0, .5)
