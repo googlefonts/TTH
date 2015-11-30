@@ -257,9 +257,11 @@ class CommandLabel(object):
 		osi = 0.02 * other.size
 		olo = other.lo() + osi
 		ohi = other.hi() - osi
-		xtouch = HF.intervalsIntersect((lo.x, hi.x), (olo.x, ohi.x))
-		ytouch = HF.intervalsIntersect((lo.y, hi.y), (olo.y, ohi.y))
-		return xtouch and ytouch
+		return HF.intervalsIntersect((lo.x, hi.x), (olo.x, ohi.x)) \
+			and HF.intervalsIntersect((lo.y, hi.y), (olo.y, ohi.y))
+
+	def printe(self):
+		print "{:.2f}:{:.2f}".format(self.center.y-0.5*self.size.y, self.size.y),
 
 	def updateSpeed(self, other):
 		diff = self.center - other.center
@@ -317,9 +319,9 @@ def untangleLabels(labels):
 	below = []
 	labels.sort(key=lambda l:l.center.y-0.5*l.size.y)
 	for cl in labels:
-		below_bottom = cl.lo()
-		while below and below[0].hi().y < below_bottom.y:
-			below.pop()
+		below_bottom_y = cl.lo().y
+		while below and below[0].hi().y < below_bottom_y:
+			below.pop(0)
 		for candidate in below:
 			if cl.touch(candidate):
 				someContact = True

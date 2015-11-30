@@ -681,8 +681,8 @@ class TTH_RF_EventTool(BaseEventTool):
 			else: # make sure we can't click on the command's label
 				self.setLabelPosSize(c, geom.Point(0.0, 0.0), geom.Point(-1.0, -1.0))
 		if simple: return
-		i = 0
-		while i < 10 and DR.untangleLabels(commandLabels):
+		i = 1
+		while i <= 10 and DR.untangleLabels(commandLabels):
 			i += 1
 		for c in commandLabels:
 			self.setLabelPosSize(c.cmd, c.center, c.size)
