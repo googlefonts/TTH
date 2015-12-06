@@ -345,23 +345,23 @@ class StemView(object):
 		try:
 			width = int(uiStem['Width'])
 		except:
-			print 'Enter a width before adding stem'
+			print '[TTH ERROR] Please enter a width before adding stem'
 			return False
 
 		if name == '':
-			print 'Enter a name before adding stem'
+			print '[TTH ERROR] Please enter a name before adding stem'
 			return False
 
 		allowed = list(string.letters)
 		allowed.extend(list(string.digits))
 		allowed.extend(['_', '-', ':', ' '])
 		if not all(c in allowed for c in name):
-			print 'stem name can only contain characters:', allowed
+			print '[TTH ERROR] stem name can only contain characters:', allowed
 			return False
 
 		px = [int(uiStem[str(i)+' px']) for i in range(1,7)]
-		if not all(px[i]<=px[i+1] for i in range(5)):
-			print 'pixel jumps must be in ascending order'
+		if not all(px[i] < px[i+1] for i in range(5)):
+			print '[TTH ERROR] pixel jumps must be in strictly ascending order'
 			return False
 
 		return True

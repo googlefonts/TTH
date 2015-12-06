@@ -504,6 +504,7 @@ When do we regenerate a partial font?
 	def compileAllTTFData(self, progress=None):
 		if progress:
 			progress.setInfo("Generating temporary font...")
+		tables.purgeGeneratedTables(self)
 		self.generateFullTempFont()
 		tr = textRenderer.TextRenderer(self.tempFullFontPath, 'Monochrome', cacheContours=False)
 		if progress:
