@@ -31,7 +31,7 @@ class TTHFont(object):
 
 		# Defaults sizes at which to store cached advance widths.
 		# PPEM = Pixel Per Em ? OR Point Per Em ?
-		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16]
+		self.hdmx_ppem_sizes = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
 
 		self._readControlValuesFromUFO()
 
