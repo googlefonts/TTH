@@ -291,8 +291,10 @@ class MainPanel(BaseWindowController):
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:
 			g, fm = tthTool.getRGAndFontModel()
+			extent = fm.computeBitmapVerticalExtentsForSize(tthTool.PPM_Size)
 			tr = fm.textRenderer
-			tr.save_named_glyph_as_png(g.name, "/Users/shornus/titi.png")
+			tr.set_cur_size(tthTool.PPM_Size)
+			tr.save_named_glyph_as_png(g.name, extent, "/Users/shornus/titi.png")
 
 	#################
 	# Display updates

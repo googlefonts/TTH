@@ -64,6 +64,18 @@ def write_hdmx(fm, tr):
 		ppems[str(size)] = widths
 	fm.f.lib[k_hdmx_key] = ppems
 
+def getAscentAndDescentForSize(fm, tr, size):
+	tr.set_cur_size(size)
+	yMin = +10000
+	yMax = -10000
+	for g in fm.f:
+		bmg = tr.get_name_bitmap(g.name)
+		hi = bmg.top
+		lo = hi - bmg.bitmap.rows
+		if hi > yMax: yMax = hi
+		if lo < yMin: yMin = lo
+	return yMax, yMin
+
 def write_VDMX(fm, tr):
 	upm = fm.UPM
 	halfUpm = upm / 2
@@ -83,17 +95,9 @@ def write_VDMX(fm, tr):
 	# We will add only one record here from 8 to 255 ppem
 	vTableRecord = {}
 	for yPelHeight in range(8, 256, 1):
-		tr.set_cur_size(yPelHeight)
 		linYMax = (tr.face.bbox.yMax * yPelHeight + halfUpm) / upm
 		linYMin = (tr.face.bbox.yMin * yPelHeight + halfUpm) / upm
-		yMin = +10000
-		yMax = -10000
-		for g in fm.f:
-			bmg = tr.get_name_bitmap(g.name)
-			hi = bmg.top
-			lo = hi - bmg.bitmap.rows
-			if hi > yMax: yMax = hi
-			if lo < yMin: yMin = lo
+		yMax, yMin = getAscentAndDescentForSize(fm, tr, yPelHeight)
 		if linYMax != yMax or linYMin != yMin:
 			vTableRecord[str(yPelHeight)] = (yMax, yMin)
 	#print "Group has", len(vTableRecord), "records"

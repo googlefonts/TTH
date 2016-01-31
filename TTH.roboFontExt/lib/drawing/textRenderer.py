@@ -90,6 +90,7 @@ class TextRenderer(object):
 		if self.curSize not in self.caches:
 			self.caches[self.curSize] = {}
 		self.cache = self.caches[self.curSize]
+		self.face.set_pixel_sizes(0, self.curSize)
 
 	def render_text_with_scale_and_alpha(self, text, scale, alpha):
 		if self.face == None: return
@@ -99,17 +100,20 @@ class TextRenderer(object):
 	def render_text(self, text):
 		return self.render_text_with_scale_and_alpha(text, 1, 1.0)
 
-	def save_char_as_png(self, c, path):
-		self.save_indexed_glyph_as_png(self.face.get_char_index(c), path)
-
-	def save_indexed_glyph_as_png(self, index, path):
+	def save_indexed_glyph_as_png(self, index, extent, path):
 		if self.render_mode == FT.FT_RENDER_MODE_LCD:
-			saveAsPNG(self.get_glyph_bitmap(index)[1], path)
+			bmg, bitmap = self.get_glyph_bitmap(index)
 		else:
-			saveAsPNG(self.make_bitmap_func(self.get_glyph_bitmap(index)), path)
+			bmg = self.get_glyph_bitmap(index)
+			bitmap = self.make_bitmap_func(bmg)
 
-	def save_named_glyph_as_png(self, gName, path):
-		self.save_indexed_glyph_as_png(self.face.get_name_index(gName), path)
+		advance = (self.get_advance(index)[0]+32)/64
+		bm = bmg.bitmap
+		bottom = bmg.top - bm.rows - extent[1]
+		saveAsPNG(bitmap, bottom, advance, extent, path)
+
+	def save_named_glyph_as_png(self, gName, extent, path):
+		self.save_indexed_glyph_as_png(self.face.get_name_index(gName), extent, path)
 
 	def render_indexed_glyph_list(self, idxes, scale=1, alpha=1.0):
 		if self.face == None: return
@@ -277,10 +281,51 @@ class TextRenderer(object):
 
 # DRAWING FUNCTIONS
 
-def saveAsPNG(cgimg, path):
-	nsbitmaprep = NSBitmapImageRep.alloc().initWithCGImage_(cgimg)
+def saveAsPNG(cgimg, bottom, advance, extent, path):
+	# There's a weirdness with kCGImageAlphaNone and CGBitmapContextCreate
+	# see Supported Pixel Formats in the Quartz 2D Programming Guide
+	# Creating a Bitmap Graphics Context section
+	# only RGB 8 bit images with alpha of kCGImageAlphaNoneSkipFirst, kCGImageAlphaNoneSkipLast, kCGImageAlphaPremultipliedFirst,
+	# and kCGImageAlphaPremultipliedLast, with a few other oddball image kinds are supported
+	# The images on input here are likely to be png or jpeg files
+	#alphaInfo = Quartz.CGImageGetAlphaInfo(cgimg)
+	#if alphaInfo == Quartz.kCGImageAlphaNone:
+	#	print 'Alpha None'
+	#	alphaInfo = Quartz.kCGImageAlphaNoneSkipLast
+
+	height = extent[0] - extent[1]
+	width  = Quartz.CGImageGetHeight(cgimg)
+
+	# Build a bitmap context that's the size of the thumbRect
+	port = Quartz.CGBitmapContextCreate(None,
+					advance,  # width
+					height, # height
+					Quartz.CGImageGetBitsPerComponent(cgimg), # really needs to always be 8
+					4 * width, # rowbytes
+					rgbCS,
+					#Quartz.kCGColorSpaceGenericRGB,
+					#Quartz.CGImageGetColorSpace(cgimg),
+					Quartz.kCGImageAlphaPremultipliedLast)
+					#Quartz.kCGImageAlphaLast)
+					#alphaInfo)
+
+	# Draw into the context, this scales the image
+	destRect = Quartz.CGRectMake(0, bottom, width, Quartz.CGImageGetHeight(cgimg))
+	fullRect = Quartz.CGRectMake(0, 0, advance, height)
+	Quartz.CGContextSetFillColor(port, [1.0, 1.0, 1.0, 1.0])
+	Quartz.CGContextFillRect(port, fullRect)
+	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
+	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
+	Quartz.CGContextDrawImage(port, destRect, cgimg);
+
+	# Get an image from the context
+	final = Quartz.CGBitmapContextCreateImage(port);
+
+	nsbitmaprep = NSBitmapImageRep.alloc().initWithCGImage_(final)
 	data = nsbitmaprep.representationUsingType_properties_(NSPNGFileType, None)
 	data.writeToFile_atomically_(path, False)
+
+	#Quartz.CGContextRelease(port) # ok if None
 
 def makeBitmapMono(bmg):
 	# 'bmg' stands for BitMapGlyph, a data structure from freetype.
@@ -410,7 +455,7 @@ def drawBitmapSubPixelColor((bmg, cgimg), scale, advance, height, alpha):
 		Quartz.CGContextSetAlpha(port, alpha)
 	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
 	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
-	Quartz.CGContextDrawImage(port, destRect, cgimg )
+	Quartz.CGContextDrawImage(port, destRect, cgimg)
 	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
 	if alpha < 1:
 		Quartz.CGContextSetAlpha(port, 1)

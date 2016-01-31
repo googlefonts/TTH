@@ -651,4 +651,14 @@ When do we regenerate a partial font?
 			addGlyph(glyphSet, name)
 		return glyphSet
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - BITMAP GENERATION
+
+	def computeBitmapVerticalExtentsForSize(self, size):
+		#tables.purgeGeneratedTables(self)
+		self.generateFullTempFont()
+		tr = textRenderer.TextRenderer(self.tempFullFontPath, 'Monochrome', cacheContours=False)
+		extent = tables.getAscentAndDescentForSize(self, tr, size)
+		print "Extent:", extent
+		return extent
+
 if tthTool._printLoadings: print "TTHFont, ",
