@@ -46,14 +46,17 @@ class TextRenderer(object):
 
 		self.outlinecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
 
-		self.render_func = drawBitmapGray
 		self.render_mode = FT.FT_RENDER_MODE_NORMAL
+		self.render_func = drawBitmapGray
+		self.make_bitmap_func = makeBitmapGray
 		if renderMode == 'Monochrome':
 			self.render_mode = FT.FT_RENDER_MODE_MONO
 			self.render_func = drawBitmapMono
+			self.make_bitmap_func = makeBitmapMono
 		elif renderMode == 'Subpixel':
 			self.render_mode = FT.FT_RENDER_MODE_LCD
 			self.render_func = drawBitmapSubPixelColor
+			self.make_bitmap_func = makeDesaturatedBitmapSubpixel
 
 		self.load_mode = FT.FT_LOAD_DEFAULT
 		#self.load_mode = FT.FT_LOAD_RENDER
@@ -95,6 +98,18 @@ class TextRenderer(object):
 
 	def render_text(self, text):
 		return self.render_text_with_scale_and_alpha(text, 1, 1.0)
+
+	def save_char_as_png(self, c, path):
+		self.save_indexed_glyph_as_png(self.face.get_char_index(c), path)
+
+	def save_indexed_glyph_as_png(self, index, path):
+		if self.render_mode == FT.FT_RENDER_MODE_LCD:
+			saveAsPNG(self.get_glyph_bitmap(index)[1], path)
+		else:
+			saveAsPNG(self.make_bitmap_func(self.get_glyph_bitmap(index)), path)
+
+	def save_named_glyph_as_png(self, gName, path):
+		self.save_indexed_glyph_as_png(self.face.get_name_index(gName), path)
 
 	def render_indexed_glyph_list(self, idxes, scale=1, alpha=1.0):
 		if self.face == None: return
@@ -180,7 +195,7 @@ class TextRenderer(object):
 		if glyphCache.bitmap == None:
 			result = image.to_bitmap(self.render_mode, 0)
 			if self.render_mode == FT.FT_RENDER_MODE_LCD:
-				result = (result, desaturateBufferFromFTBuffer(result))
+				result = (result, makeDesaturatedBitmapSubpixel(result))
 			#print self.get_glyph_image(index).format
 			glyphCache.bitmap = result
 		return glyphCache.bitmap
@@ -260,16 +275,19 @@ class TextRenderer(object):
 		self.cache[index].bezier_paths = paths
 		return paths
 
-
 # DRAWING FUNCTIONS
 
+def saveAsPNG(cgimg, path):
+	nsbitmaprep = NSBitmapImageRep.alloc().initWithCGImage_(cgimg)
+	data = nsbitmaprep.representationUsingType_properties_(NSPNGFileType, None)
+	data.writeToFile_atomically_(path, False)
 
-def drawBitmapMono(bmg, scale, advance, height, alpha):
+def makeBitmapMono(bmg):
 	# 'bmg' stands for BitMapGlyph, a data structure from freetype.
 	bm = bmg.bitmap
 	numBytes = bm.rows * bm.pitch
 	if numBytes == 0:
-		return
+		return None
 	buf = allocateBuffer(numBytes)
 	ftBuffer = bm._FT_Bitmap.buffer
 	for i in range(numBytes):
@@ -291,6 +309,11 @@ def drawBitmapMono(bmg, scale, advance, height, alpha):
 			False, # bool shouldInterpolate,
 			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
+	return cgimg
+
+def drawBitmapMono(bmg, scale, advance, height, alpha):
+	bm = bmg.bitmap
+	cgimg = makeBitmapMono(bmg)
 	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
 
 	port = NSGraphicsContext.currentContext().graphicsPort()
@@ -303,18 +326,16 @@ def drawBitmapMono(bmg, scale, advance, height, alpha):
 		Quartz.CGContextSetAlpha(port, 1)
 	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
 
-def drawBitmapGray(bmg, scale, advance, height, alpha):
+def makeBitmapGray(bmg):
 	bm = bmg.bitmap
 	numBytes = bm.rows * bm.pitch
 	if numBytes == 0:
-		return
+		return None
 	buf = allocateBuffer(numBytes)
 	ftBuffer = bm._FT_Bitmap.buffer
 	for i in range(numBytes):
 		buf[i] = ftBuffer[i]
-
 	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-
 	cgimg = Quartz.CGImageCreate(
 			bm.width,
 			bm.rows,
@@ -328,6 +349,11 @@ def drawBitmapGray(bmg, scale, advance, height, alpha):
 			False, # bool shouldInterpolate,
 			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
+	return cgimg
+
+def drawBitmapGray(bmg, scale, advance, height, alpha):
+	bm = bmg.bitmap
+	cgimg = makeBitmapGray(bmg)
 	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
 
 	port = NSGraphicsContext.currentContext().graphicsPort()
@@ -340,12 +366,12 @@ def drawBitmapGray(bmg, scale, advance, height, alpha):
 		Quartz.CGContextSetAlpha(port, 1.0)
 	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
 
-def desaturateBufferFromFTBuffer(bmg):
+def makeDesaturatedBitmapSubpixel(bmg):
 	bm = bmg.bitmap
 	pixelWidth = int(bm.width/3)
 	numBytes = 4 * bm.rows * pixelWidth
 	if numBytes == 0:
-		return
+		return None
 	buf = allocateBuffer(numBytes)
 	ftBuffer = bm._FT_Bitmap.buffer
 	pos = 0

@@ -179,7 +179,9 @@ class MainPanel(BaseWindowController):
 			NSMenuItem.separatorItem(),
 			u"Control Values…", # 11
 			NSMenuItem.separatorItem(),
-			u"Preferences…" # 13
+			u"Preferences…", # 13
+			NSMenuItem.separatorItem(),
+			u"PNG…", # 15
 			]
 			)
 
@@ -287,6 +289,10 @@ class MainPanel(BaseWindowController):
 			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
 		elif gearOption == 13:
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
+		elif gearOption == 15:
+			g, fm = tthTool.getRGAndFontModel()
+			tr = fm.textRenderer
+			tr.save_named_glyph_as_png(g.name, "/Users/shornus/titi.png")
 
 	#################
 	# Display updates
