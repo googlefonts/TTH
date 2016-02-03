@@ -294,7 +294,7 @@ class MainPanel(BaseWindowController):
 			extent = fm.computeBitmapVerticalExtentsForSize(tthTool.PPM_Size)
 			tr = fm.textRenderer
 			tr.set_cur_size(tthTool.PPM_Size)
-			tr.save_named_glyph_as_png(g.name, extent, "/Users/shornus/titi.png")
+			tr.save_named_glyph_as_png(g.name, extent, "/Users/shornus/titi")
 
 	#################
 	# Display updates
