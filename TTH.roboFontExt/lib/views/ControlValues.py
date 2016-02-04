@@ -776,6 +776,7 @@ class ControlValuesSheet(object):
 		self.clearZones(sender)
 		self.lock = False
 		fm = tthTool.getFontModel()
+		PSBlues = []
 		PSBluesList = fm.f.info.postscriptBlueValues
 		PSOtherBluesList = fm.f.info.postscriptOtherBlues
 		assert (len(PSBluesList)%2 == 0), "odd number of postscriptBlueValues"
@@ -790,9 +791,11 @@ class ControlValuesSheet(object):
 			if PSOtherBluesList[j] > 0: # swap the sign so we are sure they are treated as bottom zones
 				PSOtherBluesList[j] = - PSOtherBluesList[j]
 				PSOtherBluesList[j+1] = - PSOtherBluesList[j+1]
-		PSBluesList.extend(PSOtherBluesList)
-		while i < len(PSBluesList):
-			a, b = PSBluesList[i], PSBluesList[i+1]
+		PSBlues.extend(PSBluesList)
+		PSBlues.extend(PSOtherBluesList)
+		i = 0
+		while i < len(PSBlues):
+			a, b = PSBlues[i], PSBlues[i+1]
 			mini, maxi = min(a,b), max(a,b)
 			width = abs(a - b)
 			if a > 0:
