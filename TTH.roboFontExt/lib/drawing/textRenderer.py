@@ -298,27 +298,22 @@ def saveAsPNG(cgimg, bottom, advance, extent, path):
 
 	height = extent[0] - extent[1]
 	width  = QZ.CGImageGetWidth(cgimg)
-	bitsPerComponent = QZ.CGImageGetBitsPerComponent(cgimg)
+	#bitsPerComponent = QZ.CGImageGetBitsPerComponent(cgimg)
 	# Build a bitmap context that's the size of the thumbRect
 	port = QZ.CGBitmapContextCreate(None,
 					advance,  # width
 					height, # height
-					bitsPerComponent, # really needs to always be 8
+					8,#bitsPerComponent,
 					4 * advance, # rowbytes
 					rgbCS,
-					#QZ.kCGColorSpaceGenericRGB,
-					#QZ.CGImageGetColorSpace(cgimg),
 					QZ.kCGImageAlphaPremultipliedLast)
-					#QZ.kCGImageAlphaLast)
 					#QZ.kCGImageAlphaNoneSkipLast)
-					#alphaInfo)
 
 	# Draw into the context, this scales the image
 	destRect = QZ.CGRectMake(0, bottom, width, QZ.CGImageGetHeight(cgimg))
 	fullRect = QZ.CGRectMake(0, 0, advance, height)
 	QZ.CGContextSetFillColor(port, [1.0, 1.0, 1.0, 1.0])
 	QZ.CGContextFillRect(port, fullRect)
-	#QZ.CGContextClearRect(port, fullRect)
 	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeDifference)
 	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
 	QZ.CGContextDrawImage(port, destRect, cgimg);
@@ -328,20 +323,15 @@ def saveAsPNG(cgimg, bottom, advance, extent, path):
 	final = QZ.CGBitmapContextCreateImage(port);
 
 	maskCtxt = QZ.CGBitmapContextCreate(None,
-					advance,  # width
-					height, # height
+					advance, height, # width and height
 					8, # really needs to always be 8
-					advance, # rowbytes
-					grayCS, 0)#QZ.kCGImageAlphaOnly)
+					1 * advance, # rowbytes
+					grayCS, 0)
 	QZ.CGContextSetFillColor(maskCtxt, [1.0, 1.0])#, 1.0, 1.0])
 	QZ.CGContextFillRect(maskCtxt, fullRect)
 	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeDifference)
 	QZ.CGContextDrawImage(maskCtxt, fullRect, final);
 	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeNormal)
-	#QZ.CGContextSetFillColor(maskCtxt, [0.0, 1.0])
-	#QZ.CGContextFillRect(maskCtxt, QZ.CGRectMake(0,0,advance/2,height))
-	#QZ.CGContextSetFillColor(maskCtxt, [1.0, 1.0])
-	#QZ.CGContextFillRect(maskCtxt, QZ.CGRectMake(0,0,advance,height/2))
 
 	mask = QZ.CGBitmapContextCreateImage(maskCtxt);
 
