@@ -1,15 +1,17 @@
 
 from objc import allocateBuffer
 from AppKit import *
-import Quartz
+import Quartz as QZ
 from mojo.UI import *
 try:
 	import freetype as FT
 except:
 	print 'ERROR: freetype not installed'
 
-grayCS = Quartz.CGColorSpaceCreateDeviceGray()
-rgbCS = Quartz.CGColorSpaceCreateDeviceRGB()
+grayCS = QZ.CGColorSpaceCreateDeviceGray()
+rgbCS = QZ.CGColorSpaceCreateDeviceRGB()
+
+kUTTypePNG = "public.png"
 
 class TRGlyphData(object):
 	def __init__(self):
@@ -109,8 +111,9 @@ class TextRenderer(object):
 
 		advance = (self.get_advance(index)[0]+32)/64
 		bm = bmg.bitmap
+		left = bmg.left
 		bottom = bmg.top - bm.rows - extent[1]
-		saveAsPNG(bitmap, bottom, advance, extent, path)
+		saveAsPNG(bitmap, left, bottom, advance, extent, path)
 
 	def save_named_glyph_as_png(self, gName, extent, path):
 		self.save_indexed_glyph_as_png(self.face.get_name_index(gName), extent, path)
@@ -204,6 +207,9 @@ class TextRenderer(object):
 			glyphCache.bitmap = result
 		return glyphCache.bitmap
 
+	def isSubPixel(self):
+		return (self.render_mode == FT.FT_RENDER_MODE_LCD)
+
 	def get_char_bitmap(self, char):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
@@ -281,51 +287,80 @@ class TextRenderer(object):
 
 # DRAWING FUNCTIONS
 
-def saveAsPNG(cgimg, bottom, advance, extent, path):
+def saveAsPNG(cgimg, left, bottom, advance, extent, path, debug=False):
 	# There's a weirdness with kCGImageAlphaNone and CGBitmapContextCreate
-	# see Supported Pixel Formats in the Quartz 2D Programming Guide
+	# see Supported Pixel Formats in the QZ 2D Programming Guide
 	# Creating a Bitmap Graphics Context section
 	# only RGB 8 bit images with alpha of kCGImageAlphaNoneSkipFirst, kCGImageAlphaNoneSkipLast, kCGImageAlphaPremultipliedFirst,
 	# and kCGImageAlphaPremultipliedLast, with a few other oddball image kinds are supported
 	# The images on input here are likely to be png or jpeg files
-	#alphaInfo = Quartz.CGImageGetAlphaInfo(cgimg)
-	#if alphaInfo == Quartz.kCGImageAlphaNone:
+	#alphaInfo = QZ.CGImageGetAlphaInfo(cgimg)
+	#if alphaInfo == QZ.kCGImageAlphaNone:
 	#	print 'Alpha None'
-	#	alphaInfo = Quartz.kCGImageAlphaNoneSkipLast
+	#	alphaInfo = QZ.kCGImageAlphaNoneSkipLast
 
 	height = extent[0] - extent[1]
-	width  = Quartz.CGImageGetHeight(cgimg)
-
+	width  = QZ.CGImageGetWidth(cgimg)
+	#bitsPerComponent = QZ.CGImageGetBitsPerComponent(cgimg)
 	# Build a bitmap context that's the size of the thumbRect
-	port = Quartz.CGBitmapContextCreate(None,
+	port = QZ.CGBitmapContextCreate(None,
 					advance,  # width
 					height, # height
-					Quartz.CGImageGetBitsPerComponent(cgimg), # really needs to always be 8
-					4 * width, # rowbytes
+					8,#bitsPerComponent,
+					4 * advance, # rowbytes
 					rgbCS,
-					#Quartz.kCGColorSpaceGenericRGB,
-					#Quartz.CGImageGetColorSpace(cgimg),
-					Quartz.kCGImageAlphaPremultipliedLast)
-					#Quartz.kCGImageAlphaLast)
-					#alphaInfo)
+					QZ.kCGImageAlphaPremultipliedLast)
+					#QZ.kCGImageAlphaNoneSkipLast)
 
 	# Draw into the context, this scales the image
-	destRect = Quartz.CGRectMake(0, bottom, width, Quartz.CGImageGetHeight(cgimg))
-	fullRect = Quartz.CGRectMake(0, 0, advance, height)
-	Quartz.CGContextSetFillColor(port, [1.0, 1.0, 1.0, 1.0])
-	Quartz.CGContextFillRect(port, fullRect)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
-	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
-	Quartz.CGContextDrawImage(port, destRect, cgimg);
+	destRect = QZ.CGRectMake(left, bottom, width, QZ.CGImageGetHeight(cgimg))
+	fullRect = QZ.CGRectMake(0, 0, advance, height)
+	QZ.CGContextSetFillColor(port, [1.0, 1.0, 1.0, 1.0])
+	QZ.CGContextFillRect(port, fullRect)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeDifference)
+	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, destRect, cgimg);
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
 
 	# Get an image from the context
-	final = Quartz.CGBitmapContextCreateImage(port);
+	opaque = QZ.CGBitmapContextCreateImage(port);
 
-	nsbitmaprep = NSBitmapImageRep.alloc().initWithCGImage_(final)
-	data = nsbitmaprep.representationUsingType_properties_(NSPNGFileType, None)
-	data.writeToFile_atomically_(path, False)
+	maskCtxt = QZ.CGBitmapContextCreate(None,
+					advance, height, # width and height
+					8, # really needs to always be 8
+					1 * advance, # rowbytes
+					grayCS, 0)
+	QZ.CGContextSetFillColor(maskCtxt, [1.0, 1.0])#, 1.0, 1.0])
+	QZ.CGContextFillRect(maskCtxt, fullRect)
+	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeDifference)
+	QZ.CGContextDrawImage(maskCtxt, fullRect, opaque);
+	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeNormal)
 
-	#Quartz.CGContextRelease(port) # ok if None
+	mask = QZ.CGBitmapContextCreateImage(maskCtxt);
+
+	masked = QZ.CGImageCreateWithMask(opaque, mask)
+
+	if debug:
+		url = NSURL.fileURLWithPath_(path+'opaque.png')
+		destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
+		QZ.CGImageDestinationAddImage(destination, opaque, None)
+		QZ.CGImageDestinationFinalize(destination)
+
+		url = NSURL.fileURLWithPath_(path+'mask.png')
+		destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
+		QZ.CGImageDestinationAddImage(destination, mask, None)
+		QZ.CGImageDestinationFinalize(destination)
+
+	#QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
+	QZ.CGContextClearRect(port, fullRect)
+	#QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, fullRect, masked);
+	final = QZ.CGBitmapContextCreateImage(port);
+
+	url = NSURL.fileURLWithPath_(path+'.png')
+	destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
+	QZ.CGImageDestinationAddImage(destination, final, None)
+	QZ.CGImageDestinationFinalize(destination)
 
 def makeBitmapMono(bmg):
 	# 'bmg' stands for BitMapGlyph, a data structure from freetype.
@@ -338,38 +373,38 @@ def makeBitmapMono(bmg):
 	for i in range(numBytes):
 		buf[i] = ftBuffer[i]
 
-	#provider = Quartz.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
-	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
+	#provider = QZ.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
+	provider = QZ.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
-	cgimg = Quartz.CGImageCreate(
+	cgimg = QZ.CGImageCreate(
 			bm.width,
 			bm.rows,
 			1, # bit per component
 			1, # size_t bitsPerPixel,
 			bm.pitch, # size_t bytesPerRow,
 			grayCS, # CGColorSpaceRef colorspace,
-			Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
+			QZ.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
 			None, # const CGFloat decode[],
 			False, # bool shouldInterpolate,
-			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
+			QZ.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
 	return cgimg
 
 def drawBitmapMono(bmg, scale, advance, height, alpha):
 	bm = bmg.bitmap
 	cgimg = makeBitmapMono(bmg)
-	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
+	destRect = QZ.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
 
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1:
-		Quartz.CGContextSetAlpha(port, alpha)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
-	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
-	Quartz.CGContextDrawImage(port, destRect, cgimg)
+		QZ.CGContextSetAlpha(port, alpha)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeDifference)
+	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, destRect, cgimg)
 	if alpha < 1:
-		Quartz.CGContextSetAlpha(port, 1)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
+		QZ.CGContextSetAlpha(port, 1)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
 
 def makeBitmapGray(bmg):
 	bm = bmg.bitmap
@@ -380,36 +415,36 @@ def makeBitmapGray(bmg):
 	ftBuffer = bm._FT_Bitmap.buffer
 	for i in range(numBytes):
 		buf[i] = ftBuffer[i]
-	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-	cgimg = Quartz.CGImageCreate(
+	provider = QZ.CGDataProviderCreateWithData(None, buf, numBytes, None)
+	cgimg = QZ.CGImageCreate(
 			bm.width,
 			bm.rows,
 			8, # bit per component
 			8, # size_t bitsPerPixel,
 			bm.pitch, # size_t bytesPerRow,
 			grayCS, # CGColorSpaceRef colorspace,
-			Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
+			QZ.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
 			None, # const CGFloat decode[],
 			False, # bool shouldInterpolate,
-			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
+			QZ.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
 	return cgimg
 
 def drawBitmapGray(bmg, scale, advance, height, alpha):
 	bm = bmg.bitmap
 	cgimg = makeBitmapGray(bmg)
-	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
+	destRect = QZ.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, bm.width*scale, bm.rows*scale)
 
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1.0:
-		Quartz.CGContextSetAlpha(port, alpha)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
-	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
-	Quartz.CGContextDrawImage(port, destRect, cgimg)
+		QZ.CGContextSetAlpha(port, alpha)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeDifference)
+	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, destRect, cgimg)
 	if alpha < 1.0:
-		Quartz.CGContextSetAlpha(port, 1.0)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
+		QZ.CGContextSetAlpha(port, 1.0)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
 
 def makeDesaturatedBitmapSubpixel(bmg):
 	bm = bmg.bitmap
@@ -429,33 +464,33 @@ def makeDesaturatedBitmapSubpixel(bmg):
 			buf[pos+3] = 0
 			pos += 4
 			source += 3
-	provider = Quartz.CGDataProviderCreateWithData(None, buf, numBytes, None)
-	cgimg = Quartz.CGImageCreate(
+	provider = QZ.CGDataProviderCreateWithData(None, buf, numBytes, None)
+	cgimg = QZ.CGImageCreate(
 			pixelWidth,
 			bm.rows,
 			8, # bit per component
 			32, # size_t bitsPerPixel,
 			4 * pixelWidth, # size_t bytesPerRow,
 			rgbCS, # CGColorSpaceRef colorspace,
-			Quartz.kCGImageAlphaNone, # CGBitmapInfo bitmapInfo,
-			#Quartz.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
+			QZ.kCGImageAlphaNone, # CGBitmapInfo bitmapInfo,
+			#QZ.kCGBitmapByteOrderDefault, # CGBitmapInfo bitmapInfo,
 			provider, # CGDataProviderRef provider,
 			None, # const CGFloat decode[],
 			False, # bool shouldInterpolate,
-			Quartz.kCGRenderingIntentDefault # CGColorRenderingIntent intent
+			QZ.kCGRenderingIntentDefault # CGColorRenderingIntent intent
 			)
 	return cgimg
 
 def drawBitmapSubPixelColor((bmg, cgimg), scale, advance, height, alpha):
 	bm = bmg.bitmap
 	pixelWidth = int(bm.width/3)
-	destRect = Quartz.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, pixelWidth*scale, bm.rows*scale)
+	destRect = QZ.CGRectMake(bmg.left*scale + advance, (bmg.top-bm.rows)*scale + height, pixelWidth*scale, bm.rows*scale)
 	port = NSGraphicsContext.currentContext().graphicsPort()
 	if alpha < 1:
-		Quartz.CGContextSetAlpha(port, alpha)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeDifference)
-	Quartz.CGContextSetInterpolationQuality(port, Quartz.kCGInterpolationNone)
-	Quartz.CGContextDrawImage(port, destRect, cgimg)
-	Quartz.CGContextSetBlendMode(port, Quartz.kCGBlendModeNormal)
+		QZ.CGContextSetAlpha(port, alpha)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeDifference)
+	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, destRect, cgimg)
+	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
 	if alpha < 1:
-		Quartz.CGContextSetAlpha(port, 1)
+		QZ.CGContextSetAlpha(port, 1)
