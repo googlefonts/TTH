@@ -69,7 +69,10 @@ def getAscentAndDescentForSize(fm, tr, size):
 	yMin = +10000
 	yMax = -10000
 	for g in fm.f:
-		bmg = tr.get_name_bitmap(g.name)
+		if tr.isSubPixel():
+			bmg, useless = tr.get_name_bitmap(g.name)
+		else:
+			bmg, useless = tr.get_name_bitmap(g.name), None
 		hi = bmg.top
 		lo = hi - bmg.bitmap.rows
 		if hi > yMax: yMax = hi

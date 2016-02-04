@@ -2,7 +2,6 @@
 from objc import allocateBuffer
 from AppKit import *
 import Quartz as QZ
-from Cocoa import *
 from mojo.UI import *
 try:
 	import freetype as FT
@@ -112,8 +111,9 @@ class TextRenderer(object):
 
 		advance = (self.get_advance(index)[0]+32)/64
 		bm = bmg.bitmap
+		left = bmg.left
 		bottom = bmg.top - bm.rows - extent[1]
-		saveAsPNG(bitmap, bottom, advance, extent, path)
+		saveAsPNG(bitmap, left, bottom, advance, extent, path)
 
 	def save_named_glyph_as_png(self, gName, extent, path):
 		self.save_indexed_glyph_as_png(self.face.get_name_index(gName), extent, path)
@@ -207,6 +207,9 @@ class TextRenderer(object):
 			glyphCache.bitmap = result
 		return glyphCache.bitmap
 
+	def isSubPixel(self):
+		return (self.render_mode == FT.FT_RENDER_MODE_LCD)
+
 	def get_char_bitmap(self, char):
 		# convert unicode-char to glyph-index and then call get_glyph_bitmap
 		return self.get_glyph_bitmap(self.face.get_char_index(char))
@@ -284,7 +287,7 @@ class TextRenderer(object):
 
 # DRAWING FUNCTIONS
 
-def saveAsPNG(cgimg, bottom, advance, extent, path):
+def saveAsPNG(cgimg, left, bottom, advance, extent, path, debug=False):
 	# There's a weirdness with kCGImageAlphaNone and CGBitmapContextCreate
 	# see Supported Pixel Formats in the QZ 2D Programming Guide
 	# Creating a Bitmap Graphics Context section
@@ -310,7 +313,7 @@ def saveAsPNG(cgimg, bottom, advance, extent, path):
 					#QZ.kCGImageAlphaNoneSkipLast)
 
 	# Draw into the context, this scales the image
-	destRect = QZ.CGRectMake(0, bottom, width, QZ.CGImageGetHeight(cgimg))
+	destRect = QZ.CGRectMake(left, bottom, width, QZ.CGImageGetHeight(cgimg))
 	fullRect = QZ.CGRectMake(0, 0, advance, height)
 	QZ.CGContextSetFillColor(port, [1.0, 1.0, 1.0, 1.0])
 	QZ.CGContextFillRect(port, fullRect)
@@ -320,7 +323,7 @@ def saveAsPNG(cgimg, bottom, advance, extent, path):
 	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
 
 	# Get an image from the context
-	final = QZ.CGBitmapContextCreateImage(port);
+	opaque = QZ.CGBitmapContextCreateImage(port);
 
 	maskCtxt = QZ.CGBitmapContextCreate(None,
 					advance, height, # width and height
@@ -330,33 +333,33 @@ def saveAsPNG(cgimg, bottom, advance, extent, path):
 	QZ.CGContextSetFillColor(maskCtxt, [1.0, 1.0])#, 1.0, 1.0])
 	QZ.CGContextFillRect(maskCtxt, fullRect)
 	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeDifference)
-	QZ.CGContextDrawImage(maskCtxt, fullRect, final);
+	QZ.CGContextDrawImage(maskCtxt, fullRect, opaque);
 	QZ.CGContextSetBlendMode(maskCtxt, QZ.kCGBlendModeNormal)
 
 	mask = QZ.CGBitmapContextCreateImage(maskCtxt);
 
-	masked = QZ.CGImageCreateWithMask(final, mask)
+	masked = QZ.CGImageCreateWithMask(opaque, mask)
 
-	url = NSURL.fileURLWithPath_(path+'opaque.png')
+	if debug:
+		url = NSURL.fileURLWithPath_(path+'opaque.png')
+		destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
+		QZ.CGImageDestinationAddImage(destination, opaque, None)
+		QZ.CGImageDestinationFinalize(destination)
+
+		url = NSURL.fileURLWithPath_(path+'mask.png')
+		destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
+		QZ.CGImageDestinationAddImage(destination, mask, None)
+		QZ.CGImageDestinationFinalize(destination)
+
+	#QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
+	QZ.CGContextClearRect(port, fullRect)
+	#QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
+	QZ.CGContextDrawImage(port, fullRect, masked);
+	final = QZ.CGBitmapContextCreateImage(port);
+
+	url = NSURL.fileURLWithPath_(path+'.png')
 	destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
 	QZ.CGImageDestinationAddImage(destination, final, None)
-	QZ.CGImageDestinationFinalize(destination)
-
-	url = NSURL.fileURLWithPath_(path+'mask.png')
-	destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
-	QZ.CGImageDestinationAddImage(destination, mask, None)
-	QZ.CGImageDestinationFinalize(destination)
-
-
-	QZ.CGContextSetBlendMode(port, QZ.kCGBlendModeNormal)
-	QZ.CGContextClearRect(port, fullRect)
-	QZ.CGContextSetInterpolationQuality(port, QZ.kCGInterpolationNone)
-	QZ.CGContextDrawImage(port, fullRect, masked);
-	masked2 = QZ.CGBitmapContextCreateImage(port);
-
-	url = NSURL.fileURLWithPath_(path+'final.png')
-	destination = QZ.CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, None)
-	QZ.CGImageDestinationAddImage(destination, masked2, None)
 	QZ.CGImageDestinationFinalize(destination)
 
 def makeBitmapMono(bmg):

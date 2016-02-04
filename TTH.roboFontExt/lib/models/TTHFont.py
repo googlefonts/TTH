@@ -656,9 +656,22 @@ When do we regenerate a partial font?
 	def computeBitmapVerticalExtentsForSize(self, size):
 		#tables.purgeGeneratedTables(self)
 		self.generateFullTempFont()
-		tr = textRenderer.TextRenderer(self.tempFullFontPath, 'Monochrome', cacheContours=False)
+		tr = textRenderer.TextRenderer(self.tempFullFontPath, self.bitmapPreviewMode, cacheContours=False)
 		extent = tables.getAscentAndDescentForSize(self, tr, size)
 		print "Extent:", extent
-		return extent
+		return extent, tr
+
+	def dumpPNGs(self):
+		UFOPath = self.f.fileName
+		path, ufo = os.path.split(UFOPath)
+		fontName = os.path.splitext(ufo)[0]
+		pngDir = os.path.join(path,fontName+"-PNG-"+self.bitmapPreviewMode+'-'+str(tthTool.PPM_Size))
+		if not os.path.isdir(pngDir): os.mkdir(pngDir)
+		extent, tr = self.computeBitmapVerticalExtentsForSize(tthTool.PPM_Size)
+		tr.set_cur_size(tthTool.PPM_Size)
+		for g in self.f:
+			if not g.unicode: continue
+			tr.save_named_glyph_as_png(g.name, extent, os.path.join(pngDir,hex(g.unicode)))
+		print pngDir
 
 if tthTool._printLoadings: print "TTHFont, ",
