@@ -281,7 +281,6 @@ class TTHFont(object):
 	def renameZonesInGlyphs(self, nameChanger, progress):
 		TTHGlyph.silent = True
 		counter = 0
-		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
 			gm = self.glyphModelForGlyph(g, compile=False)
@@ -399,7 +398,6 @@ class TTHFont(object):
 	def renameStemsInGlyphs(self, nameChanger, progress):
 		TTHGlyph.silent = True
 		counter = 0
-		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
 			gm = self.glyphModelForGlyph(g, compile=False)
@@ -426,7 +424,6 @@ class TTHFont(object):
 	def clearAllGlyphs(self, progress=None):
 		TTHGlyph.silent = True
 		counter = 0
-		maxCount = len(self.f)
 		for g in self.f:
 			gm = self.glyphModelForGlyph(g, compile=False)
 			gm.clearCommands(True, True)
@@ -488,7 +485,6 @@ When do we regenerate a partial font?
 	def compileAllGlyphs(self, progress=None):
 		TTHGlyph.silent = True
 		counter = 0
-		maxCount = len(self.f)
 		for g in self.f:
 			hasG = self.hasGlyphModelForGlyph(g)
 			self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
@@ -661,7 +657,7 @@ When do we regenerate a partial font?
 		print "Extent:", extent
 		return extent, tr
 
-	def dumpPNGs(self):
+	def dumpPNGs(self, progress=None):
 		UFOPath = self.f.fileName
 		path, ufo = os.path.split(UFOPath)
 		fontName = os.path.splitext(ufo)[0]
@@ -669,9 +665,22 @@ When do we regenerate a partial font?
 		if not os.path.isdir(pngDir): os.mkdir(pngDir)
 		extent, tr = self.computeBitmapVerticalExtentsForSize(tthTool.PPM_Size)
 		tr.set_cur_size(tthTool.PPM_Size)
+		counter = 0
 		for g in self.f:
-			if not g.unicode: continue
-			tr.save_named_glyph_as_png(g.name, extent, os.path.join(pngDir,hex(g.unicode)))
-		print pngDir
+			if g.unicode:
+				tr.save_named_glyph_as_png(g.name, extent, os.path.join(pngDir,hex(g.unicode)))
+			counter += 1
+			if (progress != None) and counter == 30:
+				progress.increment(30)
+				counter = 0
+		if progress != None:
+			progress.increment(counter)
+		return pngDir
+
+	def getFullBitmapForGlyph(self, g):
+		tr = textRenderer.TextRenderer(self.tempPartialFontPath, 'Monochrome')
+		tr.set_cur_size(self.UPM)
+		bmp = tr.get_name_bitmap(g.name)
+		HF.distanceTransform(bmp.bitmap)
 
 if tthTool._printLoadings: print "TTHFont, ",

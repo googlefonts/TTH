@@ -373,7 +373,6 @@ def makeBitmapMono(bmg):
 	for i in range(numBytes):
 		buf[i] = ftBuffer[i]
 
-	#provider = QZ.CGDataProviderCreateWithData(None, bm._FT_Bitmap.buffer, numBytes, None)
 	provider = QZ.CGDataProviderCreateWithData(None, buf, numBytes, None)
 
 	cgimg = QZ.CGImageCreate(

@@ -181,7 +181,7 @@ class MainPanel(BaseWindowController):
 			NSMenuItem.separatorItem(),
 			u"Preferences…", # 13
 			NSMenuItem.separatorItem(),
-			u"PNG…", # 15
+			u"DT…", # 15
 			]
 			)
 
@@ -291,7 +291,7 @@ class MainPanel(BaseWindowController):
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
 		elif gearOption == 15:
 			g, fm = tthTool.getRGAndFontModel()
-			fm.dumpPNGs()
+			fm.getFullBitmapForGlyph(g)
 
 	#################
 	# Display updates

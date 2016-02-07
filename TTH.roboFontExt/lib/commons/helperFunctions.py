@@ -1,5 +1,12 @@
 import math, numpy
 
+def distanceTransform(bmp):
+	width = bmp.width
+	height = bmp.rows
+	pitch = bmp.pitch # bytes per row
+	boolArray = numpy.array(bmp.buffer, dtype=bool).reshape((height, pitch*8))
+	print boolArray
+
 def commandHasAttrib(cmd, atr):
 	return (atr in cmd.attrib)
 
