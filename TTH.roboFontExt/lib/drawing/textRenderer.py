@@ -301,15 +301,12 @@ def saveAsPNG(cgimg, left, bottom, advance, extent, path, debug=False):
 
 	height = extent[0] - extent[1]
 	width  = QZ.CGImageGetWidth(cgimg)
-	if path[-4:] == 'fef5':
-		print "left:{}, bmwidth:{}, advance:{}".format(left, width, advance)
+
 	if left < 0:
 		advance -= left
 		left = 0
 	if left + width > advance:
 		advance = left + width
-	if path[-4:] == 'fef5':
-		print "left:{}, bmwidth:{}, advance:{}".format(left, width, advance)
 
 	#bitsPerComponent = QZ.CGImageGetBitsPerComponent(cgimg)
 	# Build a bitmap context that's the size of the thumbRect

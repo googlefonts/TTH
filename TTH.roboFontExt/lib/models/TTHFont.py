@@ -654,7 +654,7 @@ When do we regenerate a partial font?
 		self.generateFullTempFont()
 		tr = textRenderer.TextRenderer(self.tempFullFontPath, self.bitmapPreviewMode, cacheContours=False)
 		extent = tables.getAscentAndDescentForSize(self, tr, size)
-		print "Extent:", extent
+		#print "Extent:", extent
 		return extent, tr
 
 	def dumpPNGs(self, progress=None):
