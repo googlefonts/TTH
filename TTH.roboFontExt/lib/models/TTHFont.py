@@ -584,6 +584,8 @@ When do we regenerate a partial font?
 			tempFont.info.familyName = info.familyName
 			tempFont.info.styleName  = info.styleName
 			tempFont.glyphOrder = self.f.glyphOrder
+			tempFont.info.openTypeOS2WinAscent = self.f.info.openTypeOS2WinAscent
+			tempFont.info.openTypeOS2WinDescent = self.f.info.openTypeOS2WinDescent
 			lib = self.f.lib
 			for key in [tables.k_CVT_key,
 					tables.k_prep_key,
