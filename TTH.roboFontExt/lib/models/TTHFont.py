@@ -109,7 +109,7 @@ class TTHFont(object):
 
 	@property # the minimum and maximum width of horizontal/vertical stems
 	def stemSizeBounds(self):
-		return self.getSPVal('stemSizeBounds', ((20, 200), (20,200)))
+		return self.getSPVal('stemSizeBounds', ((20, 500), (20,500)))
 	@stemSizeBounds.setter
 	def stemSizeBounds(self, b):
 		self.getSPLib()['stemSizeBounds'] = b

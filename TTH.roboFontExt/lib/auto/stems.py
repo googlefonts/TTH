@@ -38,7 +38,7 @@ def autoStems(fm, progressBar):
 	return hStems, vStems
 
 def clusterAndGenStemDicts(upm, stemsValues, isHorizontal):
-	if not stemsValues: return []
+	if not stemsValues: return {}
 	f = math.log(1.0 + 20.0 / 100.0)
 	logs = [math.log(v) for v in stemsValues]
 	for k in xrange(1,20):
