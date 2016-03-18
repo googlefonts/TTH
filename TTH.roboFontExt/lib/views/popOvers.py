@@ -547,6 +547,9 @@ class DoublePopover(TTHCommandPopover):
 		self.setupRoundDistanceUI()
 		self.setupStemTypeUI()
 
+		noRound = not HF.commandHasAttrib(self.cmd, 'round')
+		self.popover.StemTypePopUpButton.enable(noRound)
+
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-35, 'point1', 'Move Point 1', ll, lw)
 		self.setupPointMoverUI(-20, 'point2', 'Move Point 2', ll, lw)
