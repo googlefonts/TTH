@@ -73,7 +73,7 @@ class TTHGlyph(object):
 		# python-convention, indicates `please don't use me outside of the
 		# class methods'.
 		self._g = rfGlyph
-		self._contours = None
+		self._contours = None # FIXME: remove this member variable which is useless
 		self._h_stems  = None # a list of pairs of CSIs
 		self._v_stems  = None
 		self._sortedHintingCommands = None
