@@ -45,8 +45,11 @@ class SingleLinkTool(TTHCommandTool):
 		self.setupCommandPointFromLoc('point1',  cmd, self.startPoint)
 		self.setupCommandPointFromLoc('point2',  cmd, targetLoc)
 		shiftPressed = getActiveEventTool().getModifiers()['shiftDown']
+		optionPressed = getActiveEventTool().getModifiers()['optionDown']
 		if self.roundDistance or shiftPressed:
 			cmd.set('round', 'true')
+		elif optionPressed:
+			stem = None
 		else:
 			if stem == 'None': stem = None
 			if stem == 'Guess': stem = fm.guessStem(self.startPoint.rfPoint, targetLoc.rfPoint)
