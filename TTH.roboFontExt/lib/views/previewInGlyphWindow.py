@@ -157,6 +157,9 @@ class PreviewInGlyphWindow(NSView):
 		else:
 			gm, fm = tthTool.getGlyphAndFontModel()
 			pGlyph = gm._pg
+			if pGlyph == None:
+				parametric.processParametric(fm, gm)
+				pGlyph = gm._pg
 			pen = CocoaPen(pGlyph.getParent())
 			pGlyph.draw(pen)
 			translate(frameOriginX + margin, frameOriginY + margin - yDesc*.2)
