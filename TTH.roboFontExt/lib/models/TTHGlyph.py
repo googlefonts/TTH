@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-import copy
 from robofab.plistlib import Data
 from robofab.objects.objectsRF import RPoint
 
@@ -76,8 +75,7 @@ class TTHGlyph(object):
 		# python-convention, indicates `please don't use me outside of the
 		# class methods'.
 		self._g = rfGlyph
-		self._pg = self._g.copy()
-		self._fm = fm
+		self._pg = None
 		self._contours = None # FIXME: remove this member variable which is useless
 		self._h_stems  = None # a list of pairs of CSIs
 		self._v_stems  = None
@@ -505,7 +503,7 @@ class TTHGlyph(object):
 
 	def updateGlyphProgram(self, fm):
 		self.compile(fm)
-		self._pg = parametric.processParametric(fm, self)
+		parametric.processParametric(fm, self)
 		tthTool.parametricPreviewPanel.updateDisplay()
 		tthTool.hintingProgramHasChanged(fm)
 

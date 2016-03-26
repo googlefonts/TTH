@@ -182,6 +182,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		if gm == None: return
 		
 		pGlyph = gm._pg
+		if pGlyph == None:
+			parametric.processParametric(fm, gm)
+			pGlyph = gm._pg
 		save()
 		if outline:
 			stroke(0.2, .8, .8, 1)

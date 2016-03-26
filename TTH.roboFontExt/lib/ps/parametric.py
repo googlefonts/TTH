@@ -172,7 +172,7 @@ def processInterpolate(commandsList, pointNameToIndex, regs):
 def makePointRFNameToIndexDict(fm, gm):
 	result = {}
 	index = 0
-	for contour in gm._pg:
+	for contour in gm.RFGlyph:
 		for point in contour.points:
 			result[gm.hintingNameForPoint(point)] = index
 			index += 1
@@ -183,9 +183,9 @@ def calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=False):
 	csi = gm.csiOfPointName(cmd['point'])
 	csi1 = gm.csiOfPointName(cmd['point1'])
 	csi2 = gm.csiOfPointName(cmd['point2'])
-	p = geom.makePoint(gm.pPointOfCSI(csi))
-	p1 = geom.makePoint(gm.pPointOfCSI(csi1))
-	p2 = geom.makePoint(gm.pPointOfCSI(csi2))
+	p = geom.makePoint(gm.pointOfCSI(csi))
+	p1 = geom.makePoint(gm.pointOfCSI(csi1))
+	p2 = geom.makePoint(gm.pointOfCSI(csi2))
 
 	pm1 = movedPoints[csi1[0]].get(csi1) # if not found, returns None
 	if pm1 is None: # never touched before
@@ -215,7 +215,7 @@ def calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=False):
 
 def calculateAlignMove(fm, gm, cmd, movedPoints, horizontal=False):
 	csi = gm.csiOfPointName(cmd['point'])
-	p = geom.makePoint(gm.pPointOfCSI(csi))
+	p = geom.makePoint(gm.pointOfCSI(csi))
 	pm = movedPoints[csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
 		movedPoints[csi[0]][csi] = PointTouched(p, zero, p, csi)
@@ -234,7 +234,7 @@ def calculateAlignZoneMove(fm, gm, cmd, movedPoints):
 		return
 
 	csi = gm.csiOfPointName(cmd['point'])
-	p = geom.makePoint(gm.pPointOfCSI(csi))
+	p = geom.makePoint(gm.pointOfCSI(csi))
 
 	pm = movedPoints[csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
@@ -270,20 +270,20 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 			p1 = geom.Point(0, 0)
 		elif cmd['point1'] == 'rsb':
 			csi1 = None
-			p1 = geom.Point(gm._pg.width, 0)
+			p1 = geom.Point(gm.RFGlyph.width, 0)
 		else:
 			csi1 = gm.csiOfPointName(cmd['point1'])
-			p1 = geom.makePoint(gm.pPointOfCSI(csi1))
+			p1 = geom.makePoint(gm.pointOfCSI(csi1))
 
 		if cmd['point2'] == 'lsb':
 			csi2 = None
 			p2 = geom.Point(0, 0)
 		elif cmd['point2'] == 'rsb':
 			csi2 = None
-			p2 = geom.Point(gm._pg.width, 0)
+			p2 = geom.Point(gm.RFGlyph.width, 0)
 		else:
 			csi2 = gm.csiOfPointName(cmd['point2'])
-			p2 = geom.makePoint(gm.pPointOfCSI(csi2))
+			p2 = geom.makePoint(gm.pointOfCSI(csi2))
 
 		axis = 0
 		if horizontal: axis = 1
@@ -313,20 +313,20 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 			p1 = geom.Point(0, 0)
 		elif cmd['point1'] == 'rsb':
 			csi1 = None
-			p1 = geom.Point(gm._pg.width, 0)
+			p1 = geom.Point(gm.RFGlyph.width, 0)
 		else:
 			csi1 = gm.csiOfPointName(cmd['point1'])
-			p1 = geom.makePoint(gm.pPointOfCSI(csi1))
+			p1 = geom.makePoint(gm.pointOfCSI(csi1))
 
 		if cmd['point2'] == 'lsb':
 			csi2 = None
 			p2 = geom.Point(0, 0)
 		elif cmd['point2'] == 'rsb':
 			csi2 = None
-			p2 = geom.Point(gm._pg.width, 0)
+			p2 = geom.Point(gm.RFGlyph.width, 0)
 		else:
 			csi2 = gm.csiOfPointName(cmd['point2'])
-			p2 = geom.makePoint(gm.pPointOfCSI(csi2))
+			p2 = geom.makePoint(gm.pointOfCSI(csi2))
 
 		p1Move = zero
 		p2Move = zero
@@ -377,7 +377,7 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 	axis = 0
 	if horizontal:
 		axis = 1
-	for cidx, c in enumerate(gm._pg):
+	for cidx, c in enumerate(gm.RFGlyph):
 		touchedInContour = movedPoints[cidx].values()
 		touchedInContour.sort(key=lambda pt:pt.csi)
 		for pt in touchedInContour:
@@ -392,7 +392,7 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 					csi = cidx, sidx, idx
 					if csi == touchedInContour[0].csi:
 						continue
-					p.move(trans)
+					gm.pPointOfCSI(csi).move(trans)
 			continue
 		# nbTouched >= 2					
 		for k in range(nbTouched):
@@ -435,13 +435,14 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 				csi = gm.increaseSI(csi, True)
 
 def processParametric(fm, gm):
-	g = gm._pg
+	g = gm.RFGlyph
+	gm._pg = g.copy()
 	
 	if g == None:
 		return
 	sortedCommands = gm.sortedHintingCommands
 	if sortedCommands == []:
-		return g
+		return
 
 	regs = Registers()
 
@@ -466,10 +467,8 @@ def processParametric(fm, gm):
 	applyParametric(fm, gm, regs.x_instructions, regs.y_instructions)
 
 def applyParametric(fm, gm, vCode, hCode):
-	g = gm._pg
-
 	for horiz,codes in ((True, hCode), (False, vCode)):
-		movedPoints = [{} for c in g] # an empty list for each contour
+		movedPoints = [{} for c in gm.RFGlyph] # an empty list for each contour
 		for cmd in codes:
 			if cmd['code'] in ['alignv', 'alignh']:
 				calculateAlignMove(fm, gm, cmd, movedPoints, horizontal=horiz)
@@ -482,7 +481,6 @@ def applyParametric(fm, gm, vCode, hCode):
 					calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=horiz, double=False)
 			elif cmd['code'] in ['interpolatev', 'interpolateh']:
 				calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=horiz)
-
 
 		interpolate(fm, gm, movedPoints, horizontal=horiz)
 
