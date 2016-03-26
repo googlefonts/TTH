@@ -129,8 +129,8 @@ class TTHTool(object):
 		return fm
 
 	def fontModelForFont(self, font):
-		if not helperFunctions.fontIsQuadratic(font):
-			return None
+		# if not helperFunctions.fontIsQuadratic(font):
+		# 	return None
 		key = font.fileName
 		if key not in self._fontModels:
 			model = TTHFont.TTHFont(font)

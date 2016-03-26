@@ -90,16 +90,20 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF when the tool button is pressed'''
 		f = CurrentFont()
 		if (f is None) or (not helperFunctions.fontIsQuadratic(f)):
-		 	FabMessage("WARNING:\nThis is not a Quadratic UFO,\nyou must convert it before.")
+		 	#FabMessage("This is not a Quadratic UFO,\nyou must convert it before.")
+		 	# save the original curve drawing mode
+			self.originalCurveDrawingPref = getDefault('drawingSegmentType')
+			# and set cubic mode
+			if self.originalCurveDrawingPref != 'curve':
+				setDefault('drawingSegmentType', 'curve')
 		else:
 			# save the original curve drawing mode
 			self.originalCurveDrawingPref = getDefault('drawingSegmentType')
 			# and set quadratic mode
 			if self.originalCurveDrawingPref != 'qcurve':
 				setDefault('drawingSegmentType', 'qcurve')
-
-		self.sizeHasChanged()
-		tthTool.becomeActive()
+			self.sizeHasChanged()
+			tthTool.becomeActive()
 
 	def becomeInactive(self):
 		'''This function is called by RF when another tool button is
@@ -107,8 +111,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		tthTool.becomeInactive()
 
 		# restore the original curve drawing mode
-		if self.originalCurveDrawingPref != 'qcurve':
-			setDefault('drawingSegmentType', self.originalCurveDrawingPref)
+		setDefault('drawingSegmentType', self.originalCurveDrawingPref)
 
 	def viewDidChangeGlyph(self):
 		'''This function is called by RF when the Glyph View shows another
