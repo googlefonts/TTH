@@ -1,7 +1,7 @@
 #coding=utf-8
 from defconAppKit.windows.baseWindow import BaseWindowController
 from mojo.extensions import getExtensionDefault, setExtensionDefault
-from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox, ImageButton
+from vanilla import Box, Button, CheckBox, Group, EditText, FloatingWindow, PopUpButton, ProgressBar, TextBox, ImageButton, ComboBox
 from mojo.roboFont import CurrentGlyph, CurrentFont, AllFonts
 from AppKit import NSImage, NSImageNameRefreshTemplate
 from models.TTHTool import uniqueInstance as tthTool, DefaultKeyStub
@@ -16,13 +16,18 @@ def displayName(f):
 class TransferPanel(BaseWindowController):
 	def __init__(self):
 		super(TransferPanel, self).__init__()
-		panelSize = 320, 170
+		panelSize = 320, 260
 		ps = panelSize[0], panelSize[1]
 		win = FloatingWindow(ps, "Auto-Match", minSize=panelSize, maxSize=panelSize)
 		self.fontsNames = [displayName(f) for f in AllFonts()]
 		self.fontsNames.sort()
+		self.sGlyphsNames = []
+		self.tGlyphsNames = []
 
-		win.boxFonts = Box((10, 10, -10, 80), title='Fonts')
+		td = getExtensionDefault(defaultKeyDoTransferDelta, fallback=False)
+		win.transferDeltaCheckBox = CheckBox((10, 10, -10,20), 'Also transfer delta commands', None, td, sizeStyle="small")
+
+		win.boxFonts = Box((10, 30, -10, 80), title='Fonts')
 
 		imgRefresh = NSImage.imageNamed_(NSImageNameRefreshTemplate)
 		imgRefresh.setSize_((10, 13))
@@ -36,13 +41,28 @@ class TransferPanel(BaseWindowController):
 		win.boxFonts.tgtFontsLabel = TextBox((10, top+2, 85, 20), "Target: ", sizeStyle="small")
 		win.boxFonts.tgtFontsPopup = PopUpButton((95, top, -10, 20), self.fontsNames, sizeStyle="small", callback=self.updateUI)
 
+		top = 120
+		left = -190
+		win.transferGlyphButton = Button((left, top, 110, 20), "Selected Glyphs", callback=self.transferGlyphs, sizeStyle="small")
+		left += 120
+		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
+
 		# top = 70
 		# win.glyphLabel = TextBox((10,top+4,85,22), 'Glyph Name:', sizeStyle="small", alignment='left')
 		# win.glyphName  = EditText((95,top,-10,22), text=gName, continuous=False, sizeStyle="small", callback=self.checkGlyphName)
 
-		top = 105
-		td = getExtensionDefault(defaultKeyDoTransferDelta, fallback=False)
-		win.transferDeltaCheckBox = CheckBox((10, top, -10,20), 'Also transfer delta commands', None, td, sizeStyle="small")
+
+		win.boxGlyphs = Box((10, 140, -10, 80), title='Glyphs')
+		top = 10
+		win.boxGlyphs.srcGlyphsLabel = TextBox((10, top+2, 85, 20), "Source: ", sizeStyle="small")
+		win.boxGlyphs.srcGlyphsComboBox = ComboBox((95, top, -10, 20), self.sGlyphsNames, sizeStyle="small")
+
+		top = 30
+		win.boxGlyphs.tgtGlyphsLabel = TextBox((10, top+2, 85, 20), "Target: ", sizeStyle="small")
+		win.boxGlyphs.tgtGlyphsComboBox = ComboBox((95, top, -10, 20), self.tGlyphsNames, sizeStyle="small")
+
+		top = 210
+		
 
 		top = -50
 		win.progressBar = ProgressBar((10,top,-10,20))
@@ -50,10 +70,8 @@ class TransferPanel(BaseWindowController):
 
 		top = -30
 		win.closeButton = Button((10, top, 70, 20), "Close", callback=self.close, sizeStyle="small")
-		left = -190
-		win.transferGlyphButton = Button((left, top, 110, 20), "Selected Glyphs", callback=self.transferGlyphs, sizeStyle="small")
-		left += 120
-		win.transferFontButton = Button((left, top, 60, 20), "Font", callback=self.transferFont, sizeStyle="small")
+		
+		win.transferBetweenGlyphButton = Button((-160, top, 150, 20), "Transfer Between Glyphs", callback=self.transferBetweenGlyph, sizeStyle="small")
 
 		self.window = win
 
@@ -73,8 +91,14 @@ class TransferPanel(BaseWindowController):
 	def updateUI(self, sender):
 		sfm, tfm = self.getFontModels()
 		diffFont = (not (sfm is tfm)) and (sfm != None)
+		self.sGlyphsNames = sorted([g.name for g in sfm.f])
+		self.tGlyphsNames = sorted([g.name for g in tfm.f])
+		self.window.boxGlyphs.srcGlyphsComboBox.setItems(self.sGlyphsNames)
+		self.window.boxGlyphs.tgtGlyphsComboBox.setItems(self.tGlyphsNames)
+		# diffGlyph = 
 		self.window.transferGlyphButton.enable(diffFont)
 		self.window.transferFontButton.enable(diffFont)
+		# self.window.transferBetweenGlyphButton.enable(diffGlyph)
 
 	def updatePopUps(self):
 		self.window.boxFonts.srcFontsPopup.setItems(self.fontsNames)
@@ -93,6 +117,12 @@ class TransferPanel(BaseWindowController):
 		sfm = self.getFontModelForName(sfpsname)
 		tfm = self.getFontModelForName(tfpsname)
 		return sfm, tfm
+
+	def getGlyphModelsForNames(self, sgName, tgName):
+		sfm, tfm = self.getFontModels()
+		sg = sfm.f[sgName]
+		tg = tfm.f[tgName]
+		
 
 	def transferGlyphs(self, sender):
 		sfm, tfm = self.getFontModels()
@@ -119,6 +149,21 @@ class TransferPanel(BaseWindowController):
 		self.window.progressBar.show(0)
 		self.window.progressBar.set(0)
 		tthTool.hintingProgramHasChanged(tfm)
+
+	def transferBetweenGlyph(self, sender):
+		sfm, tfm = self.getFontModels()
+		sgName = self.window.boxGlyphs.srcGlyphsComboBox.get()
+		sg = None
+		tg = None
+		if sgName in sfm.f:
+			sg = sfm.f[sgName]
+		tgName = self.window.boxGlyphs.tgtGlyphsComboBox.get()
+		if tgName in tfm.f:
+			tg = tfm.f[tgName]
+		if not (sg == tg) and (tg is not None) and (sg is not None):
+			td = self.window.transferDeltaCheckBox.get()
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
+
 
 	def transferFont(self, sender):
 		sfm, tfm = self.getFontModels()

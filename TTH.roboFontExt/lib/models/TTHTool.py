@@ -400,7 +400,7 @@ class TTHTool(object):
 
 	def updatePartialFontIfNeeded(self):
 		gm, fm = self.getGlyphAndFontModel()
-		if fm is None: return
+		if fm is None or not helperFunctions.fontIsQuadratic(fm.f): return
 		self.requiredGlyphsForPartialTempFont =\
 			fm.updatePartialFontIfNeeded(gm.RFGlyph, self.requiredGlyphsForPartialTempFont)
 

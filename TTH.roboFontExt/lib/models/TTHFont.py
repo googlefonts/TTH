@@ -621,8 +621,9 @@ When do we regenerate a partial font?
 
 	def updatePartialFont(self, glyphSet):
 		"""Typically called directly when the current glyph has been modifed."""
-		self.generatePartialTempFont(glyphSet)
-		self.regenTextRenderer()
+		if HF.fontIsQuadratic(self.f):
+			self.generatePartialTempFont(glyphSet)
+			self.regenTextRenderer()
 
 	def updatePartialFontIfNeeded(self, g, curSet):
 		"""Re-create the partial font if new glyphs are required."""

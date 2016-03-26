@@ -86,7 +86,8 @@ def permutationsOf(elements):
 def matchTwoGlyphs(fromG, toG):
 	nbFromContours, nbToContours = len(fromG), len(toG)
 	if nbFromContours != nbToContours:
-		return None
+		print 'warning: not same number of contours btween source and target'
+		#return None
 
 	# A cache of matchings over pairs of contours
 	matchings = [[None for t in toG] for f in fromG]
@@ -208,7 +209,9 @@ class PointNameMatcher(object):
 			print "[TTH Warning] glyph {} in font {} has less than one control point".format(gm1.RFGlyph.name, fm1.f.fileName)
 			return
 		matchings = matchTwoGlyphs(srcG, tgtG)
-		if matchings == None: return
+		if matchings == None: 
+			print 'no matching'
+			return
 		for srcContour, (tgtContour, perm) in enumerate(matchings):
 			for srcSeg, tgtSeg in enumerate(perm):
 				srcCompName = srcCompIdx[srcContour], srcG[srcContour][srcSeg].name

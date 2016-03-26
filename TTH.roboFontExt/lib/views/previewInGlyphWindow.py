@@ -66,7 +66,7 @@ class PreviewInGlyphWindow(NSView):
 		if None == yAsc or None == yDesc: 
 			yAsc  = 750
 			yDesc = -250
-		
+
 		glyphHeight = yAsc - yDesc
 
 		margin = 30
