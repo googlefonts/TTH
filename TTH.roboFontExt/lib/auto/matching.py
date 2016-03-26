@@ -127,7 +127,7 @@ def matchTwoGlyphs(fromG, toG):
 		print "warning, the matching will be partial"
 		bestPerm = range(nbToContours)
 		bestScore = sum(getMatching(bestPerm[j], j)[1] for j in xrange(nbToContours))
-		for perm in permuts:
+		for perm in itertools.permutations(range(nbFromContours), nbToContours):
 			score = 0.0
 			badMatch = False
 			for j in xrange(nbToContours):
