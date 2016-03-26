@@ -643,9 +643,11 @@ class AutoHinting():
 		gm.clearCommands(doX, doY)
 		self.gm = gm
 
+		fontIsQuad = helperFunctions.fontIsQuadratic(font)
+
 		# compute as much stem as one can find
 		yBound, xBound = self.fm.stemSizeBounds
-		stemsList = auto.stems.makeStemsList(g, contours, self.ital, xBound, yBound, self.fm.angleTolerance, dedup=False)
+		stemsList = auto.stems.makeStemsList(g, contours, self.ital, xBound, yBound, self.fm.angleTolerance, fontIsQuad, dedup=False)
 
 		if doX:
 			# Do X hinting. 'rx' is None if all is OK and [g.name] is there was a problem

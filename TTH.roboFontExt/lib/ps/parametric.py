@@ -296,10 +296,25 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 		value = fontStem['targetWidth']
 		distance = int(value)
 
-		csi1 = gm.csiOfPointName(cmd['point1'])
-		csi2 = gm.csiOfPointName(cmd['point2'])
-		p1 = geom.makePoint(gm.pointOfCSI(csi1))
-		p2 = geom.makePoint(gm.pointOfCSI(csi2))
+		if cmd['point1'] == 'lsb':
+			csi1 = None
+			p1 = geom.Point(0, 0)
+		elif cmd['point1'] == 'rsb':
+			csi1 = None
+			p1 = geom.Point(gm.RFGlyph.width, 0)
+		else:
+			csi1 = gm.csiOfPointName(cmd['point1'])
+			p1 = geom.makePoint(gm.pointOfCSI(csi1))
+
+		if cmd['point2'] == 'lsb':
+			csi2 = None
+			p2 = geom.Point(0, 0)
+		elif cmd['point2'] == 'rsb':
+			csi2 = None
+			p2 = geom.Point(gm.RFGlyph.width, 0)
+		else:
+			csi2 = gm.csiOfPointName(cmd['point2'])
+			p2 = geom.makePoint(gm.pointOfCSI(csi2))
 
 		axis = 0
 		if horizontal: axis = 1
@@ -324,10 +339,26 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 			p2Move = p2Move.swapAxes()
 
 	elif cmdStem == None:
-		csi1 = gm.csiOfPointName(cmd['point1'])
-		csi2 = gm.csiOfPointName(cmd['point2'])
-		p1 = geom.makePoint(gm.pointOfCSI(csi1))
-		p2 = geom.makePoint(gm.pointOfCSI(csi2))
+		if cmd['point1'] == 'lsb':
+			csi1 = None
+			p1 = geom.Point(0, 0)
+		elif cmd['point1'] == 'rsb':
+			csi1 = None
+			p1 = geom.Point(gm.RFGlyph.width, 0)
+		else:
+			csi1 = gm.csiOfPointName(cmd['point1'])
+			p1 = geom.makePoint(gm.pointOfCSI(csi1))
+
+		if cmd['point2'] == 'lsb':
+			csi2 = None
+			p2 = geom.Point(0, 0)
+		elif cmd['point2'] == 'rsb':
+			csi2 = None
+			p2 = geom.Point(gm.RFGlyph.width, 0)
+		else:
+			csi2 = gm.csiOfPointName(cmd['point2'])
+			p2 = geom.makePoint(gm.pointOfCSI(csi2))
+
 		p1Move = zero
 		p2Move = zero
 	else:
@@ -335,27 +366,43 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 		return
 
 	if not double:
-		p1m = movedPoints[csi1[0]].get(csi1)
+		try:
+			p1m = movedPoints[csi1[0]].get(csi1)
+		except:
+			p1m = None
 		if p1m != None:
 			p2Move = p2Move + p1m.move
-		if csi2 in movedPoints[csi2[0]]:
-			print "BUGGY SINGLE LINK COMMAND : Pt2 has alreayd moved"
-			return
-
-	p1m = movedPoints[csi1[0]].get(csi1) # if not found, returns None
+		try:
+			if csi2 in movedPoints[csi2[0]]:
+				print "BUGGY SINGLE LINK COMMAND : Pt2 has alreayd moved"
+				return
+		except:
+			pass
+	try:
+		p1m = movedPoints[csi1[0]].get(csi1) # if not found, returns None
+	except:
+		p1m = None
 	if p1m is None: # never touched before
 		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
 	else:
 		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
-	movedPoints[csi1[0]][csi1] = pT1
-
-	p2m = movedPoints[csi2[0]].get(csi2) # if not found, returns None
+	try:
+		movedPoints[csi1[0]][csi1] = pT1
+	except:
+		pass
+	try:
+		p2m = movedPoints[csi2[0]].get(csi2) # if not found, returns None
+	except:
+		p2m = None
 	if p2m is None: # never touched before
 		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
 	else:
 		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
 		print "WEIRD"
-	movedPoints[csi2[0]][csi2] = pT2
+	try:
+		movedPoints[csi2[0]][csi2] = pT2
+	except:
+		pass
 
 def interpolate(fm, gm, movedPoints, horizontal=False):
 	axis = 0
