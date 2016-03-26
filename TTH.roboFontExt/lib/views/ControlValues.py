@@ -22,7 +22,8 @@ class ZoneView(object):
 		box = self.box
 		box.zones_List = List((0, 0, -0, -22), [],
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Position", "editable": True},
-					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True}],
+					    {"title": "Width", "editable": True}, {"title": "Delta", "editable": True},
+					    {"title":"Shift", "editable":True}],
 			editCallback = self.UIZones_EditCallback,
 			allowsMultipleSelection = False)
 		box.buttonRemoveZone = SquareButton((0, -22, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveZoneCallback)
@@ -114,7 +115,7 @@ class ZoneView(object):
 		delta = self.box.editTextZoneDelta.get()
 		deltaDict = helperFunctions.deltaDictFromString(delta)
 
-		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width }
+		newZone = {'top': (self.ID=='top'), 'position': position, 'width': width, 'shift': 0 }
 		if deltaDict == {}:
 			newZone['delta'] = deltaDict
 		self.box.zones_List.setSelection([])
@@ -142,7 +143,7 @@ class ZoneView(object):
 			sender.set(value)
 
 	def uiZoneOfZone(self, zone, name):
-		c_zoneDict = { 'Name': name, 'Position': zone['position'], 'Width': zone['width'] }
+		c_zoneDict = { 'Name': name, 'Position': zone['position'], 'Width': zone['width'], 'Shift': zone['shift'] }
 		deltaString = ''
 		if 'delta' in zone:
 			deltas = zone['delta']
@@ -180,7 +181,8 @@ class StemView(object):
 			columnDescriptions=[{"title": "Name", "editable": True}, {"title": "Width", "editable": True},
 				{"title": "1 px", "editable": True}, {"title": "2 px", "editable": True},
 				{"title": "3 px", "editable": True}, {"title": "4 px", "editable": True},
-				{"title": "5 px", "editable": True}, {"title": "6 px", "editable": True}],
+				{"title": "5 px", "editable": True}, {"title": "6 px", "editable": True},
+				{"title":"TargetWidth", "editable": True}],
 			editCallback = self.stemsList_editCallback,
 			allowsMultipleSelection = False)
 		box.buttonRemoveStem = SquareButton((0, -22, 22, 22), "-", sizeStyle = 'small', callback=self.buttonRemoveCallback)
@@ -317,7 +319,7 @@ class StemView(object):
 		px4 = self.box.editTextStem4px.get()
 		px5 = self.box.editTextStem5px.get()
 		px6 = self.box.editTextStem6px.get()
-		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
+		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6, 'TargetWidth':width }
 		if not self.sanitizeStem(name, uiStem): return
 		self.lock = True
 		items = self.box.stemsList.get()
@@ -335,7 +337,7 @@ class StemView(object):
 		self.lock = False
 
 	def uiStemOfStem(self, stem, name):
-		uiStem = { 'Name': name, 'Width': int(stem['width']) }
+		uiStem = { 'Name': name, 'Width': int(stem['width']), 'TargetWidth': int(stem['targetWidth']) }
 		invDico = helperFunctions.invertedDictionary(stem['round'])
 		for i in range(1,7):
 			uiStem[str(i)+' px'] = invDico.get(i, '0')
@@ -749,7 +751,7 @@ class ControlValuesSheet(object):
 		px5 = str(int(5*stemPitch))
 		px6 = str(int(6*stemPitch))
 
-		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6 }
+		uiStem = {'Name':name, 'Width':width, '1 px':px1, '2 px':px2, '3 px':px3, '4 px':px4, '5 px':px5, '6 px':px6, 'TargetWidth':width }
 		if not view.sanitizeStem(name, uiStem): return
 
 		items = view.box.stemsList.get()
@@ -801,13 +803,13 @@ class ControlValuesSheet(object):
 			if a > 0:
 				name = 't_' + str(countTop)
 				countTop += 1
-				newZone = {'position': mini, 'width': width, 'top':True }
+				newZone = {'position': mini, 'width': width, 'top':True, 'shift':0}
 				topItems.append(self.topZoneView.uiZoneOfZone(newZone, name))
 				self.topZoneView.uiZoneNameCopy.append(name)
 			else:
 				name = 'b_' + str(countBottom)
 				countBottom += 1
-				newZone = {'position': maxi, 'width': width, 'top':False }
+				newZone = {'position': maxi, 'width': width, 'top':False, 'shift':0 }
 				bottomItems.append(self.bottomZoneView.uiZoneOfZone(newZone, name))
 				self.bottomZoneView.uiZoneNameCopy.append(name)
 			i += 2

@@ -40,4 +40,5 @@ def makeUIZone(name, top, pos, width):
 			'top': top,
 			'Position': pos,
 			'Delta': '',
+			'Shift': 0
 			}

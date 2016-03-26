@@ -3,8 +3,18 @@
 from AppKit import NSView, NSBezierPath, NSColor
 from mojo.events import getActiveEventTool
 from freetype import FT_RENDER_MODE_LCD
+from mojo.drawingTools import *
 
 from drawing import utilities as DR
+from commons import helperFunctions as HF
+from models import TTHGlyph
+from ps import parametric
+
+from fontTools.pens.cocoaPen import CocoaPen
+
+reload(HF)
+reload(TTHGlyph)
+reload(parametric)
 
 bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 blackColor = NSColor.blackColor()
@@ -48,46 +58,22 @@ class PreviewInGlyphWindow(NSView):
 		if eventController is None: return
 
 		glyph = eventController.getGlyph()
+
 		if glyph == None: return
 
-		tr = self.fontModel.textRenderer
-		if not tr: return
-		if not tr.isOK(): return
-
-		# Draw main glyph enlarged in frame or preview string is preview panel checkbox True
-
-		if self.tthTool.previewPanel.window.showStringInGlyphWindowCheckBox.get():
-			(namedGlyphList, curGlyphName) = self.tthTool.prepareText(glyph, self.fontModel.f)
-			glyphList = namedGlyphList
-		else:
-			glyphList = [glyph.name]
+		yAsc  = self.fontModel.ascent
+		yDesc = self.fontModel.descent
+		if None == yAsc or None == yDesc: 
+			yAsc  = 750
+			yDesc = -250
 		
-		ppem = self.tthTool.PPM_Size
-		drawScale = 170.0/ppem
-		tr.set_cur_size(ppem)
-
-		gWidth = 0
-		gHeightList = []
-		topsList = []
-		for i, glyphName in enumerate(glyphList):
-			TRGlyph = tr.get_name_bitmap(glyphName)
-			if tr.render_mode == FT_RENDER_MODE_LCD:
-				TRGlyph = TRGlyph[0]
-				gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
-			else:
-				gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
-			gHeightList.append(TRGlyph.bitmap.rows)
-			if i == 0:
-				left = TRGlyph.left
-			topsList.append(TRGlyph.top)
-		top = max(topsList)
-		gHeight = max(gHeightList)
+		glyphHeight = yAsc - yDesc
 
 		margin = 30
 		frameOriginX = 50
 		frameOriginY = 100
-		frameWidth  = gWidth  * drawScale+2*margin
-		frameHeight = gHeight * drawScale+2*margin
+		frameWidth  = glyph.width  * .2 + 2*margin
+		frameHeight = glyphHeight * .2 + 2*margin
 
 		backPath = NSBezierPath.bezierPath()
 		backPath.appendBezierPathWithRoundedRect_xRadius_yRadius_(((frameOriginX, frameOriginY), (frameWidth, frameHeight)), 3, 3)
@@ -112,22 +98,69 @@ class PreviewInGlyphWindow(NSView):
 			xAxisPath.setLineWidth_(1)
 			xAxisPath.stroke()
 
-		tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
-		delta_pos = tr.render_named_glyph_list(glyphList, drawScale, 1)
+		if HF.fontIsQuadratic(self.fontModel.f):
 
-		# Draw waterfall of ppem for glyph
-		advance = 40
-		color = blackColor
-		heightOfTextSize = 20
-		for size in range(self.tthTool.previewFrom, self.tthTool.previewTo + 1, 1):
+			tr = self.fontModel.textRenderer
+			if not tr: return
+			if not tr.isOK(): return
 
-			self.clickableSizesGlyphWindow[(advance, heightOfTextSize)] = size
+			# Draw main glyph enlarged in frame or preview string is preview panel checkbox True
 
-			tr.set_cur_size(size)
-			tr.set_pen((advance, 40))
-			delta_pos = tr.render_named_glyph_list(glyphList)
+			if self.tthTool.previewPanel.window.showStringInGlyphWindowCheckBox.get():
+				(namedGlyphList, curGlyphName) = self.tthTool.prepareText(glyph, self.fontModel.f)
+				glyphList = namedGlyphList
+			else:
+				glyphList = [glyph.name]
+			
+			ppem = self.tthTool.PPM_Size
+			drawScale = 170.0/ppem
+			tr.set_cur_size(ppem)
 
-			if size == ppem: color = redColor
-			DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)
-			if size == ppem: color = blackColor
-			advance += delta_pos[0] + 5
+			gWidth = 0
+			gHeightList = []
+			topsList = []
+			for i, glyphName in enumerate(glyphList):
+				TRGlyph = tr.get_name_bitmap(glyphName)
+				if tr.render_mode == FT_RENDER_MODE_LCD:
+					TRGlyph = TRGlyph[0]
+					gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
+				else:
+					gWidth += (tr.get_name_advance(glyphName)[0]+32)/64
+				gHeightList.append(TRGlyph.bitmap.rows)
+				if i == 0:
+					left = TRGlyph.left
+				topsList.append(TRGlyph.top)
+			top = max(topsList)
+			gHeight = max(gHeightList)
+
+			tr.set_pen((frameOriginX-left*drawScale+margin, frameOriginY+(gHeight-top)*drawScale+margin))
+			delta_pos = tr.render_named_glyph_list(glyphList, drawScale, 1)
+
+			# Draw waterfall of ppem for glyph
+			advance = 40
+			color = blackColor
+			heightOfTextSize = 20
+			for size in range(self.tthTool.previewFrom, self.tthTool.previewTo + 1, 1):
+
+				self.clickableSizesGlyphWindow[(advance, heightOfTextSize)] = size
+
+				tr.set_cur_size(size)
+				tr.set_pen((advance, 40))
+				delta_pos = tr.render_named_glyph_list(glyphList)
+
+				if size == ppem: color = redColor
+				DR.drawPreviewSize(str(size), advance, heightOfTextSize, color)
+				if size == ppem: color = blackColor
+				advance += delta_pos[0] + 5
+
+		else:
+			gmCopy = TTHGlyph.TTHGlyph(glyph.copy(), self.fontModel)
+			parametric.processParametric(self.fontModel, gmCopy)
+			g = gmCopy.RFGlyph
+			pen = CocoaPen(g.getParent())
+			g.draw(pen)
+			translate(frameOriginX + margin, frameOriginY + margin - yDesc*.2)
+			scale(.2, .2)
+			NSColor.blackColor().set()
+			pen.path.fill()
+

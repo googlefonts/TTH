@@ -46,6 +46,8 @@ class Point(object):
 		l = self.length()
 		if l < 1e-6: return Point(0.0, 0.0)
 		return Point(self.x/l, self.y/l)
+	def swapAxes(self):
+		return Point(self.y, self.x)
 
 class Matrix(object):
 	__slots__ = ('_m')

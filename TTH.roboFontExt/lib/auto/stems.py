@@ -9,6 +9,8 @@ import auto
 
 def autoStems(fm, progressBar):
 	font = fm.f
+	# test if quadratic or cubic font
+	fontIsQuad = helperFunctions.fontIsQuadratic(font)
 
 	if font.info.italicAngle != None:
 		ital = - font.info.italicAngle
@@ -25,7 +27,7 @@ def autoStems(fm, progressBar):
 	for name in ascii_letters:
 		g = font[name]
 		noName, contours = auto.makeContours(g, ital)
-		(XStems, YStems) = makeStemsList(g, contours, ital, xBound, yBound, fm.angleTolerance, False)
+		(XStems, YStems) = makeStemsList(g, contours, ital, xBound, yBound, fm.angleTolerance, fontIsQuad, False)
 		XStems = [stem[2] for stem in XStems]
 		YStems = [stem[2] for stem in YStems]
 		stemsValuesX.extend(XStems)
@@ -67,7 +69,7 @@ def clusterAndGenStemDicts(upm, stemsValues, isHorizontal):
 		px5 = str(int(5*stemPitch))
 		px6 = str(int(6*stemPitch))
 
-		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6} }
+		stemDict = {'horizontal': isHorizontal, 'width': width, 'round': {px1: 1, px2: 2, px3: 3, px4: 4, px5: 5, px6: 6}, 'targetWidth': width }
 		stems[name] = stemDict
 	return stems
 
@@ -90,7 +92,7 @@ def hasSomeWhite(point1, point2, g, maxStemX, maxStemY):
 			return True
 	return False
 
-def makeStemsList(g, contours, italicAngle, xBound, yBound, tolerance, dedup=True):
+def makeStemsList(g, contours, italicAngle, xBound, yBound, tolerance, fontIsQuad, dedup=True):
 	stemsListX_temp = []
 	stemsListY_temp = []
 	minCosine = abs(math.cos(math.radians(tolerance)))
@@ -158,13 +160,23 @@ def makeStemsList(g, contours, italicAngle, xBound, yBound, tolerance, dedup=Tru
 			for sa in (src.inTangent, src.outTangent):
 				for ta in (tgt.inTangent, tgt.outTangent):
 					#if debug: print "BB", geom.det2x2(sa, diff), geom.det2x2(ta, diff), abs(sa | ta)
-					if ( geom.det2x2(sa, diff) < 0.0 and # test that 'tgt' is on the correct side of tangent 'sa'
-					     geom.det2x2(ta, diff) > 0.0 and # test that 'src' is on the correct side of tangent 'ta'
-					     abs(sa | ta) > minCosine): # and test that both tangent are almost parallel
-						#if debug: print "CC"
-						if hasWhite(wc, src, tgt): break
-						# OK we found a 'stem'!
-						addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
+					if fontIsQuad:
+						if ( geom.det2x2(sa, diff) < 0.0 and # test that 'tgt' is on the correct side of tangent 'sa'
+						     geom.det2x2(ta, diff) > 0.0 and # test that 'src' is on the correct side of tangent 'ta'
+						     abs(sa | ta) > minCosine): # and test that both tangent are almost parallel
+							#if debug: print "CC"
+							if hasWhite(wc, src, tgt): break
+							# OK we found a 'stem'!
+							addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
+					else:
+						if ( geom.det2x2(sa, diff) > 0.0 and # test that 'tgt' is on the correct side of tangent 'sa'
+						     geom.det2x2(ta, diff) < 0.0 and # test that 'src' is on the correct side of tangent 'ta'
+						     abs(sa | ta) > minCosine): # and test that both tangent are almost parallel
+							#if debug: print "CC"
+							if hasWhite(wc, src, tgt): break
+							# OK we found a 'stem'!
+							addStemToList(src, tgt, c_distance, hypoth, sa, ta, existingStems, debug)
+
 	stemsListX_temp.sort() # sort by stem length (hypoth)
 	stemsListY_temp.sort()
 	if not dedup: # dedup means de-duplications

@@ -211,6 +211,25 @@ class TTHGlyph(object):
 			i = len(self._g[c][s].points)-1
 		return (c, s, i)
 
+	def increaseSI(self, csi, alsoOff):
+		"""Given a contour index and a segment index, finds the segment
+		index of the next segment IN THE SAME CONTOUR"""
+		c, s, i = csi
+		contourLen = len(self._g[c])
+		segLen = len(self._g[c][s])
+		if alsoOff:
+			i = i + 1
+			if i == segLen:
+				s = s + 1
+				i = 0
+		else:
+			s = s + 1
+		if s == contourLen:
+			s = 0
+		if (not alsoOff):
+			i = len(self._g[c][s].points)-1
+		return (c, s, i)
+
 	def hintingNameForPoint(self, p):
 		uid  = p.naked().uniqueID # !! Call this first because it will possibly modify p.name
 		name = p.name

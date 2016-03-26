@@ -183,7 +183,7 @@ class TTHFont(object):
 
 	def createPreviewInGlyphWindowIfNeeded(self, nsView):
 		badFont = not HF.fontIsQuadratic(self.f)
-		if (not badFont) and self._pigw == None:
+		if self._pigw == None:
 			self._pigw = self.createPreviewInGlyphWindow(nsView)
 			return True
 		return False
@@ -274,6 +274,7 @@ class TTHFont(object):
 				if not ('Position' in uiZone): uiZone['Position'] = 0
 				if not ('Width' in uiZone):    uiZone['Width'] = 0
 				if not ('Delta' in uiZone):    uiZone['Delta'] = '0@0'
+				if not ('Shift' in uiZone):    uiZone['Shift'] = 0
 				self.addZone(uiZone['Name'], self.zoneOfUIZone(uiZone, top))
 		self.saveZonesToUFO()
 		self.dirtyCVT()
@@ -299,6 +300,7 @@ class TTHFont(object):
 				'width': uiZone['Width'],
 				'delta': HF.deltaDictFromString(uiZone['Delta']),
 				'top': top,
+				'shift': uiZone['Shift']
 			}
 
 # - - - - - - - - - - - - - - - -
@@ -417,6 +419,7 @@ class TTHFont(object):
 				'horizontal': isHorizontal,
 				'width': uiStem['Width'],
 				'round': dict((str(uiStem[str(i)+' px']),i) for i in range(1,7)),
+				'targetWidth': uiStem['TargetWidth']
 				}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - FONT CLEANING

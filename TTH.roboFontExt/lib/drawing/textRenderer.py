@@ -218,7 +218,7 @@ class TextRenderer(object):
 		if paths is None:
 			return
 		self.outlinecolor.set()
-		for p  in paths:
+		for p in paths:
 			p.setLineWidth_(scale*thickness)
 			p.stroke()
 

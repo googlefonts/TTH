@@ -18,11 +18,15 @@ from commons import helperFunctions, HotKeys
 from drawing import textRenderer, geom, utilities as DR
 # reloaded elsewhere
 from models import TTHGlyph
+from ps import parametric
+from mojo.drawingTools import drawGlyph, save, restore, stroke, fill, strokeWidth
 
 reload(helperFunctions)
 reload(textRenderer)
 reload(geom)
 reload(DR)
+reload(parametric)
+reload(TTHGlyph)
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
@@ -32,6 +36,7 @@ stemColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .8, 0, 1
 whiteColor        = NSColor.whiteColor()
 zoneColor         = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, .2)
 zoneColorLabel    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .7, .2, 1)
+outlinecolor 	  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
 
 class TTH_RF_EventTool(BaseEventTool):
 
@@ -102,8 +107,8 @@ class TTH_RF_EventTool(BaseEventTool):
 			# and set quadratic mode
 			if self.originalCurveDrawingPref != 'qcurve':
 				setDefault('drawingSegmentType', 'qcurve')
-			self.sizeHasChanged()
-			tthTool.becomeActive()
+		self.sizeHasChanged()
+		tthTool.becomeActive()
 
 	def becomeInactive(self):
 		'''This function is called by RF when another tool button is
@@ -168,6 +173,28 @@ class TTH_RF_EventTool(BaseEventTool):
 		rects, count = view.getRectsBeingDrawn_count_(None, None)
 		return count
 
+	def drawParametricGlyph(self, scale, thickness, outline=False):
+		gm, fm = tthTool.getGlyphAndFontModel()
+
+		if gm == None: return
+
+		gmCopy = TTHGlyph.TTHGlyph(gm.RFGlyph.copy(), fm)
+
+		parametric.processParametric(fm, gmCopy)
+		
+		save()
+		if outline:
+			stroke(0.2, .8, .8, 1)
+			fill(None)
+			strokeWidth(scale*thickness)
+		else:
+			fill(0.2, .8, .8, .5)
+		drawGlyph(gmCopy.RFGlyph)
+		restore()
+
+	def drawPreview(self, scale):
+		self.drawParametricGlyph(scale, tthTool.outlineThickness, outline=False)
+
 	def drawBackground(self, scale):
 		'''This function is called by RF whenever the Background of the
 		glyph Window needs redraw'''
@@ -180,6 +207,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if fm is None: return
 
+		# test if quadratic or cubic font
+		fontIsQuad = helperFunctions.fontIsQuadratic(fm.f)
+
 		# we do this here, because it fails to do it in `becomeActive` :-(
 		# (The NSView's superview seems not ready at that time)
 		if fm.createPreviewInGlyphWindowIfNeeded(self.getNSView()):
@@ -187,35 +217,47 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		if g == None: return
 
-		pitch = fm.getPitch()
+		if fontIsQuad:
+			pitch = fm.getPitch()
 
-		tool = tthTool.selectedHintingTool
-		simpleDrawing = tool and tool.dragging
+			tool = tthTool.selectedHintingTool
+			simpleDrawing = tool and tool.dragging
 
-		if tthTool.showGrid == 1 and ((not simpleDrawing) or 'Delta' in tool.name):
-			self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
+			if tthTool.showGrid == 1 and ((not simpleDrawing) or 'Delta' in tool.name):
+				self.drawGrid(scale, pitch, tthTool.gridOpacity, fm)
 
-		DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
+			DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
 
-		if simpleDrawing: return
+			if simpleDrawing: return
 
-		self.drawZones(scale, pitch, fm)
+			self.drawZones(scale, pitch, fm)
 
-		tr = fm.textRenderer
-		tr.set_cur_size(tthTool.PPM_Size)
-		tr.set_pen((0, 0))
+			tr = fm.textRenderer
+			tr.set_cur_size(tthTool.PPM_Size)
+			tr.set_pen((0, 0))
 
-		if tr != None and tr.isOK():
-			if tthTool.showBitmap == 1:
-				tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
+			if tr != None and tr.isOK():
+				if tthTool.showBitmap == 1:
+					tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
+				if tthTool.showOutline == 1:
+					tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
+					self.drawSideBearings(scale, pitch, g.name, fm)
+
+			if tthTool.showCenterPixel == 1:
+				self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
+
+			self.drawAscentDescent(scale, pitch, fm)
+		
+		else:
+			tool = tthTool.selectedHintingTool
+			simpleDrawing = tool and tool.dragging
+			DR.drawSideBearingsPointsOfGlyph(scale, 5, g)
+			if simpleDrawing: return
 			if tthTool.showOutline == 1:
-				tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
-				self.drawSideBearings(scale, pitch, g.name, fm)
+				self.drawParametricGlyph(scale, tthTool.outlineThickness, outline=True)
+			self.drawZones(scale, None, fm)
 
-		if tthTool.showCenterPixel == 1:
-			self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
 
-		self.drawAscentDescent(scale, pitch, fm)
 
 	def draw(self, scale):
 		'''This function is called by RF whenever the Foreground of the
@@ -466,6 +508,20 @@ class TTH_RF_EventTool(BaseEventTool):
 		centerpixelsColor.set()
 		path.fill()
 
+	def drawZoneDelta(self, zone, scale, pitch):
+		for deltaPPM, deltaValue in zone['delta'].iteritems():
+			if int(deltaPPM) != tthTool.PPM_Size or deltaValue == 0:
+				continue
+			path = NSBezierPath.bezierPath()
+			path.moveToPoint_(labelPos)
+			endPos = labelPos + geom.Point(0.0, (deltaValue/8.0) * pitch)
+			path.lineToPoint_(endPos)
+
+			DR.kDeltaColor.set()
+			path.setLineWidth_(scale)
+			path.stroke()
+			DR.drawLozengeAtPoint(scale, 4, endPos.x, endPos.y, DR.kDeltaColor)
+
 	def drawZones(self, scale, pitch, fontModel):
 		xpos = 5 * fontModel.UPM
 		fontModel.zoneLabels = {}
@@ -491,18 +547,8 @@ class TTH_RF_EventTool(BaseEventTool):
 
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
-				for deltaPPM, deltaValue in zone['delta'].iteritems():
-					if int(deltaPPM) != tthTool.PPM_Size or deltaValue == 0:
-						continue
-					path = NSBezierPath.bezierPath()
-					path.moveToPoint_(labelPos)
-					endPos = labelPos + geom.Point(0.0, (deltaValue/8.0) * pitch)
-					path.lineToPoint_(endPos)
-
-					DR.kDeltaColor.set()
-					path.setLineWidth_(scale)
-					path.stroke()
-					DR.drawLozengeAtPoint(scale, 4, endPos.x, endPos.y, DR.kDeltaColor)
+				self.drawZoneDelta(zone, scale, pitch)
+				
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
 
