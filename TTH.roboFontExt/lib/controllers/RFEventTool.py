@@ -122,6 +122,8 @@ class TTH_RF_EventTool(BaseEventTool):
 		'''This function is called by RF when the Glyph View shows another
 		glyph'''
 		#print "[TTH RF EVENT] View did change glyph"
+		if tthTool.parametricPreviewPanel != None:
+			tthTool.parametricPreviewPanel.updateDisplay()
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 		tthTool.updateDisplay()
@@ -129,6 +131,8 @@ class TTH_RF_EventTool(BaseEventTool):
 	def currentGlyphChanged(self):
 		'''This function is called by RF when the Current Glyph changed'''
 		#print "[TTH RF EVENT] Current glyph changed"
+		if tthTool.parametricPreviewPanel != None:
+			tthTool.parametricPreviewPanel.updateDisplay()
 		tthTool.showOrHide()
 		tthTool.updatePartialFontIfNeeded()
 
@@ -175,13 +179,9 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawParametricGlyph(self, scale, thickness, outline=False):
 		gm, fm = tthTool.getGlyphAndFontModel()
-
 		if gm == None: return
-
-		gmCopy = TTHGlyph.TTHGlyph(gm.RFGlyph.copy(), fm)
-
-		parametric.processParametric(fm, gmCopy)
 		
+		pGlyph = gm._pg
 		save()
 		if outline:
 			stroke(0.2, .8, .8, 1)
@@ -189,7 +189,9 @@ class TTH_RF_EventTool(BaseEventTool):
 			strokeWidth(scale*thickness)
 		else:
 			fill(0.2, .8, .8, .5)
-		drawGlyph(gmCopy.RFGlyph)
+
+		drawGlyph(pGlyph)
+
 		restore()
 
 	def drawPreview(self, scale):

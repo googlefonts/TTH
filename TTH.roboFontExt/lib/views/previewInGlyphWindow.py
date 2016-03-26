@@ -9,6 +9,7 @@ from drawing import utilities as DR
 from commons import helperFunctions as HF
 from models import TTHGlyph
 from ps import parametric
+from models.TTHTool import uniqueInstance as tthTool
 
 from fontTools.pens.cocoaPen import CocoaPen
 
@@ -154,11 +155,10 @@ class PreviewInGlyphWindow(NSView):
 				advance += delta_pos[0] + 5
 
 		else:
-			gmCopy = TTHGlyph.TTHGlyph(glyph.copy(), self.fontModel)
-			parametric.processParametric(self.fontModel, gmCopy)
-			g = gmCopy.RFGlyph
-			pen = CocoaPen(g.getParent())
-			g.draw(pen)
+			gm, fm = tthTool.getGlyphAndFontModel()
+			pGlyph = gm._pg
+			pen = CocoaPen(pGlyph.getParent())
+			pGlyph.draw(pen)
 			translate(frameOriginX + margin, frameOriginY + margin - yDesc*.2)
 			scale(.2, .2)
 			NSColor.blackColor().set()

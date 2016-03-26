@@ -727,6 +727,7 @@ class ControlValuesSheet(object):
 		#self.w.progressLabel.set('')
 		tthTool.hintingProgramHasChanged(fm)
 		tthTool.updateDisplay()
+		tthTool.parametricPreviewPanel.updateDisplay()
 
 	def editTextIntegerCallback(self, sender):
 		try:

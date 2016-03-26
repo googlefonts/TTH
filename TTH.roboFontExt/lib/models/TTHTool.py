@@ -29,6 +29,7 @@ defaultKeyGridOpacity              = DefaultKeyStub + "gridOpacity"
 defaultKeyShowCenterPixels         = DefaultKeyStub + "showCenterPixels"
 defaultKeyCenterPixelSize          = DefaultKeyStub + "centerPixelSize"
 defaultKeyShowPreviewInGlyphWindow = DefaultKeyStub + "showPreviewInGlyphWindow"
+defaultKeyCurrentPointSize         = DefaultKeyStub + "currentPointSize"
 
 class TTHTool(object):
 	def __init__(self):
@@ -49,6 +50,8 @@ class TTHTool(object):
 		self.selectedHintingTool = None
 
 		self.previewString = '/?'
+
+		self.parametricPreviewSize = getExtensionDefault(defaultKeyCurrentPointSize, fallback=30)
 
 		self.previewSampleStringsList = getExtensionDefault(defaultKeyPreviewSampleStrings,\
 				fallback=['/?', 'HH/?HH/?OO/?OO/?', 'nn/?nn/?oo/?oo/?', '0123456789',\
@@ -89,6 +92,7 @@ class TTHTool(object):
 		# Other windows of the TTH extension
 		self.mainPanel      = None
 		self.previewPanel   = None
+		self.parametricPreviewPanel   = None
 		self.assemblyWindow = None
 		self.programWindow  = None
 		self.TTHWindows     = []
@@ -204,6 +208,18 @@ class TTHTool(object):
 		self.previewPanel.setNeedsDisplay()
 		UpdateCurrentGlyphView()
 
+# - - - - - - - - - - - - - - - - - - - - - - - PARAMETRIC PREVIEW POINT SIZE
+
+	def changePointSize(self, size):
+		try:
+			size = int(size)
+		except ValueError:
+			size = 30
+		if self.parametricPreviewSize == size: return
+		self.parametricPreviewSize = size
+		setExtensionDefault(defaultKeyCurrentPointSize, size)
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - WORKING AXIS
 
 	def changeAxis(self, axis):
@@ -247,6 +263,7 @@ class TTHTool(object):
 		else:
 			self.previewString = '/?'
 		self.previewPanel.window.previewEditText.set(self.previewString)
+		self.parametricPreviewPanel.window.previewEditText.set(self.previewString)
 
 	def samplesStringsHaveChanged(self, sampleStrings):
 		currentString = self.previewPanel.window.previewEditText.get()
@@ -291,7 +308,8 @@ class TTHTool(object):
 		self.previewPanel   = previewPanel.PreviewPanel()
 		self.programWindow  = ProgramWindow.ProgramWindow()
 		self.assemblyWindow = AssemblyWindow.AssemblyWindow()
-		self.TTHWindows     = [self.previewPanel, self.assemblyWindow, self.programWindow]
+		self.parametricPreviewPanel   = parametricPreviewPanel.parametricPreview()
+		self.TTHWindows     = [self.previewPanel, self.assemblyWindow, self.programWindow, self.parametricPreviewPanel]
 		self.mainPanel      = mainPanel.MainPanel()
 
 		lastToolUsed = getExtensionDefault(defaultKeyLastTool, fallback='Selection')
@@ -307,6 +325,8 @@ class TTHTool(object):
 
 		del self.previewPanel
 		self.previewPanel = None
+		del self.parametricPreviewPanel
+		self.parametricPreviewPanel = None
 		del self.assemblyWindow
 		self.assemblyWindow = None
 		del self.programWindow
@@ -438,11 +458,12 @@ uniqueInstance = TTHTool()
 if uniqueInstance._printLoadings: print "TTHTool, ",
 
 from models import TTHFont
-from views import previewPanel, mainPanel, AssemblyWindow, ProgramWindow
+from views import parametricPreviewPanel, previewPanel, mainPanel, AssemblyWindow, ProgramWindow
 import tools
 reload(TTHFont)
 reload(AssemblyWindow)
 reload(ProgramWindow)
+reload(parametricPreviewPanel)
 reload(previewPanel)
 reload(mainPanel)
 reload(tools)

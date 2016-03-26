@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import copy
 from robofab.plistlib import Data
 from robofab.objects.objectsRF import RPoint
 
@@ -7,8 +8,10 @@ from commons import helperFunctions
 from drawing import geom
 import tt
 from tt import asm
+from ps import parametric
 reload(tt)
 reload(asm)
+reload(parametric)
 
 kTTProgramKey = 'com.fontlab.ttprogram'
 
@@ -73,6 +76,8 @@ class TTHGlyph(object):
 		# python-convention, indicates `please don't use me outside of the
 		# class methods'.
 		self._g = rfGlyph
+		self._pg = self._g.copy()
+		self._fm = fm
 		self._contours = None # FIXME: remove this member variable which is useless
 		self._h_stems  = None # a list of pairs of CSIs
 		self._v_stems  = None
@@ -93,6 +98,10 @@ class TTHGlyph(object):
 	@property
 	def RFGlyph(self):
 		return self._g
+
+	# @property
+	# def pGlyph(self):
+	# 	return self._pg
 
 	@property
 	def contours(self):
@@ -125,6 +134,9 @@ class TTHGlyph(object):
 
 	def pointOfCSI(self, csi):
 		return self._g[csi[0]][csi[1]].points[csi[2]]
+
+	def pPointOfCSI(self, csi):
+		return self._pg[csi[0]][csi[1]].points[csi[2]]
 
 	def positionForPointName(self, name, fm=None, comp=None):
 		'''Returns the position of a ON control point with the given name.
@@ -493,6 +505,8 @@ class TTHGlyph(object):
 
 	def updateGlyphProgram(self, fm):
 		self.compile(fm)
+		self._pg = parametric.processParametric(fm, self)
+		tthTool.parametricPreviewPanel.updateDisplay()
 		tthTool.hintingProgramHasChanged(fm)
 
 	def saveCommandsToUFO(self):

@@ -29,11 +29,13 @@ DefaultKeyStub = "com.sansplomb.TTH."
 
 defaultKeyMainPanelPosSize       = DefaultKeyStub + "toolsWindowPosSize"
 defaultKeyPreviewWindowPosSize     = DefaultKeyStub + "previewWindowPosSize"
+defaultKeyParametricPreviewWindowPosSize     = DefaultKeyStub + "parametricPreviewWindowPosSize"
 defaultKeyProgramWindowPosSize     = DefaultKeyStub + "programWindowPosSize"
 defaultKeyAssemblyWindowPosSize    = DefaultKeyStub + "assemblyWindowPosSize"
 
 defaultKeyProgramWindowVisibility  = DefaultKeyStub + "programWindowVisibility"
 defaultKeyPreviewWindowVisibility  = DefaultKeyStub + "previewWindowVisibility"
+defaultKeyParametricPreviewWindowVisibility  = DefaultKeyStub + "parametricPreviewWindowVisibility"
 defaultKeyAssemblyWindowVisibility = DefaultKeyStub + "assemblyWindowVisibility"
 
 comSansPlombTransferPanel = None
@@ -176,12 +178,11 @@ class MainPanel(BaseWindowController):
 			"Preview", # 7
 			"Program", # 8
 			"Assembly", # 9
+			"Parametric Preview", # 10
 			NSMenuItem.separatorItem(),
-			u"Control Values…", # 11
+			u"Control Values…", # 12
 			NSMenuItem.separatorItem(),
-			u"Preferences…", # 13
-			NSMenuItem.separatorItem(),
-			u"DT…", # 15
+			u"Preferences…", # 14
 			]
 			)
 
@@ -285,13 +286,16 @@ class MainPanel(BaseWindowController):
 		elif gearOption == 9:
 			tthTool.assemblyWindow.show()
 			tthTool.updateDisplay()
-		elif gearOption == 11:
+		elif gearOption == 10:
+			tthTool.parametricPreviewPanel.show()
+			tthTool.updateDisplay()
+		elif gearOption == 12:
 			self.curSheet = ControlValues.ControlValuesSheet(self.wTools)
-		elif gearOption == 13:
+		elif gearOption == 14:
 			self.curSheet = preferencesSheet.PreferencesSheet(self.wTools)
-		elif gearOption == 15:
-			g, fm = tthTool.getRGAndFontModel()
-			fm.getFullBitmapForGlyph(g)
+		# elif gearOption == 15:
+		# 	g, fm = tthTool.getRGAndFontModel()
+		# 	fm.getFullBitmapForGlyph(g)
 
 	#################
 	# Display updates

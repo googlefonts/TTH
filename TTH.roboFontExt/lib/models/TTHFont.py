@@ -8,6 +8,7 @@ from drawing import textRenderer, geom
 
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
+from ps import parametric
 
 from views import previewInGlyphWindow as PIGW
 
@@ -18,6 +19,7 @@ reload(HF)
 reload(textRenderer)
 reload(TTHGlyph)
 reload(tables)
+reload(parametric)
 
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
@@ -168,6 +170,7 @@ class TTHFont(object):
 			model = self._glyphModels[key]
 			del model
 			del self._glyphModels[key]
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
 
