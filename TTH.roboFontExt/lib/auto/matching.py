@@ -1,4 +1,5 @@
 import math
+import itertools
 import xml.etree.ElementTree as ET
 from commons import helperFunctions as HF
 from drawing import geom
@@ -73,20 +74,18 @@ def matchTwoContours(fromC, toC, table, score):
 def fix((permut,s), i, n):
 	return [(x+i) % n for x in permut],s # recover original segment numbers
 
-def permutationsOf(elements):
-	"""Iterates over all permutations of input 'elements'."""
-	n = len(elements)
-	if n <= 1:
-		yield elements
-		return
-	for i in range(n):
-		for perm in permutationsOf(elements[:i]+elements[i+1:]):
-			yield perm+[elements[i]]
+#def permutationsOf(elements):
+#	"""Iterates over all permutations of input 'elements'."""
+#	n = len(elements)
+#	if n <= 1:
+#		yield elements
+#		return
+#	for i in range(n):
+#		for perm in permutationsOf(elements[:i]+elements[i+1:]):
+#			yield perm+[elements[i]]
 
 def matchTwoGlyphs(fromG, toG):
 	nbFromContours, nbToContours = len(fromG), len(toG)
-	if nbFromContours != nbToContours:
-		return None
 
 	# A cache of matchings over pairs of contours
 	matchings = [[None for t in toG] for f in fromG]
@@ -102,27 +101,44 @@ def matchTwoGlyphs(fromG, toG):
 			matchings[f][t] = permutedMatches[i]
 		return matchings[f][t]
 
-	bestPerm = range(nbToContours)
-	bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbFromContours))
-	for perm in permutationsOf(range(nbToContours)):
-		score = 0.0
-		badMatch = False
-		for i in xrange(nbFromContours):
-			score = score + getMatching(i, perm[i])[1]
-			if score >= bestScore:
-				badMatch = True
-				break
-		if badMatch: continue
-		bestScore = score
-		bestPerm = perm
-	#for f,t in enumerate(bestPerm):
-	#	print "Contour",f,"of source glyph matches contour",t,"of target glyph as follows:"
-	#	for i,j in enumerate(matchings[f][t][0]):
-	#		sys.stdout.write("{}:{}".format(i,j))
-	#		if (i+1) % 4 == 0: sys.stdout.write('\n')
-	#		else: sys.stdout.write('\t\t')
-	#	print ''
-	return [(t, matchings[f][t][0]) for (f,t) in enumerate(bestPerm)]
+	if nbFromContours <= nbToContours:
+		bestPerm = range(nbFromContours)
+		bestScore = sum(getMatching(i, bestPerm[i])[1] for i in xrange(nbFromContours))
+		for perm in itertools.permutations(range(nbToContours), nbFromContours):
+			score = 0.0
+			badMatch = False
+			for i in xrange(nbFromContours):
+				score = score + getMatching(i, perm[i])[1]
+				if score >= bestScore:
+					badMatch = True
+					break
+			if badMatch: continue
+			bestScore = score
+			bestPerm = perm
+		#for f,t in enumerate(bestPerm):
+		#	print "Contour",f,"of source glyph matches contour",t,"of target glyph as follows:"
+		#	for i,j in enumerate(matchings[f][t][0]):
+		#		sys.stdout.write("{}:{}".format(i,j))
+		#		if (i+1) % 4 == 0: sys.stdout.write('\n')
+		#		else: sys.stdout.write('\t\t')
+		#	print ''
+		return [(f, t, matchings[f][t][0]) for (f,t) in enumerate(bestPerm)]
+	else:  # nbFromContours > nbToContours
+		print "warning, the matching will be partial"
+		bestPerm = range(nbToContours)
+		bestScore = sum(getMatching(bestPerm[j], j)[1] for j in xrange(nbToContours))
+		for perm in permuts:
+			score = 0.0
+			badMatch = False
+			for j in xrange(nbToContours):
+				score = score + getMatching(perm[j], j)[1]
+				if score >= bestScore:
+					badMatch = True
+					break
+			if badMatch: continue
+			bestScore = score
+			bestPerm = perm
+		return [(f, t, matchings[f][t][0]) for (t,f) in enumerate(bestPerm)]
 
 class TTHComponent(object):
 	def __init__(self, g, idx, offset, scale):
@@ -209,7 +225,7 @@ class PointNameMatcher(object):
 			return
 		matchings = matchTwoGlyphs(srcG, tgtG)
 		if matchings == None: return
-		for srcContour, (tgtContour, perm) in enumerate(matchings):
+		for srcContour, tgtContour, perm in matchings:
 			for srcSeg, tgtSeg in enumerate(perm):
 				srcCompName = srcCompIdx[srcContour], srcG[srcContour][srcSeg].name
 				tgtCompName = tgtCompIdx[tgtContour], tgtG[tgtContour][tgtSeg].name
