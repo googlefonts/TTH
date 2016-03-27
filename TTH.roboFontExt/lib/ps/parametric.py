@@ -373,7 +373,7 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 	except:
 		pass
 
-def interpolate(fm, gm, movedPoints, horizontal=False):
+def interpolate(fm, gm, movedPoints, actual, horizontal=False):
 	axis = 0
 	if horizontal:
 		axis = 1
@@ -381,7 +381,10 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 		touchedInContour = movedPoints[cidx].values()
 		touchedInContour.sort(key=lambda pt:pt.csi)
 		for pt in touchedInContour:
-			gm.pPointOfCSI(pt.csi).move(pt.move)
+			if actual:
+				gm.pointOfCSI(pt.csi).move(pt.move)
+			else:
+				gm.pPointOfCSI(pt.csi).move(pt.move)
 	
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
@@ -392,7 +395,10 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 					csi = cidx, sidx, idx
 					if csi == touchedInContour[0].csi:
 						continue
-					gm.pPointOfCSI(csi).move(trans)
+					if actual:
+						gm.pointOfCSI(csi).move(trans)
+					else:
+						gm.pPointOfCSI(csi).move(trans)
 			continue
 		# nbTouched >= 2					
 		for k in range(nbTouched):
@@ -412,7 +418,10 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 			#dstTouched.output()
 			while csi != dstTouched.csi:
 				#print csi,
-				p = gm.pPointOfCSI(csi)
+				if actual:
+					p = gm.pointOfCSI(csi)
+				else:
+					p = gm.pPointOfCSI(csi)
 				if axis == 0:
 					pos = p.x
 				else:
@@ -434,7 +443,7 @@ def interpolate(fm, gm, movedPoints, horizontal=False):
 					p.move(geom.Point(delta,0))
 				csi = gm.increaseSI(csi, True)
 
-def processParametric(fm, gm):
+def processParametric(fm, gm, actual=False):
 	g = gm.RFGlyph
 	gm._pg = g.copy()
 	
@@ -464,9 +473,9 @@ def processParametric(fm, gm):
 		elif groupType == 'interpolate':
 		 	processInterpolate(commands, pointNameToIndex, regs)
 
-	applyParametric(fm, gm, regs.x_instructions, regs.y_instructions)
+	applyParametric(fm, gm, regs.x_instructions, regs.y_instructions, actual)
 
-def applyParametric(fm, gm, vCode, hCode):
+def applyParametric(fm, gm, vCode, hCode, actual):
 	for horiz,codes in ((True, hCode), (False, vCode)):
 		movedPoints = [{} for c in gm.RFGlyph] # an empty list for each contour
 		for cmd in codes:
@@ -482,5 +491,5 @@ def applyParametric(fm, gm, vCode, hCode):
 			elif cmd['code'] in ['interpolatev', 'interpolateh']:
 				calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=horiz)
 
-		interpolate(fm, gm, movedPoints, horizontal=horiz)
+		interpolate(fm, gm, movedPoints, actual, horizontal=horiz)
 

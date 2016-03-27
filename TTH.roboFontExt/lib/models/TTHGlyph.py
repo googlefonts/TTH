@@ -31,6 +31,17 @@ class PointLocation(object):
 		self.idx = idx
 		self.component = compIdx
 
+class ApplyParametric(object):
+	def __init__(self, gm, fm):
+		self.gm = gm
+		self.fm = fm
+	def __call__(self, menuIdx = 0):
+		self.gm.prepareUndo('Apply Parametric')
+		parametric.processParametric(self.fm, self.gm, actual=True)
+		self.gm.updateGlyphProgram(tthTool.getFontModel())
+		self.gm.RFGlyph.update()
+		self.gm.performUndo()
+
 class CommandRemover(object):
 	def __init__(self, gm, cmd):
 		self.gm = gm

@@ -325,9 +325,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.nonControlKeyToolName = None
 
 	def rightMouseDown(self, point, clickCount):
-		gm = tthTool.getGlyphModel()
+		gm, fm = tthTool.getGlyphAndFontModel()
 		separator = NSMenuItem.separatorItem()
 		separator2 = NSMenuItem.separatorItem()
+		separator3 = NSMenuItem.separatorItem()
 		items = []
 		menu = NSMenu.alloc().init()
 		menuController = BaseMenu()
@@ -343,6 +344,8 @@ class TTH_RF_EventTool(BaseEventTool):
 			items.append(separator2)
 			items.append(('Deactivate All Commands', gm.deactivateAllCommands))
 			items.append(('Activate All Commands', gm.activateAllCommands))
+			items.append(separator3)
+			items.append(('Apply Parametric', TTHGlyph.ApplyParametric(gm, fm)))
 		else:
 			items.append(('Delete Command', TTHGlyph.CommandRemover(gm, cmd)))
 			code = cmd.get('code')
