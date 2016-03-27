@@ -44,8 +44,8 @@ class parametricPreview(TTHWindow):
 		self.window.lineView.setFont(fm.f)
 		glyphs = []
 		for name in namedGlyphList:
-			gm = fm.glyphModelForGlyph(fm.f[name])
 			if name in fm.f:
+				gm = fm.glyphModelForGlyph(fm.f[name])
 				pGlyph = gm._pg
 				if pGlyph == None:
 					parametric.processParametric(fm, gm)
