@@ -241,7 +241,7 @@ def calculateAlignZoneMove(fm, gm, cmd, movedPoints):
 		if zone['top'] and zoneHeight <= p.y <= zoneHeight + zoneWidth:
 			pMove = geom.Point(0, zoneHeight - p.y + (p.y - zonePosition))
 		elif not zone['top'] and zoneHeight - zoneWidth <= p.y <= zoneHeight:
-			pMove = geom.Point(0, -zoneHeight - p.y + (p.y - zonePosition))
+			pMove = geom.Point(0, zoneHeight - p.y + (p.y - zonePosition))
 		else:
 			pMove = geom.Point(0, zoneHeight - p.y)
 		pT = PointTouched(p, pMove, p+pMove, csi)
