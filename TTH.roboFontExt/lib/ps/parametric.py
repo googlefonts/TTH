@@ -248,7 +248,7 @@ def calculateAlignZoneMove(fm, gm, cmd, movedPoints):
 		#print "@@@@@@@@@@",p,pMove,p+pMove
 	else:
 		print "ALIGN TO ZONE AFTER POINT HAS ALREADY BEEN MOVED !!!"
-		pMove = geom.Point(0, zoneHeight - pm.y)
+		pMove = geom.Point(0, zoneHeight - p.y)
 		pT = PointTouched(p, pm.move+pMove, pm.point+pMove, csi)
 	movedPoints[csi[0]][csi] = pT
 

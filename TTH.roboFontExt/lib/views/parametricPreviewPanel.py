@@ -30,6 +30,7 @@ class parametricPreview(TTHWindow):
 		win.sizeSlider = Slider((-210, 0, 200, 20), minValue=12, maxValue=300, value=tthTool.parametricPreviewSize, callback=self.sizeSliderCallback)
 		win.previewEditText = ComboBox((0, 0, -220, 22), tthTool.previewSampleStringsList, continuous=True,
 			callback=self.previewEditTextCallback)
+		win.previewEditText.set(tthTool.previewString)
 
 		self.window = win # this will not rebind the events, since they are already bound.
 		self.updateDisplay()

@@ -81,6 +81,8 @@ class TTHGlyph(object):
 		self._v_stems  = None
 		self._sortedHintingCommands = None
 		self._nameToCSI = None
+		self._nameToCSILayer = None
+		self._posToName = None
 		# public variables
 		self.hintingCommands = None
 		# load stuff from the UFO Lib
@@ -136,6 +138,9 @@ class TTHGlyph(object):
 	def pPointOfCSI(self, csi):
 		return self._pg[csi[0]][csi[1]].points[csi[2]]
 
+	def pointOfCSIForLayer(self, csi, layerName):
+		return self._g.getLayer(layerName, clear=False)[csi[0]][csi[1]].points[csi[2]]
+
 	def positionForPointName(self, name, fm=None, comp=None):
 		'''Returns the position of a ON control point with the given name.
 		Coordinates in Font Units.'''
@@ -154,6 +159,25 @@ class TTHGlyph(object):
 			else:
 				csi = self.csiOfPointName(name)
 				return geom.makePoint(self.pointOfCSI(csi))
+
+	def positionForPointNameForLayer(self, name, layerName, fm=None, comp=None):
+		'''Returns the position of a ON control point with the given name.
+		Coordinates in Font Units.'''
+		if name == None:
+			print "\npositionForPointName(",name,',',fm,',',comp,")\n"
+		if name == 'lsb':
+			return geom.Point(0,0)
+		elif name == 'rsb':
+			return geom.Point(self.RFGlyph.width, 0)
+		else:
+			if comp:
+				compo = self._g.getLayer(layerName, clear=False).components[int(comp)]
+				offset = geom.makePointForPair(compo.offset)
+				gm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+				return gm.positionForPointNameForLayer(name, layerName) + offset
+			else:
+				csi = self.csiOfPointNameForLayer(name, layerName)
+				return geom.makePoint(self.pointOfCSIForLayer(csi, layerName))
 
 	def dirtyGeometry(self):
 		'''This should be called whenever the geometry of the associated
@@ -177,6 +201,27 @@ class TTHGlyph(object):
 				gm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
 				return gm.csiOfPointName(name)
 			return self._nameToCSI[name]
+		except:
+			return None
+
+	def positionOfPointName(self, name):
+		if None == self._posToName:
+			self.buildPositionToNameDict()
+		try:
+			return self._posToName[name]
+		except:
+			return None
+
+
+	def csiOfPointNameForLayer(self, name, layerName, fm=None, comp=None):
+		if None == self._nameToCSILayer:
+			self.buildNameToCSIDictForLayer(layerName)
+		try:
+			# if comp:
+			# 	compo = self._g.components[int(comp)]
+			# 	gm = fm.glyphModelForGlyph(fm.f[compo.baseGlyph])
+			# 	return gm.csiOfPointName(name)
+			return self._nameToCSILayer[name]
 		except:
 			return None
 
@@ -275,6 +320,24 @@ class TTHGlyph(object):
 					names = name.split(',')
 					if len(names) > 1 and names[0] != 'inserted':
 						self._nameToCSI[names[0]] = csi
+
+	def buildNameToCSIDictForLayer(self, layerName):
+		self._nameToCSILayer = {}
+		for cidx, contour in enumerate(self._g.getLayer(layerName, clear=False)):
+			for sidx, seg in enumerate(contour):
+				for idx, p in enumerate(seg.points):
+					name = self.hintingNameForPoint(p)
+					csi = (cidx, sidx, idx)
+					self._nameToCSILayer[name] = csi
+					# This is to find the point using the original name that may
+					# still be in the hinting commands (from FontLab). For
+					# example, point.name = 'sh03, *123456799' and we find 'sh03'
+					# in the commands (the command point name will be rewritten
+					# after)
+					names = name.split(',')
+					if len(names) > 1 and names[0] != 'inserted':
+						self._nameToCSILayer[names[0]] = csi
+
 
 	def pointClickedOnGlyph(self, clickPos, glyph, best, dist, compIdx, compOffset, on, alsoOff = False):
 		if len(glyph) == 0: return
@@ -380,6 +443,31 @@ class TTHGlyph(object):
 			# Rename the command's point using the RF name
 			cmd.set(key, baseGm.pointOfCSI(csi).name)
 		return True
+
+	def convertCmdPoints(self, cmd, cubicLayerName):
+		cubicLayer = self._g.getLayer(cubicLayerName, clear=False)
+		for base, key in [('base', 'point'), ('base1', 'point1'), ('base2', 'point2')]:
+			if not helperFunctions.commandHasAttrib(cmd, key): continue
+			c_ptName = cmd.get(key)
+			c_ptPosition = self.positionForPointNameForLayer(c_ptName, cubicLayerName)
+			for cidx, contour in enumerate(self._g):
+				for sidx, seg in enumerate(contour):
+					for idx, p in enumerate(seg.points):
+						q_name = self.hintingNameForPoint(p)
+						q_pos = geom.makePoint(p)
+						if c_ptPosition.x == q_pos.x and c_ptPosition.y == q_pos.y:
+							cmd.set(key, q_name)
+
+
+	def buildPositionToNameDict(self):
+			self._posToName = {}
+			for cidx, contour in enumerate(self._g):
+				for sidx, seg in enumerate(contour):
+					for idx, p in enumerate(seg.points):
+						name = self.hintingNameForPoint(p)
+						pos = geom.makePoint(p)
+						self._posToName[pos] = name
+
 
 	def addCommand(self, fm, cmd, update=True):
 		if not self.commandIsOK(cmd, fm): return
@@ -523,9 +611,13 @@ class TTHGlyph(object):
 		#	ttprogram = strTTProgram[6:-4]
 		#else:
 		#	ttprogram = strTTProgram[6:-2]
+
+		layerName = "Cubic contour"
+
 		ttprogram = self._g.lib[kTTProgramKey].data
 		root = ET.fromstring(ttprogram)
 		absent = []
+		stillMissing = []
 		for cmd in root:
 			cmd.set('active', cmd.get('active', 'true'))
 			if 'delta' in cmd.get('code'):
@@ -533,13 +625,18 @@ class TTHGlyph(object):
 				cmd.set('mono', cmd.get('mono', 'true'))
 			if self.commandIsOK(cmd, fm, verbose = True, absent = absent):
 				self.hintingCommands.append(cmd)
-		if silent: return
-		message = "[TTH WARNING] In glyph "+self._g.name+":"
-		if absent:
-			message += "The following points do not exist. "
-			message += "Commands acting on these points have been erased:\n\t"
-			message += '\n\t'.join([repr(e) for e in absent])
-		if absent: print message
+			else:
+				self.convertCmdPoints(cmd, layerName)
+				if self.commandIsOK(cmd, fm, verbose = True, absent = stillMissing):
+					self.hintingCommands.append(cmd)
+					if silent: return
+					message = "[TTH WARNING] In glyph "+self._g.name+":"
+					if stillMissing:
+						message += "The following points do not exist. "
+						message += "Commands acting on these points have been erased:\n\t"
+						message += '\n\t'.join([repr(e) for e in stillMissing])
+					if stillMissing: print message
+
 
 	def renameStem(self, nameChanger):
 		'''Use newName = '' to transform the stem into a simple round'''
