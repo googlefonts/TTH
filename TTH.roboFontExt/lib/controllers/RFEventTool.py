@@ -1,6 +1,6 @@
 #coding=utf-8
 from mojo.extensions    import ExtensionBundle, setExtensionDefault
-from mojo.events        import BaseEventTool
+from mojo.events        import BaseEventTool,addObserver, removeObserver
 from mojo.roboFont      import CurrentFont, AllFonts
 from mojo.UI            import UpdateCurrentGlyphView
 from lib.tools.defaults import getDefault, setDefault
@@ -19,7 +19,7 @@ from drawing import textRenderer, geom, utilities as DR
 # reloaded elsewhere
 from models import TTHGlyph
 from ps import parametric
-from mojo.drawingTools import drawGlyph, save, restore, stroke, fill, strokeWidth
+from mojo.drawingTools import drawGlyph, save, restore, stroke, fill, strokeWidth, fontSize, text
 
 reload(helperFunctions)
 reload(textRenderer)
@@ -27,6 +27,8 @@ reload(geom)
 reload(DR)
 reload(parametric)
 reload(TTHGlyph)
+
+kTTProgramKey = 'com.fontlab.ttprogram'
 
 toolbarIcon = ExtensionBundle("TTH").get("toolbarIcon")
 
@@ -109,6 +111,8 @@ class TTH_RF_EventTool(BaseEventTool):
 				setDefault('drawingSegmentType', 'qcurve')
 		self.sizeHasChanged()
 		tthTool.becomeActive()
+		addObserver(self, "drawHintedGlyphsInFontOverview", "glyphCollectionDraw")
+		addObserver(self, "TTHMenu", "fontOverviewAdditionContextualMenuItems")
 
 	def becomeInactive(self):
 		'''This function is called by RF when another tool button is
@@ -117,6 +121,8 @@ class TTH_RF_EventTool(BaseEventTool):
 
 		# restore the original curve drawing mode
 		setDefault('drawingSegmentType', self.originalCurveDrawingPref)
+		removeObserver(self, "glyphCollectionDraw")
+		removeObserver(self, "fontOverviewAdditionContextualMenuItems")
 
 	def viewDidChangeGlyph(self):
 		'''This function is called by RF when the Glyph View shows another
@@ -176,6 +182,32 @@ class TTH_RF_EventTool(BaseEventTool):
 		if view is None: return 0
 		rects, count = view.getRectsBeingDrawn_count_(None, None)
 		return count
+
+	def TTHMenu(self, notification):
+		menus = notification["additionContextualMenuItems"]
+		fm = tthTool.getFontModel()
+		names = fm.f.selection
+		gmList = []
+		for name in names:
+			g = fm.f[name]
+			gm = fm.glyphModelForGlyph(g)
+			gmList.append(gm)
+
+		menus.append(['Apply Parametric For Selection', TTHGlyph.ApplyParametricForMultipleGlyphs(gmList, fm)])
+
+	def drawHintedGlyphsInFontOverview(self, notification):
+		self.drawKerningview = notification["view"]
+		allGlyphs = self.drawKerningview._glyphs
+		for g in allGlyphs:
+			rect = self.drawKerningview.getGlyphRect(g)
+			if not rect: continue
+			x, y, w, h = rect
+			if kTTProgramKey in g.lib:
+				ttprogram = g.lib[kTTProgramKey].data
+				if len(ttprogram) > 13:
+					fill(0, .7, .2, 1)
+					fontSize(w*.14)
+					text(u'H', (x+w*.75, y+h*.760))
 
 	def drawParametricGlyph(self, scale, thickness, outline=False):
 		gm, fm = tthTool.getGlyphAndFontModel()

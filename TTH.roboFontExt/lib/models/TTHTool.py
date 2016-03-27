@@ -115,6 +115,8 @@ class TTHTool(object):
 		fm = self.fontModelForGlyph(g)
 		if fm == None:
 			fm = self.fontModelForFont(CurrentFont())
+		if g is None:
+			g = fm.f[fm.f.selection[0]]
 		return g, fm
 
 	def getGlyphAndFontModel(self):

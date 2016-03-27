@@ -42,6 +42,18 @@ class ApplyParametric(object):
 		self.gm.RFGlyph.update()
 		self.gm.performUndo()
 
+class ApplyParametricForMultipleGlyphs(object):
+	def __init__(self, gmList, fm):
+		self.gmList = gmList
+		self.fm = fm
+	def __call__(self, menuIdx = 0):
+		for gm in self.gmList:
+			gm.prepareUndo('Apply Parametric')
+			parametric.processParametric(self.fm, gm, actual=True)
+			gm.updateGlyphProgram(tthTool.getFontModel())
+			gm.RFGlyph.update()
+			gm.performUndo()
+
 class CommandRemover(object):
 	def __init__(self, gm, cmd):
 		self.gm = gm
