@@ -171,6 +171,10 @@ class TTHFont(object):
 			del model
 			del self._glyphModels[key]
 
+	def clearParametricGlyphs(self):
+		for k,gm in self._glyphModels.iteritems():
+			gm._pg = None
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - LIB
 

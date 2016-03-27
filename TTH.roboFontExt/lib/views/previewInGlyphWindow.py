@@ -7,14 +7,12 @@ from mojo.drawingTools import *
 
 from drawing import utilities as DR
 from commons import helperFunctions as HF
-from models import TTHGlyph
 from ps import parametric
 from models.TTHTool import uniqueInstance as tthTool
 
 from fontTools.pens.cocoaPen import CocoaPen
 
 reload(HF)
-reload(TTHGlyph)
 reload(parametric)
 
 bkgColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
@@ -155,7 +153,7 @@ class PreviewInGlyphWindow(NSView):
 				advance += delta_pos[0] + 5
 
 		else:
-			gm, fm = tthTool.getGlyphAndFontModel()
+			gm, fm = self.tthTool.getGlyphAndFontModel()
 			pGlyph = gm._pg
 			if pGlyph == None:
 				parametric.processParametric(fm, gm)
