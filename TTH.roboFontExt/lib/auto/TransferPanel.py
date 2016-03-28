@@ -148,7 +148,7 @@ class TransferPanel(BaseWindowController):
 			if (gName in sfm.f) and (gName in tfm.f):
 				sg = sfm.f[gName]
 				tg = tfm.f[gName]
-				matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
+				matching.transferHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
 				tfm.f[gName].mark = (1, .5, 0, .5)
 				count += 1
 				if count == nInc:
@@ -174,7 +174,7 @@ class TransferPanel(BaseWindowController):
 		reverseSourceContour = (sourceIsQuadratic != targetIsQuadratic)
 		if not (sg == tg) and (tg is not None) and (sg is not None):
 			td = self.window.transferDeltaCheckBox.get()
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
+			matching.transferHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
 
 
 	def transferFont(self, sender):

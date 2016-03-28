@@ -257,7 +257,7 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 			numTargetContours = numberOfContours(targetFM.f, targetG)
 			if numTargetContours == numSourceContours and numSourceContours > 0:
 				# same number of contours
-				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas, reverseSourceContour)
+				transferHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas, reverseSourceContour)
 				targetG.mark = (1, .5, 0, .5)
 		else:
 			msg.append(sourceG.name.join(["Warning: glyph "," not found in target font."]))
@@ -271,14 +271,14 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 	if msg:
 		print '\n'.join(msg)
 
-def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
+def transferHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
 	#try:
-		transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas, reverseSourceContour)
+		transferHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas, reverseSourceContour)
 	#except:
 	#	print "There was an EXCEPTION RAISED while transfering hints between:"
 	#	print sourceFM.f.fileName,":",sourceGlyph.name," and ", targetFM.f.fileName,":",targetGlyph.name
 
-def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
+def transferHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
 	hasSGM   = sourceFM.hasGlyphModelForGlyph(sourceGlyph)
 	sourceGM = sourceFM.glyphModelForGlyph(sourceGlyph)
 	hasTGM   = targetFM.hasGlyphModelForGlyph(targetGlyph)
