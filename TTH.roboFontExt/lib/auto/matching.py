@@ -245,8 +245,8 @@ class PointNameMatcher(object):
 def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progress=None):
 	sourceFont = sourceFM.f
 	targetFont = targetFM.f
-	sourceIsQuadratic = helperFunctions.fontIsQuadratic(sourceFont)
-	targetIsQuadratic = helperFunctions.fontIsQuadratic(targetFont)
+	sourceIsQuadratic = HF.fontIsQuadratic(sourceFont)
+	targetIsQuadratic = HF.fontIsQuadratic(targetFont)
 	reverseSourceContour = (sourceIsQuadratic != targetIsQuadratic)
 	msg = []
 	counter = 0
