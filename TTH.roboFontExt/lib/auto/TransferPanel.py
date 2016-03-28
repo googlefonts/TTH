@@ -6,12 +6,18 @@ from mojo.roboFont import CurrentGlyph, CurrentFont, AllFonts
 from AppKit import NSImage, NSImageNameRefreshTemplate
 from models.TTHTool import uniqueInstance as tthTool, DefaultKeyStub
 from auto import matching
+from commons import helperFunctions
 reload(matching)
 
 defaultKeyDoTransferDelta = DefaultKeyStub + "DoTransferDelta"
 
 def displayName(f):
-	return f.info.familyName+'-'+f.info.styleName
+	n = f.info.familyName+'-'+f.info.styleName
+	if helperFunctions.fontIsQuadratic(f):
+		n = "(Q) "+n
+	else:
+		n = "(C) "+n
+	return n
 
 class TransferPanel(BaseWindowController):
 	def __init__(self):
@@ -127,6 +133,9 @@ class TransferPanel(BaseWindowController):
 	def transferGlyphs(self, sender):
 		sfm, tfm = self.getFontModels()
 		if sfm is tfm: return
+		sourceIsQuadratic = helperFunctions.fontIsQuadratic(sfm.f)
+		targetIsQuadratic = helperFunctions.fontIsQuadratic(tfm.f)
+		reverseSourceContour = (sourceIsQuadratic != targetIsQuadratic)
 		td = self.window.transferDeltaCheckBox.get()
 		gNamesList = CurrentFont().selection
 		if not gNamesList: return
@@ -139,7 +148,7 @@ class TransferPanel(BaseWindowController):
 			if (gName in sfm.f) and (gName in tfm.f):
 				sg = sfm.f[gName]
 				tg = tfm.f[gName]
-				matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
+				matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
 				tfm.f[gName].mark = (1, .5, 0, .5)
 				count += 1
 				if count == nInc:
@@ -160,9 +169,12 @@ class TransferPanel(BaseWindowController):
 		tgName = self.window.boxGlyphs.tgtGlyphsComboBox.get()
 		if tgName in tfm.f:
 			tg = tfm.f[tgName]
+		sourceIsQuadratic = helperFunctions.fontIsQuadratic(sfm.f)
+		targetIsQuadratic = helperFunctions.fontIsQuadratic(tfm.f)
+		reverseSourceContour = (sourceIsQuadratic != targetIsQuadratic)
 		if not (sg == tg) and (tg is not None) and (sg is not None):
 			td = self.window.transferDeltaCheckBox.get()
-			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td)
+			matching.transfertHintsBetweenTwoGlyphs(sfm, sg, tfm, tg, td, reverseSourceContour)
 
 
 	def transferFont(self, sender):

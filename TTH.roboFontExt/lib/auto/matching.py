@@ -152,7 +152,7 @@ class TTHComponent(object):
 def numberOfContours(f, g):
 	return sum([len(f[c.baseGlyph]) for c in g.components], len(g))
 
-def prepareGlyph(fm, gm, withOff):
+def prepareGlyph(fm, gm, withOff, reverseContours=False):
 	comps = [TTHComponent(gm,-1,(0,0),(1,1))]
 	for idx, comp in enumerate(gm.RFGlyph.components):
 		comps.append(TTHComponent(fm.glyphModelForGlyph(fm.f[comp.baseGlyph]), idx, comp.offset, comp.scale))
@@ -175,6 +175,10 @@ def prepareGlyph(fm, gm, withOff):
 				newContour.append(SimplePoint(onPt, name, inTangent, outTangent))
 				if not withOff: continue
 				contourOffs.append([SimplePoint(geom.makePoint(o), compo.g.hintingNameForPoint(o)) for o in seg.offCurve])
+			if reverseContours:
+				newContour = newContour[len(newContour)-2::-1]+[newContour[-1]]
+				contourOffs.reverse()
+				for c in offContours: c.reverse()
 			onContours.append(newContour)
 			offContours.append(contourOffs)
 			compIndices.append(compo.idx)
@@ -212,11 +216,11 @@ def getOffMatching(srcCompIdx, srcOffs, tgtCompIdx, tgtOffContour, tgtSeg0, tgtS
 	return dict(((srcCompIdx,srcOffs[s].name), (tgtCompIdx, tgtOffs[t].name)) for (s,t) in enumerate(permut))
 
 class PointNameMatcher(object):
-	def __init__(self, fm0, gm0, fm1, gm1, withOff=False):
+	def __init__(self, fm0, gm0, fm1, gm1, withOff=False, reverseSource=False):
 		m  = {(-1,'lsb'):(-1,'lsb'), (-1,'rsb'):(-1,'rsb')}
 		self._nameMap = m
-		srcG, srcOffs, srcCompIdx = prepareGlyph(fm0, gm0, withOff)
-		tgtG, tgtOffs, tgtCompIdx = prepareGlyph(fm1, gm1, withOff)
+		srcG, srcOffs, srcCompIdx = prepareGlyph(fm0, gm0, withOff, reverseContours=reverseSource)
+		tgtG, tgtOffs, tgtCompIdx = prepareGlyph(fm1, gm1, withOff, reverseContours=False)
 		if srcG == None:
 			print "[TTH Warning] glyph {} in font {} has less than one control point".format(gm0.RFGlyph.name, fm0.f.fileName)
 			return
@@ -241,6 +245,9 @@ class PointNameMatcher(object):
 def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progress=None):
 	sourceFont = sourceFM.f
 	targetFont = targetFM.f
+	sourceIsQuadratic = helperFunctions.fontIsQuadratic(sourceFont)
+	targetIsQuadratic = helperFunctions.fontIsQuadratic(targetFont)
+	reverseSourceContour = (sourceIsQuadratic != targetIsQuadratic)
 	msg = []
 	counter = 0
 	for sourceG in sourceFont:
@@ -250,7 +257,7 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 			numTargetContours = numberOfContours(targetFM.f, targetG)
 			if numTargetContours == numSourceContours and numSourceContours > 0:
 				# same number of contours
-				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas)
+				transfertHintsBetweenTwoGlyphs(sourceFM, sourceG, targetFM, targetG, transferDeltas, reverseSourceContour)
 				targetG.mark = (1, .5, 0, .5)
 		else:
 			msg.append(sourceG.name.join(["Warning: glyph "," not found in target font."]))
@@ -264,14 +271,14 @@ def transferHintsBetweenTwoFonts(sourceFM, targetFM, transferDeltas=False, progr
 	if msg:
 		print '\n'.join(msg)
 
-def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False):
+def transfertHintsBetweenTwoGlyphs(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
 	#try:
-		transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas)
+		transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas, reverseSourceContour)
 	#except:
 	#	print "There was an EXCEPTION RAISED while transfering hints between:"
 	#	print sourceFM.f.fileName,":",sourceGlyph.name," and ", targetFM.f.fileName,":",targetGlyph.name
 
-def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False):
+def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyph, transferDeltas=False, reverseSourceContour=False):
 	hasSGM   = sourceFM.hasGlyphModelForGlyph(sourceGlyph)
 	sourceGM = sourceFM.glyphModelForGlyph(sourceGlyph)
 	hasTGM   = targetFM.hasGlyphModelForGlyph(targetGlyph)
@@ -283,7 +290,7 @@ def transfertHintsBetweenTwoGlyphs__(sourceFM, sourceGlyph, targetFM, targetGlyp
 		return
 	AH = auto.hint.AutoHinting(targetFM)
 	getWidth = auto.hint.getWidthOfTwoPointsStem
-	pm = PointNameMatcher(sourceFM, sourceGM, targetFM, targetGM, transferDeltas)
+	pm = PointNameMatcher(sourceFM, sourceGM, targetFM, targetGM, transferDeltas, reverseSourceContour)
 	targetGM.clearCommands(True, True)
 	for inCmd in inCommands:
 		cmd = ET.Element('ttc')
