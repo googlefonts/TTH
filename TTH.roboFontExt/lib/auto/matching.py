@@ -177,6 +177,9 @@ def prepareGlyph(fm, gm, withOff, reverseContours=False):
 				contourOffs.append([SimplePoint(geom.makePoint(o), compo.g.hintingNameForPoint(o)) for o in seg.offCurve])
 			if reverseContours:
 				newContour = newContour[len(newContour)-2::-1]+[newContour[-1]]
+				# The line above is equivalent to:
+				#	newContour.reverse();
+				#	newContour.append(newContour.pop(0))
 				contourOffs.reverse()
 				for c in offContours: c.reverse()
 			onContours.append(newContour)
