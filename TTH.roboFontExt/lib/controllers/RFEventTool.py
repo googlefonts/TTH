@@ -547,7 +547,9 @@ class TTH_RF_EventTool(BaseEventTool):
 		centerpixelsColor.set()
 		path.fill()
 
-	def drawZoneDelta(self, zone, scale, pitch):
+	def drawZoneDelta(self, zone, scale, pitch, labelPos, fontModel):
+		fontIsQuad = helperFunctions.fontIsQuadratic(fontModel.f)
+		if not fontIsQuad: return
 		for deltaPPM, deltaValue in zone['delta'].iteritems():
 			if int(deltaPPM) != tthTool.PPM_Size or deltaValue == 0:
 				continue
@@ -586,7 +588,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 			point = (-100*scale, y_start+y_end/2)
 			if 'delta' in zone:
-				self.drawZoneDelta(zone, scale, pitch)
+				self.drawZoneDelta(zone, scale, pitch, labelPos, fontModel)
 				
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - DRAWING HINTING COMMANDS
