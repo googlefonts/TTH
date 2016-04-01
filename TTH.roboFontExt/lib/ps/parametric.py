@@ -214,6 +214,7 @@ def calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=False):
 
 
 def calculateAlignMove(fm, gm, cmd, movedPoints, horizontal=False):
+	if cmd['point'] in ['lsb', 'rsb']: return
 	csi = gm.csiOfPointName(cmd['point'])
 	p = geom.makePoint(gm.pointOfCSI(csi))
 	pm = movedPoints[csi[0]].get(csi) # if not found, returns None
@@ -225,10 +226,12 @@ def calculateAlignZoneMove(fm, gm, cmd, movedPoints):
 	cmdZone = cmd['zone']
 	fmZones = fm.zones
 	if cmdZone in fmZones:
-		zone = fmZones[cmdZone]
-		zoneHeight = int(zone['shift']) + int(zone['position'])
-		zonePosition = int(zone['position'])
-		zoneWidth = int(zone['width'])
+		try:
+			zone = fmZones[cmdZone]
+			zoneHeight = int(zone['shift']) + int(zone['position'])
+			zonePosition = int(zone['position'])
+			zoneWidth = int(zone['width'])
+		except: return
 	else:
 		print "BUG in CALCULATE ALIGN ZONE"
 		return
@@ -260,10 +263,12 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 
 	cmdStem = cmd['stem']
 	if cmdStem in fmStems:
-		fontStem = fmStems[cmdStem]
-		width = fontStem['width']
-		value = fontStem['targetWidth']
-		distance = int(value)
+		try:
+			fontStem = fmStems[cmdStem]
+			width = fontStem['width']
+			value = fontStem['targetWidth']
+			distance = int(value)
+		except: return
 
 		if cmd['point1'] == 'lsb':
 			csi1 = None

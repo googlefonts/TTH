@@ -211,7 +211,7 @@ class TTH_RF_EventTool(BaseEventTool):
 
 	def drawParametricGlyph(self, scale, thickness, outline=False):
 		gm, fm = tthTool.getGlyphAndFontModel()
-		if gm == None: return
+		if gm == None or helperFunctions.fontIsQuadratic(fm.f): return
 		pGlyph = gm._pg
 		if pGlyph == None:
 			parametric.processParametric(fm, gm)

@@ -12,9 +12,11 @@ defaultKeyParametricPreviewWindowVisibility = DefaultKeyStub + "parametricPrevie
 from models.TTHTool import uniqueInstance as tthTool
 from models import TTHGlyph
 from ps import parametric
+from commons import helperFunctions
 
 reload(TTHGlyph)
 reload(parametric)
+reload(helperFunctions)
 
 class parametricPreview(TTHWindow):
 
@@ -40,6 +42,7 @@ class parametricPreview(TTHWindow):
 
 	def updateDisplay(self):
 		gm, fm = tthTool.getGlyphAndFontModel()
+		if helperFunctions.fontIsQuadratic(fm.f): return
 		(namedGlyphList, curGlyphName) = tthTool.prepareText(gm.RFGlyph, fm.f)
 		self.window.lineView.setPointSize(tthTool.parametricPreviewSize)
 		self.window.lineView.setFont(fm.f)

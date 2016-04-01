@@ -143,6 +143,8 @@ class ZoneView(object):
 			sender.set(value)
 
 	def uiZoneOfZone(self, zone, name):
+		if 'shift' not in zone:
+			zone['shift'] = 0
 		c_zoneDict = { 'Name': name, 'Position': zone['position'], 'Width': zone['width'], 'Shift': zone['shift'] }
 		deltaString = ''
 		if 'delta' in zone:
@@ -337,6 +339,8 @@ class StemView(object):
 		self.lock = False
 
 	def uiStemOfStem(self, stem, name):
+		if 'targetWidth' not in stem:
+			stem['targetWidth'] = stem['width']
 		uiStem = { 'Name': name, 'Width': int(stem['width']), 'TargetWidth': int(stem['targetWidth']) }
 		invDico = helperFunctions.invertedDictionary(stem['round'])
 		for i in range(1,7):

@@ -155,7 +155,7 @@ class PreviewInGlyphWindow(NSView):
 		else:
 			gm, fm = self.tthTool.getGlyphAndFontModel()
 			pGlyph = gm._pg
-			if pGlyph == None:
+			if pGlyph == None or HF.fontIsQuadratic(fm.f):
 				parametric.processParametric(fm, gm)
 				pGlyph = gm._pg
 			pen = CocoaPen(pGlyph.getParent())
