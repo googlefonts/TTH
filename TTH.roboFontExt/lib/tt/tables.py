@@ -1,6 +1,6 @@
 import math, time
 from fontTools.ttLib.tables._g_a_s_p import GASP_SYMMETRIC_GRIDFIT, GASP_SYMMETRIC_SMOOTHING, GASP_DOGRAY, GASP_GRIDFIT
-from lib.fontObjects.doodleFontCompiler.ttfCompiler import TTFCompilerSettings
+from fontCompiler.ttfCompiler import TTFCompilerSettings
 from commons import helperFunctions as HF
 
 #import novo
