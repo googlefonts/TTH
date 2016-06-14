@@ -294,20 +294,19 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 		if horizontal: axis = 1
 		originalDistance = abs(p2[axis] - p1[axis])
 		oneBeforeTwo = p1[axis] < p2[axis]
-		d = distance - originalDistance
+		delta = distance - originalDistance
 
 		if double:
-			p1Move = geom.Point(int(round(-d*0.3)), 0)
-			p2Move = geom.Point(int(round(+d*0.7)), 0)
+			p1Move = geom.Point(int(round(-delta*0.3)), 0)
+			p2Move = geom.Point(int(round(+delta*0.7)), 0)
 		else:
 			p1Move = geom.Point(0, 0)
-			p2Move = geom.Point(int(round(d)), 0)
+			p2Move = geom.Point(int(round(delta)), 0)
 			
 		if not oneBeforeTwo:
-			if double:
-				p1Move, p2Move = p2Move, p1Move
-			else:
-				p2Move = geom.Point(int(round(-d)), 0)
+			p1Move = p1Move.opposite()
+			p2Move = p2Move.opposite()
+
 		if horizontal:
 			p1Move = p1Move.swapAxes()
 			p2Move = p2Move.swapAxes()
@@ -348,7 +347,7 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 			p2Move = p2Move + p1m.move
 		try:
 			if csi2 in movedPoints[csi2[0]]:
-				print "BUGGY SINGLE LINK COMMAND : Pt2 has alreayd moved"
+				print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
 				return
 		except:
 			pass
