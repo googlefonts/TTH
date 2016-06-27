@@ -269,15 +269,20 @@ class TTH_RF_EventTool(BaseEventTool):
 			self.drawZones(scale, pitch, fm)
 
 			tr = fm.textRenderer
-			tr.set_cur_size(tthTool.PPM_Size)
-			tr.set_pen((0, 0))
-
 			if tr != None and tr.isOK():
+				tr.set_cur_size(tthTool.PPM_Size)
+				tr.set_pen((0, 0))
 				if tthTool.showBitmap == 1:
 					tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
 				if tthTool.showOutline == 1:
 					tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
 					self.drawSideBearings(scale, pitch, g.name, fm)
+			else:
+				font = fm.f
+				if font is None:
+					print "The TTHFontModel has no associated font!"
+				else:
+					print "The TTHFontModel for font", font.fileName, "has no associated TextRenderer"
 
 			if tthTool.showCenterPixel == 1:
 				self.drawCenterPixel(scale, pitch, tthTool.centerPixelSize)
