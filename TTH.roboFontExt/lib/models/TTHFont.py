@@ -24,6 +24,8 @@ reload(parametric)
 FL_tth_key = "com.fontlab.v2.tth"
 SP_tth_key = "com.sansplomb.tth"
 
+debug_tthfont_verbose = False
+
 class TTHFont(object):
 	def __init__(self, font):
 		# the corresponding Robofont font
@@ -626,8 +628,9 @@ When do we regenerate a partial font?
 		except:
 			print 'ERROR: Unable to generate temporary font. Got the following report:'
 			print self.lastFontGenerationReport
-		print 'SUCCESS: generated temporary font. Got the following report:'
-		print self.lastFontGenerationReport
+		if debug_tthfont_verbose:
+			print 'SUCCESS: generated temporary font. Got the following report:'
+			print self.lastFontGenerationReport
 
 	def updatePartialFont(self, glyphSet):
 		"""Typically called directly when the current glyph has been modifed."""

@@ -193,7 +193,7 @@ def makePointRFNameToIndexDict(fm, gm):
 
 	return result
 
-def calculateInterpolateMove(fm, gm, cmd, movedPoints, horizontal=False):
+def calculateInterpolateMove(regs, cmd, horizontal=False):
 	csi  = regs.gm.csiOfPointName(cmd['point'])
 	csi1 = regs.gm.csiOfPointName(cmd['point1'])
 	csi2 = regs.gm.csiOfPointName(cmd['point2'])
