@@ -297,8 +297,8 @@ def calculateLinkMove(fm, gm, cmd, movedPoints, horizontal=False, double=False):
 		delta = distance - originalDistance
 
 		if double:
-			p1Move = geom.Point(int(round(-delta*0.3)), 0)
-			p2Move = geom.Point(int(round(+delta*0.7)), 0)
+			p1Move = geom.Point(int(round(-delta*0.4)), 0)
+			p2Move = geom.Point(int(round(+delta*0.6)), 0)
 		else:
 			p1Move = geom.Point(0, 0)
 			p2Move = geom.Point(int(round(delta)), 0)
