@@ -122,9 +122,9 @@ class TTHGlyph(object):
 	def RFGlyph(self):
 		return self._g
 
-	# @property
-	# def pGlyph(self):
-	# 	return self._pg
+	@property
+	def parametricGlyph(self):
+		return self._pg
 
 	@property
 	def contours(self):
@@ -226,15 +226,6 @@ class TTHGlyph(object):
 			return self._nameToCSI[name]
 		except:
 			return None
-
-	def positionOfPointName(self, name):
-		if None == self._posToName:
-			self.buildPositionToNameDict()
-		try:
-			return self._posToName[name]
-		except:
-			return None
-
 
 	def csiOfPointNameForLayer(self, name, layerName, fm=None, comp=None):
 		if None == self._nameToCSILayer:

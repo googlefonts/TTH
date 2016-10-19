@@ -86,6 +86,8 @@ def compare(A, B):
 def sort(cmds):
 	x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
 	for c in cmds:
+		if c.get('active') == 'false':
+			continue
 		code = c.get('code')
 		if code is None:
 			print "[WARNING] Command has a problem!\n", c
