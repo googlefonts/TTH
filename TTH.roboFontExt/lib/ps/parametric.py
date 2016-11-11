@@ -532,19 +532,20 @@ def applyParametric(regs, actual):
 	regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
 	for scmd in sortedCommands:
 			cmd = scmd.attrib
-			if cmd['code'] in ['alignv', 'alignh']:
-				calculateAlignMove(regs, cmd, horizontal=horiz)
-			elif cmd['code'] in ['alignt', 'alignb']:
+			code = cmd['code']
+			if code in ['alignv', 'alignh']:
+				calculateAlignMove(regs, cmd, horizontal=False)
+			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
 			elif 'stem' in cmd.keys():
-				if 'diagonal' == cmd['code']:
+				if 'diagonal' == code:
 					calculateDiagonalLinkMove(regs, cmd)
-				elif 'double' in cmd['code']:
-					calculateLinkMove(regs, cmd, horizontal=horiz, double=True)
+				elif 'double' in code:
+					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
 				elif 'single' in cmd['code']:
-					calculateLinkMove(regs, cmd, horizontal=horiz, double=False)
+					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
 			elif cmd['code'] in ['interpolatev', 'interpolateh']:
-				calculateInterpolateMove(regs, cmd, horizontal=horiz)
+				calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
 
 	interpolate(regs, actual, horizontal=True)
 	interpolate(regs, actual, horizontal=False)
