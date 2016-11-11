@@ -385,8 +385,9 @@ def calculateDiagonalLinkMove(regs, cmd):
 		ndp = dp.normalized()
 		originalDistance = dp.length()
 		delta = distance - originalDistance
-		p1Move = delta*(-0.5)*ndp
-		p2Move = delta*(+0.5)*ndp
+		p1Move = (delta*(-0.5))*ndp
+		p2Move = (delta*(+0.5))*ndp
+		print originalDistance, distance, delta, dp, p1Move, p2Move
 	elif cmdStem == None:
 		p1Move = zero
 		p2Move = zero
@@ -406,7 +407,7 @@ def calculateDiagonalLinkMove(regs, cmd):
 		print "WEIRD DIAGONAL"
 	savePointTouched(regs, p2Name, csi2, pT2)
 
-def interpolate(regs, actual, horizontal=False):
+def iup(regs, actual, horizontal=False):
 	axis = 0
 	if horizontal:
 		axis = 1
@@ -414,10 +415,14 @@ def interpolate(regs, actual, horizontal=False):
 		touchedInContour = regs.movedPoints[cidx].values()
 		touchedInContour.sort(key=lambda pt:pt.csi)
 		for pt in touchedInContour:
+			p = [0.0, 0.0]
+			p[axis] = pt.move[axis]
+			m = geom.Point(p[0], p[1])
 			if actual:
-				regs.gm.pointOfCSI(pt.csi).move(pt.move)
+				regs.gm.pointOfCSI(pt.csi).move(m)
 			else:
-				regs.gm.pPointOfCSI(pt.csi).move(pt.move)
+				regs.gm.pPointOfCSI(pt.csi).move(m)
+		continue
 
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
@@ -537,16 +542,16 @@ def applyParametric(regs, actual):
 				calculateAlignMove(regs, cmd, horizontal=False)
 			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
-			elif 'stem' in cmd.keys():
+			elif 'stem' in cmd:
 				if 'diagonal' == code:
 					calculateDiagonalLinkMove(regs, cmd)
 				elif 'double' in code:
 					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
 				elif 'single' in cmd['code']:
 					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
-			elif cmd['code'] in ['interpolatev', 'interpolateh']:
+			elif code in ['interpolatev', 'interpolateh']:
 				calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
 
-	interpolate(regs, actual, horizontal=True)
-	interpolate(regs, actual, horizontal=False)
+	iup(regs, actual, horizontal=True)
+	iup(regs, actual, horizontal=False)
 

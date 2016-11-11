@@ -57,7 +57,7 @@ class MainPanel(BaseWindowController):
 		self._lock = False
 
 	def makeMainPanel(self):
-		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 285, 95)), "TTH", closable = False)
 
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
@@ -92,7 +92,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.axisSegmentedButton.set(b)
 
 		# Tools segmented buttons
-		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton = SegmentedButton((-178, 12, 170, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(6)
 
 		# UI for alignment type
