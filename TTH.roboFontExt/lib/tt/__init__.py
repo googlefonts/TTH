@@ -21,10 +21,12 @@ middleDeltaCodes = ['mdeltah', 'mdeltav']
 finalDeltaCodes  = ['fdeltah', 'fdeltav']
 
 def compare(A, B):
-	A_isMiddleDelta = A.get('code') in middleDeltaCodes
-	B_isMiddleDelta = B.get('code') in middleDeltaCodes
-	A_isFinalDelta  = A.get('code') in finalDeltaCodes
-	B_isFinalDelta  = B.get('code') in finalDeltaCodes
+	Acode = A.get('code')
+	Bcode = B.get('code')
+	A_isMiddleDelta = Acode in middleDeltaCodes
+	B_isMiddleDelta = Bcode in middleDeltaCodes
+	A_isFinalDelta  = Acode in finalDeltaCodes
+	B_isFinalDelta  = Bcode in finalDeltaCodes
 	ba = (True, True)
 	ab = (True, False)
 	dontcare = (False, False)
@@ -46,6 +48,19 @@ def compare(A, B):
 		return ba
 	elif B_isFinalDelta: # A is NOT final delta, so A goes before B
 		return ab
+
+	# Some code in case we have weird diagonal commands
+	A_isVertical = Acode[-1] in ['v','t','b']
+	B_isVertical = Bcode[-1] in ['v','t','b']
+	A_isHorizontal = Acode[-1] in ['h']
+	B_isHorizontal = Bcode[-1] in ['h']
+	no_diagonal = (Acode != 'diagonal') and (Bcode != 'diagonal')
+	if no_diagonal:
+		if A_isHorizontal and B_isVertical:
+			return ab
+		if B_isHorizontal and A_isVertical:
+			return ba
+	# end of diagonal-handling code
 
 	keys = ['point', 'point1', 'point2']
 	sources = []
@@ -84,6 +99,7 @@ def compare(A, B):
 	else: return dontcare
 
 def sort(cmds):
+	has_diagonal = False
 	x, ytb, y, fdeltah, fdeltav = [], [], [], [], []
 	for c in cmds:
 		if c.get('active') == 'false':
@@ -92,7 +108,10 @@ def sort(cmds):
 		if code is None:
 			print "[WARNING] Command has a problem!\n", c
 			continue
-		if code == 'fdeltah':
+		if code == 'diagonal':
+			has_diagonal = True
+			x.append(c)
+		elif code == 'fdeltah':
 			fdeltah.append(c)
 		elif code == 'fdeltav':
 			fdeltav.append(c)
@@ -104,7 +123,10 @@ def sort(cmds):
 			ytb.append(c)
 		else:
 			y.append(c)
-	x = HF.topologicalSort(x, compare)
-	x.extend(ytb)
-	return sum([HF.topologicalSort(l, compare) for l in [y,fdeltah,fdeltav]], x)
-
+	if has_diagonal:
+		xy = x+y
+		return sum([HF.topologicalSort(l, compare) for l in [xy,fdeltah,fdeltav]], ytb)
+	else:
+		x = HF.topologicalSort(x, compare)
+		x.extend(ytb)
+		return sum([HF.topologicalSort(l, compare) for l in [y,fdeltah,fdeltav]], x)

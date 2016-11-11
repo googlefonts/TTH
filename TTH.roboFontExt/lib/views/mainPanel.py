@@ -20,6 +20,7 @@ buttonYPath             = ExtensionBundle("TTH").get("buttonY")
 buttonAlignPath         = ExtensionBundle("TTH").get("buttonAlign")
 buttonSingleLinkPath    = ExtensionBundle("TTH").get("buttonSingleLink")
 buttonDoubleLinkPath    = ExtensionBundle("TTH").get("buttonDoubleLink")
+buttonDiagonalLinkPath  = ExtensionBundle("TTH").get("buttonDoubleLink")
 buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
 buttonMiddleDeltaPath   = ExtensionBundle("TTH").get("buttonMiddleDelta")
 buttonFinalDeltaPath    = ExtensionBundle("TTH").get("buttonFinalDelta")
@@ -67,6 +68,7 @@ class MainPanel(BaseWindowController):
 			dict(width=19, imageObject=buttonAlignPath, toolTip="Align Tool"),
 			dict(width=19, imageObject=buttonSingleLinkPath, toolTip="Single Link Tool"),
 			dict(width=19, imageObject=buttonDoubleLinkPath, toolTip="Double Link Tool"),
+			dict(width=19, imageObject=buttonDiagonalLinkPath, toolTip="Diagonal Link Tool"),
 			dict(width=19, imageObject=buttonInterpolationPath, toolTip="Interpolation Tool"),
 			dict(width=19, imageObject=buttonMiddleDeltaPath, toolTip="Middle Delta Tool"),
 			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool"),

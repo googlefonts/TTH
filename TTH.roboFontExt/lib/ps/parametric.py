@@ -40,6 +40,7 @@ commandGroups = [	('alignToZone', ['alignt', 'alignb']),
 				('align',       ['alignv', 'alignh']),
 				('single',      ['singlev', 'singleh']),
 				('double',      ['doublev', 'doubleh']),
+				('diagonal',    ['diagonal']),
 				('interpolate', ['interpolatev', 'interpolateh']),
 				('mdelta',      ['mdeltah', 'mdeltav']),
 				('fdelta',      ['fdeltah', 'fdeltav']) ]
@@ -47,7 +48,7 @@ commandToGroup = dict(sum([[(code, groupName) for code in group] for groupName,g
 
 def getCommandGroup(command):
 	# Might throw exception if command's code is unknown
-	return commandToGroup[command.get('code')]
+	return commandToGroup.get(command.get('code'), 'pass')
 
 def getDeltaGroup(delta):
 	group = ''
@@ -84,7 +85,7 @@ def processAlign(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			name = command.get('point') 
+			name = command.get('point')
 			point1 = name
 		except:
 			print "[TTH ERROR] command's point1 has no index in the glyph"
@@ -107,7 +108,7 @@ def processZoneAlign(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			name = command.get('point') 
+			name = command.get('point')
 			point1 = name
 		except:
 			print "[TTH ERROR] command's point1 has no index in the glyph"
@@ -119,7 +120,7 @@ def processZoneAlign(commandsList, pointNameToIndex, regs):
 		zone = command.get('zone')
 		cmd = {'code':code, 'point':point, 'zone':zone}
 
-		
+
 		regs.y_instructions.append(cmd)
 
 def processLink(commandsList, pointNameToIndex, regs):
@@ -129,7 +130,7 @@ def processLink(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			name = command.get('point1') 
+			name = command.get('point1')
 			point1 = name
 		except:
 			print "[TTH ERROR] command's point1 has no index in the glyph"
@@ -137,7 +138,7 @@ def processLink(commandsList, pointNameToIndex, regs):
 			continue
 
 		try:
-			name = command.get('point2') 
+			name = command.get('point2')
 			point2 = name
 		except:
 			print "[TTH ERROR] command's point2 has no index in the glyph"
@@ -322,7 +323,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 		else:
 			p1Move = geom.Point(0, 0)
 			p2Move = geom.Point(int(round(delta)), 0)
-			
+
 		if not oneBeforeTwo:
 			p1Move = p1Move.opposite()
 			p2Move = p2Move.opposite()
@@ -356,6 +357,55 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 		print "WEIRD"
 	savePointTouched(regs, p2Name, csi2, pT2)
 
+def calculateDiagonalLinkMove(regs, cmd):
+	hStems = regs.fm.horizontalStems
+	vStems = regs.fm.verticalStems
+
+	# Get the original point positions
+	p1Name = cmd['point1']
+	p2Name = cmd['point2']
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name)
+	#print "Point 1: ", p1Name, csi1, p1, p1m
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name)
+	#print "Point 2: ", p2Name, csi2, p2, p2m
+
+	cmdStem = cmd['stem']
+	if (cmdStem in hStems) or (cmdStem in vStems):
+		try:
+			if cmdStem in hStems:
+				fontStem = hStems[cmdStem]
+			else:
+				fontStem = vStems[cmdStem]
+			#width = fontStem['width']
+			value = fontStem['targetWidth']
+			distance = int(value)
+		except: return
+
+		dp = p2 - p1
+		ndp = dp.normalized()
+		originalDistance = dp.length()
+		delta = distance - originalDistance
+		p1Move = delta*(-0.5)*ndp
+		p2Move = delta*(+0.5)*ndp
+	elif cmdStem == None:
+		p1Move = zero
+		p2Move = zero
+	else:
+		print "BUGGY DIAGONAL LINK COMMAND"
+		return
+
+	if p1m is None: # never touched before
+		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
+	else:
+		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
+	savePointTouched(regs, p1Name, csi1, pT1)
+	if p2m is None: # never touched before
+		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
+	else:
+		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
+		print "WEIRD DIAGONAL"
+	savePointTouched(regs, p2Name, csi2, pT2)
+
 def interpolate(regs, actual, horizontal=False):
 	axis = 0
 	if horizontal:
@@ -368,7 +418,7 @@ def interpolate(regs, actual, horizontal=False):
 				regs.gm.pointOfCSI(pt.csi).move(pt.move)
 			else:
 				regs.gm.pPointOfCSI(pt.csi).move(pt.move)
-	
+
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
 		if nbTouched == 1:
@@ -383,7 +433,7 @@ def interpolate(regs, actual, horizontal=False):
 					else:
 						regs.gm.pPointOfCSI(csi).move(trans)
 			continue
-		# nbTouched >= 2					
+		# nbTouched >= 2
 		for k in range(nbTouched):
 			j = (k + 1) % nbTouched
 			srcTouched = touchedInContour[k]
@@ -445,7 +495,7 @@ def interpolate(regs, actual, horizontal=False):
 def processParametric(fm, gm, actual=False):
 	g = gm.RFGlyph
 	gm._pg = g.copy()
-	
+
 	if g == None:
 		return
 	sortedCommands = gm.sortedHintingCommands
@@ -457,7 +507,7 @@ def processParametric(fm, gm, actual=False):
 	groupedCommands = groupCommands(sortedCommands)
 
 	pointNameToIndex = makePointRFNameToIndexDict(fm, gm)
-	
+
 	regs.x_instructions = []
 	regs.y_instructions = []
 
@@ -466,8 +516,8 @@ def processParametric(fm, gm, actual=False):
 		if groupType == 'alignToZone':
 			processZoneAlign(commands, pointNameToIndex, regs)
 		elif groupType == 'align':
-			processAlign(commands, pointNameToIndex, regs)	
-		elif groupType in ['double', 'single']:
+			processAlign(commands, pointNameToIndex, regs)
+		elif groupType in ['double', 'single', 'diagonal']:
 			processLink(commands, pointNameToIndex, regs)
 		elif groupType == 'interpolate':
 		 	processInterpolate(commands, pointNameToIndex, regs)
@@ -475,20 +525,27 @@ def processParametric(fm, gm, actual=False):
 	applyParametric(regs, actual)
 
 def applyParametric(regs, actual):
-	for horiz,codes in ((True, regs.y_instructions), (False, regs.x_instructions)):
-		regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
-		for cmd in codes:
+	#for horiz,codes in ((True, regs.y_instructions), (False, regs.x_instructions)):
+	#	regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
+	#	for cmd in codes:
+	sortedCommands = regs.gm.sortedHintingCommands
+	regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
+	for scmd in sortedCommands:
+			cmd = scmd.attrib
 			if cmd['code'] in ['alignv', 'alignh']:
 				calculateAlignMove(regs, cmd, horizontal=horiz)
 			elif cmd['code'] in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
 			elif 'stem' in cmd.keys():
-				if 'double' in cmd['code']:
+				if 'diagonal' == cmd['code']:
+					calculateDiagonalLinkMove(regs, cmd)
+				elif 'double' in cmd['code']:
 					calculateLinkMove(regs, cmd, horizontal=horiz, double=True)
 				elif 'single' in cmd['code']:
 					calculateLinkMove(regs, cmd, horizontal=horiz, double=False)
 			elif cmd['code'] in ['interpolatev', 'interpolateh']:
 				calculateInterpolateMove(regs, cmd, horizontal=horiz)
 
-		interpolate(regs, actual, horizontal=horiz)
+	interpolate(regs, actual, horizontal=True)
+	interpolate(regs, actual, horizontal=False)
 

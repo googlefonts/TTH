@@ -45,7 +45,7 @@ class Point(object):
 	def normalized(self):
 		l = self.length()
 		if l < 1e-6: return Point(0.0, 0.0)
-		return Point(self.x/l, self.y/l)
+		return Point(float(self.x)/l, float(self.y)/l)
 	def swapAxes(self):
 		return Point(self.y, self.x)
 

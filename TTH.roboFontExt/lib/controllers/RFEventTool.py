@@ -632,6 +632,24 @@ class TTH_RF_EventTool(BaseEventTool):
 			labelPos = pos + scale * geom.Point(10,-20)
 		return DR.CommandLabel(cmd, scale, text, labelPos, whiteColor, DR.kArrowColor, active)
 
+	def drawDiagonalLink(self, cmd, scale, fm, gm, simple):
+		active = cmd.get('active', 'true') == 'true'
+		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
+		pos2 = gm.positionForPointName(cmd.get('point2'), fm, cmd.get('base2'))
+		offCurve = DR.drawDoubleArrow(scale, pos1, pos2, active, DR.kDiaglinkColor)
+		if simple: return
+		# Compute label text
+		stemName = cmd.get('stem')
+		isRound = cmd.get('round', 'false') == 'true'
+		if isRound:
+			if stemName != None: text = u'/ ' + stemName
+			else: text = 'R'
+		elif stemName != None:
+			text = u'/ ' + stemName
+		else:
+			text = u'/'
+		return DR.CommandLabel(cmd, scale, text, offCurve, whiteColor, DR.kDiaglinkColor, active)
+
 	def drawDoubleLink(self, cmd, scale, fm, gm, simple):
 		active = cmd.get('active', 'true') == 'true'
 		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
@@ -758,6 +776,8 @@ class TTH_RF_EventTool(BaseEventTool):
 				label = self.drawAlign(fm, gm, c, scale, geom.Point(0,1), simple)
 			elif X and cmd_code == 'alignh':
 				label = self.drawAlign(fm, gm, c, scale, geom.Point(1,0), simple)
+			elif cmd_code == 'diagonal':
+				label = self.drawDiagonalLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'doubleh') or (Y and cmd_code == 'doublev'):
 				label = self.drawDoubleLink(c, scale, fm, gm, simple)
 			elif (X and cmd_code == 'singleh') or (Y and cmd_code == 'singlev'):
