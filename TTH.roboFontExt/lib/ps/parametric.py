@@ -422,7 +422,6 @@ def iup(regs, actual, horizontal=False):
 				regs.gm.pointOfCSI(pt.csi).move(m)
 			else:
 				regs.gm.pPointOfCSI(pt.csi).move(m)
-		continue
 
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
