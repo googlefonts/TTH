@@ -387,7 +387,6 @@ def calculateDiagonalLinkMove(regs, cmd):
 		delta = distance - originalDistance
 		p1Move = (delta*(-0.5))*ndp
 		p2Move = (delta*(+0.5))*ndp
-		print originalDistance, distance, delta, dp, p1Move, p2Move
 	elif cmdStem == None:
 		p1Move = zero
 		p2Move = zero
