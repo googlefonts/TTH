@@ -40,7 +40,7 @@ commandGroups = [	('alignToZone', ['alignt', 'alignb']),
 				('align',       ['alignv', 'alignh']),
 				('single',      ['singlev', 'singleh']),
 				('double',      ['doublev', 'doubleh']),
-				('diagonal',    ['diagonal']),
+				('diagonal',    ['singlediagonal', 'doublediagonal']),
 				('interpolate', ['interpolatev', 'interpolateh']),
 				('mdelta',      ['mdeltah', 'mdeltav']),
 				('fdelta',      ['fdeltah', 'fdeltav']) ]
@@ -78,111 +78,6 @@ def groupDeltas(deltas):
 
 def groupCommands(glyphAWCommands):
 	return groupList(glyphAWCommands, getCommandGroup)
-
-def processAlign(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point')
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		point = command.get('point')
-		cmd = {'code':code, 'point':point}
-
-		if 'h' in code:
-			regs.x_instructions.append(cmd)
-		elif 'v' in code:
-			regs.y_instructions.append(cmd)
-
-
-def processZoneAlign(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point')
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		point = command.get('point')
-		zone = command.get('zone')
-		cmd = {'code':code, 'point':point, 'zone':zone}
-
-
-		regs.y_instructions.append(cmd)
-
-def processLink(commandsList, pointNameToIndex, regs):
-
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point1')
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		try:
-			name = command.get('point2')
-			point2 = name
-		except:
-			print "[TTH ERROR] command's point2 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		#if 'stem' in command:
-		if HF.commandHasAttrib(command, 'stem'):
-			stem = command.get('stem')
-			cmd = {'code':code, 'point1':point1, 'point2':point2, 'stem':stem}
-
-		else:
-			cmd = {'code':code, 'point1':point1, 'point2':point2, 'stem':None}
-
-
-		regs.RP0 = regs.RP1 = regs.RP2 = None
-
-		if 'h' in code:
-			regs.x_instructions.append(cmd)
-		elif 'v' in code:
-			regs.y_instructions.append(cmd)
-
-def processInterpolate(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			point  = command.get('point')
-			point1 = command.get('point1')
-			point2 = command.get('point2')
-		except:
-			print "[TTH ERROR] command's point(s) has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		cmd = {'code':code, 'point':point, 'point1':point1, 'point2':point2}
-
-		if code == 'interpolateh':
-			regs.x_instructions.append(cmd)
-		elif code == 'interpolatev':
-			regs.y_instructions.append(cmd)
 
 def makePointRFNameToIndexDict(fm, gm):
 	result = {}
@@ -288,6 +183,56 @@ def savePointTouched(regs, pName, csi, pt):
 	else:
 		regs.movedPoints[csi[0]][csi] = pt
 
+def calculateSingleDiagonalLinkMove(regs, cmd):
+	hStems = regs.fm.horizontalStems
+	vStems = regs.fm.verticalStems
+
+	# Get the original point positions
+	p1Name = cmd['point1']
+	p2Name = cmd['point2']
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name)
+	#print "Point 1: ", p1Name, csi1, p1, p1m
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name)
+	#print "Point 2: ", p2Name, csi2, p2, p2m
+
+	cmdStem = cmd['stem']
+	if (cmdStem in hStems) or (cmdStem in vStems):
+		try:
+			if cmdStem in hStems:
+				fontStem = hStems[cmdStem]
+			else:
+				fontStem = vStems[cmdStem]
+			#width = fontStem['width']
+			value = fontStem['targetWidth']
+			distance = int(value)
+		except: return
+
+		dp = p2 - p1
+		ndp = dp.normalized()
+		originalDistance = dp.length()
+		delta = distance - originalDistance
+		p2Move = delta * ndp
+	elif cmdStem == None:
+		p2Move = zero
+	else:
+		print "BUGGY SIGNLE DIAGONAL LINK COMMAND"
+		return
+
+	if p1m != None:
+		p2Move = p2Move + p1m.move
+	if csi2 != None and csi2 in regs.movedPoints[csi2[0]]:
+		print "BUGGY SINGLE DIAGONAL LINK COMMAND : Pt2 has already moved"
+		return
+	if p1m is None: # never touched before
+		pT1 = PointTouched(p1, zero, p1, csi1)
+	savePointTouched(regs, p1Name, csi1, pT1)
+	if p2m is None: # never touched before
+		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
+	else:
+		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
+		print "SINGLE DIAGONAL WEIRD"
+	savePointTouched(regs, p2Name, csi2, pT2)
+
 def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 	if horizontal:
 		fmStems = regs.fm.horizontalStems
@@ -357,7 +302,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 		print "WEIRD"
 	savePointTouched(regs, p2Name, csi2, pT2)
 
-def calculateDiagonalLinkMove(regs, cmd):
+def calculateDoubleDiagonalLinkMove(regs, cmd):
 	hStems = regs.fm.horizontalStems
 	vStems = regs.fm.verticalStems
 
@@ -507,24 +452,6 @@ def processParametric(fm, gm, actual=False):
 
 	regs = Registers(fm, gm)
 
-	groupedCommands = groupCommands(sortedCommands)
-
-	pointNameToIndex = makePointRFNameToIndexDict(fm, gm)
-
-	regs.x_instructions = []
-	regs.y_instructions = []
-
-
-	for groupType, commands in groupedCommands:
-		if groupType == 'alignToZone':
-			processZoneAlign(commands, pointNameToIndex, regs)
-		elif groupType == 'align':
-			processAlign(commands, pointNameToIndex, regs)
-		elif groupType in ['double', 'single', 'diagonal']:
-			processLink(commands, pointNameToIndex, regs)
-		elif groupType == 'interpolate':
-		 	processInterpolate(commands, pointNameToIndex, regs)
-
 	applyParametric(regs, actual)
 
 def applyParametric(regs, actual):
@@ -541,8 +468,10 @@ def applyParametric(regs, actual):
 			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
 			elif 'stem' in cmd:
-				if 'diagonal' == code:
-					calculateDiagonalLinkMove(regs, cmd)
+				if 'doublediagonal' == code:
+					calculateDoubleDiagonalLinkMove(regs, cmd)
+				elif 'singlediagonal' == code:
+					calculateSingleDiagonalLinkMove(regs, cmd)
 				elif 'double' in code:
 					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
 				elif 'single' in cmd['code']:

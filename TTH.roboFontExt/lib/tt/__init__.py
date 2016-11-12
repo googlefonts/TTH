@@ -54,7 +54,7 @@ def compare(A, B):
 	B_isVertical = Bcode[-1] in ['v','t','b']
 	A_isHorizontal = Acode[-1] in ['h']
 	B_isHorizontal = Bcode[-1] in ['h']
-	no_diagonal = (Acode != 'diagonal') and (Bcode != 'diagonal')
+	no_diagonal = ('diagonal' not in Acode) and ('diagonal' not in Bcode)
 	if no_diagonal:
 		if A_isHorizontal and B_isVertical:
 			return ab
@@ -108,7 +108,7 @@ def sort(cmds):
 		if code is None:
 			print "[WARNING] Command has a problem!\n", c
 			continue
-		if code == 'diagonal':
+		if 'diagonal' in code:
 			has_diagonal = True
 			x.append(c)
 		elif code == 'fdeltah':

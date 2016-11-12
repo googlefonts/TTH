@@ -185,24 +185,31 @@ class TTHCommandTool(object):
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = FUNCTIONS
 
 import tools.AlignTool as AT, tools.SingleLinkTool as SLT, tools.DoubleLinkTool as DLT
-import tools.DiagonalLinkTool as DiLT
+import tools.DiagonalLinkTool as DiagLT
 import tools.InterpolationTool as IT, tools.DeltaTool as DT, tools.SelectionTool as ST
 reload(AT)
 reload(SLT)
 reload(DLT)
-reload(DiLT)
+reload(DiagLT)
 reload(IT)
 reload(DT)
 reload(ST)
 
-kCommandToolNames = ['Align', 'Single Link', 'Double Link', 'Diagonal Link',
-		'Interpolation', 'Middle Delta', 'Final Delta', 'Selection']
+kCommandToolNames = ['Align',
+		'Single Link',
+		'Single Diagonal Link',
+		'Double Link',
+		'Double Diagonal Link',
+		'Interpolation',
+		'Middle Delta', 'Final Delta',
+		'Selection']
 
 def createTool(toolName):
 	if toolName == 'Align':           return AT.AlignTool()
 	elif toolName == 'Single Link':   return SLT.SingleLinkTool()
 	elif toolName == 'Double Link':   return DLT.DoubleLinkTool()
-	elif toolName == 'Diagonal Link': return DiLT.DiagonalLinkTool()
+	elif toolName == 'Single Diagonal Link': return DiagLT.SingleDiagonalLinkTool()
+	elif toolName == 'Double Diagonal Link': return DiagLT.DoubleDiagonalLinkTool()
 	elif toolName == 'Interpolation': return IT.InterpolationTool()
 	elif toolName == 'Middle Delta':  return DT.DeltaTool(final=False)
 	elif toolName == 'Final Delta':   return DT.DeltaTool(final=True)
