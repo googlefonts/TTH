@@ -7,7 +7,7 @@ from drawing import geom, utilities as DR
 class DoubleDiagonalLinkTool(TTHCommandTool):
 
 	def __init__(self):
-		super(DiagonalLinkTool, self).__init__("Diagonal Link")
+		super(DoubleDiagonalLinkTool, self).__init__("Diagonal Link")
 		self.stemNameX = 'Guess'
 		self.stemNameY = 'Guess'
 
@@ -50,7 +50,7 @@ class DoubleDiagonalLinkTool(TTHCommandTool):
 			t = loc.pos
 			if (s.x != t.x or s.y != t.y):
 				self.addCommand(loc)
-		super(DiagonalLinkTool, self).mouseUp(point, scale)
+		super(DoubleDiagonalLinkTool, self).mouseUp(point, scale)
 
 	# - - - - DRAW
 
