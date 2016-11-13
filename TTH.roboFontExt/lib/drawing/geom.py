@@ -48,6 +48,15 @@ class Point(object):
 		return Point(float(self.x)/l, float(self.y)/l)
 	def swapAxes(self):
 		return Point(self.y, self.x)
+	def projectOnX(self):
+		return Point(self.x, 0,0)
+	def projectOnAxis(self,axis):
+		if axis == 0:
+			return Point(self.x, 0.0)
+		else:
+			return Point(0.0, self.y)
+	def projectOnY(self):
+		return Point(0.0, self.y)
 
 class Matrix(object):
 	__slots__ = ('_m')

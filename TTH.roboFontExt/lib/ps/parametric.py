@@ -12,11 +12,17 @@ class PointTouched(object):
 	def output(self):
 		print "<<'org':{}, 'move':{}, 'point':{}, 'csi':{}>>".format(self.originalPos, self.move, self.point, self.csi)
 
+def savePointTouched(regs, axis, pName, csi, pt):
+	if pName in ['lsb', 'rsb']:
+		regs.setMovedSideBearing(pName, pt)
+	else:
+		regs.movedPoints[axis][csi[0]][csi] = pt
+
 class Registers(object):
 	def __init__(self, fm, gm):
 		self.fm = fm
 		self.gm = gm
-		self.movedPoints = {}
+		self.movedPoints = None
 		self.movedSideBearings = {'lsb':None, 'rsb':None}
 		self.RP0 = None
 		self.RP1 = None
@@ -97,15 +103,18 @@ def calculateInterpolateMove(regs, cmd, horizontal=False):
 	p1 = geom.makePoint(regs.gm.pointOfCSI(csi1))
 	p2 = geom.makePoint(regs.gm.pointOfCSI(csi2))
 
-	pm1 = regs.movedPoints[csi1[0]].get(csi1) # if not found, returns None
+	axisName = 'x'
+	if horizontal: axisName = 'y'
+
+	pm1 = regs.movedPoints[axisName][csi1[0]].get(csi1) # if not found, returns None
 	if pm1 is None: # never touched before
-		pm1 = regs.movedPoints[csi1[0]][csi1] = PointTouched(p1, zero, p1, csi1)
+		pm1 = regs.movedPoints[axisName][csi1[0]][csi1] = PointTouched(p1, zero, p1, csi1)
 
-	pm2 = regs.movedPoints[csi2[0]].get(csi2) # if not found, returns None
+	pm2 = regs.movedPoints[axisName][csi2[0]].get(csi2) # if not found, returns None
 	if pm2 is None: # never touched before
-		pm2 = regs.movedPoints[csi2[0]][csi2] = PointTouched(p2, zero, p2, csi2)
+		pm2 = regs.movedPoints[axisName][csi2[0]][csi2] = PointTouched(p2, zero, p2, csi2)
 
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints[axisName][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
 		axis = 0
 		if horizontal:
@@ -118,9 +127,9 @@ def calculateInterpolateMove(regs, cmd, horizontal=False):
 			pMove = geom.Point(0, delta)
 		else:
 			pMove = geom.Point(delta, 0)
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, pMove, p+pMove, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, pMove, p+pMove, csi)
 	else:
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, zero, p, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, zero, p, csi)
 
 
 def calculateAlignMove(regs, cmd, horizontal=False):
@@ -130,11 +139,13 @@ def calculateAlignMove(regs, cmd, horizontal=False):
 		if pm == None:
 			regs.initMovedSideBearing(pName)
 		return
+	axisName = 'x'
+	if horizontal: axisName = 'y'
 	csi = regs.gm.csiOfPointName(pName)
 	p = geom.makePoint(regs.gm.pointOfCSI(csi))
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints[axisName][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, zero, p, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, zero, p, csi)
 	# else: # nothing to do
 
 def calculateAlignZoneMove(regs, cmd):
@@ -154,7 +165,7 @@ def calculateAlignZoneMove(regs, cmd):
 	csi = regs.gm.csiOfPointName(cmd['point'])
 	p = geom.makePoint(regs.gm.pointOfCSI(csi))
 
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints['y'][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
 		if zone['top'] and zoneHeight <= p.y <= zoneHeight + zoneWidth:
 			pMove = geom.Point(0, zoneHeight - p.y + (p.y - zonePosition))
@@ -168,31 +179,27 @@ def calculateAlignZoneMove(regs, cmd):
 		print "ALIGN TO ZONE AFTER POINT HAS ALREADY BEEN MOVED !!!"
 		pMove = geom.Point(0, zoneHeight - p.y)
 		pT = PointTouched(p, pm.move+pMove, pm.point+pMove, csi)
-	regs.movedPoints[csi[0]][csi] = pT
+	regs.movedPoints['y'][csi[0]][csi] = pT
 
-def getCSIAndPosAndTouchedFromPointName(regs, pName):
+def getCSIAndPosAndTouchedFromPointName(regs, pName, axis):
 	if pName in ['lsb', 'rsb']:
 		return None, regs.gm.positionForPointName(pName), regs.getMovedSideBearing(pName)
 	else:
 		csi = regs.gm.csiOfPointName(pName)
-		return csi, geom.makePoint(regs.gm.pointOfCSI(csi)), regs.movedPoints[csi[0]].get(csi)
+		return csi, geom.makePoint(regs.gm.pointOfCSI(csi)), regs.movedPoints[axis][csi[0]].get(csi)
 
-def savePointTouched(regs, pName, csi, pt):
-	if pName in ['lsb', 'rsb']:
-		regs.setMovedSideBearing(pName, pt)
-	else:
-		regs.movedPoints[csi[0]][csi] = pt
-
-def calculateSingleDiagonalLinkMove(regs, cmd):
+def calculateDiagonalLinkMove(regs, cmd, double):
 	hStems = regs.fm.horizontalStems
 	vStems = regs.fm.verticalStems
 
 	# Get the original point positions
 	p1Name = cmd['point1']
 	p2Name = cmd['point2']
-	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name)
+	csi1x, p1, p1mx = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
+	csi1y, p1, p1my = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'y')
 	#print "Point 1: ", p1Name, csi1, p1, p1m
-	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name)
+	csi2x, p2, p2mx = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+	csi2y, p2, p2my = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
 	#print "Point 2: ", p2Name, csi2, p2, p2m
 
 	cmdStem = cmd['stem']
@@ -211,43 +218,73 @@ def calculateSingleDiagonalLinkMove(regs, cmd):
 		ndp = dp.normalized()
 		originalDistance = dp.length()
 		delta = distance - originalDistance
-		p2Move = delta * ndp
+		if double:
+			p1Move = (delta*(-0.5))*ndp
+			p2Move = (delta*(+0.5))*ndp
+		else:
+			p1Move = zero
+			p2Move = delta * ndp
 	elif cmdStem == None:
+		p1Move = zero
 		p2Move = zero
 	else:
-		print "BUGGY SIGNLE DIAGONAL LINK COMMAND"
+		print "BUGGY DIAGONAL LINK COMMAND"
 		return
 
-	if p1m != None:
-		p2Move = p2Move + p1m.move
-	if csi2 != None and csi2 in regs.movedPoints[csi2[0]]:
-		print "BUGGY SINGLE DIAGONAL LINK COMMAND : Pt2 has already moved"
+	if not double:
+		if p1mx != None: p2Move = p2Move + p1mx.move
+		if p1my != None: p2Move = p2Move + p1my.move
+	if p2mx != None or p2my != None:
+		print "BUGGY DIAGONAL LINK COMMAND : Pt2 has already moved in X or in Y"
 		return
-	if p1m is None: # never touched before
-		pT1 = PointTouched(p1, zero, p1, csi1)
-	savePointTouched(regs, p1Name, csi1, pT1)
-	if p2m is None: # never touched before
-		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
+	if p1mx is None: # never touched before
+		pT1x = PointTouched(p1, zero, p1, csi1x)
 	else:
-		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
+		p1moveX = p1Move.projectOnX()
+		pT1x = PointTouched(p1, p1mx.move+p1moveX, p1m.point+p1moveX, csi1x)
+	if p1my is None: # never touched before
+		pT1y = PointTouched(p1, zero, p1, csi1y)
+	else:
+		p1moveY = p1Move.projectOnY()
+		pT1y = PointTouched(p1, p1my.move+p1moveY, p1my.point+p1moveY, csi1y)
+	savePointTouched(regs, 'x', p1Name, csi1x, pT1x)
+	savePointTouched(regs, 'y', p1Name, csi1y, pT1y)
+	# --
+	p2MoveX = p2Move.projetOnX()
+	if p2mx is None: # never touched before
+		pT2x = PointTouched(p2, p2MoveX, p2+p2MoveX, csi2x)
+	else:
+		pT2x = PointTouched(p2, p2mx.move+p2MoveX, p2mx.point+p2MoveX, csi2x)
+	p2MoveY = p2Move.projetOnY()
+	if p2my is None: # never touched before
+		pT2y = PointTouched(p2, p2MoveY, p2+p2MoveY, csi2y)
+	else:
+		pT2y = PointTouched(p2, p2my.move+p2MoveY, p2my.point+p2MoveY, csi2y)
 		print "SINGLE DIAGONAL WEIRD"
-	savePointTouched(regs, p2Name, csi2, pT2)
+	savePointTouched(regs, 'x', p2Name, csi2x, pT2x)
+	savePointTouched(regs, 'y', p2Name, csi2y, pT2y)
 
 def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 	if horizontal:
 		fmStems = regs.fm.horizontalStems
 	else:
 		fmStems = regs.fm.verticalStems
+	
 
 	# Get the original point positions
+	axis = 0
+	axisName = 'x'
+	if horizontal:
+		axis = 1
+		axisName = 'y'
 	p1Name = cmd['point1']
 	p2Name = cmd['point2']
-	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name)
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, axisName)
 	#print "Point 1: ", p1Name, csi1, p1, p1m
-	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name)
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, axisName)
 	#print "Point 2: ", p2Name, csi2, p2, p2m
 
-	cmdStem = cmd['stem']
+	cmdStem = cmd.get('stem')
 	if cmdStem in fmStems:
 		try:
 			fontStem = fmStems[cmdStem]
@@ -256,8 +293,6 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 			distance = int(value)
 		except: return
 
-		axis = 0
-		if horizontal: axis = 1
 		originalDistance = abs(p2[axis] - p1[axis])
 		oneBeforeTwo = p1[axis] < p2[axis]
 		delta = distance - originalDistance
@@ -287,20 +322,20 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 	if not double:
 		if p1m != None:
 			p2Move = p2Move + p1m.move
-		if csi2 != None and csi2 in regs.movedPoints[csi2[0]]:
+		if p2m != None:
 			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
 			return
 	if p1m is None: # never touched before
 		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
 	else:
 		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
-	savePointTouched(regs, p1Name, csi1, pT1)
+	savePointTouched(regs, axisName, p1Name, csi1, pT1)
 	if p2m is None: # never touched before
 		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
 	else:
 		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
 		print "WEIRD"
-	savePointTouched(regs, p2Name, csi2, pT2)
+	savePointTouched(regs, axisName, p2Name, csi2, pT2)
 
 def calculateDoubleDiagonalLinkMove(regs, cmd):
 	hStems = regs.fm.horizontalStems
@@ -336,7 +371,7 @@ def calculateDoubleDiagonalLinkMove(regs, cmd):
 		p1Move = zero
 		p2Move = zero
 	else:
-		print "BUGGY DIAGONAL LINK COMMAND"
+		print "BUGGY DIAGONAL DOUBLE LINK COMMAND"
 		return
 
 	if p1m is None: # never touched before
@@ -353,10 +388,12 @@ def calculateDoubleDiagonalLinkMove(regs, cmd):
 
 def iup(regs, actual, horizontal=False):
 	axis = 0
+	axisName = 'x'
 	if horizontal:
 		axis = 1
+		axisName = 'y'
 	for cidx, c in enumerate(regs.gm.RFGlyph):
-		touchedInContour = regs.movedPoints[cidx].values()
+		touchedInContour = regs.movedPoints[axisName][cidx].values()
 		touchedInContour.sort(key=lambda pt:pt.csi)
 		for pt in touchedInContour:
 			p = [0.0, 0.0]
@@ -370,7 +407,7 @@ def iup(regs, actual, horizontal=False):
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
 		if nbTouched == 1:
-			trans = touchedInContour[0].move
+			trans = touchedInContour[0].move.projectOnAxis(axis)
 			for sidx, s in enumerate(c):
 				for (idx, p) in enumerate(s.points):
 					csi = cidx, sidx, idx
@@ -459,26 +496,31 @@ def applyParametric(regs, actual):
 	#	regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
 	#	for cmd in codes:
 	sortedCommands = regs.gm.sortedHintingCommands
-	regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
+	regs.movedPoints = dict((axis, [{} for c in regs.gm.RFGlyph]) # an empty list for each contour
+			for axis in ['x', 'y'])
 	for scmd in sortedCommands:
 			cmd = scmd.attrib
 			code = cmd['code']
+			#print code,cmd
 			if code in ['alignv', 'alignh']:
 				calculateAlignMove(regs, cmd, horizontal=False)
 			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
-			elif 'stem' in cmd:
-				if 'doublediagonal' == code:
-					calculateDoubleDiagonalLinkMove(regs, cmd)
-				elif 'singlediagonal' == code:
-					calculateSingleDiagonalLinkMove(regs, cmd)
-				elif 'double' in code:
-					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
-				elif 'single' in cmd['code']:
-					calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
+			elif 'doublediagonal' == code:
+				#calculateDiagonalLinkMove(regs, cmd, double = True)
+				calculateLinkMove(regs, cmd, horizontal = True, double = True)
+				calculateLinkMove(regs, cmd, horizontal = False, double = True)
+			elif 'singlediagonal' == code:
+				#calculateDiagonalLinkMove(regs, cmd, double = False)
+				calculateLinkMove(regs, cmd, horizontal = True, double = False)
+				calculateLinkMove(regs, cmd, horizontal = False, double = False)
+			elif 'double' in code:
+				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
+			elif 'single' in code:
+				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
 			elif code in ['interpolatev', 'interpolateh']:
 				calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
 
-	iup(regs, actual, horizontal=True)
 	iup(regs, actual, horizontal=False)
+	iup(regs, actual, horizontal=True)
 
