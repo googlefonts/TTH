@@ -58,6 +58,7 @@ class MainPanel(BaseWindowController):
 		self._lock = False
 
 	def makeMainPanel(self):
+		
 		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 305, 95)), "TTH", closable = False)
 
 		axisSegmentDescriptions = [

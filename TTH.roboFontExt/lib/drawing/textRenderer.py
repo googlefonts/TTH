@@ -47,6 +47,7 @@ class TextRenderer(object):
 		self.set_cur_size(9)
 
 		self.outlinecolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(.4, .8, 1, 1)
+		self.fillcolor = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 1)
 
 		self.render_mode = FT.FT_RENDER_MODE_NORMAL
 		self.render_func = drawBitmapGray
@@ -222,11 +223,21 @@ class TextRenderer(object):
 			p.setLineWidth_(scale*thickness)
 			p.stroke()
 
+	def drawGlyph(self, scale, paths):
+		if paths is None:
+			return
+		self.fillcolor.set()
+		for p in paths:
+			p.fill()
+
 	def drawOutlineOfChar(self, scale, pitch, char, thickness):
 		self.drawOutline(scale, self.getBezierPathOfChar(scale, pitch, char), thickness)
 
 	def drawOutlineOfName(self, scale, pitch, name, thickness):
 		self.drawOutline(scale, self.getBezierPathOfName(scale, pitch, name), thickness)
+
+	def drawGlyphOfName(self, scale, pitch, name):
+		self.drawGlyph(scale, self.getBezierPathOfName(scale, pitch, name))
 
 	def getBezierPathOfName(self, scale, pitch, name):
 		index = self.face.get_name_index(name)

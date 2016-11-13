@@ -276,6 +276,7 @@ class TTH_RF_EventTool(BaseEventTool):
 					tr.render_named_glyph_list([g.name], pitch, tthTool.bitmapOpacity)
 				if tthTool.showOutline == 1:
 					tr.drawOutlineOfName(scale, pitch, g.name, tthTool.outlineThickness)
+					# tr.drawGlyphOfName(scale, pitch, g.name)
 					self.drawSideBearings(scale, pitch, g.name, fm)
 			else:
 				font = fm.f
