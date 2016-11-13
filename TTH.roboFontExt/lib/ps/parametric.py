@@ -264,12 +264,12 @@ def calculateDiagonalLinkMove(regs, cmd, double):
 	savePointTouched(regs, 'x', p2Name, csi2x, pT2x)
 	savePointTouched(regs, 'y', p2Name, csi2y, pT2y)
 
-def calculateLinkMove(regs, cmd, horizontal=False, double=False):
-	if horizontal:
-		fmStems = regs.fm.horizontalStems
-	else:
-		fmStems = regs.fm.verticalStems
-	
+def calculateLinkMove(regs, cmd, horizontal=False, double=False, allStems=False):
+	hStems = regs.fm.horizontalStems
+	vStems = regs.fm.verticalStems
+	if not allStems:
+		if horizontal: vStems = {}
+		else: hStems = {}
 
 	# Get the original point positions
 	axis = 0
@@ -285,9 +285,12 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 	#print "Point 2: ", p2Name, csi2, p2, p2m
 
 	cmdStem = cmd.get('stem')
-	if cmdStem in fmStems:
+	if (cmdStem in hStems) or (cmdStem in vStems):
 		try:
-			fontStem = fmStems[cmdStem]
+			if cmdStem in hStems:
+				fontStem = hStems[cmdStem]
+			else:
+				fontStem = vStems[cmdStem]
 			#width = fontStem['width']
 			value = fontStem['targetWidth']
 			distance = int(value)
@@ -503,17 +506,17 @@ def applyParametric(regs, actual):
 			code = cmd['code']
 			#print code,cmd
 			if code in ['alignv', 'alignh']:
-				calculateAlignMove(regs, cmd, horizontal=False)
+				calculateAlignMove(regs, cmd, horizontal=(code[-1]=='v'))
 			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
 			elif 'doublediagonal' == code:
 				#calculateDiagonalLinkMove(regs, cmd, double = True)
-				calculateLinkMove(regs, cmd, horizontal = True, double = True)
-				calculateLinkMove(regs, cmd, horizontal = False, double = True)
+				calculateLinkMove(regs, cmd, horizontal = True, double = True, allStems=True)
+				calculateLinkMove(regs, cmd, horizontal = False, double = True, allStems=True)
 			elif 'singlediagonal' == code:
 				#calculateDiagonalLinkMove(regs, cmd, double = False)
-				calculateLinkMove(regs, cmd, horizontal = True, double = False)
-				calculateLinkMove(regs, cmd, horizontal = False, double = False)
+				calculateLinkMove(regs, cmd, horizontal = True, double = False, allStems=True)
+				calculateLinkMove(regs, cmd, horizontal = False, double = False, allStems=True)
 			elif 'double' in code:
 				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
 			elif 'single' in code:
