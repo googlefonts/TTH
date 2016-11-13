@@ -264,10 +264,10 @@ def calculateDiagonalLinkMove(regs, cmd, double):
 	savePointTouched(regs, 'x', p2Name, csi2x, pT2x)
 	savePointTouched(regs, 'y', p2Name, csi2y, pT2y)
 
-def calculateLinkMove(regs, cmd, horizontal=False, double=False, allStems=False):
+def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False):
 	hStems = regs.fm.horizontalStems
 	vStems = regs.fm.verticalStems
-	if not allStems:
+	if not diagonal:
 		if horizontal: vStems = {}
 		else: hStems = {}
 
@@ -296,24 +296,35 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, allStems=False)
 			distance = int(value)
 		except: return
 
-		originalDistance = abs(p2[axis] - p1[axis])
-		oneBeforeTwo = p1[axis] < p2[axis]
-		delta = distance - originalDistance
-
-		if double:
-			p1Move = geom.Point(int(round(-delta*0.4)), 0)
-			p2Move = geom.Point(int(round(+delta*0.6)), 0)
+		if diagonal:
+			dp = p2 - p1
+			ndp = dp.normalized()
+			originalDistance = dp.length()
+			delta = distance - originalDistance
+			if double:
+				p1Move = (delta*(-0.5))*ndp
+				p2Move = (delta*(+0.5))*ndp
+			else:
+				p1Move = zero
+				p2Move = delta * ndp
+			p1Move = p1Move.projectOnAxis(axis)
+			p2Move = p2Move.projectOnAxis(axis)
 		else:
-			p1Move = geom.Point(0, 0)
-			p2Move = geom.Point(int(round(delta)), 0)
-
-		if not oneBeforeTwo:
-			p1Move = p1Move.opposite()
-			p2Move = p2Move.opposite()
-
-		if horizontal:
-			p1Move = p1Move.swapAxes()
-			p2Move = p2Move.swapAxes()
+			originalDistance = abs(p2[axis] - p1[axis])
+			delta = distance - originalDistance
+			if double:
+				p1Move = geom.Point(int(round(-delta*0.4)), 0)
+				p2Move = geom.Point(int(round(+delta*0.6)), 0)
+			else:
+				p1Move = geom.Point(0, 0)
+				p2Move = geom.Point(int(round(delta)), 0)
+				oneBeforeTwo = p1[axis] < p2[axis]
+				if not oneBeforeTwo:
+					p1Move = p1Move.opposite()
+					p2Move = p2Move.opposite()
+				if horizontal:
+					p1Move = p1Move.swapAxes()
+					p2Move = p2Move.swapAxes()
 
 	elif cmdStem == None:
 		p1Move = zero
@@ -511,12 +522,12 @@ def applyParametric(regs, actual):
 				calculateAlignZoneMove(regs, cmd)
 			elif 'doublediagonal' == code:
 				#calculateDiagonalLinkMove(regs, cmd, double = True)
-				calculateLinkMove(regs, cmd, horizontal = True, double = True, allStems=True)
-				calculateLinkMove(regs, cmd, horizontal = False, double = True, allStems=True)
+				calculateLinkMove(regs, cmd, horizontal = True, double = True, diagonal=True)
+				calculateLinkMove(regs, cmd, horizontal = False, double = True, diagonal=True)
 			elif 'singlediagonal' == code:
 				#calculateDiagonalLinkMove(regs, cmd, double = False)
-				calculateLinkMove(regs, cmd, horizontal = True, double = False, allStems=True)
-				calculateLinkMove(regs, cmd, horizontal = False, double = False, allStems=True)
+				calculateLinkMove(regs, cmd, horizontal = True, double = False, diagonal=True)
+				calculateLinkMove(regs, cmd, horizontal = False, double = False, diagonal=True)
 			elif 'double' in code:
 				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
 			elif 'single' in code:
