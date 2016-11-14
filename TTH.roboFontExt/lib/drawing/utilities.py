@@ -183,6 +183,19 @@ def drawTextAtPoint(scale, title, pos, textColor, backgroundColor, view, active=
 	view._drawTextAtPoint(title, kLabelTextAttributes, p+0.5*size+geom.Point(0,scale), drawBackground=False)
 	return size
 
+def drawStraightSingleArrow(scale, pos1, pos2, color, size=10):
+	mid = 0.5*(pos1+pos2)
+	size = abs(size)
+	pathArrow, anchor = makeArrowPathAndAnchor(scale, size, mid-pos2, pos2)
+	path = NSBezierPath.bezierPath()
+	path.moveToPoint_(pos1)
+	path.lineToPoint_(pos2)
+	color.set()
+	pathArrow.fill()
+	path.setLineWidth_(scale*size/10.0)
+	path.stroke()
+	return mid
+
 def drawSingleArrow(scale, pos1, pos2, color, size=10):
 	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2, size < 0)
 	size = abs(size)

@@ -679,7 +679,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			color = DR.kInactiveColor
 		pos1 = gm.positionForPointName(cmd.get('point1'), fm, cmd.get('base1'))
 		pos2 = gm.positionForPointName(cmd.get('point2'), fm, cmd.get('base2'))
+		angle = float(cmd.get('projection'))
+		proj = geom.Point(math.cos(angle), math.sin(angle))
 		offCurve = DR.drawSingleArrow(scale, pos1, pos2, color, 10)
+		DR.drawStraightSingleArrow(scale, pos1, pos1+(100.0*proj), color, 10)
 		if simple: return
 
 		Y = (tthTool.selectedAxis == 'Y')

@@ -1,5 +1,6 @@
 from commons import helperFunctions as HF
 from drawing import geom
+from math import cos, sin
 
 zero = geom.Point(0,0)
 
@@ -221,10 +222,13 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		except: return
 
 		if diagonal:
+			angle = float(cmd.get('projection'))
+			proj = geom.Point(cos(angle), sin(angle))
 			dp = p2 - p1
+			dpl = dp.length()
 			ndp = dp.normalized()
-			originalDistance = dp.length()
-			delta = distance - originalDistance
+			originalDistance = abs(dp | proj) # dp.length()
+			delta = (distance/originalDistance - 1.0)*dpl
 			if double:
 				p1Move = (delta*(-0.5))*ndp
 				p2Move = (delta*(+0.5))*ndp

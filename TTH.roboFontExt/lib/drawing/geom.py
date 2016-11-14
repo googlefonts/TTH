@@ -95,9 +95,9 @@ def lerp(t, a, b):
 def det2x2(a, b):
 	return a.x * b.y - a.y * b.x
 
-def computeOffMiddlePoint(scale, pos1, pos2, reverse = False):
+def computeOffMiddlePoint(scale, pos1, pos2, reverse = False, offset = 1.0/25.0):
 	#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
-	diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()
+	diff = offset * (pos2 - pos1).rotateCCW()
 	if reverse:
 		diff = diff.opposite()
 	mid  = 0.5*(pos1 + pos2)
