@@ -228,7 +228,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		except: return
 
 		if diagonal:
-			dp = curPos2 - curPos1
+			dp = p2 - p1 #curPos2 - curPos1
 			dpl = dp.length()
 			ndp = dp.normalized()
 			angle = cmd.get('projection')
@@ -266,15 +266,16 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	elif cmdStem == None:
 		p1Move = zero
 		p2Move = zero
-		if not double:
-			if p1m != None:
-				p2Move = curPos1 - p1
-			if p2m != None:
-				print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
-				return
 	else:
 		print "BUGGY LINK COMMAND"
 		return
+
+	if not double:
+		if p1m != None:
+			p2Move = p2Move + p1m.move
+		if p2m != None:
+			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
+			return
 
 	p1Move = (p1Move.projectOnAxis(0), p1Move.projectOnAxis(1))
 	p2Move = (p2Move.projectOnAxis(0), p2Move.projectOnAxis(1))
