@@ -212,11 +212,13 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
 	if p1m: curPos1 = geom.Point(curPos1.x, p1m.point.y)
 	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
-	#if axis == 0:
-	#	p1m = p1mx
-	#	p2m = p2mx
 	p1m = curPos1 - p1
-	p2m = p2mx
+	if axis == 0: p2m = p2mx
+	#if p2mx and (cmd['code'] == 'singlev'):
+	#	try:
+	#		p2m.output()
+	#	except:
+	#		pass
 
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
@@ -412,7 +414,7 @@ def applyParametric(regs, actual):
 	for scmd in sortedCommands:
 			cmd = scmd.attrib
 			code = cmd['code']
-			#print code,cmd
+			#print code, cmd.get('stem'), cmd
 			if code in ['alignv', 'alignh']:
 				calculateAlignMove(regs, cmd, horizontal=(code[-1]=='v'))
 			elif code in ['alignt', 'alignb']:
