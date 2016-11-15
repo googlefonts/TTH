@@ -274,7 +274,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 
 	if not double:
 		if p1m != None:
-			p2Move = p2Move + p1m.move
+			p2Move = p2Move + p1m#.move
 		if p2m != None:
 			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
 			return
