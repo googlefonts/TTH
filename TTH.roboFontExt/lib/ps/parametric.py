@@ -274,6 +274,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 			p2Move = p2Move + p1m#.move
 		if p2m != None:
 			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
+			print cmd
 			return
 
 	p1Move = (p1Move.projectOnAxis(0), p1Move.projectOnAxis(1))
@@ -407,23 +408,23 @@ def applyParametric(regs, actual):
 	regs.movedPoints = dict((axis, [{} for c in regs.gm.RFGlyph]) # an empty list for each contour
 			for axis in ['x', 'y'])
 	for scmd in sortedCommands:
-			cmd = scmd.attrib
-			code = cmd['code']
-			#print code, cmd.get('stem'), cmd
-			if code in ['alignv', 'alignh']:
-				calculateAlignMove(regs, cmd, horizontal=(code[-1]=='v'))
-			elif code in ['alignt', 'alignb']:
-				calculateAlignZoneMove(regs, cmd)
-			elif 'doublediagonal' == code:
-				calculateLinkMove(regs, cmd, horizontal = False, double = True, diagonal=True)
-			elif 'singlediagonal' == code:
-				calculateLinkMove(regs, cmd, horizontal = False, double = False, diagonal=True)
-			elif 'double' in code:
-				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
-			elif 'single' in code:
-				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
-			elif code in ['interpolatev', 'interpolateh']:
-				calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
+		cmd = scmd.attrib
+		code = cmd['code']
+		#print code, cmd.get('stem'), cmd
+		if code in ['alignv', 'alignh']:
+			calculateAlignMove(regs, cmd, horizontal=(code[-1]=='v'))
+		elif code in ['alignt', 'alignb']:
+			calculateAlignZoneMove(regs, cmd)
+		elif 'doublediagonal' == code:
+			calculateLinkMove(regs, cmd, horizontal = False, double = True, diagonal=True)
+		elif 'singlediagonal' == code:
+			calculateLinkMove(regs, cmd, horizontal = False, double = False, diagonal=True)
+		elif 'double' in code:
+			calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
+		elif 'single' in code:
+			calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
+		elif code in ['interpolatev', 'interpolateh']:
+			calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
 
 	iup(regs, actual, horizontal=False)
 	iup(regs, actual, horizontal=True)

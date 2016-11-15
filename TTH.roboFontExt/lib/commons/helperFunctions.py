@@ -183,23 +183,26 @@ def topologicalSort(l, f):
 				else:
 					preds[j].append(i)
 		result = []
-		def visit(i):
+		def visit(level,i):
+			#print "({},{})".format(level,i),
+			#print l[i].attrib
 			if loop[i]:
 				#print "LOOP",l[i]
-				raise Exception("loop")
+				raise Exception("Found a loop in topological sort for command {},{},{}".format(i,l[i].get('code'),l[i].get('point')))
 			if visited[i]:
 				return
 			loop[i] = True
 			for p in preds[i]:
-				visit(p)
+				visit(level+1,p)
 			loop[i] = False
 			visited[i] = True
 			result.append(l[i])
 		for i in range(n):
-			visit(i)
+			visit(0,i)
+		#print "=======================done topo"
 		return result
-	except Exception:
-		#print "ERROR: Found a loop in topological sort"
+	except Exception as e:
+		print "Exception during topological sort:", e
 		return l
 
 def deltaDictFromString(s):

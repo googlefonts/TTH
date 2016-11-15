@@ -50,43 +50,56 @@ def compare(A, B):
 		return ab
 
 	# Some code in case we have weird diagonal commands
-	A_isVertical = Acode[-1] in ['v','t','b']
-	B_isVertical = Bcode[-1] in ['v','t','b']
-	A_isHorizontal = Acode[-1] in ['h']
-	B_isHorizontal = Bcode[-1] in ['h']
+	A_isVertical = Acode[-1] in ['v','t','b','l']
+	B_isVertical = Bcode[-1] in ['v','t','b','l']
+	A_isHorizontal = Acode[-1] in ['h','l']
+	B_isHorizontal = Bcode[-1] in ['h','l']
 	no_diagonal = ('diagonal' not in Acode) and ('diagonal' not in Bcode)
 	if no_diagonal:
 		if A_isHorizontal and B_isVertical:
-			return ab
+			return dontcare
 		if B_isHorizontal and A_isVertical:
-			return ba
+			return dontcare
 	# end of diagonal-handling code
 
 	keys = ['point', 'point1', 'point2']
-	sources = []
-	target = []
-	for c in [A,B]:
+
+	debug = False
+
+	sources = [[],[]]
+	targets = [[],[]]
+	for i, c, vert, horz in [(0, A, A_isVertical, A_isHorizontal), (1, B, B_isVertical, B_isHorizontal)]:
 		cKeys = [k for k in keys if HF.commandHasAttrib(c, k)]
 		n = len(cKeys)
 		if n == 1: # Align, MiddleDelta, FinalDelta
-			target.append(c.get('point'))
-			sources.append([c.get('point')])
+			if vert:
+				targets[i].append(c.get('point')+'Y')
+				sources[i].append(c.get('point')+'Y')
+			if horz:
+				targets[i].append(c.get('point')+'X')
+				sources[i].append(c.get('point')+'X')
 		elif n == 2: # SingleLink
-			target.append(c.get('point2'))
-			sources.append([c.get('point1')])
+			if vert:
+				targets[i].append(c.get('point2')+'Y')
+				sources[i].append(c.get('point1')+'Y')
+			if horz:
+				targets[i].append(c.get('point2')+'X')
+				sources[i].append(c.get('point1')+'X')
 		elif n == 3: # Interpolate
-			target.append(c.get('point'))
-			sources.append([c.get('point1'), c.get('point2')])
+			if vert:
+				targets[i].append(c.get('point')+'Y')
+				sources[i].extend([c.get('point1')+'Y', c.get('point2')+'Y'])
+			if horz:
+				targets[i].append(c.get('point')+'X')
+				sources[i].extend([c.get('point1')+'X', c.get('point2')+'X'])
 		else:
 			print "[WARNING] Command has a problem!\n", c
-			target.append(None)
-			sources.append([])
 
-	AbeforeB = (target[0] != None) and (target[0] in sources[1])
-	BbeforeA = (target[1] != None) and (target[1] in sources[0])
+	AbeforeB = (targets[0] != []) and (len([1 for t in targets[0] if (t in sources[1])]) > 0)
+	BbeforeA = (targets[1] != []) and (len([1 for t in targets[1] if (t in sources[0])]) > 0)
 	if AbeforeB and BbeforeA:
-		A_isAlign       = A.get('code') in ['alignh', 'alignv']
-		B_isAlign       = B.get('code') in ['alignh', 'alignv']
+		A_isAlign       = Acode in ['alignh', 'alignv']
+		B_isAlign       = Bcode in ['alignh', 'alignv']
 		if A_isAlign and B_isMiddleDelta: # special case
 			return ab
 		elif B_isAlign and A_isMiddleDelta : # symmetrical special case
@@ -94,9 +107,23 @@ def compare(A, B):
 		else:
 			#print "COMPARE_LOOP",A,B
 			raise Exception("loop")
-	if   AbeforeB: return ab
-	elif BbeforeA: return ba
-	else: return dontcare
+	if   AbeforeB:
+		if debug:
+			print "COMPARE"
+			print A.attrib
+			print B.attrib
+			print "A-->B"
+		return ab
+	elif BbeforeA:
+		if debug:
+			print "COMPARE"
+			print A.attrib
+			print B.attrib
+			print "B-->A"
+		return ba
+	else:
+		if debug: print "don't care"
+		return dontcare
 
 def sort(cmds):
 	has_diagonal = False
@@ -124,8 +151,7 @@ def sort(cmds):
 		else:
 			y.append(c)
 	if has_diagonal:
-		xy = x+y
-		return sum([HF.topologicalSort(l, compare) for l in [xy,fdeltah,fdeltav]], ytb)
+		return sum([HF.topologicalSort(l, compare) for l in [x+y,fdeltah,fdeltav]], ytb)
 	else:
 		x = HF.topologicalSort(x, compare)
 		x.extend(ytb)
