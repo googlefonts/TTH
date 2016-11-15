@@ -249,7 +249,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 			originalDistance = p2[axis] - p1[axis]
 			if originalDistance < 0:
 				distance = - abs(distance)
-			curDistance = curPos2[axis] - curPos1[axis]
+			curDistance = originalDistance#curPos2[axis] - curPos1[axis]
 			delta = distance - curDistance
 			if double:
 				p1Move = geom.Point(int(round(-delta*0.3)), 0)
