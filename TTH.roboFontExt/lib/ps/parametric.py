@@ -209,8 +209,6 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, axisName)
 	#print "Point 2: ", p2Name, csi2, p2, p2m
 
-	mainProjection = 'xy'
-
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
 		try:
@@ -232,10 +230,6 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 				proj = geom.Point(cos(angle), sin(angle))
 			else:
 				proj = ndp
-			if abs(proj.x) > abs(proj.y):
-				mainProjection = 'x'
-			else:
-				mainProjection = 'y'
 			originalDistance = abs(dp | proj)
 			delta = (distance/originalDistance - 1.0)*dpl
 			if double:
@@ -276,12 +270,11 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		if p2m != None:
 			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
 			return
-	if diagonal and ((horizontal and ('y' in mainProjection)) or ((not horizontal) and ('x' in mainProjection))): 
-		if p1m is None: # never touched before
-			pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
-		else:
-			pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
-		savePointTouched(regs, axisName, p1Name, csi1, pT1)
+	if p1m is None: # never touched before
+		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
+	else:
+		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
+	savePointTouched(regs, axisName, p1Name, csi1, pT1)
 	if p2m is None: # never touched before
 		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
 	else:
