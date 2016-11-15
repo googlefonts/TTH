@@ -216,7 +216,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	#	p1m = p1mx
 	#	p2m = p2mx
 	p1m = curPos1 - p1
-	p2m = curPos2 - p2
+	p2m = p2mx
 
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
