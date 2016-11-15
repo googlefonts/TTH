@@ -216,22 +216,25 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 				fontStem = hStems[cmdStem]
 			else:
 				fontStem = vStems[cmdStem]
-			#width = fontStem['width']
 			value = fontStem['targetWidth']
 			distance = int(value)
 		except: return
 
 		if diagonal:
-			angle = float(cmd.get('projection'))
-			proj = geom.Point(cos(angle), sin(angle))
 			dp = p2 - p1
 			dpl = dp.length()
 			ndp = dp.normalized()
-			originalDistance = abs(dp | proj) # dp.length()
+			angle = cmd.get('projection')
+			if angle != None:
+				angle = float(angle)
+				proj = geom.Point(cos(angle), sin(angle))
+			else:
+				proj = ndp
+			originalDistance = abs(dp | proj)
 			delta = (distance/originalDistance - 1.0)*dpl
 			if double:
-				p1Move = (delta*(-0.5))*ndp
-				p2Move = (delta*(+0.5))*ndp
+				p1Move = (delta*(-0.3))*ndp
+				p2Move = (delta*(+0.7))*ndp
 			else:
 				p1Move = zero
 				p2Move = delta * ndp
@@ -241,8 +244,8 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 			originalDistance = abs(p2[axis] - p1[axis])
 			delta = distance - originalDistance
 			if double:
-				p1Move = geom.Point(int(round(-delta*0.4)), 0)
-				p2Move = geom.Point(int(round(+delta*0.6)), 0)
+				p1Move = geom.Point(int(round(-delta*0.3)), 0)
+				p2Move = geom.Point(int(round(+delta*0.7)), 0)
 			else:
 				p1Move = geom.Point(0, 0)
 				p2Move = geom.Point(int(round(delta)), 0)

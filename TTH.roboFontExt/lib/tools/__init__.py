@@ -197,9 +197,9 @@ reload(ST)
 
 kCommandToolNames = ['Align',
 		'Single Link',
-		'Single Diagonal Link',
+		'Diagonal Single Link',
 		'Double Link',
-		'Double Diagonal Link',
+		'Diagonal Double Link',
 		'Interpolation',
 		'Middle Delta', 'Final Delta',
 		'Selection']
@@ -208,8 +208,8 @@ def createTool(toolName):
 	if toolName == 'Align':           return AT.AlignTool()
 	elif toolName == 'Single Link':   return SLT.SingleLinkTool()
 	elif toolName == 'Double Link':   return DLT.DoubleLinkTool()
-	elif toolName == 'Single Diagonal Link': return DiagLT.SingleDiagonalLinkTool()
-	elif toolName == 'Double Diagonal Link': return DiagLT.DoubleDiagonalLinkTool()
+	elif toolName == 'Diagonal Single Link': return DiagLT.SingleDiagonalLinkTool()
+	elif toolName == 'Diagonal Double Link': return DiagLT.DoubleDiagonalLinkTool()
 	elif toolName == 'Interpolation': return IT.InterpolationTool()
 	elif toolName == 'Middle Delta':  return DT.DeltaTool(final=False)
 	elif toolName == 'Final Delta':   return DT.DeltaTool(final=True)
