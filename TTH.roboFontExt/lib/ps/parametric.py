@@ -223,7 +223,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 			else:
 				fontStem = vStems[cmdStem]
 			value = fontStem['targetWidth']
-			distance = int(value)
+			distance = abs(int(value))
 		except: return
 
 		if diagonal:
@@ -247,7 +247,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		else:
 			originalDistance = p2[axis] - p1[axis]
 			if originalDistance < 0:
-				distance = - abs(distance)
+				distance = - distance
 			curDistance = originalDistance#curPos2[axis] - curPos1[axis]
 			delta = distance - curDistance
 			if double:

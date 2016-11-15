@@ -507,7 +507,9 @@ class SinglePopover(TTHCommandPopover):
 		self.setupRoundDistanceUI()
 
 		stemsX, stemsY = makeStemsLists()
-		if self.cmd.get('code')[-1] == 'v':
+		if 'diagonal' in self.cmd.get('code'):
+			self.stemTypeList = stemsX+stemsY
+		elif self.cmd.get('code')[-1] == 'v':
 			self.stemTypeList = stemsY
 		else:
 			self.stemTypeList = stemsX
@@ -539,7 +541,9 @@ class DoublePopover(TTHCommandPopover):
 
 		self.setupStateUI()
 		stemsX, stemsY = makeStemsLists()
-		if self.cmd.get('code')[-1] == 'v':
+		if 'diagonal' in self.cmd.get('code'):
+			self.stemTypeList = stemsX+stemsY
+		elif self.cmd.get('code')[-1] == 'v':
 			self.stemTypeList = stemsY
 		else:
 			self.stemTypeList = stemsX
@@ -601,9 +605,9 @@ def openForCommand(cmd, point):
 		AlignPopover(gm, fm, point, cmd)
 	elif code in ['mdeltav', 'mdeltah', 'fdeltav', 'fdeltah']:
 		DeltaPopover(gm, fm, point, cmd)
-	elif code in ['singlev', 'singleh']:
+	elif code in ['singlev', 'singleh', 'singlediagonal']:
 		SinglePopover(gm, fm, point, cmd)
-	elif code in ['doublev', 'doubleh']:
+	elif code in ['doublev', 'doubleh', 'doublediagonal']:
 		DoublePopover(gm, fm, point, cmd)
 	elif code in ['interpolatev', 'interpolateh']:
 		InterpolatePopover(gm, fm, point, cmd)
