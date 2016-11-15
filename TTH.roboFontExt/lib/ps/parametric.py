@@ -202,19 +202,19 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	# Get the current point positions
 	p1Name = cmd['point1']
 	p2Name = cmd['point2']
-	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
-	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+	csi1, p1, p1mx = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
+	csi2, p2, p2mx = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
 	curPos1 = p1
-	if p1m: curPos1 = p1m.point
+	if p1mx: curPos1 = p1mx.point
 	curPos2 = p2
-	if p2m: curPos2 = p2m.point
+	if p2mx: curPos2 = p2mx.point
 	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'y')
 	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
 	if p1m: curPos1 = geom.Point(curPos1.x, p1m.point.y)
 	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
-	#if axis == 0:
-	#	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
-	#	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+	if axis == 0:
+		p1m = p1mx
+		p2m = p2mx
 
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
