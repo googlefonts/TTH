@@ -196,18 +196,25 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		if horizontal: vStems = {}
 		else: hStems = {}
 
-	# Get the original point positions
 	axis = 0
-	axisName = 'x'
-	if horizontal:
-		axis = 1
-		axisName = 'y'
+	if horizontal: axis = 1
+
+	# Get the current point positions
 	p1Name = cmd['point1']
 	p2Name = cmd['point2']
-	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, axisName)
-	#print "Point 1: ", p1Name, csi1, p1, p1m
-	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, axisName)
-	#print "Point 2: ", p2Name, csi2, p2, p2m
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+	curPos1 = p1
+	if p1m: curPos1 = p1m.point
+	curPos2 = p2
+	if p2m: curPos2 = p2m.point
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'y')
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
+	if p1m: curPos1 = geom.Point(curPos1.x, p1m.point.y)
+	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
+	#if axis == 0:
+	#	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
+	#	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
 
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
@@ -221,7 +228,7 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		except: return
 
 		if diagonal:
-			dp = p2 - p1
+			dp = curPos2 - curPos1
 			dpl = dp.length()
 			ndp = dp.normalized()
 			angle = cmd.get('projection')
@@ -238,25 +245,24 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 			else:
 				p1Move = zero
 				p2Move = delta * ndp
-			p1Move = p1Move.projectOnAxis(axis)
-			p2Move = p2Move.projectOnAxis(axis)
 		else:
-			originalDistance = abs(p2[axis] - p1[axis])
-			delta = distance - originalDistance
+			originalDistance = p2[axis] - p1[axis]
+			if originalDistance < 0:
+				distance = - abs(distance)
+			curDistance = curPos2[axis] - curPos1[axis]
+			delta = distance - curDistance
 			if double:
 				p1Move = geom.Point(int(round(-delta*0.3)), 0)
 				p2Move = geom.Point(int(round(+delta*0.7)), 0)
 			else:
 				p1Move = geom.Point(0, 0)
 				p2Move = geom.Point(int(round(delta)), 0)
-				oneBeforeTwo = p1[axis] < p2[axis]
-				if not oneBeforeTwo:
-					p1Move = p1Move.opposite()
-					p2Move = p2Move.opposite()
 				if horizontal:
 					p1Move = p1Move.swapAxes()
 					p2Move = p2Move.swapAxes()
-
+				#if originalDistance < 0:
+				#	p1Move = p1Move.opposite()
+				#	p2Move = p2Move.opposite()
 	elif cmdStem == None:
 		p1Move = zero
 		p2Move = zero
@@ -264,23 +270,32 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 		print "BUGGY LINK COMMAND"
 		return
 
-	if not double:
-		if p1m != None:
-			p2Move = p2Move + p1m.move
-		if p2m != None:
-			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
-			return
-	if p1m is None: # never touched before
-		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
-	else:
-		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
-	savePointTouched(regs, axisName, p1Name, csi1, pT1)
-	if p2m is None: # never touched before
-		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
-	else:
-		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
-		print "WEIRD"
-	savePointTouched(regs, axisName, p2Name, csi2, pT2)
+	#if not double:
+	#	if p1m != None:
+	#		p2Move = p2Move + p1m.move
+	#	if p2m != None:
+	#		print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
+	#		return
+	p1Move = (p1Move.projectOnAxis(0), p1Move.projectOnAxis(1))
+	p2Move = (p2Move.projectOnAxis(0), p2Move.projectOnAxis(1))
+	axes = [axis]
+	if diagonal: axes = [0,1]
+	for axis in axes:
+		axisName = 'x'
+		if axis == 1: axisName = 'y'
+		csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, axisName)
+		csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, axisName)
+		if p1m is None: # never touched before
+			pT1 = PointTouched(p1, p1Move[axis], p1+p1Move[axis], csi1)
+		else:
+			pT1 = PointTouched(p1, p1m.move+p1Move[axis], p1m.point+p1Move[axis], csi1)
+		savePointTouched(regs, axisName, p1Name, csi1, pT1)
+		if p2m is None: # never touched before
+			pT2 = PointTouched(p2, p2Move[axis], p2+p2Move[axis], csi2)
+		else:
+			pT2 = PointTouched(p2, p2m.move+p2Move[axis], p2m.point+p2Move[axis], csi2)
+			print "WEIRD"
+		savePointTouched(regs, axisName, p2Name, csi2, pT2)
 
 def iup(regs, actual, horizontal=False):
 	axis = 0
@@ -400,10 +415,8 @@ def applyParametric(regs, actual):
 			elif code in ['alignt', 'alignb']:
 				calculateAlignZoneMove(regs, cmd)
 			elif 'doublediagonal' == code:
-				calculateLinkMove(regs, cmd, horizontal = True, double = True, diagonal=True)
 				calculateLinkMove(regs, cmd, horizontal = False, double = True, diagonal=True)
 			elif 'singlediagonal' == code:
-				calculateLinkMove(regs, cmd, horizontal = True, double = False, diagonal=True)
 				calculateLinkMove(regs, cmd, horizontal = False, double = False, diagonal=True)
 			elif 'double' in code:
 				calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
