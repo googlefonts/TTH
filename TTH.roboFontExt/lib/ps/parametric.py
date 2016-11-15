@@ -214,11 +214,6 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
 	p1m = curPos1 - p1
 	if axis == 0: p2m = p2mx
-	#if p2mx and (cmd['code'] == 'singlev'):
-	#	try:
-	#		p2m.output()
-	#	except:
-	#		pass
 
 	cmdStem = cmd.get('stem')
 	if (cmdStem in hStems) or (cmdStem in vStems):
