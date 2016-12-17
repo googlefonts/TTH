@@ -58,6 +58,8 @@ class MainPanel(BaseWindowController):
 	def makeMainPanel(self):
 		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
 
+		setExtensionDefault(defaultKeyMainPanelPosSize, (170, 30, 305, 95))
+		
 		axisSegmentDescriptions = [
 			dict(width=19, imageObject=buttonXPath, toolTip="Horizontal Axis"),
 			dict(width=19, imageObject=buttonYPath, toolTip="Vertical Axis")

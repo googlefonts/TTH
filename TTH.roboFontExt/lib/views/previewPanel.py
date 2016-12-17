@@ -113,7 +113,7 @@ class PreviewPanel(TTHWindow):
 			tr.set_pen((x, y))
 			tr.render_indexed_glyph_list(glyphs)
 			advanceWidthUserString = tr.get_pen()[0]
-			y -= size + 1
+			y -= size*1.5 + 1
 			if y < 0:
 				width, height = tr.pen
 				x = width+40
