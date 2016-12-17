@@ -10,6 +10,9 @@ kBlackColor       = NSColor.blackColor()
 kBorderColor      = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, 1, 1, .8)
 kDeltaColor       = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .5, 0, 1)
 kDiscColor        = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .3, .94, 1)
+kSglDiaglinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .6, .6, 1)
+kDblDiaglinkColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .25, .25, 1)
+kDiaglinkColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(1, .25, .25, 1)
 kDoublinkColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(0, .25, 1, 1)
 kFinalDeltaColor  = NSColor.colorWithCalibratedRed_green_blue_alpha_(.73, .3, .8, 1)
 kInactiveColor    = NSColor.colorWithCalibratedRed_green_blue_alpha_(.5, .5, .5, 0.2)
@@ -179,6 +182,19 @@ def drawTextAtPoint(scale, title, pos, textColor, backgroundColor, view, active=
 
 	view._drawTextAtPoint(title, kLabelTextAttributes, p+0.5*size+geom.Point(0,scale), drawBackground=False)
 	return size
+
+def drawStraightSingleArrow(scale, pos1, pos2, color, size=10):
+	mid = 0.5*(pos1+pos2)
+	size = abs(size)
+	pathArrow, anchor = makeArrowPathAndAnchor(scale, size, mid-pos2, pos2)
+	path = NSBezierPath.bezierPath()
+	path.moveToPoint_(pos1)
+	path.lineToPoint_(pos2)
+	color.set()
+	pathArrow.fill()
+	path.setLineWidth_(scale*size/10.0)
+	path.stroke()
+	return mid
 
 def drawSingleArrow(scale, pos1, pos2, color, size=10):
 	offCurve = geom.computeOffMiddlePoint(scale, pos1, pos2, size < 0)

@@ -22,7 +22,7 @@ commandToGroup = dict(sum([[(code, groupName) for code in group] for groupName,g
 
 def getCommandGroup(command):
 	# Might throw exception if command's code is unknown
-	return commandToGroup[command.get('code')]
+	return commandToGroup.get(command.get('code'), 'pass')
 
 def getDeltaGroup(delta):
 	group = ''
@@ -513,6 +513,10 @@ def writeAssembly(fm, gm, stem_to_cvt, zone_to_cvt):
 			processDelta(commands, pointNameToIndex, regs)
 		elif groupType == 'fdelta':
 			processDelta(commands, pointNameToIndex, regs)
+		elif groupType == 'pass':
+			pass
+		else:
+			print "[TTH] ERROR in writeAssembly(): groupType '",groupType,"' not handled"
 
 	assembly = []
 	assembly.extend(regs.x_instructions)

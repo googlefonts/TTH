@@ -15,15 +15,17 @@ reload(ControlValues)
 reload(AHSheet)
 
 # get some icons
-buttonXPath             = ExtensionBundle("TTH").get("buttonX")
-buttonYPath             = ExtensionBundle("TTH").get("buttonY")
-buttonAlignPath         = ExtensionBundle("TTH").get("buttonAlign")
-buttonSingleLinkPath    = ExtensionBundle("TTH").get("buttonSingleLink")
-buttonDoubleLinkPath    = ExtensionBundle("TTH").get("buttonDoubleLink")
-buttonInterpolationPath = ExtensionBundle("TTH").get("buttonInterpolation")
-buttonMiddleDeltaPath   = ExtensionBundle("TTH").get("buttonMiddleDelta")
-buttonFinalDeltaPath    = ExtensionBundle("TTH").get("buttonFinalDelta")
-buttonSelectionPath     = ExtensionBundle("TTH").get("buttonSelection")
+buttonXPath               = ExtensionBundle("TTH").get("buttonX")
+buttonYPath               = ExtensionBundle("TTH").get("buttonY")
+buttonAlignPath           = ExtensionBundle("TTH").get("buttonAlign")
+buttonSingleLinkPath      = ExtensionBundle("TTH").get("buttonSingleLink")
+buttonSglDiagonalLinkPath = ExtensionBundle("TTH").get("buttonSingleLink")
+buttonDoubleLinkPath      = ExtensionBundle("TTH").get("buttonDoubleLink")
+buttonDblDiagonalLinkPath = ExtensionBundle("TTH").get("buttonDoubleLink")
+buttonInterpolationPath   = ExtensionBundle("TTH").get("buttonInterpolation")
+buttonMiddleDeltaPath     = ExtensionBundle("TTH").get("buttonMiddleDelta")
+buttonFinalDeltaPath      = ExtensionBundle("TTH").get("buttonFinalDelta")
+buttonSelectionPath       = ExtensionBundle("TTH").get("buttonSelection")
 
 DefaultKeyStub = "com.sansplomb.TTH."
 
@@ -56,7 +58,8 @@ class MainPanel(BaseWindowController):
 		self._lock = False
 
 	def makeMainPanel(self):
-		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 265, 95)), "TTH", closable = False)
+		#setExtensionDefault(defaultKeyMainPanelPosSize, (170, 30, 305, 95))
+		self.wTools = FloatingWindow(getExtensionDefault(defaultKeyMainPanelPosSize, fallback=(170, 30, 305, 95)), "TTH", closable = False)
 
 		setExtensionDefault(defaultKeyMainPanelPosSize, (170, 30, 305, 95))
 		
@@ -68,7 +71,9 @@ class MainPanel(BaseWindowController):
 		toolsSegmentDescriptions = [
 			dict(width=19, imageObject=buttonAlignPath, toolTip="Align Tool"),
 			dict(width=19, imageObject=buttonSingleLinkPath, toolTip="Single Link Tool"),
+			dict(width=19, imageObject=buttonSglDiagonalLinkPath, toolTip="Diagonal Single Link Tool"),
 			dict(width=19, imageObject=buttonDoubleLinkPath, toolTip="Double Link Tool"),
+			dict(width=19, imageObject=buttonDblDiagonalLinkPath, toolTip="Diagonal Double Link Tool"),
 			dict(width=19, imageObject=buttonInterpolationPath, toolTip="Interpolation Tool"),
 			dict(width=19, imageObject=buttonMiddleDeltaPath, toolTip="Middle Delta Tool"),
 			dict(width=19, imageObject=buttonFinalDeltaPath, toolTip="Final Delta Tool"),
@@ -92,7 +97,7 @@ class MainPanel(BaseWindowController):
 		self.wTools.axisSegmentedButton.set(b)
 
 		# Tools segmented buttons
-		self.wTools.toolsSegmentedButton = SegmentedButton((-158, 12, 150, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
+		self.wTools.toolsSegmentedButton = SegmentedButton((-198, 12, 190, 18), toolsSegmentDescriptions, callback=self.toolsSegmentedButtonCallback, sizeStyle="regular")
 		self.wTools.toolsSegmentedButton.set(6)
 
 		# UI for alignment type

@@ -1,5 +1,6 @@
 from commons import helperFunctions as HF
 from drawing import geom
+from math import cos, sin
 
 zero = geom.Point(0,0)
 
@@ -12,11 +13,17 @@ class PointTouched(object):
 	def output(self):
 		print "<<'org':{}, 'move':{}, 'point':{}, 'csi':{}>>".format(self.originalPos, self.move, self.point, self.csi)
 
+def savePointTouched(regs, axis, pName, csi, pt):
+	if pName in ['lsb', 'rsb']:
+		regs.setMovedSideBearing(pName, pt)
+	else:
+		regs.movedPoints[axis][csi[0]][csi] = pt
+
 class Registers(object):
 	def __init__(self, fm, gm):
 		self.fm = fm
 		self.gm = gm
-		self.movedPoints = {}
+		self.movedPoints = None
 		self.movedSideBearings = {'lsb':None, 'rsb':None}
 		self.RP0 = None
 		self.RP1 = None
@@ -40,6 +47,7 @@ commandGroups = [	('alignToZone', ['alignt', 'alignb']),
 				('align',       ['alignv', 'alignh']),
 				('single',      ['singlev', 'singleh']),
 				('double',      ['doublev', 'doubleh']),
+				('diagonal',    ['singlediagonal', 'doublediagonal']),
 				('interpolate', ['interpolatev', 'interpolateh']),
 				('mdelta',      ['mdeltah', 'mdeltav']),
 				('fdelta',      ['fdeltah', 'fdeltav']) ]
@@ -47,7 +55,7 @@ commandToGroup = dict(sum([[(code, groupName) for code in group] for groupName,g
 
 def getCommandGroup(command):
 	# Might throw exception if command's code is unknown
-	return commandToGroup[command.get('code')]
+	return commandToGroup.get(command.get('code'), 'pass')
 
 def getDeltaGroup(delta):
 	group = ''
@@ -78,111 +86,6 @@ def groupDeltas(deltas):
 def groupCommands(glyphAWCommands):
 	return groupList(glyphAWCommands, getCommandGroup)
 
-def processAlign(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point') 
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		point = command.get('point')
-		cmd = {'code':code, 'point':point}
-
-		if 'h' in code:
-			regs.x_instructions.append(cmd)
-		elif 'v' in code:
-			regs.y_instructions.append(cmd)
-
-
-def processZoneAlign(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point') 
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		point = command.get('point')
-		zone = command.get('zone')
-		cmd = {'code':code, 'point':point, 'zone':zone}
-
-		
-		regs.y_instructions.append(cmd)
-
-def processLink(commandsList, pointNameToIndex, regs):
-
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			name = command.get('point1') 
-			point1 = name
-		except:
-			print "[TTH ERROR] command's point1 has no index in the glyph"
-			print command.attrib
-			continue
-
-		try:
-			name = command.get('point2') 
-			point2 = name
-		except:
-			print "[TTH ERROR] command's point2 has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		#if 'stem' in command:
-		if HF.commandHasAttrib(command, 'stem'):
-			stem = command.get('stem')
-			cmd = {'code':code, 'point1':point1, 'point2':point2, 'stem':stem}
-
-		else:
-			cmd = {'code':code, 'point1':point1, 'point2':point2, 'stem':None}
-
-
-		regs.RP0 = regs.RP1 = regs.RP2 = None
-
-		if 'h' in code:
-			regs.x_instructions.append(cmd)
-		elif 'v' in code:
-			regs.y_instructions.append(cmd)
-
-def processInterpolate(commandsList, pointNameToIndex, regs):
-	for command in commandsList:
-		if command.get('active') == 'false':
-			continue
-
-		try:
-			point  = command.get('point')
-			point1 = command.get('point1')
-			point2 = command.get('point2')
-		except:
-			print "[TTH ERROR] command's point(s) has no index in the glyph"
-			print command.attrib
-			continue
-
-		code = command.get('code')
-		cmd = {'code':code, 'point':point, 'point1':point1, 'point2':point2}
-
-		if code == 'interpolateh':
-			regs.x_instructions.append(cmd)
-		elif code == 'interpolatev':
-			regs.y_instructions.append(cmd)
-
 def makePointRFNameToIndexDict(fm, gm):
 	result = {}
 	index = 0
@@ -201,15 +104,18 @@ def calculateInterpolateMove(regs, cmd, horizontal=False):
 	p1 = geom.makePoint(regs.gm.pointOfCSI(csi1))
 	p2 = geom.makePoint(regs.gm.pointOfCSI(csi2))
 
-	pm1 = regs.movedPoints[csi1[0]].get(csi1) # if not found, returns None
+	axisName = 'x'
+	if horizontal: axisName = 'y'
+
+	pm1 = regs.movedPoints[axisName][csi1[0]].get(csi1) # if not found, returns None
 	if pm1 is None: # never touched before
-		pm1 = regs.movedPoints[csi1[0]][csi1] = PointTouched(p1, zero, p1, csi1)
+		pm1 = regs.movedPoints[axisName][csi1[0]][csi1] = PointTouched(p1, zero, p1, csi1)
 
-	pm2 = regs.movedPoints[csi2[0]].get(csi2) # if not found, returns None
+	pm2 = regs.movedPoints[axisName][csi2[0]].get(csi2) # if not found, returns None
 	if pm2 is None: # never touched before
-		pm2 = regs.movedPoints[csi2[0]][csi2] = PointTouched(p2, zero, p2, csi2)
+		pm2 = regs.movedPoints[axisName][csi2[0]][csi2] = PointTouched(p2, zero, p2, csi2)
 
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints[axisName][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
 		axis = 0
 		if horizontal:
@@ -222,9 +128,9 @@ def calculateInterpolateMove(regs, cmd, horizontal=False):
 			pMove = geom.Point(0, delta)
 		else:
 			pMove = geom.Point(delta, 0)
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, pMove, p+pMove, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, pMove, p+pMove, csi)
 	else:
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, zero, p, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, zero, p, csi)
 
 
 def calculateAlignMove(regs, cmd, horizontal=False):
@@ -234,11 +140,13 @@ def calculateAlignMove(regs, cmd, horizontal=False):
 		if pm == None:
 			regs.initMovedSideBearing(pName)
 		return
+	axisName = 'x'
+	if horizontal: axisName = 'y'
 	csi = regs.gm.csiOfPointName(pName)
 	p = geom.makePoint(regs.gm.pointOfCSI(csi))
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints[axisName][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
-		regs.movedPoints[csi[0]][csi] = PointTouched(p, zero, p, csi)
+		regs.movedPoints[axisName][csi[0]][csi] = PointTouched(p, zero, p, csi)
 	# else: # nothing to do
 
 def calculateAlignZoneMove(regs, cmd):
@@ -258,7 +166,7 @@ def calculateAlignZoneMove(regs, cmd):
 	csi = regs.gm.csiOfPointName(cmd['point'])
 	p = geom.makePoint(regs.gm.pointOfCSI(csi))
 
-	pm = regs.movedPoints[csi[0]].get(csi) # if not found, returns None
+	pm = regs.movedPoints['y'][csi[0]].get(csi) # if not found, returns None
 	if pm is None: # never touched before
 		if zone['top'] and zoneHeight <= p.y <= zoneHeight + zoneWidth:
 			pMove = geom.Point(0, zoneHeight - p.y + (p.y - zonePosition))
@@ -272,65 +180,88 @@ def calculateAlignZoneMove(regs, cmd):
 		print "ALIGN TO ZONE AFTER POINT HAS ALREADY BEEN MOVED !!!"
 		pMove = geom.Point(0, zoneHeight - p.y)
 		pT = PointTouched(p, pm.move+pMove, pm.point+pMove, csi)
-	regs.movedPoints[csi[0]][csi] = pT
+	regs.movedPoints['y'][csi[0]][csi] = pT
 
-def getCSIAndPosAndTouchedFromPointName(regs, pName):
+def getCSIAndPosAndTouchedFromPointName(regs, pName, axis):
 	if pName in ['lsb', 'rsb']:
 		return None, regs.gm.positionForPointName(pName), regs.getMovedSideBearing(pName)
 	else:
 		csi = regs.gm.csiOfPointName(pName)
-		return csi, geom.makePoint(regs.gm.pointOfCSI(csi)), regs.movedPoints[csi[0]].get(csi)
+		return csi, geom.makePoint(regs.gm.pointOfCSI(csi)), regs.movedPoints[axis][csi[0]].get(csi)
 
-def savePointTouched(regs, pName, csi, pt):
-	if pName in ['lsb', 'rsb']:
-		regs.setMovedSideBearing(pName, pt)
-	else:
-		regs.movedPoints[csi[0]][csi] = pt
+def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False):
+	hStems = regs.fm.horizontalStems
+	vStems = regs.fm.verticalStems
+	if not diagonal:
+		if horizontal: vStems = {}
+		else: hStems = {}
 
-def calculateLinkMove(regs, cmd, horizontal=False, double=False):
-	if horizontal:
-		fmStems = regs.fm.horizontalStems
-	else:
-		fmStems = regs.fm.verticalStems
+	axis = 0
+	if horizontal: axis = 1
 
-	# Get the original point positions
+	# Get the current point positions
 	p1Name = cmd['point1']
 	p2Name = cmd['point2']
-	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name)
-	#print "Point 1: ", p1Name, csi1, p1, p1m
-	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name)
-	#print "Point 2: ", p2Name, csi2, p2, p2m
+	csi1, p1, p1mx = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
+	csi2, p2, p2mx = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+	curPos1 = p1
+	if p1mx: curPos1 = p1mx.point
+	curPos2 = p2
+	if p2mx: curPos2 = p2mx.point
+	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'y')
+	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
+	if p1m: curPos1 = geom.Point(curPos1.x, p1m.point.y)
+	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
+	p1m = curPos1 - p1
+	if axis == 0: p2m = p2mx
 
-	cmdStem = cmd['stem']
-	if cmdStem in fmStems:
+	cmdStem = cmd.get('stem')
+	if (cmdStem in hStems) or (cmdStem in vStems):
 		try:
-			fontStem = fmStems[cmdStem]
-			#width = fontStem['width']
+			if cmdStem in hStems:
+				fontStem = hStems[cmdStem]
+			else:
+				fontStem = vStems[cmdStem]
 			value = fontStem['targetWidth']
-			distance = int(value)
+			distance = abs(int(value))
 		except: return
 
-		axis = 0
-		if horizontal: axis = 1
-		originalDistance = abs(p2[axis] - p1[axis])
-		oneBeforeTwo = p1[axis] < p2[axis]
-		delta = distance - originalDistance
-
-		if double:
-			p1Move = geom.Point(int(round(-delta*0.4)), 0)
-			p2Move = geom.Point(int(round(+delta*0.6)), 0)
+		if diagonal:
+			dp = p2 - p1 #curPos2 - curPos1
+			dpl = dp.length()
+			ndp = dp.normalized()
+			angle = cmd.get('projection')
+			if angle != None:
+				angle = float(angle)
+				proj = geom.Point(cos(angle), sin(angle))
+			else:
+				proj = ndp
+			originalDistance = abs(dp | proj)
+			delta = (distance/originalDistance - 1.0)*dpl
+			if double:
+				p1Move = (delta*(-0.3))*ndp
+				p2Move = (delta*(+0.7))*ndp
+			else:
+				p1Move = zero
+				p2Move = delta * ndp
 		else:
-			p1Move = geom.Point(0, 0)
-			p2Move = geom.Point(int(round(delta)), 0)
-			
-		if not oneBeforeTwo:
-			p1Move = p1Move.opposite()
-			p2Move = p2Move.opposite()
-
-		if horizontal:
-			p1Move = p1Move.swapAxes()
-			p2Move = p2Move.swapAxes()
-
+			originalDistance = p2[axis] - p1[axis]
+			if originalDistance < 0:
+				distance = - distance
+			curDistance = originalDistance#curPos2[axis] - curPos1[axis]
+			delta = distance - curDistance
+			if double:
+				p1Move = geom.Point(int(round(-delta*0.3)), 0)
+				p2Move = geom.Point(int(round(+delta*0.7)), 0)
+			else:
+				p1Move = geom.Point(0, 0)
+				p2Move = geom.Point(int(round(delta)), 0)
+				if horizontal:
+					p1Move = p1Move.swapAxes()
+					p2Move = p2Move.swapAxes()
+				#if originalDistance < 0:
+				#	p1Move = p1Move.opposite()
+				#	p2Move = p2Move.opposite()
 	elif cmdStem == None:
 		p1Move = zero
 		p2Move = zero
@@ -340,39 +271,55 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False):
 
 	if not double:
 		if p1m != None:
-			p2Move = p2Move + p1m.move
-		if csi2 != None and csi2 in regs.movedPoints[csi2[0]]:
+			p2Move = p2Move + p1m#.move
+		if p2m != None:
 			print "BUGGY SINGLE LINK COMMAND : Pt2 has already moved"
+			print cmd
 			return
-	if p1m is None: # never touched before
-		pT1 = PointTouched(p1, p1Move, p1+p1Move, csi1)
-	else:
-		pT1 = PointTouched(p1, p1m.move+p1Move, p1m.point+p1Move, csi1)
-	savePointTouched(regs, p1Name, csi1, pT1)
-	if p2m is None: # never touched before
-		pT2 = PointTouched(p2, p2Move, p2+p2Move, csi2)
-	else:
-		pT2 = PointTouched(p2, p2m.move+p2Move, p2m.point+p2Move, csi2)
-		print "WEIRD"
-	savePointTouched(regs, p2Name, csi2, pT2)
 
-def interpolate(regs, actual, horizontal=False):
+	p1Move = (p1Move.projectOnAxis(0), p1Move.projectOnAxis(1))
+	p2Move = (p2Move.projectOnAxis(0), p2Move.projectOnAxis(1))
+	axes = [axis]
+	if diagonal: axes = [0,1]
+	for axis in axes:
+		axisName = 'x'
+		if axis == 1: axisName = 'y'
+		csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, axisName)
+		csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, axisName)
+		if p1m is None: # never touched before
+			pT1 = PointTouched(p1, p1Move[axis], p1+p1Move[axis], csi1)
+		else:
+			pT1 = PointTouched(p1, p1m.move+p1Move[axis], p1m.point+p1Move[axis], csi1)
+		savePointTouched(regs, axisName, p1Name, csi1, pT1)
+		if p2m is None: # never touched before
+			pT2 = PointTouched(p2, p2Move[axis], p2+p2Move[axis], csi2)
+		else:
+			pT2 = PointTouched(p2, p2m.move+p2Move[axis], p2m.point+p2Move[axis], csi2)
+			print "WEIRD"
+		savePointTouched(regs, axisName, p2Name, csi2, pT2)
+
+def iup(regs, actual, horizontal=False):
 	axis = 0
+	axisName = 'x'
 	if horizontal:
 		axis = 1
+		axisName = 'y'
 	for cidx, c in enumerate(regs.gm.RFGlyph):
-		touchedInContour = regs.movedPoints[cidx].values()
+		touchedInContour = regs.movedPoints[axisName][cidx].values()
 		touchedInContour.sort(key=lambda pt:pt.csi)
 		for pt in touchedInContour:
+			p = [0.0, 0.0]
+			p[axis] = pt.move[axis]
+			m = geom.Point(p[0], p[1])
 			if actual:
-				regs.gm.pointOfCSI(pt.csi).move(pt.move)
+				regs.gm.pointOfCSI(pt.csi).move(m)
 			else:
-				regs.gm.pPointOfCSI(pt.csi).move(pt.move)
-	
+				regs.gm.pPointOfCSI(pt.csi).move(m)
+
 		nbTouched = len(touchedInContour)
 		if nbTouched == 0: continue
 		if nbTouched == 1:
-			trans = touchedInContour[0].move
+			trans = touchedInContour[0].move.projectOnAxis(axis)
 			for sidx, s in enumerate(c):
 				for (idx, p) in enumerate(s.points):
 					csi = cidx, sidx, idx
@@ -383,7 +330,7 @@ def interpolate(regs, actual, horizontal=False):
 					else:
 						regs.gm.pPointOfCSI(csi).move(trans)
 			continue
-		# nbTouched >= 2					
+		# nbTouched >= 2
 		for k in range(nbTouched):
 			j = (k + 1) % nbTouched
 			srcTouched = touchedInContour[k]
@@ -445,7 +392,7 @@ def interpolate(regs, actual, horizontal=False):
 def processParametric(fm, gm, actual=False):
 	g = gm.RFGlyph
 	gm._pg = g.copy()
-	
+
 	if g == None:
 		return
 	sortedCommands = gm.sortedHintingCommands
@@ -454,41 +401,31 @@ def processParametric(fm, gm, actual=False):
 
 	regs = Registers(fm, gm)
 
-	groupedCommands = groupCommands(sortedCommands)
-
-	pointNameToIndex = makePointRFNameToIndexDict(fm, gm)
-	
-	regs.x_instructions = []
-	regs.y_instructions = []
-
-
-	for groupType, commands in groupedCommands:
-		if groupType == 'alignToZone':
-			processZoneAlign(commands, pointNameToIndex, regs)
-		elif groupType == 'align':
-			processAlign(commands, pointNameToIndex, regs)	
-		elif groupType in ['double', 'single']:
-			processLink(commands, pointNameToIndex, regs)
-		elif groupType == 'interpolate':
-		 	processInterpolate(commands, pointNameToIndex, regs)
-
 	applyParametric(regs, actual)
 
 def applyParametric(regs, actual):
-	for horiz,codes in ((True, regs.y_instructions), (False, regs.x_instructions)):
-		regs.movedPoints = [{} for c in regs.gm.RFGlyph] # an empty list for each contour
-		for cmd in codes:
-			if cmd['code'] in ['alignv', 'alignh']:
-				calculateAlignMove(regs, cmd, horizontal=horiz)
-			elif cmd['code'] in ['alignt', 'alignb']:
-				calculateAlignZoneMove(regs, cmd)
-			elif 'stem' in cmd.keys():
-				if 'double' in cmd['code']:
-					calculateLinkMove(regs, cmd, horizontal=horiz, double=True)
-				elif 'single' in cmd['code']:
-					calculateLinkMove(regs, cmd, horizontal=horiz, double=False)
-			elif cmd['code'] in ['interpolatev', 'interpolateh']:
-				calculateInterpolateMove(regs, cmd, horizontal=horiz)
+	sortedCommands = regs.gm.sortedHintingCommands
+	regs.movedPoints = dict((axis, [{} for c in regs.gm.RFGlyph]) # an empty list for each contour
+			for axis in ['x', 'y'])
+	for scmd in sortedCommands:
+		cmd = scmd.attrib
+		code = cmd['code']
+		#print code, cmd.get('stem'), cmd
+		if code in ['alignv', 'alignh']:
+			calculateAlignMove(regs, cmd, horizontal=(code[-1]=='v'))
+		elif code in ['alignt', 'alignb']:
+			calculateAlignZoneMove(regs, cmd)
+		elif 'doublediagonal' == code:
+			calculateLinkMove(regs, cmd, horizontal = False, double = True, diagonal=True)
+		elif 'singlediagonal' == code:
+			calculateLinkMove(regs, cmd, horizontal = False, double = False, diagonal=True)
+		elif 'double' in code:
+			calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=True)
+		elif 'single' in code:
+			calculateLinkMove(regs, cmd, horizontal=(code[-1]=='v'), double=False)
+		elif code in ['interpolatev', 'interpolateh']:
+			calculateInterpolateMove(regs, cmd, horizontal=(code[-1]=='v'))
 
-		interpolate(regs, actual, horizontal=horiz)
+	iup(regs, actual, horizontal=False)
+	iup(regs, actual, horizontal=True)
 

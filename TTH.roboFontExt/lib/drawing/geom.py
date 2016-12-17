@@ -45,9 +45,18 @@ class Point(object):
 	def normalized(self):
 		l = self.length()
 		if l < 1e-6: return Point(0.0, 0.0)
-		return Point(self.x/l, self.y/l)
+		return Point(float(self.x)/l, float(self.y)/l)
 	def swapAxes(self):
 		return Point(self.y, self.x)
+	def projectOnX(self):
+		return Point(self.x, 0,0)
+	def projectOnAxis(self,axis):
+		if axis == 0:
+			return Point(self.x, 0.0)
+		else:
+			return Point(0.0, self.y)
+	def projectOnY(self):
+		return Point(0.0, self.y)
 
 class Matrix(object):
 	__slots__ = ('_m')
@@ -86,9 +95,9 @@ def lerp(t, a, b):
 def det2x2(a, b):
 	return a.x * b.y - a.y * b.x
 
-def computeOffMiddlePoint(scale, pos1, pos2, reverse = False):
+def computeOffMiddlePoint(scale, pos1, pos2, reverse = False, offset = 1.0/25.0):
 	#diff = (scale / 25.0) * (pos2 - pos1).rotateCCW()
-	diff = (1.0 / 25.0) * (pos2 - pos1).rotateCCW()
+	diff = offset * (pos2 - pos1).rotateCCW()
 	if reverse:
 		diff = diff.opposite()
 	mid  = 0.5*(pos1 + pos2)
