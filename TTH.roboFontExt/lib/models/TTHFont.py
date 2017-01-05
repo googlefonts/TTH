@@ -439,6 +439,7 @@ class TTHFont(object):
 		for g in self.f:
 			gm = self.glyphModelForGlyph(g, compile=False)
 			gm.clearCommands(True, True)
+			gm.updateGlyphProgram(self)
 			if tables.k_glyph_assembly_key in g.lib:
 				# clear the assembly data in the glyph's lib
 				del g.lib[tables.k_glyph_assembly_key]
