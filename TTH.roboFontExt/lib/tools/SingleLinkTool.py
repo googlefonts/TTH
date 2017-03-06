@@ -46,7 +46,9 @@ class SingleLinkTool(TTHCommandTool):
 		self.setupCommandPointFromLoc('point2',  cmd, targetLoc)
 		shiftPressed = getActiveEventTool().getModifiers()['shiftDown']
 		optionPressed = getActiveEventTool().getModifiers()['optionDown']
-		if self.roundDistance or shiftPressed:
+		if shiftPressed and optionPressed:
+			cmd.set('align', 'round')
+		elif self.roundDistance or shiftPressed:
 			cmd.set('round', 'true')
 		elif optionPressed:
 			stem = None

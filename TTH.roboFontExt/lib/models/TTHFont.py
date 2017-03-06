@@ -642,6 +642,7 @@ When do we regenerate a partial font?
 
 	def updatePartialFontIfNeeded(self, g, curSet):
 		"""Re-create the partial font if new glyphs are required."""
+		if not tthTool.alwaysRefresh: return
 		(text, curGlyphString) = tthTool.prepareText(g, self.f)
 		newSet = self.defineGlyphsForPartialTempFont(text, curGlyphString)
 		regenerate = not newSet.issubset(curSet)

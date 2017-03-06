@@ -14,7 +14,7 @@ class PreferencesSheet(object):
 
 	def __init__(self, parentWindow):
 
-		self.w = Sheet((505, 400), parentWindow=parentWindow)
+		self.w = Sheet((505, 420), parentWindow=parentWindow)
 
 		self.w.viewAndSettingsBox = Box((10, 19, -10, -40))
 
@@ -55,20 +55,23 @@ class PreferencesSheet(object):
 		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowCheckBox = CheckBox((10, 90, 18, 18), "", callback=self.displayPreviewInGlyphWindowCheckBoxCallback, value=tthTool.showPreviewInGlyphWindow, sizeStyle="small")
 		self.w.viewAndSettingsBox.displayPreviewInGlyphWindowText = TextBox((30, 92, -10, 18), "Show Preview in Glyph Window", sizeStyle = "small")
 
-		self.w.viewAndSettingsBox.displaySizesText = TextBox((10, 120, 200, 18), "Display Preview Sizes From:", sizeStyle = "small")
-		self.w.viewAndSettingsBox.displayFromEditText = EditText((180, 117, 30, 19), sizeStyle = "small", continuous=False,
+		self.w.viewAndSettingsBox.alwaysRefreshCheckBox = CheckBox((10, 110, 18, 18), "", callback=self.alwaysRefreshCheckBoxCallback, value=tthTool.alwaysRefresh, sizeStyle="small")
+		self.w.viewAndSettingsBox.alwaysRefreshText = TextBox((30, 112, -10, 18), "Always Compile and Refresh", sizeStyle = "small")
+
+		self.w.viewAndSettingsBox.displaySizesText = TextBox((10, 140, 200, 18), "Display Preview Sizes From:", sizeStyle = "small")
+		self.w.viewAndSettingsBox.displayFromEditText = EditText((180, 137, 30, 19), sizeStyle = "small", continuous=False,
 				callback=self.displayFromEditTextCallback)
 		self.w.viewAndSettingsBox.displayFromEditText.set(tthTool.previewFrom)
 
-		self.w.viewAndSettingsBox.displayToSizeText = TextBox((220, 120, 22, 18), "To:", sizeStyle = "small")
-		self.w.viewAndSettingsBox.displayToEditText = EditText((252, 117, 30, 19), sizeStyle = "small", continuous=False,
+		self.w.viewAndSettingsBox.displayToSizeText = TextBox((220, 140, 22, 18), "To:", sizeStyle = "small")
+		self.w.viewAndSettingsBox.displayToEditText = EditText((252, 137, 30, 19), sizeStyle = "small", continuous=False,
 				callback=self.displayToEditTextCallback)
 		self.w.viewAndSettingsBox.displayToEditText.set(tthTool.previewTo)
 
-		self.w.viewAndSettingsBox.previewSampleStringsTextBox = TextBox((10, 140, -10, 18), 'Preview Samples:', sizeStyle='small')
-		self.w.viewAndSettingsBox.previewSampleStringsList = List((10, 155, -10, 140), [{"PreviewString": v} for v in tthTool.previewSampleStringsList], columnDescriptions=[{"title": "PreviewString", "width": 465, "editable": True}], showColumnTitles=False, editCallback=self.previewSampleStringsListEditCallBack)
-		self.w.viewAndSettingsBox.addStringButton = SquareButton((10, 295, 22, 22), "+", sizeStyle = 'small', callback=self.addStringButtonCallback)
-		self.w.viewAndSettingsBox.removeStringButton = SquareButton((32, 295, 22, 22), "-", sizeStyle = 'small', callback=self.removeStringButtonCallback)
+		self.w.viewAndSettingsBox.previewSampleStringsTextBox = TextBox((10, 160, -10, 18), 'Preview Samples:', sizeStyle='small')
+		self.w.viewAndSettingsBox.previewSampleStringsList = List((10, 175, -10, 140), [{"PreviewString": v} for v in tthTool.previewSampleStringsList], columnDescriptions=[{"title": "PreviewString", "width": 465, "editable": True}], showColumnTitles=False, editCallback=self.previewSampleStringsListEditCallBack)
+		self.w.viewAndSettingsBox.addStringButton = SquareButton((10, 315, 22, 22), "+", sizeStyle = 'small', callback=self.addStringButtonCallback)
+		self.w.viewAndSettingsBox.removeStringButton = SquareButton((32, 315, 22, 22), "-", sizeStyle = 'small', callback=self.removeStringButtonCallback)
 
 		self.w.closeButton = Button((-70, -32, 60, 22), "Close", sizeStyle = "small", callback=self.closeButtonCallback)
 		self.w.open()
@@ -102,11 +105,11 @@ class PreferencesSheet(object):
 		if sender.get() == 0:
 			self.w.viewAndSettingsBox.show(True)
 			self.w.hotKeysBox.show(False)
-			self.w.resize(505, 400)
+			self.w.resize(505, 420)
 		if sender.get() == 1:
 			self.w.viewAndSettingsBox.show(False)
 			self.w.hotKeysBox.show(True)
-			self.w.resize(505, 520)
+			self.w.resize(505, 550)
 
 	def bitmapOpacitySliderCallBack(self, sender):
 		tthTool.setBitmapOpacity(sender.get())
@@ -150,6 +153,9 @@ class PreferencesSheet(object):
 		except:
 			size = tthTool.previewTo
 		tthTool.setPreviewSizeRange(tthTool.previewFrom, size, self)
+
+	def alwaysRefreshCheckBoxCallback(self, sender):
+		tthTool.setAlwaysRefreshState(sender.get())
 
 	def displayPreviewInGlyphWindowCheckBoxCallback(self, sender):
 		tthTool.setPreviewInGlyphWindowState(sender.get())
