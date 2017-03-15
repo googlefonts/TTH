@@ -499,7 +499,7 @@ When do we regenerate a partial font?
 		TTHGlyph.silent = True
 		counter = 0
 		for g in self.f:
-			print g.name
+			# print g.name
 			hasG = self.hasGlyphModelForGlyph(g)
 			self.glyphModelForGlyph(g, compile=False).compileToUFO(self)
 			if not hasG: self.delGlyphModelForGlyph(g)
