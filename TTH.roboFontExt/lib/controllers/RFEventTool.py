@@ -472,6 +472,11 @@ class TTH_RF_EventTool(BaseEventTool):
 			fm = tthTool.getFontModel()
 			cur = tthTool.showPreviewInGlyphWindow
 			tthTool.setPreviewInGlyphWindowState(not cur)
+		elif hot == HotKeys.kTTH_HotKey_Compile_Refresh:
+			gm, fm = tthTool.getGlyphAndFontModel()
+			gm.updateGlyphProgram(fm)
+			fm.updatePartialFont([gm.RFGlyph.name])
+			UpdateCurrentGlyphView()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - MANAGING POPOVERS
 

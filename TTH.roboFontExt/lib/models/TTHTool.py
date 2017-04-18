@@ -285,6 +285,10 @@ class TTHTool(object):
 		if self.mainPanel.curSheet:
 			self.mainPanel.curSheet.resetUI()
 
+	def setAlwaysRefreshState(self, onOff):
+		self.alwaysRefresh = onOff
+		setExtensionDefault(defaultKeyAlwaysRefresh, onOff)
+
 # - - - - - - - - - - - - - - - - - - - ACTIVE / INACTIVE
 
 	def hideWindows(self):

@@ -22,6 +22,7 @@ kTTH_HotKey_Change_Alignment           = "Change Alignment"
 kTTH_HotKey_Change_Size_Up             = "Change Size Up"
 kTTH_HotKey_Change_Size_Down           = "Change Size Down"
 kTTH_HotKey_Change_Preview_Mode        = "Change Preview Mode"
+kTTH_HotKey_Compile_Refresh        = "Compile and Refresh"
 
 hotKeyDefaults = [
         (kTTH_HotKey_Select_Align_Tool, 'a'),
@@ -42,6 +43,7 @@ hotKeyDefaults = [
         (kTTH_HotKey_Change_Size_Up, '+='),
         (kTTH_HotKey_Change_Size_Down, '-'),
         (kTTH_HotKey_Change_Preview_Mode, 'p'),
+        (kTTH_HotKey_Compile_Refresh, 'k')
         ]
 
 def removeSpace(s):
