@@ -204,70 +204,92 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	p2Name = cmd['point2']
 	csi1, p1, p1mx = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'x')
 	csi2, p2, p2mx = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'x')
+
+	initialXDistance = abs(p1.x-p2.x)
+
 	curPos1 = p1
 	if p1mx: curPos1 = p1mx.point
 	curPos2 = p2
 	if p2mx: curPos2 = p2mx.point
 	csi1, p1, p1m = getCSIAndPosAndTouchedFromPointName(regs, p1Name, 'y')
 	csi2, p2, p2m = getCSIAndPosAndTouchedFromPointName(regs, p2Name, 'y')
+
+	initialYDistance = abs(p1.y-p2.y)
+
 	if p1m: curPos1 = geom.Point(curPos1.x, p1m.point.y)
 	if p2m: curPos2 = geom.Point(curPos2.x, p2m.point.y)
 	p1m = curPos1 - p1
 	if axis == 0: p2m = p2mx
 
 	cmdStem = cmd.get('stem')
-	if (cmdStem in hStems) or (cmdStem in vStems):
-		try:
-			if cmdStem in hStems:
-				fontStem = hStems[cmdStem]
-			else:
-				fontStem = vStems[cmdStem]
-			value = fontStem['targetWidth']
-			distance = abs(int(value))
-		except: return
 
-		if diagonal:
-			dp = p2 - p1 #curPos2 - curPos1
-			dpl = dp.length()
-			ndp = dp.normalized()
-			angle = cmd.get('projection')
-			if angle != None:
-				angle = float(angle)
-				proj = geom.Point(cos(angle), sin(angle))
-			else:
-				proj = ndp
-			originalDistance = abs(dp | proj)
-			delta = (distance/originalDistance - 1.0)*dpl
-			if double:
-				p1Move = (delta*(-0.3))*ndp
-				p2Move = (delta*(+0.7))*ndp
-			else:
-				p1Move = zero
-				p2Move = delta * ndp
-		else:
-			originalDistance = p2[axis] - p1[axis]
-			if originalDistance < 0:
-				distance = - distance
-			curDistance = originalDistance#curPos2[axis] - curPos1[axis]
-			delta = distance - curDistance
-			if double:
-				p1Move = geom.Point(int(round(-delta*0.3)), 0)
-				p2Move = geom.Point(int(round(+delta*0.7)), 0)
-			else:
-				p1Move = geom.Point(0, 0)
-				p2Move = geom.Point(int(round(delta)), 0)
-				if horizontal:
-					p1Move = p1Move.swapAxes()
-					p2Move = p2Move.swapAxes()
-				#if originalDistance < 0:
-				#	p1Move = p1Move.opposite()
-				#	p2Move = p2Move.opposite()
-	elif cmdStem == None:
-		p1Move = zero
-		p2Move = zero
+	
+	# elif (cmdStem in hStems) or (cmdStem in vStems):
+	if cmd.get('shift'):
+		shift = int(float(cmd.get('shift')))
 	else:
-		print "BUGGY LINK COMMAND"
-		return
+		shift = 0
+
+	if cmd.get('code').endswith('v'):
+		distance = initialYDistance + shift
+	elif cmd.get('code').endswith('h'):
+		distance = initialXDistance + shift
+	elif cmd.get('code').endswith('diagonal'):
+		distance = initialXDistance + shift
+	elif cmdStem:
+		if cmdStem in hStems:
+			fontStem = hStems[cmdStem]
+		else:
+			fontStem = vStems[cmdStem]
+		value = fontStem['targetWidth']
+		distance = abs(int(value))
+	else: return
+
+
+	if diagonal:
+		dp = p2 - p1 #curPos2 - curPos1
+		dpl = dp.length()
+		ndp = dp.normalized()
+		angle = cmd.get('projection')
+		if angle != None:
+			angle = float(angle)
+			proj = geom.Point(cos(angle), sin(angle))
+		else:
+			proj = ndp
+		originalDistance = abs(dp | proj)
+		delta = (distance/originalDistance - 1.0)*dpl
+		if double:
+			p1Move = (delta*(-0.3))*ndp
+			p2Move = (delta*(+0.7))*ndp
+		else:
+			p1Move = zero
+			p2Move = delta * ndp
+	else:
+		originalDistance = p2[axis] - p1[axis]
+		if originalDistance < 0:
+			distance = - distance
+		curDistance = originalDistance#curPos2[axis] - curPos1[axis]
+		delta = distance - curDistance
+		if double:
+			p1Move = geom.Point(int(round(-delta*0.3)), 0)
+			p2Move = geom.Point(int(round(+delta*0.7)), 0)
+		else:
+			p1Move = geom.Point(0, 0)
+			p2Move = geom.Point(int(round(delta)), 0)
+			if horizontal:
+				p1Move = p1Move.swapAxes()
+				p2Move = p2Move.swapAxes()
+			#if originalDistance < 0:
+			#	p1Move = p1Move.opposite()
+			#	p2Move = p2Move.opposite()
+
+
+	# elif cmdStem == None:
+	# 	p1Move = zero
+	# 	p2Move = zero
+	# else:
+	# 	print "BUGGY LINK COMMAND"
+	# 	return
 
 	if not double:
 		if p1m != None:

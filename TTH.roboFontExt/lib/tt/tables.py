@@ -75,8 +75,14 @@ def getAscentAndDescentForSize(fm, tr, size):
 			bmg, useless = tr.get_name_bitmap(g.name), None
 		hi = bmg.top
 		lo = hi - bmg.bitmap.rows
-		if hi > yMax: yMax = hi
-		if lo < yMin: yMin = lo
+		if hi > yMax:
+			yMax = hi
+			highest = g.name
+		if lo < yMin:
+			yMin = lo
+			lowest = g.name
+	print 'highest', highest
+	print 'lowest', lowest
 	return yMax, yMin
 
 def write_VDMX(fm, tr):

@@ -1,6 +1,6 @@
 
 from AppKit import NSImage, NSImageNameRightFacingTriangleTemplate, NSImageNameLeftFacingTriangleTemplate
-from vanilla import Popover, CheckBox, TextBox, Slider, ComboBox, PopUpButton, ImageButton
+from vanilla import Popover, CheckBox, TextBox, Slider, ComboBox, PopUpButton, ImageButton, EditText
 from mojo.events import getActiveEventTool
 from commons import helperFunctions as HF
 from models.TTHTool import uniqueInstance as tthTool
@@ -176,6 +176,25 @@ class TTHCommandPopover(object):
 			HF.delCommandAttrib(self.cmd, 'zone')
 		self.gm.updateGlyphProgram(self.fm)
 		self.gm.performUndo()
+
+	def setupRatioUI(self, height):
+		self.popover.ratioSlider = Slider((10, height, -60, 10), minValue=-500, maxValue=500, value=int(float(self.cmd.get('shift'))), sizeStyle='mini', callback=self.ratioSliderCallback)
+		self.popover.ratioEditText = EditText((-50, height, -10, 17), str(int(float(self.cmd.get('shift')))), continuous=False, sizeStyle='mini', callback=self.ratioEditTextCallback)
+
+
+	def ratioSliderCallback(self, sender):
+		self.cmd.set('shift', str(int(sender.get())))
+		self.popover.ratioEditText.set(str(int(sender.get())))
+		self.gm.updateGlyphProgram(self.fm)
+
+	def ratioEditTextCallback(self, sender):
+		try:
+			v = int(sender.get())
+		except:
+			v = 0
+		self.cmd.set('shift', str(v))
+		self.popover.ratioSlider.set(v)
+		self.gm.updateGlyphProgram(self.fm)
 
 	def setupRoundDistanceUI(self):
 		self.popover.RoundDistanceText = TextBox((10, 32, 80, 15), "Round Distance:", sizeStyle = "small")
@@ -501,7 +520,7 @@ class InterpolatePopover(TTHCommandPopover):
 
 class SinglePopover(TTHCommandPopover):
 	def __init__(self, gm, fm, point, cmd):
-		super(SinglePopover, self).__init__(gm, fm, cmd, (200,130), point)
+		super(SinglePopover, self).__init__(gm, fm, cmd, (200,150), point)
 
 		self.setupStateUI()
 		self.setupRoundDistanceUI()
@@ -524,6 +543,8 @@ class SinglePopover(TTHCommandPopover):
 		noStem  = not HF.commandHasAttrib(self.cmd, 'stem')
 		self.popover.StemTypePopUpButton.enable(noRound)
 		self.popover.alignmentTypePopUpButton.enable(noRound and noStem)
+
+		self.setupRatioUI(-55)
 
 		ll, lw = 65, 80 # labelLeft, labelWidth
 		self.setupPointMoverUI(-35, 'point1', 'Move Point 1', ll, lw)

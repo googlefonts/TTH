@@ -7,7 +7,7 @@ class TTHCommandTool(object):
 
 	def __init__(self, name):
 		self.name = name
-		self.worksOnOFF = False
+		self.worksOnOFF = True
 		self.alignment = 0
 		self.allowedAlignments = ['Unused']
 		self.reset()
@@ -22,6 +22,7 @@ class TTHCommandTool(object):
 	def genNewCommand(self):
 		cmd = ET.Element('ttc')
 		cmd.set('active', 'true')
+		cmd.set('shift', '0')
 		return cmd
 
 	def setupCommandPointFromLoc(self, which, cmd, loc):

@@ -648,7 +648,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		elif stemName != None:
 			text = u'/ ' + stemName
 		else:
-			text = u'/'
+			text = u'/' + cmd.get('shift')
 		return DR.CommandLabel(cmd, scale, text, offCurve, whiteColor, DR.kDiaglinkColor, active)
 
 	def drawDoubleLink(self, cmd, scale, fm, gm, simple):
@@ -666,7 +666,7 @@ class TTH_RF_EventTool(BaseEventTool):
 		elif stemName != None:
 			text = u'☊ ' + stemName
 		else:
-			text = u'☊'
+			text = u'☊' + cmd.get('shift')
 		#labelSize = DR.drawTextAtPoint(scale, text, offCurve, whiteColor, DR.kDoublinkColor,\
 		#		self.getNSView(), active)
 		return DR.CommandLabel(cmd, scale, text, offCurve, whiteColor, DR.kDoublinkColor, active)
@@ -695,7 +695,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif stemName != None:                   text = 'R_' + stemName
 			else:                                    text = 'R'
 		else:
-			text = u','
+			text = u',' + cmd.get('shift')
 			if stemName == None and extension != '': text = u', ' + extension
 			elif stemName != None:
 				text = u', ' + stemName
@@ -727,7 +727,7 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif stemName != None:                   text = 'R_' + stemName
 			else:                                    text = 'R'
 		else:
-			text = u'⤴'
+			text = u'⤴' + cmd.get('shift')
 			if stemName == None and extension != '': text = u'⤴ ' + extension
 			elif stemName != None:
 				text = u'⤴ ' + stemName
