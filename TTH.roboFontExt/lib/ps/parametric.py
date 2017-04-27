@@ -1,6 +1,7 @@
 from commons import helperFunctions as HF
 from drawing import geom
 from math import cos, sin
+import copy
 
 zero = geom.Point(0,0)
 
@@ -222,27 +223,25 @@ def calculateLinkMove(regs, cmd, horizontal=False, double=False, diagonal=False)
 	if axis == 0: p2m = p2mx
 
 	cmdStem = cmd.get('stem')
-
 	
-	# elif (cmdStem in hStems) or (cmdStem in vStems):
 	if cmd.get('shift'):
 		shift = int(float(cmd.get('shift')))
 	else:
 		shift = 0
-
-	if cmd.get('code').endswith('v'):
-		distance = initialYDistance + shift
-	elif cmd.get('code').endswith('h'):
-		distance = initialXDistance + shift
-	elif cmd.get('code').endswith('diagonal'):
-		distance = initialXDistance + shift
-	elif cmdStem:
+	if cmdStem:
 		if cmdStem in hStems:
 			fontStem = hStems[cmdStem]
 		else:
 			fontStem = vStems[cmdStem]
 		value = fontStem['targetWidth']
 		distance = abs(int(value))
+
+	elif cmd.get('code').endswith('v'):
+		distance = initialYDistance + shift
+	elif cmd.get('code').endswith('h'):
+		distance = initialXDistance + shift
+	elif cmd.get('code').endswith('diagonal'):
+		distance = initialXDistance + shift
 	else: return
 
 
