@@ -700,7 +700,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif stemName != None:                   text = 'R_' + stemName
 			else:                                    text = 'R'
 		else:
-			text = u',' + cmd.get('shift')
+			shift = ''
+			if cmd.get('shift'):
+				shift = cmd.get('shift')
+			text = u',' + shift
 			if stemName == None and extension != '': text = u', ' + extension
 			elif stemName != None:
 				text = u', ' + stemName
@@ -732,7 +735,10 @@ class TTH_RF_EventTool(BaseEventTool):
 			elif stemName != None:                   text = 'R_' + stemName
 			else:                                    text = 'R'
 		else:
-			text = u'⤴' + cmd.get('shift')
+			shift = ''
+			if cmd.get('shift'):
+				shift = cmd.get('shift')
+			text = u'⤴' + shift
 			if stemName == None and extension != '': text = u'⤴ ' + extension
 			elif stemName != None:
 				text = u'⤴ ' + stemName
